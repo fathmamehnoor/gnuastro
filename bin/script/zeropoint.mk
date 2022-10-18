@@ -40,7 +40,7 @@ all: final
 .SHELLFLAGS = -ec
 
 # Include configure files.
-include zeropoint-img-img-cat.conf
+include zeropoint.conf
 
 
 
@@ -58,7 +58,7 @@ $(tmpdir):; mkdir $@
 # Use Gaia catalog and only keep the objects with good parallax (to
 # confirm that they are stars).
 stars=$(tmpdir)/gaia.fits
-$(stars): $(indir)/$(input) | $(zpdir)
+$(stars): $(indir)/$(input) | $(tmpdir)
 
 #	Download from Gaia.
 	raw=$(subst .fits,-raw.fits,$@)
@@ -94,8 +94,12 @@ $(stars): $(indir)/$(input) | $(zpdir)
 # radius 5.1 pixels. To calculate the pixel size I have to use the big
 # origin image before cropping
 inputzp=0
-allrefs=$(foreach i, $(refnumber), ref$(i))
-aperture=$(foreach i,input $(allrefs), \
+ifeq ($(reftype),img)
+gencat=$(foreach i, $(refnumber), ref$(i))
+else
+gencat=
+endif
+aperture=$(foreach i,input $(gencat), \
           $(foreach a,$(aper-arcsec), \
            $(tmpdir)/$(i)-$(a)-cat.fits))
 $(aperture): $(tmpdir)/%-cat.fits: $(stars)
@@ -135,6 +139,25 @@ $(aperture): $(tmpdir)/%-cat.fits: $(stars)
 
 
 
+# Prepare the catalog for comparing in different apperture.
+cataper=$(foreach a,$(aper-arcsec), \
+          $(tmpdir)/ref1-$(a)-cat.fits)
+$(cataper): $(tmpdir)/ref1-%-cat.fits: $(tmpdir)/input-%-cat.fits
+
+	asttable $(ref1) -cRA,DEC -cMAGNITUDE \
+	         | cat -n \
+	         | asttable --output=$@ \
+	               --colmetadata=1,OBJ_ID,int32,"Id of object." \
+	               --colmetadata=2,RA,float64,"Right Assencion." \
+	               --colmetadata=3,DEC,float64,"Declination." \
+	               --colmetadata=4,MAGNITUDE,float32,"Magnitude."
+
+
+
+
+
+
+
 
 # Calculate magnitude differences
 # -------------------------------
@@ -143,12 +166,12 @@ $(aperture): $(tmpdir)/%-cat.fits: $(stars)
 # magnitude in the catalog. Then subtract the reference mag from input
 # mag. Finally, the final target has two columns of reference mag and
 # subtracted mag.
+allrefs=$(foreach i, $(refnumber), ref$(i))
 magdiff=$(foreach r,$(allrefs), \
          $(foreach a,$(aper-arcsec), \
           $(tmpdir)/$(r)-$(a)-magdiff.fits))
 $(magdiff): $(tmpdir)/%-magdiff.fits: $(tmpdir)/%-cat.fits \
             $(tmpdir)/input-$$(word 2,$$(subst -, ,%))-cat.fits
-
 
 #	Find the matching objects in both catalogs. Note that the
 #	labels are the same so we don't need to use RA,Dec
