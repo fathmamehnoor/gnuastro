@@ -1,0 +1,128 @@
+#!/bin/sh
+
+# Calculate the Zeropoint of the image based on the refrence images or
+# catalog.
+#
+# Run with '--help' for more information.
+#
+# Original author:
+#     Sepideh Eskandarlou <sepideh.eskandarlou@gmail.com>
+# Contributing author:
+#     Mohammad Akhlaghi <mohammad@akhlaghi.org>
+#     Samane Raji <samaneraji@gmail.com>
+# Copyright (C) 2020-2022 Free Software Foundation, Inc.
+#
+# Gnuastro is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option)
+# any later version.
+#
+# Gnuastro is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
+
+
+# Exit the script in the case of failure
+set -e
+
+# 'LC_NUMERIC' is responsible for formatting numbers printed by the OS.  It
+# prevents floating points like '23,45' instead of '23.45'.
+export LC_NUMERIC=C
+
+
+
+
+# Default parameter's values
+hdu=1
+quiet=""
+output=""
+tmpdir=""
+catalog=""
+keeptmp=""
+refrence=""
+aperarcsec=""
+cataloghdu=""
+refrencezp=""
+refrencehdu=""
+version=@VERSION@
+scriptname=@SCRIPT_NAME@
+
+
+
+
+# Output of '--usage'
+print_usage() {
+     cat <<EOF
+$scriptname: run with '--help' to list the options.
+EOF
+}
+
+
+
+
+
+# Output of '--help'
+print_help() {
+   cat <<EOF
+Usage: $scriptname [OPTIONS] image.fits
+
+Build a catalogue of "good stars" that will be considered for constructing
+an extended and non parametric PSF. Here, "good stars" means that they
+don't have close objects that affect it sourrondings and consequently they
+are not contaminated. The script will construct a catalog of stars from
+reference datasets (Gaia) if the user does not provide another one. In
+addition to this, other parameters like the axis ratio are considered to
+filter the sample and select only proper stars.
+
+$scriptname options:
+ Input:
+  -h, --hdu=STR/INT       HDU/Extension name of number of the input file.
+  -c, --catalog           Refrence catalog which based on it zeropoint of
+                          input will be compute.
+  -C, --cataloghdu        HDU/Extension name of number of the catalog.
+  -r, --reference         Rerence images which based on them zeropoint of
+                          input will be compute.
+  -z, --referencezp       Zeropoints of reference images.
+  -R, --referencehdu      HDU/Extension name of number of the refrence files.
+  -a, --aprarcsec         Aperure arcseconds.
+
+ Output:
+  -o, --output            Output table with the object coordinates.
+  -t, --tmpdir            Directory to keep temporary files.
+  -k, --keeptmp           Keep temporal/auxiliar files.
+
+ Operating mode:
+  -h, --help              Print this help.
+      --cite              BibTeX citation for this program.
+  -q, --quiet             Don't print any extra information in stdout.
+  -V, --version           Print program version.
+
+Mandatory or optional arguments to long options are also mandatory or optional
+for any corresponfing short options.
+
+GNU Astronomy Utilities home page: http://www.gnu.org/software/gnuastro/
+
+Report bugs to bug-gnuastro@gnu.org
+EOF
+}
+
+
+
+
+
+# Output of '--version':
+print_version() {
+     cat <<EOF
+$scriptname (GNU Astronomy Utilities) $version
+Copyright (C) 2020-2022 Free Software Foundation, Inc.
+License GPLv3+: GNU General public license version 3 or later.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+Written/developed by Sepideh Eskandarlou.
+EOF
+}
