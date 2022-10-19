@@ -1,4 +1,4 @@
-# Creat final PSF for all tiles and all filters.
+#Creat final PSF for all tiles and all filters.
 #
 # Original authors:
 # Copyright (C) 2019-2022 Samane Raji <samaneraji@gmail.com>
@@ -40,7 +40,7 @@ all: final
 .SHELLFLAGS = -ec
 
 # Include configure files.
-include zeropoint.conf
+include $(tmpdir)/zeropoint.conf
 
 
 
@@ -58,12 +58,12 @@ $(tmpdir):; mkdir $@
 # Use Gaia catalog and only keep the objects with good parallax (to
 # confirm that they are stars).
 stars=$(tmpdir)/gaia.fits
-$(stars): $(indir)/$(input) | $(tmpdir)
+$(stars): $(input) | $(tmpdir)
 
 #	Download from Gaia.
 	raw=$(subst .fits,-raw.fits,$@)
 	astquery gaia --dataset=dr3 \
-	         --overlapwith=$(indir)/$(input) \
+	         --overlapwith=$(input) \
 	         -csource_id -cra -cdec -cparallax \
 	         -cphot_g_mean_mag -cparallax_error \
 	         -cpmra -cpmdec --output=$$raw
@@ -85,6 +85,32 @@ $(stars): $(indir)/$(input) | $(tmpdir)
 
 
 
+# Conditional for image or catalog reference
+ifeq ($(reftype),img)
+gencat=$(foreach i, $(refnumber), ref$(i))
+
+else
+
+# Initialize 'gencat' to an empty string
+gencat=
+
+# Prepare the catalog for comparing in different apperture.
+cataper=$(foreach a,$(aper-arcsec), \
+          $(tmpdir)/ref1-$(a)-cat.fits)
+$(cataper): $(tmpdir)/ref1-%-cat.fits:
+
+	asttable $(ref1) -c$(ra),$(dec) -c$(mag) \
+	         | cat -n \
+	         | asttable --output=$@ \
+	               --colmetadata=1,OBJ_ID,int32,"Id of object." \
+	               --colmetadata=2,RA,float64,"Right Assencion." \
+	               --colmetadata=3,DEC,float64,"Declination." \
+	               --colmetadata=4,MAGNITUDE,float32,"Magnitude."
+endif
+
+
+
+
 # Apertures photometry
 # --------------------
 #
@@ -93,12 +119,7 @@ $(stars): $(indir)/$(input) | $(tmpdir)
 # to set the other parameters of each profile to be a fixed circle of
 # radius 5.1 pixels. To calculate the pixel size I have to use the big
 # origin image before cropping
-inputzp=0
-ifeq ($(reftype),img)
-gencat=$(foreach i, $(refnumber), ref$(i))
-else
-gencat=
-endif
+zpinput=0
 aperture=$(foreach i,input $(gencat), \
           $(foreach a,$(aper-arcsec), \
            $(tmpdir)/$(i)-$(a)-cat.fits))
@@ -106,9 +127,9 @@ $(aperture): $(tmpdir)/%-cat.fits: $(stars)
 
 #	Extract the names.
 	img=$($(word 1, $(subst -, ,$*)))
-	zp=$($(word 1, $(subst -, ,$*))zp)
+	zp=$(zp$(word 1, $(subst -, ,$*)))
 	aperarcsec=$(word 2, $(subst -, ,$*))
-	hdu=$($(word 1, $(subst -, ,$*))hdu)
+	hdu=$(hdu$(word 1, $(subst -, ,$*)))
 
 #	Convert the aperture size (arcsec) to pixels.
 	aperpix=$$(astfits $$img --hdu=$$hdu --pixelscale --quiet \
@@ -135,25 +156,6 @@ $(aperture): $(tmpdir)/%-cat.fits: $(stars)
 
 #	Clean up.
 	rm $$aperwcscat $$aperimg
-
-
-
-
-# Prepare the catalog for comparing in different apperture.
-cataper=$(foreach a,$(aper-arcsec), \
-          $(tmpdir)/ref1-$(a)-cat.fits)
-$(cataper): $(tmpdir)/ref1-%-cat.fits: $(tmpdir)/input-%-cat.fits
-
-	asttable $(ref1) -cRA,DEC -cMAGNITUDE \
-	         | cat -n \
-	         | asttable --output=$@ \
-	               --colmetadata=1,OBJ_ID,int32,"Id of object." \
-	               --colmetadata=2,RA,float64,"Right Assencion." \
-	               --colmetadata=3,DEC,float64,"Declination." \
-	               --colmetadata=4,MAGNITUDE,float32,"Magnitude."
-
-
-
 
 
 
