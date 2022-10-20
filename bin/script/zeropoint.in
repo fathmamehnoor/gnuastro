@@ -86,14 +86,14 @@ $scriptname options:
   -d, --deccolumn=STR          Declination (Dec) column name of the reference
                                catalog.
   -m, --magcolumn=STR          Magnitude column name of the reference catalog.
-  -R, --reference=STR[,STR]    Rerence images which based on them zeropoint of
+  -R, --reference=STR[,STR]    Rerence image(s) which based on them zeropoint of
                                input will be compute.
   -z, --referencezp=FLT[,FLT]  Zeropoints of reference images.
   -H, --referencehdu=STR/INT   HDU/Extension name of number of the refrence files.
   -a, --aperarcsec=FLT[,FLT]   Aperure arcseconds.
 
  Output:
-  -o, --output            Output table with the object coordinates.
+  -o, --output            Output with zeropoint estimation and best aperture.
   -t, --tmpdir            Directory to keep temporary files.
   -k, --keeptmp           Keep temporal/auxiliar files.
 

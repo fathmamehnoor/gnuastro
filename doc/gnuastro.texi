@@ -729,6 +729,7 @@ Installed scripts
 * Generate radial profile::     Radial profile of an object in an image.
 * SAO DS9 region files from table::  Create ds9 region file from a table.
 * Viewing FITS file contents with DS9 or TOPCAT::  Open DS9 (images/cubes) or TOPCAT (tables).
+* Zeropoint estimation::        Zeropoint of an image from reference catalog or image(s).
 * PSF construction and subtraction::  Set of scripts to create extended PSF of an image.
 
 Sort FITS files by night
@@ -28733,6 +28734,7 @@ If you do confront such strange errors, please submit a bug report so we fix it 
 * Generate radial profile::     Radial profile of an object in an image.
 * SAO DS9 region files from table::  Create ds9 region file from a table.
 * Viewing FITS file contents with DS9 or TOPCAT::  Open DS9 (images/cubes) or TOPCAT (tables).
+* Zeropoint estimation::        Zeropoint of an image from reference catalog or image(s).
 * PSF construction and subtraction::  Set of scripts to create extended PSF of an image.
 @end menu
 
@@ -29428,7 +29430,7 @@ In the opened window, click on ``Command Line Options''.
 
 
 
-@node Viewing FITS file contents with DS9 or TOPCAT, PSF construction and subtraction, SAO DS9 region files from table, Installed scripts
+@node Viewing FITS file contents with DS9 or TOPCAT, Zeropoint estimation, SAO DS9 region files from table, Installed scripts
 @section Viewing FITS file contents with DS9 or TOPCAT
 
 @cindex Multi-Extension FITS
@@ -29589,7 +29591,76 @@ A single color bar is preferred for two reasons: 1) when there are a lot of imag
 With this option, you can have separate color bars under each image.
 @end table
 
-@node PSF construction and subtraction,  , Viewing FITS file contents with DS9 or TOPCAT, Installed scripts
+@c Update the ``previous'' and next items: C-c C-u C-e
+@c Update the menu:                        C-u C-c C-u m
+@node Zeropoint estimation, PSF construction and subtraction, Viewing FITS file contents with DS9 or TOPCAT, Installed scripts
+@section Zeropoint estimation
+
+This script takes the following options:
+
+@table @option
+@item -h STR/INT
+@itemx --hdu=STR/INT
+The HDU/extension of the input image to use.
+
+@item -c STR
+@itemx --catalog=STR
+Reference catalog which based on it the zeropoint of the input image will be estimated.
+This catalog should be have coordinate(ra,dec) and magnitude of the stars.
+
+@item -C STR/INT
+@itemx --cataloghdu=STR/INT
+The HDU/extension of the reference catalog will be calculated.
+
+@item -r STR
+@itemx --racolumn=STR
+Right Ascention column name of the reference catalog.
+
+@item -d STR
+@itemx --deccolumn=STR
+Declination column name of the reference catalog.
+
+@item -m STR
+@itemx --magcolumn=STR
+Magnitude column name of the reference catalog.
+
+@item -R STR,[STR]
+@itemx --reference=STR,[STR]
+Reference image or images which based on the zeropoint of the input image will be estimated.
+
+@item -z FLT,[FLT]
+@itemx --referencezp=FLT,[FLT]
+Zeropoint of the reference image or images.
+The number of this should be the same as the number of referene image(s).
+
+@item -H STR/INT
+@itemx --referencehdu=STR/INT
+HDU/Extension name of number of the refrence files.
+The number of this should be the same as the number of referene image(s).
+
+@item -a FLT,[FLT]
+@itemx --aperarcsec=FLT,[FLT]
+The size of aperture based on the arc seconds.
+
+@item -t
+@itemx --tmpdir
+Directory to keep temporary files during the execution of the script.
+If the directory does not exist at run-time, this script will create it.
+By default, upon completion of the script, this directory will be deleted.
+However, if you would like to keep the intermediate files, you can use the @option{--keeptmp} option.
+
+@item -k
+@itemx --keeptmp
+Do not remove the temporary directory (see description of @option{--keeptmp}).
+This option is useful for debugging and checking the outputs of internal steps.
+
+@item -o STR
+@itemx --output=STR
+The output name of the final file contain the best aperture and the zeropoint.
+@end table
+
+
+@node PSF construction and subtraction,  , Zeropoint estimation, Installed scripts
 @section PSF construction and subtraction
 
 The point spread function (PSF) describes how the light of a point-like source is affected by several optical scattering effects (atmosphere, telescope, instrument, etc.).
