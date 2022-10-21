@@ -241,7 +241,7 @@ $(aperzeropoint): $(tmpdir)/zeropoint-%.txt: \
 #
 # Using the standard deviation of the zeropoints for each aperture,
 # select the one with the least scatter.
-zeropoint=$(tmpdir)/zeropoint.fits
+zeropoint=$(output)
 $(zeropoint): $(aperzeropoint)
 	zp=$(subst .fits,-tmp.txt,$@)
 	echo "# Column 1: APERTURE  [arcsec,f32,]" > $$zp
@@ -270,7 +270,6 @@ $(zeropoint): $(aperzeropoint)
 
 #	Clean up.
 	rm $$zp
-
 
 
 
