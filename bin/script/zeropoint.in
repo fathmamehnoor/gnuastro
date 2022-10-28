@@ -42,6 +42,7 @@ output=""
 tmpdir=""
 catalog=""
 keeptmp=""
+keepzpap=""
 refrence=""
 aperarcsec=""
 cataloghdu=""
@@ -49,7 +50,8 @@ refrencezp=""
 racolumn="RA"
 refrencehdu=""
 deccolumn="DEC"
-version=@VERSION@
+version=@VERSION@magmg
+magnituderange=""
 magcolumn="MAGNITUDE"
 scriptname=@SCRIPT_NAME@
 
@@ -86,11 +88,13 @@ $scriptname options:
   -d, --deccolumn=STR          Declination (Dec) column name of the reference
                                catalog.
   -m, --magcolumn=STR          Magnitude column name of the reference catalog.
+  -M, --magnituderange=FLT,FLT Range of the magnitude.
   -R, --reference=STR[,STR]    Rerence image(s) which based on them zeropoint of
                                input will be compute.
   -z, --referencezp=FLT[,FLT]  Zeropoints of reference images.
   -H, --referencehdu=STR/INT   HDU/Extension name of number of the refrence files.
   -a, --aperarcsec=FLT[,FLT]   Aperure arcseconds.
+  -K, --keepzpap               Keep zeropoint of each aperture in different extension.
 
  Output:
   -o, --output            Output with zeropoint estimation and best aperture.
@@ -244,24 +248,28 @@ while [ $# -gt 0 ]
 do
    case "$1" in
    # Input parameters.
-       -h|--hdu)               hdu="$2";                                     check_v "$1" "$hdu";  shift;shift;;
-       -h=*|--hdu=*)           hdu="${1#*=}";                                check_v "$1" "$hdu";  shift;;
-       -h*)                    hdu=$(echo "$1" | sed -e's/-h//');            check_v "$1" "$hdu";  shift;;
-       -c|--catalog)           catalog="$2";                                 check_v "$1" "$catalog";  shift;shift;;
-       -c=*|--catalog=*)       catalog="${1#*=}";                            check_v "$1" "$catalog";  shift;;
-       -c*)                    catalog=$(echo "$1" | sed -e's/-c//');        check_v "$1" "$catalog";  shift;;
-       -C|--cataloghdu)        cataloghdu="$2";                              check_v "$1" "$cataloghdu";  shift;shift;;
-       -C=*|--cataloghdu=*)    cataloghdu="${1#*=}";                         check_v "$1" "$cataloghdu";  shift;;
-       -C*)                    cataloghdu=$(echo "$1" | sed -e's/-C//');     check_v "$1" "$cataloghdu";  shift;;
-       -r|--racolumn)          racolumn="$2";                                check_v "$1" "$racolumn";  shift;shift;;
-       -r=*|--racolumn=*)      racolumn="${1#*=}";                           check_v "$1" "$racolumn";  shift;;
-       -r*)                    racolumn=$(echo "$1" | sed -e's/-r//');       check_v "$1" "$racolumn";  shift;;
-       -d|--deccolumn)         deccolumn="$2";                               check_v "$1" "$deccolumn";  shift;shift;;
-       -d=*|--deccolumn=*)     deccolumn="${1#*=}";                          check_v "$1" "$deccolumn";  shift;;
-       -d*)                    deccolumn=$(echo "$1" | sed -e's/-d//');      check_v "$1" "$deccolumn";  shift;;
-       -m|--magcolumn)         magcolumn="$2";                               check_v "$1" "$magcolumn";  shift;shift;;
-       -m=*|--magcolumn=*)     magcolumn="${1#*=}";                          check_v "$1" "$magcolumn";  shift;;
-       -m*)                    magcolumn=$(echo "$1" | sed -e's/-m//');      check_v "$1" "$magcolumn";  shift;;
+       -h|--hdu)                hdu="$2";                                     check_v "$1" "$hdu";  shift;shift;;
+       -h=*|--hdu=*)            hdu="${1#*=}";                                check_v "$1" "$hdu";  shift;;
+       -h*)                     hdu=$(echo "$1" | sed -e's/-h//');            check_v "$1" "$hdu";  shift;;
+       -c|--catalog)            catalog="$2";                                 check_v "$1" "$catalog";  shift;shift;;
+       -c=*|--catalog=*)        catalog="${1#*=}";                            check_v "$1" "$catalog";  shift;;
+       -c*)                     catalog=$(echo "$1" | sed -e's/-c//');        check_v "$1" "$catalog";  shift;;
+       -C|--cataloghdu)         cataloghdu="$2";                              check_v "$1" "$cataloghdu";  shift;shift;;
+       -C=*|--cataloghdu=*)     cataloghdu="${1#*=}";                         check_v "$1" "$cataloghdu";  shift;;
+       -C*)                     cataloghdu=$(echo "$1" | sed -e's/-C//');     check_v "$1" "$cataloghdu";  shift;;
+       -r|--racolumn)           racolumn="$2";                                check_v "$1" "$racolumn";  shift;shift;;
+       -r=*|--racolumn=*)       racolumn="${1#*=}";                           check_v "$1" "$racolumn";  shift;;
+       -r*)                     racolumn=$(echo "$1" | sed -e's/-r//');       check_v "$1" "$racolumn";  shift;;
+       -d|--deccolumn)          deccolumn="$2";                               check_v "$1" "$deccolumn";  shift;shift;;
+       -d=*|--deccolumn=*)      deccolumn="${1#*=}";                          check_v "$1" "$deccolumn";  shift;;
+       -d*)                     deccolumn=$(echo "$1" | sed -e's/-d//');      check_v "$1" "$deccolumn";  shift;;
+       -m|--magcolumn)          magcolumn="$2";                               check_v "$1" "$magcolumn";  shift;shift;;
+       -m=*|--magcolumn=*)      magcolumn="${1#*=}";                          check_v "$1" "$magcolumn";  shift;;
+       -m*)                     magcolumn=$(echo "$1" | sed -e's/-m//');      check_v "$1" "$magcolumn";  shift;;
+
+       -M|--magnituderange)     magnituderange="$2";                          check_v "$1" "$magnituderange";  shift;shift;;
+       -M=*|--magnituderange=*) magnituderange="${1#*=}";                     check_v "$1" "$magnituderange";  shift;;
+       -M*)                     magnituderange=$(echo "$1" | sed -e's/-M//'); check_v "$1" "$magnituderange";  shift;;
        -R|--reference)         reference="$2";                               check_v "$1" "$reference";  shift;shift;;
        -R=*|--reference=*)     reference="${1#*=}";                          check_v "$1" "$reference";  shift;;
        -R*)                    reference=$(echo "$1" | sed -e's/-R//');      check_v "$1" "$reference";  shift;;
@@ -274,7 +282,8 @@ do
        -a|--aperarcsec)        aperarcsec="$2";                              check_v "$1" "$aperarcsec";  shift;shift;;
        -a=*|--aperarcsec=*)    aperarcsec="${1#*=}";                         check_v "$1" "$aperarcsec";  shift;;
        -a*)                    aperarcsec=$(echo "$1" | sed -e's/-a//');     check_v "$1" "$aperarcsec";  shift;;
-
+       -K|--keepzpap)          keepzpap=1; shift;;
+       -K*|--keepzpap=*)       on_off_option_error --keepzpap -K;;
 
 # Output parameters
        -k|--keeptmp)           keeptmp=1; shift;;
@@ -325,6 +334,17 @@ EOF
     exit 1
 fi
 
+# If the brighter and fainter range of magnitude are not given at all.
+if [ x$magnituderange != x ]; then
+    nmagrange=$(echo $magnituderange | awk 'BEGIN{FS=","}END{print NF}')
+    if [ x$nmagrange != x2 ]; then
+        cat<<EOF
+$scriptname: ERROR: '--magnituderange' (or '-m') only take two values, but $nmagrange were given
+EOF
+        exit 1
+    fi
+fi
+
 
 
 
@@ -372,6 +392,14 @@ echo "input = $inputs" > $config
 echo "output =$output" >> $config
 echo "hduinput = $hdu" >> $config
 echo "tmpdir = $tmpdir" >> $config
+
+# Obtain the magnitude range from the command line arguments.
+if [ x$magnituderange = x ]; then
+    echo "magrange = " >> $config
+else
+    echo "magrange = $magnituderange" >> $config
+fi
+
 # Put the size of the apertures in a variables. The comma should be
 # change with a space.
 aper=$(echo $aperarcsec | sed 's|,| |g')
@@ -405,6 +433,21 @@ else
         echo "zpref$n = $zp" >> $config
     done
 fi
+
+
+
+
+# Keep the zeropoint of different appertures in different extension.
+# ------------------------------------------------------------------
+#
+# If user specify to keep the zeropoint of the different appeertures it
+# will be saved in the different extension of the output.
+if [ x"$keepzpap" = x ]; then
+    echo "zeropointap =    " >> $config
+else
+    echo "zeropointap = keep" >> $config
+fi
+
 
 
 

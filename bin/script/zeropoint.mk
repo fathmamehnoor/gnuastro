@@ -5,7 +5,7 @@
 #
 # Contributers:
 # Copyright (C) 2019-2022 Mohammad Akhlaghi <mohammad@akhlaghi.org>
-# Copyright (C) 2019-2022 Zahra sharbaf <ahra.sharbaf2@gmail.com>
+# Copyright (C) 2019-2022 Zahra sharbaf <zahra.sharbaf2@gmail.com>
 # Copyright (C) 2022 Sepideh Eskandarlou <sepideh.eskandarlou@gmail.com>
 #
 # This Makefile is free software: you can redistribute it and/or modify
@@ -241,17 +241,35 @@ $(aperzeropoint): $(tmpdir)/zeropoint-%.txt: \
 #
 # Using the standard deviation of the zeropoints for each aperture,
 # select the one with the least scatter.
-zeropoint=$(tmpdir)/zeropoint.txt
+zeropoint=$(tmpdir)/zeropoint.fits
 $(zeropoint): $(aperzeropoint)
-	zp=$(subst .txt,-tmp.txt,$@)
+	zp=$(subst .fits,-tmp.txt,$@)
 	echo "# Column 1: APERTURE  [arcsec,f32,]" > $$zp
 	echo "# Column 2: ZEROPOINT [mag,f32,]"  >> $$zp
 	echo "# Column 3: ZPSTD     [mag,f32,]"  >> $$zp
 	for a in $(aper-arcsec); do
 	  cat $(tmpdir)/zeropoint-$$a.txt        >> $$zp
 	done
-	asttable $$zp --sort=ZPSTD --head=1 \
-	         --column=APERTURE,ZEROPOINT >$@
+	asttable $$zp --output=$@.fits
+	bestzpaper=$$(asttable $$zp --sort=ZPSTD --head=1 \
+	                       --column=APERTURE,ZEROPOINT)
+
+	astfits $@.fits --write=BESTAPZE,"$$bestzpaper","Beat aperture and zeropoitn."
+
+	if [ x"$(zeropointap)" = x ]; then
+	   mv $@.fits $@
+	else
+	  counter=1
+	  for i in $(aper-arcsec); do
+	    counter=$$((counter+1))
+	    astfits $(tmpdir)/zeropoint-$$i-merged.fits --copy=1 -o$@.fits
+	    astfits $@.fits -h$$counter --update=EXTNAME,APER-$$i
+	  done
+	  mv $@.fits $@
+	fi
+
+#	Clean up.
+	rm $$zp
 
 
 
