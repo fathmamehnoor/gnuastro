@@ -41936,21 +41936,39 @@ It is therefore a useful tool to visually inspect the images/cubes of your Gnuas
 In Gnuastro we have an installed script to run DS9 or TOPCAT on any number of FITS files (depending on it being an image or table), see @ref{Viewing FITS file contents with DS9 or TOPCAT} (which also includes a @file{.desktop} file for GUI integration).
 After installing DS9, you can easily use that script to open any FITS file (table, image or cube).
 
-Like the other packages, it might already be available in your distribution's repositories.
-It is also already pre-compiled in the download section of its web page.
-Once you download it you can unpack and install (move it to a system recognized directory) with the following commands (@code{x.x.x} is the version number):
-
+Like the other packages, it might already be available in your distribution's repositories; but these may be outdated.
+DS9 is also already pre-compiled for many common operating systems in the download section of its own web page:
+@enumerate
+@item
+Find your operating system in @url{https://ds9.si.edu/download}.
+Note that many GNU/Linux operating systems are compatible with Debian or Fedora, so if you don't find your operating system's name, probably the latest Debian or Fedora will also work for you.
+@item
+With the operating system directories, you will find a compressed tarball that you need to download (choose the latest one).
+@item
+Unpack the tarball with a command like below:
 @example
-$ tar xf ds9.linux64.x.x.x.tar.gz
+$ tar -xf ds9.debian11.X.X.X.tar.gz
+@end example
+@item
+This should produce a simple @file{ds9} file.
+Before installing, it is good to actually test it like below:
+@example
+$ ./ds9
+@end example
+@item
+If the command above opened DS9 with no error, you can safely install it with this command:
+@example
 $ sudo mv ds9 /usr/local/bin
 @end example
-
-@noindent
-To test the build (as long as @file{/usr/local/bin} is in your @code{PATH}, see @ref{Installation directory}), you can simply run the command below.
+@item
+Go to your home directory and try running DS9 with the two commands below.
+If it doesn't find it, then you need to add @file{/usr/local/bin} to your @file{PATH}, see @ref{Installation directory}.
 
 @example
+$ cd
 $ ds9
 @end example
+@end enumerate
 
 @cartouche
 @noindent
