@@ -254,8 +254,12 @@ $(zeropoint): $(aperzeropoint)
 	  cat $(tmpdir)/zeropoint-$$a.txt        >> $$zp
 	done
 
-#	Find the best aperture and its zeropoint and write in the header of
-#	the output.
+#	Find the best aperture, its zeropoint and standard deviation for
+#	writting in the header of the output.
+	mag=""
+	if [ x"$(magrange)" != x ]; then
+	  mag=$(magrange)
+	fi
 	asttable $$zp --output=$@.fits
 	bestaper=$$(asttable $$zp --sort=ZPSTD --head=1 --column=APERTURE)
 	bestzp=$$(asttable $$zp --sort=ZPSTD --head=1  --column=ZEROPOINT)
@@ -264,6 +268,7 @@ $(zeropoint): $(aperzeropoint)
 	astfits $@.fits --write=ZPAPER,"$$bestaper","Best aperture."
 	astfits $@.fits --write=ZPVALUE,"$$bestzp","Best zeropoint."
 	astfits $@.fits --write=ZPSTD,"$$beststd","Best standard deviation of zeropoint."
+	astfits $@.fits --write=MAGRNG,"$$mag","Magnitude range."
 
 	if [ x"$(keepzpap)" = x ]; then
 
