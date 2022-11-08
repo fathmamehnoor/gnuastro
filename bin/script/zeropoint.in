@@ -388,10 +388,11 @@ fi
 # At first the user wants to compute the Zeropoint for input image based on
 # the images or catalog.
 config=$tmpdir/zeropoint.conf
-echo "input = $inputs" > $config
-echo "output =$output" >> $config
-echo "hduinput = $hdu" >> $config
-echo "tmpdir = $tmpdir" >> $config
+echo "input    = $inputs"  > $config
+echo "output   = $output" >> $config
+echo "hduinput = $hdu"    >> $config
+echo "zpinput  = 0"       >> $config
+echo "tmpdir   = $tmpdir" >> $config
 
 # Obtain the magnitude range from the command line arguments.
 if [ x$magnituderange = x ]; then
@@ -443,9 +444,9 @@ fi
 # If user specify to keep the zeropoint of the different appeertures it
 # will be saved in the different extension of the output.
 if [ x"$keepzpap" = x ]; then
-    echo "zeropointap =    " >> $config
+    echo "keepzpap =    " >> $config
 else
-    echo "zeropointap = keep" >> $config
+    echo "keepzpap = keep" >> $config
 fi
 
 
@@ -453,7 +454,12 @@ fi
 
 
 # Call the Makefile
-make -f zeropoint.mk tmpdir=$tmpdir
+if [ x$installdir = x ]; then
+    mksrc=zeropoint.mk
+else
+    mksrc=$installdir/zeropoint.mk
+fi
+make -f $mksrc tmpdir=$tmpdir
 
 
 

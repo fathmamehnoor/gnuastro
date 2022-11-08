@@ -219,6 +219,7 @@ $(aperzeropoint): $(tmpdir)/zeropoint-%.txt: \
 #	Merge all the rows from all the reference images into one.
 	merged=$(subst .txt,-merged.fits,$@)
 	asttable $(tmpdir)/ref1-$*-magdiff.fits $$opts -o$$merged
+	astfits $$merged --update=EXTNAME,APER-$*
 
 #	If the user requested a certain magnitude range, use it.
 	rangeopt=""
@@ -243,6 +244,8 @@ $(aperzeropoint): $(tmpdir)/zeropoint-%.txt: \
 # select the one with the least scatter.
 zeropoint=$(output)
 $(zeropoint): $(aperzeropoint)
+
+#	Obtained the zeropoint and zeropoint std of each apertures.
 	zp=$(subst .fits,-tmp.txt,$@)
 	echo "# Column 1: APERTURE  [arcsec,f32,]" > $$zp
 	echo "# Column 2: ZEROPOINT [mag,f32,]"  >> $$zp
@@ -250,20 +253,39 @@ $(zeropoint): $(aperzeropoint)
 	for a in $(aper-arcsec); do
 	  cat $(tmpdir)/zeropoint-$$a.txt        >> $$zp
 	done
+
+#	Find the best aperture and its zeropoint and write in the header of
+#	the output.
 	asttable $$zp --output=$@.fits
-	bestzpaper=$$(asttable $$zp --sort=ZPSTD --head=1 \
-	                       --column=APERTURE,ZEROPOINT)
+	bestaper=$$(asttable $$zp --sort=ZPSTD --head=1 --column=APERTURE)
+	bestzp=$$(asttable $$zp --sort=ZPSTD --head=1  --column=ZEROPOINT)
+	beststd=$$(asttable $$zp --sort=ZPSTD --head=1  --column=ZPSTD)
+	astfits $@.fits --write=/,"Zeropoint properties"
+	astfits $@.fits --write=ZPAPER,"$$bestaper","Best aperture."
+	astfits $@.fits --write=ZPVALUE,"$$bestzp","Best zeropoint."
+	astfits $@.fits --write=ZPSTD,"$$beststd","Best standard deviation of zeropoint."
 
-	astfits $@.fits --write=BESTAPZE,"$$bestzpaper","Beat aperture and zeropoitn."
+	if [ x"$(keepzpap)" = x ]; then
 
-	if [ x"$(zeropointap)" = x ]; then
+#	   The 'bestaper' above is returned from 'asttable', so (which is
+#	   saved as a floating point), so the extra digits in reading
+#	   floating points
+	   for a in $(aper-arcsec); do
+	     check=$$(echo $$a \
+	                   | awk -vb=$$bestaper \
+	                         '$$1>b-1e-6 && $$1<b+1e-6{print "yes"}')
+	     if [ x$$check == xyes ]; then bestaperstr=$$a; fi
+	   done
+
+#	   Move the main table to the output and copy the Mag-vs-Zeroppoint
+#	   plot for the best aperture.
+	   astfits $(tmpdir)/zeropoint-$$bestaperstr-merged.fits --copy=1 -o$@.fits
 	   mv $@.fits $@
 	else
-	  counter=1
-	  for i in $(aper-arcsec); do
-	    counter=$$((counter+1))
-	    astfits $(tmpdir)/zeropoint-$$i-merged.fits --copy=1 -o$@.fits
-	    astfits $@.fits -h$$counter --update=EXTNAME,APER-$$i
+#	   Move the main table to the output and copy the Mag-vs-Zeroppoint
+#	   plot for the whole aperture.
+	  for a in $(aper-arcsec); do
+	    astfits $(tmpdir)/zeropoint-$$a-merged.fits --copy=1 -o$@.fits
 	  done
 	  mv $@.fits $@
 	fi
