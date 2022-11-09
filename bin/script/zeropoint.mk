@@ -256,9 +256,11 @@ $(zeropoint): $(aperzeropoint)
 
 #	Find the best aperture, its zeropoint and standard deviation for
 #	writting in the header of the output.
-	mag=""
+	magmin=""
+	magmax=""
 	if [ x"$(magrange)" != x ]; then
-	  mag=$(magrange)
+	  magmin=$$(echo "$(magrange)" | sed 's\,\ \' | awk '{print $$1}')
+	  magmax=$$(echo "$(magrange)" | sed 's\,\ \' | awk '{print $$2}')
 	fi
 	asttable $$zp --output=$@.fits
 	bestaper=$$(asttable $$zp --sort=ZPSTD --head=1 --column=APERTURE)
@@ -268,7 +270,8 @@ $(zeropoint): $(aperzeropoint)
 	astfits $@.fits --write=ZPAPER,"$$bestaper","Best aperture."
 	astfits $@.fits --write=ZPVALUE,"$$bestzp","Best zeropoint."
 	astfits $@.fits --write=ZPSTD,"$$beststd","Best standard deviation of zeropoint."
-	astfits $@.fits --write=MAGRNG,"$$mag","Magnitude range."
+	astfits $@.fits --write=MAGMIN,"$$magmin","Minimum magnitude for obtaining zeropoint."
+	astfits $@.fits --write=MAGMAX,"$$magmax","Maximum magnitude for obtaining zeropoint."
 
 	if [ x"$(keepzpap)" = x ]; then
 
