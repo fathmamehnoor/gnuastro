@@ -393,6 +393,8 @@ gal_type_bit_string(void *in, size_t size)
 char *
 gal_type_to_string(void *ptr, uint8_t type, int quote_if_str_has_space)
 {
+  float *f=ptr;
+  double *d=ptr;
   char *c, *str=NULL;
   switch(type)
     {
@@ -430,11 +432,21 @@ gal_type_to_string(void *ptr, uint8_t type, int quote_if_str_has_space)
 
     /* We aren't using '%g' for floating points because it can remove
        statisically significant digits in some scenarios and its result is
-       generally not easily predictable (can be fixed-point or
-       exponential). The most conservative format is therefore '%f'. */
-    case GAL_TYPE_FLOAT32: TO_STRING( float,    "%.6f"    );  break;
-    case GAL_TYPE_FLOAT64: TO_STRING( double,   "%.14f"   );  break;
+       generally not easily predictable: can be fixed-point or exponential
+       depending on printed length! But the printed length of a number can
+       hide statisical significance. Therefore, the most conservative
+       format is '%Nf' (where 'N' is the number of digits after the decimal
+       point; depending on the precision of the type). But in this case,
+       when the number is smaller than 1.0, '%.Nf' will loose precision!
+       For example '0.0001234567' will be printed as '0.000123'! Thefore
+       when the value is less than 1.0, we should use %Ne (with the same
+       number of digits after the decimal point). */
+    case GAL_TYPE_FLOAT32:
+      TO_STRING( float,  *f<1.0  ? "%.6e"  : "%.6f" );  break;
+    case GAL_TYPE_FLOAT64:
+      TO_STRING( double, *d<1.0f ? "%.14e" : "%.14f");  break;
 
+    /* Unknown type! */
     default:
       error(EXIT_FAILURE, 0, "%s: type code %d not recognized",
             __func__, type);

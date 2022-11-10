@@ -71,6 +71,9 @@ See the end of the file for license conditions.
               0.19). Reported by Giulia Golini.
   bug #63285: Table not printing anything in rows of integer columns with
               value of zero.
+  bug #63340: Statistics printing zero for values smaller than 1e-6 and
+              1e-14 for 32-bit or 64-bit floats respectively. Reported by
+              Elham Saremi.
 
 
 
