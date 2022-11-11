@@ -960,18 +960,19 @@ wcs_coordsys_insys_pole_in_outsys(int insys, int outsys, double *lng2p1,
 
 
 static void
-wcs_coordsys_ctypes(int coordsys, char **clng, char **clat, char **radesys)
+wcs_coordsys_ctypes(int coordsys, char **clng, char **clat, char **radesys,
+                    double *equinox)
 {
   switch( coordsys)
     {
     case GAL_WCS_COORDSYS_EQB1950:
-      *clng="RA";   *clat="DEC";  *radesys="FK4"; break;
+      *clng="RA";   *clat="DEC";  *radesys="FK4"; *equinox=1950; break;
     case GAL_WCS_COORDSYS_EQJ2000:
-      *clng="RA";   *clat="DEC";  *radesys="FK5"; break;
+      *clng="RA";   *clat="DEC";  *radesys="FK5"; *equinox=2000; break;
     case GAL_WCS_COORDSYS_ECB1950:
-      *clng="ELON"; *clat="ELAT"; *radesys="FK4"; break;
+      *clng="ELON"; *clat="ELAT"; *radesys="FK4"; *equinox=1950; break;
     case GAL_WCS_COORDSYS_ECJ2000:
-      *clng="ELON"; *clat="ELAT"; *radesys="FK5"; break;
+      *clng="ELON"; *clat="ELAT"; *radesys="FK5"; *equinox=2000; break;
     case GAL_WCS_COORDSYS_GALACTIC:
       *clng="GLON"; *clat="GLAT"; *radesys=NULL;  break;
     case GAL_WCS_COORDSYS_SUPERGALACTIC:
@@ -1018,7 +1019,7 @@ gal_wcs_coordsys_convert(struct wcsprm *wcs, int outcoordsys)
                                     &lng2p1, &lat2p1, &lng1p2);
 
   /* Find the necessary CTYPE names of the output. */
-  wcs_coordsys_ctypes(outcoordsys, &clng, &clat, &radesys);
+  wcs_coordsys_ctypes(outcoordsys, &clng, &clat, &radesys, &equinox);
 
   /* Convert the WCS's coordinate system (if 'wcsccs' is available). */
 #if GAL_CONFIG_HAVE_WCSLIB_WCSCCS
@@ -1026,7 +1027,10 @@ gal_wcs_coordsys_convert(struct wcsprm *wcs, int outcoordsys)
   wcsccs(out, lng2p1, lat2p1, lng1p2, clng, clat, radesys, equinox, alt);
 #else
 
-  /* Just to avoid compiler warnings for 'equinox' and 'alt'. */
+  /* Just to avoid compiler warnings for 'equinox' and 'alt' (when WCSLIB
+     doesn't have the 'wcsccs' function): these will never be used: if
+     control comes here the function will abort! So don't worry about this
+     command having any kind of effect on the progrma. */
   if(alt) lng2p1+=equinox;
 
   /* Print error message and abort. */
