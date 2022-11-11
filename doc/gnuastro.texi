@@ -1321,7 +1321,7 @@ Recorded talk: @url{https://peertube.stream/w/ddeSSm33R1eFWKJVqpcthN} (first 20 
 In short, the Linux kernel@footnote{In Unix-like operating systems, the kernel connects software and hardware worlds.} is built using the GNU C library (glibc) and GNU compiler collection (gcc).
 The Linux kernel software alone is just a means for other software to access the hardware resources, it is useless alone!
 A normal astronomer (or scientist) will never interact with the kernel directly!
-for example, the command-line environment that you interact with is usually GNU Bash.
+For example, the command-line environment that you interact with is usually GNU Bash.
 It is GNU Bash that then talks to kernel.
 
 To better clarify, let's use this analogy inspired from one of the links above@footnote{https://www.gnu.org/gnu/gnu-users-never-heard-of-gnu.html}: saying that you are ``running Linux'' is like saying you are ``driving your engine''.
@@ -1335,7 +1335,7 @@ For the Linux kernel, both the lower-level and higher-level tools are GNU.
 In other words,``the whole system is basically GNU with Linux loaded''.
 
 You can replace the Linux kernel and still have the GNU shell and higher-level utilities.
-for example, using the ``Windows Subsystem for Linux'', you can use almost all GNU tools without the original Linux kernel, but using the host Windows operating system, as in @url{https://ubuntu.com/wsl}.
+For example, using the ``Windows Subsystem for Linux'', you can use almost all GNU tools without the original Linux kernel, but using the host Windows operating system, as in @url{https://ubuntu.com/wsl}.
 Alternatively, you can build a fully functional GNU-based working environment on a macOS or BSD-based operating system (using the host's kernel and C compiler), for example, through projects like Maneage (see @url{https://arxiv.org/abs/2006.03018, Akhlaghi et al. 2021}, and its Appendix C with all the GNU software tools that is exactly reproducible on a macOS also).
 
 Therefore to acknowledge GNU's instrumental role in the creation and usage of the Linux kernel and the operating systems that use it, we should call these operating systems ``GNU/Linux''.
@@ -1361,7 +1361,7 @@ Here we hope to convince you of the unique benefits of this interface which can 
 Through GNOME 3@footnote{@url{http://www.gnome.org/}}, most GNU/Linux based operating systems now have an advanced and useful GUI.
 Since the GUI was created long after the command-line, some wrongly consider the command line to be obsolete.
 Both interfaces are useful for different tasks.
-for example, you cannot view an image, video, PDF document or web page on the command-line.
+For example, you cannot view an image, video, PDF document or web page on the command-line.
 On the other hand you cannot reproduce your results easily in the GUI.
 Therefore they should not be regarded as rivals but as complementary user interfaces, here we will outline how the CLI can be useful in scientific programs.
 
@@ -1468,7 +1468,7 @@ This will significantly help us in managing and resolving them sooner.
 @item Reproducible bug reports
 If we cannot exactly reproduce your bug, then it is very hard to resolve it.
 So please send us a Minimal working example@footnote{@url{http://en.wikipedia.org/wiki/Minimal_Working_Example}} along with the description.
-for example, in running a program, please send us the full command-line text and the output with the @option{-P} option, see @ref{Operating mode options}.
+For example, in running a program, please send us the full command-line text and the output with the @option{-P} option, see @ref{Operating mode options}.
 If it is caused only for a certain input, also send us that input file.
 In case the input FITS is large, please use Crop to only crop the problematic section and make it as small as possible so it can easily be uploaded and downloaded and not waste the archive's storage, see @ref{Crop}.
 @end table
@@ -2312,7 +2312,7 @@ $ for z in 0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0; do        \
 @noindent
 Fortunately, the shell has a useful tool/program to print a sequence of numbers that is nicely called @code{seq} (short for ``sequence'').
 You can use it instead of typing all the different redshifts in the loop above.
-for example, the loop below will calculate and print the tangential coverage of this field across a larger range of redshifts (0.1 to 5) and with finer increments of 0.1.
+For example, the loop below will calculate and print the tangential coverage of this field across a larger range of redshifts (0.1 to 5) and with finer increments of 0.1.
 For more on the @code{LC_NUMERIC} command, see @ref{Numeric locale}.
 
 @example
@@ -2601,7 +2601,7 @@ $ astcosmiccal -P       # The default cosmology is printed.
 
 To further simplify the process, you can use the @option{--setdirconf} option.
 If you are already in your desired working directory, calling this option with the others will automatically write the final values (along with descriptions) in @file{.gnuastro/astcosmiccal.conf}.
-for example, try the commands below:
+For example, try the commands below:
 
 @example
 $ mkdir my-cosmology2
@@ -2644,7 +2644,7 @@ $ astwarp flat-ir/xdf-f160w.fits --rotate=20
 Open the output (@file{xdf-f160w_rotated.fits}) and see how it is rotated.
 
 Warp can generally be used for many kinds of pixel grid manipulation (warping), not just rotations.
-for example, the outputs of the commands below will have larger pixels respectively (new resolution being one quarter the original resolution), get shifted by 2.8 (by sub-pixel), get a shear of 2, and be tilted (projected).
+For example, the outputs of the commands below will have larger pixels respectively (new resolution being one quarter the original resolution), get shifted by 2.8 (by sub-pixel), get a shear of 2, and be tilted (projected).
 Run each of them and open the output file to see the effect, they will become handy for you in the future.
 
 @example
@@ -2656,7 +2656,7 @@ $ astwarp flat-ir/xdf-f160w.fits --project=0.001,0.0005
 
 @noindent
 If you need to do multiple warps, you can combine them in one call to Warp.
-for example, to first rotate the image, then scale it, run this command:
+For example, to first rotate the image, then scale it, run this command:
 
 @example
 $ astwarp flat-ir/xdf-f160w.fits --rotate=20 --scale=0.25
@@ -2964,7 +2964,7 @@ The correlated noise is again visible in the signal-to-noise distribution of sky
 Do you see how skewed this distribution is?
 In an image with less correlated noise, this distribution would be much more symmetric.
 A small change in the quantile will translate into a big change in the S/N value.
-for example, see the difference between the three 0.99, 0.95 and 0.90 quantiles with this command:
+For example, see the difference between the three 0.99, 0.95 and 0.90 quantiles with this command:
 
 @example
 $ aststatistics xdf-f160w_detsn.fits -hSKY_PSEUDODET_SN -c2      \
@@ -2986,7 +2986,7 @@ $ astarithmetic $in $det nan where --output=mask-det.fits
 @end example
 
 Overall it seems good, but if you play a little with the color-bar and look closer in the noise, you'll see a few very sharp, but faint, objects that have not been detected.
-for example, the object around pixel (456, 1662).
+For example, the object around pixel (456, 1662).
 Despite its high valued pixels, this object was lost because erosion ignores the precise pixel values.
 Losing small/sharp objects like this only happens for under-sampled datasets like HST (where the pixel size is larger than the point spread function FWHM).
 So this will not happen on ground-based images.
@@ -3106,7 +3106,7 @@ $ astsegment nc/xdf-f105w.fits -oseg/xdf-f105w.fits
 @end example
 
 Segment's operation is very much like NoiseChisel (in fact, prior to version 0.6, it was part of NoiseChisel).
-for example, the output is a multi-extension FITS file (previously discussed in @ref{NoiseChisel and Multi-Extension FITS files}), it has check images and uses the undetected regions as a reference (previously discussed in @ref{NoiseChisel optimization for detection}).
+For example, the output is a multi-extension FITS file (previously discussed in @ref{NoiseChisel and Multi-Extension FITS files}), it has check images and uses the undetected regions as a reference (previously discussed in @ref{NoiseChisel optimization for detection}).
 Please have a look at Segment's multi-extension output to get a good feeling of what it has done.
 Do Not forget to flip through the extensions in the ``Cube'' window.
 
@@ -3289,7 +3289,7 @@ This is technically known as upper-limit measurements.
 For a full discussion, see @ref{Upper limit magnitude of each detection}).
 
 Since it is for each separate object, the upper-limit measurements should be requested as extra columns in MakeCatalog's output.
-for example, with the command below, let's generate a new catalog of the F160W filter, but with two extra columns compared to the one in @file{cat/}: the upper-limit magnitude and the upper-limit multiple of sigma.
+For example, with the command below, let's generate a new catalog of the F160W filter, but with two extra columns compared to the one in @file{cat/}: the upper-limit magnitude and the upper-limit multiple of sigma.
 
 @example
 $ astmkcatalog seg/xdf-f160w.fits --ids --ra --dec --magnitude --sn \
@@ -3359,7 +3359,7 @@ $ asttable xdf-f160w.fits -hclumps --range=upperlimit_sigma,4.8:5.2 \
 
 We see that the @mymath{5\sigma} detection limit is @mymath{\sim29.6}!
 This is extremely deep!
-for example, in the Legacy Survey@footnote{@url{https://www.legacysurvey.org/dr9/description}}, the @mymath{5\sigma} detection limit for @emph{point sources} is approximately 24.5 (5 magnitudes, or 100 times, shallower than this image).
+For example, in the Legacy Survey@footnote{@url{https://www.legacysurvey.org/dr9/description}}, the @mymath{5\sigma} detection limit for @emph{point sources} is approximately 24.5 (5 magnitudes, or 100 times, shallower than this image).
 
 As mentioned above, an important caveat in this simple calculation is that we should only be looking at point-like objects, not simply everything.
 This is because the shape or radial slope of the profile has an important effect on this measurement: at the same total magnitude, a sharper object will have a higher S/N.
@@ -3498,7 +3498,7 @@ Column meta-data (including a name) are not just limited to FITS tables and can 
 
 @noindent
 Table also has tools to limit the displayed rows.
-for example, with the first command below only rows with a magnitude in the range of 29 to 30 will be shown.
+For example, with the first command below only rows with a magnitude in the range of 29 to 30 will be shown.
 With the second command, you can further limit the displayed rows to rows with an S/N larger than 10 (a range between 10 to infinity).
 You can further sort the output rows, only show the top (or bottom) N rows, etc., see @ref{Table} for more.
 
@@ -3538,12 +3538,12 @@ $ asttable three-in-one.fits -i
 @end example
 
 As you see, to avoid confusion in column names, Table has intentionally appended a @code{-1} to the column names of the first concatenated table if the column names are already present in the original table.
-for example, we have the original @code{RA} column, and another one called @code{RA-1}).
+For example, we have the original @code{RA} column, and another one called @code{RA-1}).
 Similarly a @code{-2} has been added for the columns of the second concatenated table.
 
 However, this example clearly shows a problem with this full concatenation: some columns are identical (for example, @code{HOST_OBJ_ID} and @code{HOST_OBJ_ID-1}), or not needed (for example, @code{RA-1} and @code{DEC-1} which are not necessary here).
 In such cases, you can use @option{--catcolumns} to only concatenate certain columns, not the whole table.
-for example, this command:
+For example, this command:
 
 @example
 $ asttable cat/xdf-f160w.fits -hCLUMPS --output=two-in-one-2.fits \
@@ -3580,7 +3580,7 @@ It takes four values:
 3) the column unit and
 4) the column comments.
 Since the comments are usually human-friendly sentences and contain space characters, you should put them in double quotations like below.
-for example, by adding three calls of this option to the previous command, we write the filter name in the magnitude column name and description.
+For example, by adding three calls of this option to the previous command, we write the filter name in the magnitude column name and description.
 
 @example
 $ asttable cat/xdf-f160w.fits -hCLUMPS --output=three-in-one-3.fits \
@@ -5436,7 +5436,7 @@ $ astarithmetic --quiet $nsigma $std x \
 @end example
 
 The customizable steps above are good for any type of mask.
-for example, your field of view may contain a very deep part so you need to mask all the shallow parts @emph{as well as} the detections before these steps.
+For example, your field of view may contain a very deep part so you need to mask all the shallow parts @emph{as well as} the detections before these steps.
 But when your image is flat (like this), there is a much simpler method to obtain the same value through MakeCatalog (when the standard deviation image is made by NoiseChisel).
 NoiseChisel has already calculated the minimum (@code{MINSTD}), maximum (@code{MAXSTD}) and median (@code{MEDSTD}) standard deviation within the tiles during its processing and has stored them as FITS keywords within the @code{SKY_STD} HDU.
 You can see them by piping all the keywords in this HDU into @command{grep}.
@@ -5748,7 +5748,7 @@ If the M51 group in this image was larger/smaller than this (the field of view w
 In @ref{NoiseChisel optimization} we found a good detection map over the image, so pixels harboring signal have been differentiated from those that do not.
 For noise-related measurements like the surface brightness limit, this is fine.
 However, after finding the pixels with signal, you are most likely interested in knowing the sub-structure within them.
-for example, how many star forming regions (those bright dots along the spiral arms) of M51 are within this image?
+For example, how many star forming regions (those bright dots along the spiral arms) of M51 are within this image?
 What are the colors of each of these star forming regions?
 In the outer most wings of M51, which pixels belong to background galaxies and foreground stars?
 And many more similar questions.
@@ -6849,7 +6849,7 @@ $ astscript-fits-view label/67510-seg.fits single-star/subtracted.fits \
            --ds9center=$center --ds9mode=wcs --ds9extra="-zoom 10"
 @end example
 
-In a large survey like J-PLUS, it is easy to use more and more bright stars from different pointings (ideally with similar FWHM and similar telescope properties@footnote{for example, in J-PLUS, the baffle of the secondary mirror was adjusted in 2017 because it produced extra spikes in the PSF. So all images after that date have a PSF with 4 spikes (like this one), while those before it have many more spikes.}) to improve the S/N of the PSF.
+In a large survey like J-PLUS, it is easy to use more and more bright stars from different pointings (ideally with similar FWHM and similar telescope properties@footnote{For example, in J-PLUS, the baffle of the secondary mirror was adjusted in 2017 because it produced extra spikes in the PSF. So all images after that date have a PSF with 4 spikes (like this one), while those before it have many more spikes.}) to improve the S/N of the PSF.
 As explained before, we designed the output files of this tutorial with the @code{67510} (which is this image's pointing label in J-PLUS) where necessary so you see how easy it is to add more pointings to use in the creation of the PSF.
 
 Let's consider now more than one single star.
@@ -8395,7 +8395,7 @@ Gnuastro's official/stable tarball is released with two formats: Gzip (with suff
 The pre-release tarballs (after version 0.3) are released only as an Lzip tarball.
 Gzip is a very well-known and widely used compression program created by GNU and available in most systems.
 However, Lzip provides a better compression ratio and more robust archival capacity.
-for example, Gnuastro 0.3's tarball was 2.9MB and 4.3MB with Lzip and Gzip respectively, see the @url{http://www.nongnu.org/lzip/lzip.html, Lzip web page} for more.
+For example, Gnuastro 0.3's tarball was 2.9MB and 4.3MB with Lzip and Gzip respectively, see the @url{http://www.nongnu.org/lzip/lzip.html, Lzip web page} for more.
 Lzip might not be pre-installed in your operating system, if so, installing it from your operating system's package manager or from source is very easy and fast (it is a very small program).
 
 The GNU FTP server is mirrored (has backups) in various locations on the globe (@url{http://www.gnu.org/order/ftp.html}).
@@ -8785,7 +8785,7 @@ For more on the interface functions, see @ref{Python interface}.
 @end vtable
 
 The tests of some programs might depend on the outputs of the tests of other programs.
-for example, MakeProfiles is one the first programs to be tested when you run @command{$ make check}.
+For example, MakeProfiles is one the first programs to be tested when you run @command{$ make check}.
 MakeProfiles' test outputs (FITS images) are inputs to many other programs (which in turn provide inputs for other programs).
 Therefore, if you do not install MakeProfiles for example, the tests for many the other programs will be skipped.
 To avoid this, in one run, you can install all the programs and run the tests but not install.
@@ -8942,7 +8942,7 @@ $ ./configure --prefix ~/.local
 @cindex Default library search directory
 You can install everything (including libraries like GSL, CFITSIO, or WCSLIB which are Gnuastro's mandatory dependencies, see @ref{Mandatory dependencies}) locally by configuring them as above.
 However, recall that @command{PATH} is only for executable files, not libraries and that libraries can also depend on other libraries.
-for example, WCSLIB depends on CFITSIO and Gnuastro needs both.
+For example, WCSLIB depends on CFITSIO and Gnuastro needs both.
 Therefore, when you installed a library in a non-recognized directory, you have to guide the program that depends on them to look into the necessary library and header file directories.
 To do that, you have to define the @command{LDFLAGS} and @command{CPPFLAGS} environment variables respectively.
 This can be done while calling @file{./configure} as shown below:
@@ -9055,7 +9055,7 @@ A similar reasoning can be given for option names in scripts: it is good practic
 
 @cindex Symbolic link
 The simplest solution is making a symbolic link to the actual executable.
-for example, let's assume you want to type @file{ic} to run Crop instead of @file{astcrop}.
+For example, let's assume you want to type @file{ic} to run Crop instead of @file{astcrop}.
 Assuming you installed Gnuastro executables in @file{/usr/local/bin} (default) you can do this simply by running the following command as root:
 
 @example
@@ -9256,7 +9256,7 @@ This can be useful for archiving, or sending to colleagues who do not use Git fo
 @item -u STR
 @item --upload STR
 Activate the @option{--dist} (@option{-D}) option, then use secure copy (@command{scp}, part of the SSH tools) to copy the tarball and PDF to the @file{src} and @file{pdf} sub-directories of the specified server and its directory (value to this option).
-for example, @command{--upload my-server:dir}, will copy the tarball in the @file{dir/src}, and the PDF manual in @file{dir/pdf} of @code{my-server} server.
+For example, @command{--upload my-server:dir}, will copy the tarball in the @file{dir/src}, and the PDF manual in @file{dir/pdf} of @code{my-server} server.
 It will then make a symbolic link in the top server directory to the tarball that is called @file{gnuastro-latest.tar.lz}.
 
 @item -p
@@ -9446,7 +9446,7 @@ See @ref{Installation directory} and @ref{Linking} to learn more on the @code{PA
 @item
 @command{$ make check}: @emph{The tests relying on external programs (for example, @file{fitstopdf.sh} fail.)} This is probably due to the fact that the version number of the external programs is too old for the tests we have preformed.
 Please update the program to a more recent version.
-for example, to create a PDF image, you will need GPL Ghostscript, but older versions do not work, we have successfully tested it on version 9.15.
+For example, to create a PDF image, you will need GPL Ghostscript, but older versions do not work, we have successfully tested it on version 9.15.
 Older versions might cause a failure in the test result.
 
 @item
@@ -9527,7 +9527,7 @@ Gnuastro's programs have multiple ways to help you refresh your memory in multip
 See @ref{Getting help} for more for more on benefiting from this very convenient feature.
 
 Many of the programs use the multi-threaded character of modern CPUs, in @ref{Multi-threaded operations} we will discuss how you can configure this behavior, along with some tips on making best use of them.
-In @ref{Numeric data types}, we will review the various types to store numbers in your datasets: setting the proper type for the usage context@footnote{for example, if the values in your dataset can only be integers between 0 or 65000, store them in a unsigned 16-bit type, not 64-bit floating point type (which is the default in most systems).
+In @ref{Numeric data types}, we will review the various types to store numbers in your datasets: setting the proper type for the usage context@footnote{For example, if the values in your dataset can only be integers between 0 or 65000, store them in a unsigned 16-bit type, not 64-bit floating point type (which is the default in most systems).
 It takes four times less space and is much faster to process.} can greatly improve the file size and also speed of reading, writing or processing them.
 
 We will then look into the recognized table formats in @ref{Tables} and how large datasets are broken into tiles, or mesh grid in @ref{Tessellation}.
@@ -9713,7 +9713,7 @@ If they are for fractions, they will have to be less than or equal to unity.
 
 @item STR
 The value is read as a string of characters.
-for example, column names in a table, or HDU names in a multi-extension FITS file.
+For example, column names in a table, or HDU names in a multi-extension FITS file.
 Other examples include human-readable settings by some programs like the @option{--domain} option of the Convolve program that can be either @code{spatial} or @code{frequency} (to specify the type of convolution, see @ref{Convolve}).
 
 @item FITS @r{or} FITS/TXT
@@ -9772,7 +9772,7 @@ These configuration files are fully described in @ref{Configuration files}.
 @noindent
 @cindex Tilde expansion as option values
 @strong{CAUTION:} In specifying a file address, if you want to use the shell's tilde expansion (@command{~}) to specify your home directory, leave at least one space between the option name and your value.
-for example, use @command{-o ~/test}, @command{--output ~/test} or @command{--output= ~/test}.
+For example, use @command{-o ~/test}, @command{--output ~/test} or @command{--output= ~/test}.
 Calling them with @command{-o~/test} or @command{--output=~/test} will disable shell expansion.
 @end cartouche
 @cartouche
@@ -10224,7 +10224,7 @@ For file arguments this is the default behavior already and you have probably us
 
 Besides this simple/default mode, Bash also enables a high level of customization features for its completion.
 These features have been extensively used in Gnuastro to improve your work efficiency@footnote{To learn how Gnuastro implements TAB completion in Bash, see @ref{Bash programmable completion}.}.
-for example, if you are running @code{asttable} (which only accepts files containing a table), and you press @key{[TAB]}, it will only suggest files containing tables.
+For example, if you are running @code{asttable} (which only accepts files containing a table), and you press @key{[TAB]}, it will only suggest files containing tables.
 As another example, if an option needs image HDUs within a FITS file, pressing @key{[TAB]} will only suggest the image HDUs (and not other possibly existing HDUs that contain tables, or just metadata).
 Just note that the file name has to be already given on the command-line before reaching such options (that look into the contents of a file).
 
@@ -10457,7 +10457,7 @@ If your system-wide default input extension is 0 (the first), then when you want
 With this progressive state of default values to check, you can set different default values for the different directories that you would like to run Gnuastro in for your different purposes, so you will not have to worry about this issue any more.
 
 The same can be said about the @file{gnuastro.conf} files: by specifying a behavior in this single file, all Gnuastro programs in the respective directory, user, or system-wide steps will behave similarly.
-for example, to keep the input's directory when no specific output is given (see @ref{Automatic output}), or to not delete an existing file if it has the same name as a given output (see @ref{Input output options}).
+For example, to keep the input's directory when no specific output is given (see @ref{Automatic output}), or to not delete an existing file if it has the same name as a given output (see @ref{Input output options}).
 
 
 @node Current directory and User wide, System wide, Configuration file precedence, Configuration files
@@ -10556,7 +10556,7 @@ In the subsections below each of these methods are reviewed.
 If you give this option, the program will not run.
 It will only print a very concise message showing the options and arguments.
 Everything within square brackets (@option{[]}) is optional.
-for example, here are the first and last two lines of Crop's @option{--usage} is shown:
+For example, here are the first and last two lines of Crop's @option{--usage} is shown:
 
 @example
 $ astcrop --usage
@@ -10571,7 +10571,7 @@ There are no explanations on the options, just their short and long names shown 
 After the program name, the short format of all the options that do not require a value (on/off options) is displayed.
 Those that do require a value then follow in separate brackets, each displaying the format of the input they want, see @ref{Options}.
 Since all options are optional, they are shown in square brackets, but arguments can also be optional.
-for example, in this example, a catalog name is optional and is only required in some modes.
+For example, in this example, a catalog name is optional and is only required in some modes.
 This is a standard method of displaying optional arguments for all GNU software.
 
 @node --help, Man pages, --usage, Getting help
@@ -10586,7 +10586,7 @@ Since the options are shown in detail afterwards, the first line of the @option{
 
 In the @option{--help} output of all programs in Gnuastro, the options for each program are classified based on context.
 The first two contexts are always options to do with the input and output respectively.
-for example, input image extensions or supplementary input files for the inputs.
+For example, input image extensions or supplementary input files for the inputs.
 The last class of options is also fixed in all of Gnuastro, it shows operating mode options.
 Most of these options are already explained in @ref{Operating mode options}.
 
@@ -10636,7 +10636,7 @@ $ astnoisechisel --help > filename.txt
 @cindex Command-line searching text
 In case you have a special keyword you are looking for in the help, you do not have to go through the full list.
 GNU Grep is made for this job.
-for example, if you only want the list of options whose @option{--help} output contains the word ``axis'' in Crop, you can run the following command:
+For example, if you only want the list of options whose @option{--help} output contains the word ``axis'' in Crop, you can run the following command:
 
 @example
 $ astcrop --help | grep axis
@@ -10647,7 +10647,7 @@ $ astcrop --help | grep axis
 @cindex Customize @option{--help} output
 @cindex @option{--help} output customization
 If the output of this option does not fit nicely within the confines of your terminal, GNU does enable you to customize its output through the environment variable @code{ARGP_HELP_FMT}, you can set various parameters which specify the formatting of the help messages.
-for example, if your terminals are wider than 70 spaces (say 100) and you feel there is too much empty space between the long options and the short explanation, you can change these formats by giving values to this environment variable before running the program with the @option{--help} output.
+For example, if your terminals are wider than 70 spaces (say 100) and you feel there is too much empty space between the long options and the short explanation, you can change these formats by giving values to this environment variable before running the program with the @option{--help} output.
 You can define this environment variable in this manner:
 @example
 $ export ARGP_HELP_FMT=rmargin=100,opt-doc-col=20
@@ -10797,7 +10797,7 @@ Thus @option{--numthreads} is the only common option in Gnuastro's programs with
 Spinning off threads is not necessarily the most efficient way to run an application.
 Creating a new thread is not a cheap operation for the operating system.
 It is most useful when the input data are fixed and you want the same operation to be done on parts of it.
-for example, one input image to Crop and multiple crops from various parts of it.
+For example, one input image to Crop and multiple crops from various parts of it.
 In this fashion, the image is loaded into memory once, all the crops are divided between the number of threads internally and each thread cuts out those parts which are assigned to it from the same image.
 On the other hand, if you have multiple images and you want to crop the same region(s) out of all of them, it is much more efficient to set @option{--numthreads=1} (so no threads spin off) and run Crop multiple times simultaneously, see @ref{How to run simultaneous operations}.
 
@@ -10885,7 +10885,7 @@ GNU Make@footnote{@url{https://www.gnu.org/software/make/}} is the most common i
 Make is very basic and simple, and thus the manual is short (the most important parts are in the first roughly 100 pages) and easy to read/understand.
 
 Make comes with a @option{--jobs} (@option{-j}) option which allows you to specify the maximum number of jobs that can be done simultaneously.
-for example, if you have 8 threads available to your operating system.
+For example, if you have 8 threads available to your operating system.
 You can run:
 
 @example
@@ -10937,14 +10937,14 @@ If you are interested to learn more about it, you can start with the @url{https:
 
 Practically, you can use Gnuastro's Arithmetic program to convert/change the type of an image/datacube (see @ref{Arithmetic}), or Gnuastro Table program to convert a table column's data type (see @ref{Column arithmetic}).
 Conversion of a dataset's type is necessary in some contexts.
-for example, the program/library, that you intend to feed the data into, only accepts floating point values, but you have an integer image/column.
+For example, the program/library, that you intend to feed the data into, only accepts floating point values, but you have an integer image/column.
 Another situation that conversion can be helpful is when you know that your data only has values that fit within @code{int8} or @code{uint16}.
 However it is currently formatted in the @code{float64} type.
 
 The important thing to consider is that operations involving wider, floating point, or signed types can be significantly slower than smaller-width, integer, or unsigned types respectively.
 Note that besides speed, a wider type also requires much more storage space (by 4 or 8 times).
 Therefore, when you confront such situations that can be optimized and want to store/archive/transfer the data, it is best to use the most efficient type.
-for example, if your dataset (image or table column) only has positive integers less than 65535, store it as an unsigned 16-bit integer for faster processing, faster transfer, and less storage space.
+For example, if your dataset (image or table column) only has positive integers less than 65535, store it as an unsigned 16-bit integer for faster processing, faster transfer, and less storage space.
 
 The short and long names for the recognized numeric data types in Gnuastro are listed below.
 Both short and long names can be used when you want to specify a type.
@@ -11054,7 +11054,7 @@ As soon as an intermediate dataset is no longer necessary for the next internal 
 This allows Gnuastro programs to minimize their usage of your system's RAM over the full running time.
 
 The situation gets complicated when the datasets are large (compared to your available RAM when the program is run).
-for example, if a dataset is half the size of your system's available RAM, and the program's internal analysis needs three or more intermediately processed copies of it at one moment in its analysis.
+For example, if a dataset is half the size of your system's available RAM, and the program's internal analysis needs three or more intermediately processed copies of it at one moment in its analysis.
 There will not be enough RAM to keep those higher-level intermediate data.
 In such cases, programs that do not do any memory management will crash.
 But fortunately Gnuastro's programs do have a memory management plans for such situations.
@@ -11125,16 +11125,16 @@ The programs will delete a memory-mapped file when it is no longer needed, but t
 So if your project involves many Gnuastro programs (possibly called in parallel) and you want your memory-mapped files to be in a different location, you just have to make the symbolic link above once at the start, and all the programs will use it if necessary.
 
 Another memory-management scenario that may happen is this: you do not want a Gnuastro program to allocate internal datasets in the RAM at all.
-for example, the speed of your Gnuastro-related project does not matter at that moment, and you have higher-priority jobs that are being run at the same time which need to have RAM available.
+For example, the speed of your Gnuastro-related project does not matter at that moment, and you have higher-priority jobs that are being run at the same time which need to have RAM available.
 In such cases, you can use the @option{--minmapsize} option that is available in all Gnuastro programs (see @ref{Processing options}).
 Any intermediate dataset that has a size larger than the value of this option will be memory-mapped, even if there is space available in your RAM.
-for example, if you want any dataset larger than 100 megabytes to be memory-mapped, use @option{--minmapsize=100000000} (8 zeros!).
+For example, if you want any dataset larger than 100 megabytes to be memory-mapped, use @option{--minmapsize=100000000} (8 zeros!).
 
 @cindex Linux kernel
 @cindex Kernel, Linux
 You should not set the value of @option{--minmapsize} to be too small, otherwise even small intermediate values (that are usually very numerous) in the program will be memory-mapped.
 However the kernel can only host a limited number of memory-mapped files at every moment (by all running programs combined).
-for example, in the default@footnote{If you need to host more memory-mapped files at one moment, you need to build your own customized Linux kernel.} Linux kernel on GNU/Linux operating systems this limit is roughly 64000.
+For example, in the default@footnote{If you need to host more memory-mapped files at one moment, you need to build your own customized Linux kernel.} Linux kernel on GNU/Linux operating systems this limit is roughly 64000.
 If the total number of memory-mapped files exceeds this number, all the programs using them will crash.
 Gnuastro's programs will warn you if your given value is too small and may cause a problem later.
 
@@ -11255,7 +11255,7 @@ The delimiters (or characters separating the columns) are white space characters
 The only further requirement is that all rows/lines must have the same number of columns.
 
 The columns do not have to be exactly under each other and the rows can be arbitrarily long with different lengths.
-for example, the following contents in a file would be interpreted as a table with 4 columns and 2 rows, with each element interpreted as a @code{double} type (see @ref{Numeric data types}).
+For example, the following contents in a file would be interpreted as a table with 4 columns and 2 rows, with each element interpreted as a @code{double} type (see @ref{Numeric data types}).
 
 @example
 1     2.234948   128   39.8923e8
@@ -11308,7 +11308,7 @@ For signed integers, it is the smallest possible value and for unsigned integers
 When a formatting problem occurs, or when the column was already given meta-data in a previous comment, or when the column number is larger than the actual number of columns in the table (the non-commented or empty lines), then the comment information line will be ignored.
 
 When a comment information line can be used, the leading and trailing white space characters will be stripped from all of the elements.
-for example, in this line:
+For example, in this line:
 
 @example
 # Column 5:  column name   [km/s,    f32,-99] Redshift as speed
@@ -11352,7 +11352,7 @@ Therefore, the only time you have to pay attention to the positioning and spaces
 
 The only limitation in this format is that trailing and leading white space characters will be removed from the columns that are read.
 In most cases, this is the desired behavior, but if trailing and leading white-spaces are critically important to your analysis, define your own starting and ending characters and remove them after the table has been read.
-for example, in the sample table below, the two `@key{|}' characters (which are arbitrary) will remain in the value of the second column and you can remove them manually later.
+For example, in the sample table below, the two `@key{|}' characters (which are arbitrary) will remain in the value of the second column and you can remove them manually later.
 If only one of the leading or trailing white spaces is important for your work, you can only use one of the `@key{|}'s.
 
 @example
@@ -11421,7 +11421,7 @@ In this case, the order of the selected columns (with one call) will be the same
 @section Tessellation
 
 It is sometimes necessary to classify the elements in a dataset (for example, pixels in an image) into a grid of individual, non-overlapping tiles.
-for example, when background sky gradients are present in an image, you can define a tile grid over the image.
+For example, when background sky gradients are present in an image, you can define a tile grid over the image.
 When the tile sizes are set properly, the background's variation over each tile will be negligible, allowing you to measure (and subtract) it.
 In other cases (for example, spatial domain convolution in Gnuastro, see @ref{Convolve}), it might simply be for speed of processing: each tile can be processed independently on a separate CPU thread.
 In the arts and mathematics, this process is formally known as @url{https://en.wikipedia.org/wiki/Tessellation, tessellation}.
@@ -11429,7 +11429,7 @@ In the arts and mathematics, this process is formally known as @url{https://en.w
 The size of the regular tiles (in units of data-elements, or pixels in an image) can be defined with the @option{--tilesize} option.
 It takes multiple numbers (separated by a comma) which will be the length along the respective dimension (in FORTRAN/FITS dimension order).
 Divisions are also acceptable, but must result in an integer.
-for example, @option{--tilesize=30,40} can be used for an image (a 2D dataset).
+For example, @option{--tilesize=30,40} can be used for an image (a 2D dataset).
 The regular tile size along the first FITS axis (horizontal when viewed in SAO DS9) will be 30 pixels and along the second it will be 40 pixels.
 Ideally, @option{--tilesize} should be selected such that all tiles in the image have exactly the same size.
 In other words, that the dataset length in each dimension is divisible by the tile size in that dimension.
@@ -11454,7 +11454,7 @@ A larger mesh will give more pixels and so the scatter in the results will be le
 For raw image processing, a single tessellation/grid is not sufficient.
 Raw images are the unprocessed outputs of the camera detectors.
 Modern detectors usually have multiple readout channels each with its own amplifier.
-for example, the Hubble Space Telescope Advanced Camera for Surveys (ACS) has four amplifiers over its full detector area dividing the square field of view to four smaller squares.
+For example, the Hubble Space Telescope Advanced Camera for Surveys (ACS) has four amplifiers over its full detector area dividing the square field of view to four smaller squares.
 Ground based image detectors are not exempt, for example, each CCD of Subaru Telescope's Hyper Suprime-Cam camera (which has 104 CCDs) has four amplifiers, but they have the same height of the CCD and divide the width by four parts.
 
 @cindex Channel
@@ -11490,7 +11490,7 @@ For the full list of processing-related common options (including tessellation o
 @cindex Setting output file names automatically
 All the programs in Gnuastro are designed such that specifying an output file or directory (based on the program context) is optional.
 When no output name is explicitly given (with @option{--output}, see @ref{Input output options}), the programs will automatically set an output name based on the input name(s) and what the program does.
-for example, when you are using ConvertType to save FITS image named @file{dataset.fits} to a JPEG image and do not specify a name for it, the JPEG output file will be name @file{dataset.jpg}.
+For example, when you are using ConvertType to save FITS image named @file{dataset.fits} to a JPEG image and do not specify a name for it, the JPEG output file will be name @file{dataset.jpg}.
 When the input is from the standard input (for example, a pipe, see @ref{Standard input}), and @option{--output} is not given, the output name will be the program's name (for example, @file{converttype.jpg}).
 
 @vindex --keepinputdir
@@ -11633,7 +11633,7 @@ END
 @cindex Decimal separator
 @cindex Language of command-line
 If your @url{https://en.wikipedia.org/wiki/Locale_(computer_software), system locale} is not English, it may happen that the `.' is not used as the decimal separator of basic command-line tools for input or output.
-for example, in Spanish and some other languages the decimal separator (symbol used to separate the integer and fractional part of a number), is a comma.
+For example, in Spanish and some other languages the decimal separator (symbol used to separate the integer and fractional part of a number), is a comma.
 Therefore in such systems, some programs may print @mymath{0.5} as as `@code{0,5}' (instead of `@code{0.5}').
 This mainly happens in some core operating system tools like @command{awk} or @command{seq} depend on the locale.
 This can cause problems for other programs (like those in Gnuastro that expect a `@key{.}' as the decimal separator).
@@ -11705,7 +11705,7 @@ Each HDU can store an independent dataset and its corresponding meta-data.
 Therefore, Gnuastro has one program (see @ref{Fits}) specifically designed to manipulate FITS HDUs and the meta-data (header keywords) in each HDU.
 
 Your astronomical research does not just involve data analysis (where the FITS format is very useful).
-for example, you want to demonstrate your raw and processed FITS images or spectra as figures within slides, reports, or papers.
+For example, you want to demonstrate your raw and processed FITS images or spectra as figures within slides, reports, or papers.
 The FITS format is not defined for such applications.
 Thus, Gnuastro also comes with the ConvertType program (see @ref{ConvertType}) which can be used to convert a FITS image to and from (where possible) other formats like plain text and JPEG (which allow two way conversion), along with EPS and PDF (which can only be created from FITS, not the other way round).
 
@@ -11747,7 +11747,7 @@ Many common image formats, for example, a JPEG, only have one image/dataset per 
 In the FITS standard, each data + metadata is known as an extension, or more formally a header data unit or HDU.
 The HDUs in a file can be completely independent: you can have multiple images of different dimensions/sizes or tables as separate extensions in one file.
 However, while the standard does not impose any constraints on the relation between the datasets, it is strongly encouraged to group data that are contextually related with each other in one file.
-for example, an image and the table/catalog of objects and their measured properties in that image.
+For example, an image and the table/catalog of objects and their measured properties in that image.
 Other examples can be images of one patch of sky in different colors (filters), or one raw telescope image along with its calibration data (tables or images).
 
 As discussed above, the extensions in a FITS file can be completely independent.
@@ -11763,7 +11763,7 @@ It is thus strongly encouraged to supplement your data (at any level of processi
 
 The meta-data of a FITS file is in ASCII format, which can be easily viewed or edited with a text editor or on the command-line.
 Each meta-data element (known as a keyword generally) is composed of a name, value, units and comments (the last two are optional).
-for example, below you can see three FITS meta-data keywords for specifying the world coordinate system (WCS, or its location in the sky) of a dataset:
+For example, below you can see three FITS meta-data keywords for specifying the world coordinate system (WCS, or its location in the sky) of a dataset:
 
 @example
 LATPOLE =           -27.805089 / [deg] Native latitude of celestial pole
@@ -11772,11 +11772,11 @@ EQUINOX =               2000.0 / [yr] Equinox of equatorial coordinates
 @end example
 
 However, there are some limitations which discourage viewing/editing the keywords with text editors.
-for example, there is a fixed length of 80 characters for each keyword (its name, value, units and comments) and there are no new-line characters, so on a text editor all the keywords are seen in one line.
+For example, there is a fixed length of 80 characters for each keyword (its name, value, units and comments) and there are no new-line characters, so on a text editor all the keywords are seen in one line.
 Also, the meta-data keywords are immediately followed by the data which are commonly in binary format and will show up as strange looking characters on a text editor, and significantly slowing down the processor.
 
 Gnuastro's Fits program was designed to allow easy manipulation of FITS extensions and meta-data keywords on the command-line while conforming fully with the FITS standard.
-for example, you can copy or cut (copy and remove) HDUs/extensions from one FITS file to another, or completely delete them.
+For example, you can copy or cut (copy and remove) HDUs/extensions from one FITS file to another, or completely delete them.
 It also has features to delete, add, or edit meta-data keywords within one HDU.
 
 @menu
@@ -11954,7 +11954,7 @@ The covered area is reported in two ways:
 This is option is thus useful when you want to get a general feeling of a new image/dataset, or prepare the inputs to query external databases in the region of the image (for example, with @ref{Query}).
 
 If run without the @option{--quiet} option, the values are given with a human-friendly description.
-for example, here is the output of this option on an image taken near the star Castor:
+For example, here is the output of this option on an image taken near the star Castor:
 
 @example
 $ astfits castor.fits --skycoverage
@@ -12031,7 +12031,7 @@ This is because of the unique position the first FITS extension has in the FITS 
 @item --primaryimghdu
 Copy or cut an image HDU to the zero-th HDU/extension a file that does not yet exist.
 This option is thus irrelevant if the output file already exists or the copied/cut extension is a FITS table.
-for example, with the commands below, first we make sure that @file{out.fits} does not exist, then we copy the first extension of @file{in.fits} to the zero-th extension of @file{out.fits}.
+For example, with the commands below, first we make sure that @file{out.fits} does not exist, then we copy the first extension of @file{in.fits} to the zero-th extension of @file{out.fits}.
 
 @example
 $ rm -f out.fits
@@ -12094,9 +12094,9 @@ image-c.fits 2      387    336
 @end example
 
 Another advantage of a table output is that you can directly write the table to a file.
-for example, if you add @option{--output=fileinfo.fits}, the information above will be printed into a FITS table.
+For example, if you add @option{--output=fileinfo.fits}, the information above will be printed into a FITS table.
 You can also pipe it into @ref{Table} to select files based on certain properties, to sort them based on another property, or any other operation that can be done with Table (including @ref{Column arithmetic}).
-for example, with the command below, you can select all the files that have a size larger than 500 pixels in both dimensions.
+For example, with the command below, you can select all the files that have a size larger than 500 pixels in both dimensions.
 
 @example
 $ astfits *.fits --keyvalue=NAXIS,NAXIS1,NAXIS2 \
@@ -12140,7 +12140,7 @@ Therefore, if a @code{CHECKSUM} is present in the HDU, after all the keyword mod
 @end cartouche
 
 Most of the options can accept multiple instances in one command.
-for example, you can add multiple keywords to delete by calling @option{--delete} multiple times, since repeated keywords are allowed, you can even delete the same keyword multiple times.
+For example, you can add multiple keywords to delete by calling @option{--delete} multiple times, since repeated keywords are allowed, you can even delete the same keyword multiple times.
 The action of such options will start from the top most keyword.
 
 The precedence of operations are described below.
@@ -12258,7 +12258,7 @@ The special names (first string) below will cause a special behavior:
 Write a ``title'' to the list of keywords.
 A title consists of one blank line and another which is blank for several spaces and starts with a slash (@key{/}).
 The second string given to this option is the ``title'' or string printed after the slash.
-for example, with the command below you can add a ``title'' of `My keywords' after the existing keywords and add the subsequent @code{K1} and @code{K2} keywords under it (note that keyword names are not case sensitive).
+For example, with the command below you can add a ``title'' of `My keywords' after the existing keywords and add the subsequent @code{K1} and @code{K2} keywords under it (note that keyword names are not case sensitive).
 
 @example
 $ astfits test.fits -h1 --write=/,"My keywords" \
@@ -12280,7 +12280,7 @@ The reason you need to use @key{/} as the keyword name for setting a title is th
 
 The title(s) is(are) written into the FITS with the same order that @option{--write} is called.
 Therefore in one run of the Fits program, you can specify many different titles (with their own keywords under them).
-for example, the command below that builds on the previous example and adds another group of keywords named @code{A1} and @code{A2}.
+For example, the command below that builds on the previous example and adds another group of keywords named @code{A1} and @code{A2}.
 
 @example
 $ astfits test.fits -h1 --write=/,"My keywords"   \
@@ -12464,7 +12464,7 @@ The advantage of working with the Unix epoch time is that you do not have to wor
 @cindex Coordinate system: Supergalactic
 Convert the coordinate system of the image's world coordinate system (WCS) to the given coordinate system (@code{STR}) and write it into the file given to @option{--output} (or an automatically named file if no @option{--output} has been given).
 
-for example, with the command below, @file{img-eq.fits} will have an identical dataset (pixel values) as @file{image.fits}.
+For example, with the command below, @file{img-eq.fits} will have an identical dataset (pixel values) as @file{image.fits}.
 However, the WCS coordinate system of @file{img-eq.fits} will be the equatorial coordinate system in the Julian calendar epoch 2000 (which is the most common epoch used today).
 Fits will automatically extract the current coordinate system of @file{image.fits} and as long as it is one of the recognized coordinate systems listed below, it will do the conversion.
 
@@ -12510,7 +12510,7 @@ Note that all possible conversions between all standards are not yet supported.
 If the requested conversion is not supported, an informative error message will be printed.
 If this happens, please let us know and we will try our best to add the respective conversions.
 
-for example, with the command below, you can be sure that if @file{in.fits} has a distortion in its WCS, the distortion of @file{out.fits} will be in the SIP standard.
+For example, with the command below, you can be sure that if @file{in.fits} has a distortion in its WCS, the distortion of @file{out.fits} will be in the SIP standard.
 
 @example
 $ astfits in.fits --wcsdistortion=SIP --output=out.fits
@@ -12640,7 +12640,7 @@ A tutorial on how to add markers over an image is then given in @ref{Marking obj
 @cindex Graphics (raster)
 Images that are produced by a hardware (for example, the camera in your phone, or the camera connected to a telescope) provide pixelated data.
 Such data are therefore stored in a @url{https://en.wikipedia.org/wiki/Raster_graphics, Raster graphics} format which has discrete, independent, equally spaced data elements.
-for example, this is the format used FITS (see @ref{Fits}), JPEG, TIFF, PNG and other image formats.
+For example, this is the format used FITS (see @ref{Fits}), JPEG, TIFF, PNG and other image formats.
 
 @cindex Vector graphics
 @cindex Graphics (vector)
@@ -12649,8 +12649,7 @@ Everything is abstract!
 For such things, it is much easier to draw a mathematical line (with infinite resolution).
 Therefore, no matter how much you zoom-in, it will never get pixelated.
 This is the realm of @url{https://en.wikipedia.org/wiki/Vector_graphics, Vector graphics}.
-If you open the Gnuastro manual in @url{https://www.gnu.org/software/gnuastro/manual/gnuastro.pdf, PDF format} You can see such graphics in the Gnuastro manual,
-for example, in @ref{Circles and the complex plane} or @ref{Distance on a 2D curved space}.
+If you open the Gnuastro manual in @url{https://www.gnu.org/software/gnuastro/manual/gnuastro.pdf, PDF format} You can see such graphics in the Gnuastro manual, for example, in @ref{Circles and the complex plane} or @ref{Distance on a 2D curved space}.
 The most common vector graphics format is PDF for document sharing or SVG for web-based applications.
 
 The pixels of a raster image can be shown as vector-based squares with different shades, so vector graphics can generally also support raster graphics.
@@ -13476,7 +13475,7 @@ After reading the input file(s) the number of color channels in all the inputs w
 For more on pixel color channels, see @ref{Pixel colors}.
 Depending on the format of the input(s), the number of input files can differ.
 
-for example, if you plan to build an RGB PDF and your three channels are in the first HDU of @file{r.fits}, @file{g.fits} and @file{b.fits}, then you can simply call MakeProfiles like this:
+For example, if you plan to build an RGB PDF and your three channels are in the first HDU of @file{r.fits}, @file{g.fits} and @file{b.fits}, then you can simply call MakeProfiles like this:
 
 @example
 $ astconvertt r.fits g.fits b.fits -g1 --output=rgb.pdf
@@ -13737,7 +13736,7 @@ See the description at the start of this section for more.
 Unfortunately in the document structuring convention of the PostScript language, the ``bounding box'' has to be in units of PostScript points with no fractions allowed.
 So the border values only have to be specified in integers.
 To have a final border that is thinner than one PostScript point in your document, you can ask for a larger width in ConvertType and then scale down the output EPS or PDF file in your document preparation program.
-for example, by setting @command{width} in your @command{includegraphics} command in @TeX{} or @LaTeX{} to be larger than the value to @option{--widthincm}.
+For example, by setting @command{width} in your @command{includegraphics} command in @TeX{} or @LaTeX{} to be larger than the value to @option{--widthincm}.
 Since it is vector graphics, the changes of size have no effect on the quality of your output (pixels do not get different values).
 
 @item --bordercolor=STR
@@ -13983,7 +13982,7 @@ If you are not already familiar with the shape of each font, please use @option{
 @section Table
 
 Tables are the high-level products of processing on low-leveler data like images or spectra.
-for example, in Gnuastro, MakeCatalog will process the pixels over an object and produce a catalog (or table) with the properties of each object such as magnitudes and positions (see @ref{MakeCatalog}).
+For example, in Gnuastro, MakeCatalog will process the pixels over an object and produce a catalog (or table) with the properties of each object such as magnitudes and positions (see @ref{MakeCatalog}).
 Each one of these properties is a column in its output catalog (or table) and for each input object, we have a row.
 
 When there are only a small number of objects (rows) and not too many properties (columns), then a simple plain text file is mainly enough to store, transfer, or even use the produced data.
@@ -14035,7 +14034,7 @@ To identify a column you can directly use its name, or specify its number (count
 When you are giving a column number, it is necessary to prefix the number with a @code{$}, similar to AWK.
 Otherwise the number is not distinguishable from a constant number to use in the arithmetic operation.
 
-for example, with the command below, the first two columns of @file{table.fits} will be printed along with a third column that is the result of multiplying the first column with @mymath{10^{10}} (for example, to convert wavelength from Meters to Angstroms).
+For example, with the command below, the first two columns of @file{table.fits} will be printed along with a third column that is the result of multiplying the first column with @mymath{10^{10}} (for example, to convert wavelength from Meters to Angstroms).
 Note that without the `@key{$}', it is not possible to distinguish between ``1'' as a column-counter, or ``1'' as a constant number to use in the arithmetic operation.
 Also note that because of the significance of @key{$} for the command-line environment, the single-quotes are the recommended quoting method (as in an AWK expression), not double-quotes (for the significance of using single quotes see the box below).
 
@@ -14110,7 +14109,7 @@ Convert the given WCS positions to image/dataset coordinates based on the number
 It will output the same number of columns.
 The first popped operand is the last FITS dimension.
 
-for example, the two commands below (which have the same output) will produce 5 columns.
+For example, the two commands below (which have the same output) will produce 5 columns.
 The first three columns are the input table's ID, RA and Dec columns.
 The fourth and fifth columns will be the pixel positions in @file{image.fits} that correspond to each RA and Dec.
 
@@ -14617,7 +14616,7 @@ But when piping to other Gnuastro programs (where metadata can be interpreted an
 @itemx --range=STR,FLT:FLT
 Only output rows that have a value within the given range in the @code{STR} column (can be a name or counter).
 Note that the range is only inclusive in the lower-limit.
-for example, with @code{--range=sn,5:20} the output's columns will only contain rows that have a value in the @code{sn} column (not case-sensitive) that is greater or equal to 5, and less than 20.
+For example, with @code{--range=sn,5:20} the output's columns will only contain rows that have a value in the @code{sn} column (not case-sensitive) that is greater or equal to 5, and less than 20.
 Also you can use the comma for separating the values such as this @code{--range=sn,5,20}.
 For the precedence of this operation in relation to others, see @ref{Operation precedence in Table}.
 
@@ -14636,7 +14635,7 @@ The coordinate columns are the given @code{STR1} and @code{STR2} columns, they c
 For the precedence of this operation in relation to others, see @ref{Operation precedence in Table}.
 
 Note that the chosen columns does not have to be in the output columns (which are specified by the @code{--column} option).
-for example, if we want to select rows in the polygon specified in @ref{Dataset inspection and cropping}, this option can be used like this (you can remove the double quotations and write them all in one line if you remove the white-spaces around the colon separating the column vertices):
+For example, if we want to select rows in the polygon specified in @ref{Dataset inspection and cropping}, this option can be used like this (you can remove the double quotations and write them all in one line if you remove the white-spaces around the colon separating the column vertices):
 
 @example
 asttable table.fits --inpolygon=RA,DEC      \
@@ -14668,7 +14667,7 @@ Only output rows that are equal to the given number(s) in the given column.
 The first argument is the column identifier (name or number, see @ref{Selecting table columns}), after that you can specify any number of values.
 For the precedence of this operation in relation to others, see @ref{Operation precedence in Table}.
 
-for example, @option{--equal=ID,5,6,8} will only print the rows that have a value of 5, 6, or 8 in the @code{ID} column.
+For example, @option{--equal=ID,5,6,8} will only print the rows that have a value of 5, 6, or 8 in the @code{ID} column.
 This option can also be called multiple times, so @option{--equal=ID,4,5 --equal=ID,6,7} has the same effect as @option{--equal=4,5,6,7}.
 
 @cartouche
@@ -14682,7 +14681,7 @@ The @option{--equal} and @option{--notequal} options also work when the given co
 In this case the given value to the option will also be parsed as a string, not as a number.
 When dealing with string columns, be careful with trailing white space characters (the actual value maybe adjusted to the right, left, or center of the column's width).
 If you need to account for such white spaces, you can use shell quoting.
-for example, @code{--equal=NAME,"  myname "}.
+For example, @code{--equal=NAME,"  myname "}.
 
 @cartouche
 @noindent
@@ -14699,7 +14698,7 @@ $ asttable table.fits --equal=AB,cd\,ef
 @itemx --notequal=STR,INT/FLT,...
 Only output rows that are @emph{not} equal to the given number(s) in the given column.
 The first argument is the column identifier (name or number, see @ref{Selecting table columns}), after that you can specify any number of values.
-for example, @option{--notequal=ID,5,6,8} will only print the rows where the @code{ID} column does not have value of 5, 6, or 8.
+For example, @option{--notequal=ID,5,6,8} will only print the rows where the @code{ID} column does not have value of 5, 6, or 8.
 This option can also be called multiple times, so @option{--notequal=ID,4,5 --notequal=ID,6,7} has the same effect as @option{--notequal=4,5,6,7}.
 
 Be very careful if you want to use the non-equality with floating point numbers, see the special note under @option{--equal} for more.
@@ -14712,12 +14711,12 @@ Like above, the columns can be specified by their name or number (counting from 
 This option can be called multiple times, so @option{--noblank=MAG --noblank=PHOTOZ} is equivalent to @option{--noblank=MAG,PHOTOZ}.
 For the precedence of this operation in relation to others, see @ref{Operation precedence in Table}.
 
-for example, if @file{table.fits} has blank values (NaN in floating point types) in the @code{magnitude} and @code{sn} columns, with @code{--noblank=magnitude,sn}, the output will not contain any rows with blank values in these two columns.
+For example, if @file{table.fits} has blank values (NaN in floating point types) in the @code{magnitude} and @code{sn} columns, with @code{--noblank=magnitude,sn}, the output will not contain any rows with blank values in these two columns.
 
 If you want @emph{all} columns to be checked, simply set the value to @code{_all} (in other words: @option{--noblank=_all}).
 This mode is useful when there are many columns in the table and you want a ``clean'' output table (with no blank values in any column): entering their name or number one-by-one can be buggy and frustrating.
 In this mode, no other column name should be given.
-for example, if you give @option{--noblank=_all,magnitude}, then Table will assume that your table actually has a column named @code{_all} and @code{magnitude}, and if it does not, it will abort with an error.
+For example, if you give @option{--noblank=_all,magnitude}, then Table will assume that your table actually has a column named @code{_all} and @code{magnitude}, and if it does not, it will abort with an error.
 
 If you want to change column values using @ref{Column arithmetic} (and set some to blank, to later remove), or you want to select rows based on columns that you have imported from other tables, you should use the @option{--noblankend} option described below.
 Also, see @ref{Operation precedence in Table}.
@@ -14739,7 +14738,7 @@ When called with @option{--sort}, rows will be sorted in descending order.
 @itemx --head=INT
 Only print the given number of rows from the @emph{top} of the final table.
 Note that this option only affects the @emph{output} table.
-for example, if you use @option{--sort}, or @option{--range}, the printed rows are the first @emph{after} applying the sort sorting, or selecting a range of the full input.
+For example, if you use @option{--sort}, or @option{--range}, the printed rows are the first @emph{after} applying the sort sorting, or selecting a range of the full input.
 This option cannot be called with @option{--tail}, @option{--rowrange} or @option{--rowrandom}.
 For the precedence of this operation in relation to others, see @ref{Operation precedence in Table}.
 
@@ -14803,7 +14802,7 @@ However, the column(s) given to this option should exist in the output.
 If you want @emph{all} columns to be checked, simply set the value to @code{_all} (in other words: @option{--noblankend=_all}).
 This mode is useful when there are many columns in the table and you want a ``clean'' output table (with no blank values in any column): entering their name or number one-by-one can be buggy and frustrating.
 In this mode, no other column name should be given.
-for example, if you give @option{--noblankend=_all,magnitude}, then Table will assume that your table actually has a column named @code{_all} and @code{magnitude}, and if it does not, it will abort with an error.
+For example, if you give @option{--noblankend=_all,magnitude}, then Table will assume that your table actually has a column named @code{_all} and @code{magnitude}, and if it does not, it will abort with an error.
 
 This option is applied just before writing the final table (after @option{--colmetadata} has finished).
 So in case you changed the column metadata, or added new columns, you can use the new names, or the newly defined column numbers.
@@ -14824,7 +14823,7 @@ The next (optional) string will be the selected column's unit and the third (opt
 If the two optional strings are not given, the original column's units or comments will remain unchanged.
 
 If any of the values contains a comma, you should place a `@code{\}' before the comma to avoid it getting confused with a delimiter.
-for example, see the command below for a column description that contains a comma:
+For example, see the command below for a column description that contains a comma:
 
 @example
 $ asttable table.fits \
@@ -14965,7 +14964,7 @@ $ astquery gaia --information
 However, other databases like VizieR host many more datasets (tens of thousands!).
 Therefore it is very inconvenient to get the @emph{full} information every time you want to find your dataset of interest (the full metadata file VizieR is more than 20Mb).
 In such cases, you can limit the downloaded and displayed information with the @code{--limitinfo} option.
-for example, with the first command below, you can get all datasets relating to the MUSE (an instrument on the Very Large Telescope), and those that include Roland Bacon (Principle Investigator of MUSE) as an author (@code{Bacon, R.}).
+For example, with the first command below, you can get all datasets relating to the MUSE (an instrument on the Very Large Telescope), and those that include Roland Bacon (Principle Investigator of MUSE) as an author (@code{Bacon, R.}).
 Recall that @option{-i} is the short format of @option{--information}.
 
 @example
@@ -14984,12 +14983,12 @@ $ astquery vizier --dataset=J/A+A/608/A2/udf10 -i
 For very popular datasets of a database, Query provides an easier-to-remember short name that you can feed to @option{--dataset}.
 This short name will map to the officially recognized name of the dataset on the server.
 In this mode, Query will also set positional columns accordingly.
-for example, most VizieR datasets have an @code{RAJ2000} column (the RA and the epoch of 2000) so it is the default RA column name for coordinate search (using @option{--center} or @option{--overlapwith}).
+For example, most VizieR datasets have an @code{RAJ2000} column (the RA and the epoch of 2000) so it is the default RA column name for coordinate search (using @option{--center} or @option{--overlapwith}).
 However, some datasets do not have this column (for example, SDSS DR12).
 So when you use the short name and Query knows about this dataset, it will internally set the coordinate columns that SDSS DR12 has: @code{RA_ICRS} and @code{DEC_ICRS}.
 Recall that you can always change the coordinate columns with @option{--ccol}.
 
-for example, in the VizieR and Gaia databases, the recognized name for the early data release 3 data is respectively @code{I/350/gaiaedr3} and @code{gaiaedr3.gaia_source}.
+For example, in the VizieR and Gaia databases, the recognized name for the early data release 3 data is respectively @code{I/350/gaiaedr3} and @code{gaiaedr3.gaia_source}.
 These technical names can be hard to remember.
 Therefore Query provides @code{gaiaedr3} (for VizieR) and @code{edr3} (for ESA's Gaia) shortcuts which you can give to @option{--dataset} instead.
 They will be directly mapped to the fully recognized name by Query.
@@ -15105,7 +15104,7 @@ asttable ned-extinction.fits --equal=FILTER,"SDSS r" \
 @cindex Database, VizieR
 Vizier (@url{https://vizier.u-strasbg.fr}) is arguably the largest catalog database in astronomy: containing more than 20500 catalogs as of mid January 2021.
 Almost all published catalogs in major projects, and even the tables in many papers are archived and accessible here.
-for example, VizieR also has a full copy of the Gaia database mentioned below, with some additional standardized columns (like RA and Dec in J2000).
+For example, VizieR also has a full copy of the Gaia database mentioned below, with some additional standardized columns (like RA and Dec in J2000).
 
 The current implementation of @option{--limitinfo} only looks into the description of the datasets, but since VizieR is so large, there is still a lot of room for improvement.
 Until then, if @option{--limitinfo} is not sufficient, you can use VizieR's own web-based search for your desired dataset: @url{http://cdsarc.u-strasbg.fr/viz-bin/cat}
@@ -15252,7 +15251,7 @@ To achieve this, Query will ask the databases to provide a FITS table output (fo
 After downloading is complete, the raw downloaded file will be read into memory once by Query, and written into the file given to @option{--output}.
 The raw downloaded file will be deleted by default, but can be preserved with the @option{--keeprawdownload} option.
 This strategy avoids unnecessary surprises depending on database.
-for example, some databases can download a compressed FITS table, even though we ask for FITS.
+For example, some databases can download a compressed FITS table, even though we ask for FITS.
 But with the strategy above, the final output will be an uncompressed FITS file.
 The metadata that is added by Query (including the full download command) is also very useful for future usage of the downloaded data.
 Unfortunately many databases do not write the input queries into their generated tables.
@@ -15350,7 +15349,7 @@ Also, more than one coordinate system/epoch may be present in a dataset and you 
 @itemx --radius=FLT
 The radius about the requested center to use for the automatically generated query (not compatible with @option{--query}).
 The radius is in units of degrees, but you can use simple division with this option directly on the command-line.
-for example, if you want a radius of 20 arc-minutes or 20 arc-seconds, you can use @option{--radius=20/60} or @option{--radius=20/3600} respectively (which is much more human-friendly than @code{0.3333} or @code{0.005556}).
+For example, if you want a radius of 20 arc-minutes or 20 arc-seconds, you can use @option{--radius=20/60} or @option{--radius=20/3600} respectively (which is much more human-friendly than @code{0.3333} or @code{0.005556}).
 
 @item -w FLT[,FLT]
 @itemx --width=FLT[,FLT]
@@ -15358,13 +15357,13 @@ The square (or rectangle) side length (width) about the requested center to use 
 If only one value is given to @code{--width} the region will be a square, but if two values are given, the widths of the query box along each dimension will be different.
 The value(s) is (are) in the same units as the coordinate column (see @option{--ccol}, usually RA and Dec which are degrees).
 You can use simple division for each value directly on the command-line if you want relatively small (and more human-friendly) sizes.
-for example, if you want your box to be 1 arc-minutes along the RA and 2 arc-minutes along Dec, you can use @option{--width=1/60,2/60}.
+For example, if you want your box to be 1 arc-minutes along the RA and 2 arc-minutes along Dec, you can use @option{--width=1/60,2/60}.
 
 @item -g STR,FLT,FLT
 @itemx --range=STR,FLT,FLT
 The column name and numerical range (inclusive) of acceptable values in that column (not compatible with @option{--query}).
 This option can be called multiple times for applying range limits on many columns in one call (thus greatly reducing the download size).
-for example, when used on the ESA gaia database, you can use @code{--range=phot_g_mean_mag,10:15} to only get rows that have a value between 10 and 15 (inclusive on both sides) in the @code{phot_g_mean_mag} column.
+For example, when used on the ESA gaia database, you can use @code{--range=phot_g_mean_mag,10:15} to only get rows that have a value between 10 and 15 (inclusive on both sides) in the @code{phot_g_mean_mag} column.
 
 If you want all rows larger, or smaller, than a certain number, you can use @code{inf}, or @code{-inf} as the first or second values respectively.
 For example, if you want objects with SDSS spectroscopic redshifts larger than 2 (from the VizieR @code{sdss12} database), you can use @option{--range=zsp,2,inf}
@@ -15376,11 +15375,11 @@ Then you can edit it to be non-inclusive on your desired side.
 @item --noblank=STR[,STR]
 Only ask for rows that do not have a blank value in the @code{STR} column.
 This option can be called many times, and each call can have multiple column names (separated by a comma or @key{,}).
-for example, if you want the retrieved rows to not have a blank value in columns @code{A}, @code{B}, @code{C} and @code{D}, you can use @command{--noblank=A -bB,C,D}.
+For example, if you want the retrieved rows to not have a blank value in columns @code{A}, @code{B}, @code{C} and @code{D}, you can use @command{--noblank=A -bB,C,D}.
 
 @item --sort=STR[,STR]
 Ask for the server to sort the downloaded data based on the given columns.
-for example, let's assume your desired catalog has column @code{Z} for redshift and column @code{MAG_R} for magnitude in the R band.
+For example, let's assume your desired catalog has column @code{Z} for redshift and column @code{MAG_R} for magnitude in the R band.
 When you call @option{--sort=Z,MAG_R}, it will primarily sort the columns based on the redshift, but if two objects have the same redshift, they will be sorted by magnitude.
 You can add as many columns as you like for higher-level sorting.
 @end table
@@ -15409,7 +15408,7 @@ You can add as many columns as you like for higher-level sorting.
 
 Images are one of the major formats of data that is used in astronomy.
 The functions in this chapter explain the GNU Astronomy Utilities which are provided for their manipulation.
-for example, cropping out a part of a larger image or convolving the image with a given kernel or applying a transformation to it.
+For example, cropping out a part of a larger image or convolving the image with a given kernel or applying a transformation to it.
 
 @menu
 * Crop::                        Crop region(s) from a dataset.
@@ -15440,7 +15439,7 @@ When more than one crop is required, Crop will divide the crops between multiple
 Astronomical surveys are usually extremely large.
 So large in fact, that the whole survey will not fit into a reasonably sized file.
 Because of this, surveys usually cut the final image into separate tiles and store each tile in a file.
-for example, the COSMOS survey's Hubble space telescope, ACS F814W image consists of 81 separate FITS images, with each one having a volume of 1.7 Giga bytes.
+For example, the COSMOS survey's Hubble space telescope, ACS F814W image consists of 81 separate FITS images, with each one having a volume of 1.7 Giga bytes.
 
 @cindex Stitch multiple images
 Even though the tile sizes are chosen to be large enough that too many galaxies/targets do not fall on the edges of the tiles, inevitably some do.
@@ -15465,7 +15464,7 @@ In order to be comprehensive, intuitive, and easy to use, there are two ways to 
 @enumerate
 @item
 From its center and side length.
-for example, if you already know the coordinates of an object and want to inspect it in an image or to generate postage stamps of a catalog containing many such coordinates.
+For example, if you already know the coordinates of an object and want to inspect it in an image or to generate postage stamps of a catalog containing many such coordinates.
 
 @item
 The vertices of the crop region, this can be useful for larger crops over
@@ -15601,7 +15600,7 @@ See @ref{Command-line} for a description of how the command-line works.
 
 @cindex Blank pixel
 The cropped box can potentially include pixels that are beyond the image range.
-for example, when a target in the input catalog was very near the edge of the input image.
+For example, when a target in the input catalog was very near the edge of the input image.
 The parts of the cropped image that were not in the input image will be filled with the following two values depending on the data type of the image.
 In both cases, SAO DS9 will not color code those pixels.
 @itemize
@@ -15728,7 +15727,7 @@ $ astfits image.fits -h1 | cat -n
 For example, distortions have only been present in WCSLIB from version 5.15 (released in mid 2016).
 Therefore some pipelines still apply their own specific set of WCS keywords for distortions and put them into the image header along with those that WCSLIB does recognize.
 So now that WCSLIB recognizes most of the standard distortion parameters, they will get confused with the old ones and give wrong results.
-for example, in the CANDELS-GOODS South images that were created before WCSLIB 5.15@footnote{@url{https://archive.stsci.edu/pub/hlsp/candels/goods-s/gs-tot/v1.0/}}.
+For example, in the CANDELS-GOODS South images that were created before WCSLIB 5.15@footnote{@url{https://archive.stsci.edu/pub/hlsp/candels/goods-s/gs-tot/v1.0/}}.
 
 The two @option{--hstartwcs} and @option{--hendwcs} are thus provided so when using older datasets, you can specify what region in the FITS headers you want to use to read the WCS keywords.
 Note that this is only relevant for reading the WCS information, basic data information like the image size are read separately.
@@ -15767,7 +15766,7 @@ If in WCS mode, value(s) given to this option will be read in the same units as 
 This option may take either a single value (to be used for all dimensions: @option{--width=10} in image-mode will crop a @mymath{10\times10} pixel image) or multiple values (a specific value for each dimension: @option{--width=10,20} in image-mode will crop a @mymath{10\times20} pixel image).
 
 The @code{--width} option also accepts fractions.
-for example, if you want the width of your crop to be 3 by 5 arcseconds along RA and Dec respectively and you are in wcs-mode, you can use: @option{--width=3/3600,5/3600}.
+For example, if you want the width of your crop to be 3 by 5 arcseconds along RA and Dec respectively and you are in wcs-mode, you can use: @option{--width=3/3600,5/3600}.
 
 The final output will have an odd number of pixels to allow easy identification of the pixel which keeps your requested coordinate (from @option{--center} or @option{--catalog}).
 If you want an even sided crop, you can run Crop afterwards with @option{--section=":*-1,:*-1"} or @option{--section=2:,2:} (depending on which side you do not need), see @ref{Crop section syntax}.
@@ -16108,7 +16107,7 @@ The most common notation for arithmetic operations is the @url{https://en.wikipe
 The infix notation is the preferred way in most programming languages which come with scripting features for large programs.
 This is because the infix notation requires a way to define precedence when more than one operator is involved.
 
-for example, consider the statement @code{5 + 6 / 2}.
+For example, consider the statement @code{5 + 6 / 2}.
 Should 6 first be divided by 2, then added by 5?
 Or should 5 first be added with 6, then divided by 2?
 Therefore we need parenthesis to show precedence: @code{5+(6/2)} or @code{(5+6)/2}.
@@ -16222,7 +16221,7 @@ On the system that this paragraph was written on, the floating point and integer
 
 @cartouche
 @noindent
-@strong{Select the smallest width that can host the range/precision of values}: For example, if the largest possible value in your dataset is 1000 and all numbers are integers, store it as a 16-bit integer.
+@strong{Select the smallest width that can host the range/precision of values:} for example, if the largest possible value in your dataset is 1000 and all numbers are integers, store it as a 16-bit integer.
 Also, if you know the values can never become negative, store it as an unsigned 16-bit integer.
 For floating point types, if you know you will not need a precision of more than 6 significant digits, use the 32-bit floating point type.
 For more on the range (for integers) and precision (for floats), see @ref{Numeric data types}.
@@ -16230,7 +16229,7 @@ For more on the range (for integers) and precision (for floats), see @ref{Numeri
 
 There is a price to be paid for this improved efficiency in integers: your wisdom!
 If you have not selected your types wisely, strange situations may happen.
-for example, try the command below:
+For example, try the command below:
 
 @example
 $ astarithmetic 125 10 +
@@ -16279,7 +16278,7 @@ In this section, list of recognized operators in Arithmetic (and the Table progr
 As mentioned before, to be able to easily do complex operations on the command-line, the Reverse Polish Notation is used (where you write `@mymath{4\quad5\quad+}' instead of `@mymath{4 + 5}'), if you are not already familiar with it, before continuing, please see @ref{Reverse polish notation}.
 
 The operands to all operators can be a data array (for example, a FITS image or data cube) or a number, the output will be an array or number according to the inputs.
-for example, a number multiplied by an array will produce an array.
+For example, a number multiplied by an array will produce an array.
 The numerical data type of the output of each operator is described within it.
 Here are some generic tips and tricks (relevant to all operators):
 
@@ -16358,12 +16357,12 @@ If you are new to Gnuastro, just read the description of each carefully.
 
 @item +
 Addition, so ``@command{4 5 +}'' is equivalent to @mymath{4+5}.
-for example, in the command below, the value 20000 is added to each pixel's value in @file{image.fits}:
+For example, in the command below, the value 20000 is added to each pixel's value in @file{image.fits}:
 @example
 $ astarithmetic 20000 image.fits +
 @end example
 You can also use this operator to sum the values of one pixel in two images (which have to be the same size).
-for example, in the commands below (which are identical, see paragraph after the commands), each pixel of @file{sum.fits} is the sum of the same pixel's values in @file{a.fits} and @file{b.fits}.
+For example, in the commands below (which are identical, see paragraph after the commands), each pixel of @file{sum.fits} is the sum of the same pixel's values in @file{a.fits} and @file{b.fits}.
 @example
 $ astarithmetic a.fits b.fits + -h1 -h1 --output=sum.fits
 $ astarithmetic a.fits b.fits + -g1     --output=sum.fits
@@ -16389,7 +16388,7 @@ $ astarithmetic a.fits b.fits - -g1 --output=sub.fits
 
 @item x
 Multiplication, so ``@command{4 5 x}'' is equivalent to @mymath{4\times5}.
-for example, in the command below, the value of each output pixel is 5 times its value in @file{image.fits}:
+For example, in the command below, the value of each output pixel is 5 times its value in @file{image.fits}:
 @example
 $ astarithmetic image.fits 5 x
 @end example
@@ -16418,7 +16417,7 @@ $ astarithmetic label.fits 5 1 %
 
 @item abs
 Absolute value of first operand, so ``@command{4 abs}'' is equivalent to @mymath{|4|}.
-for example, the output of the command bellow will not have any negative pixels (all negative pixels will be multiplied by @mymath{-1} to become positive)
+For example, the output of the command bellow will not have any negative pixels (all negative pixels will be multiplied by @mymath{-1} to become positive)
 @example
 $ astarithmetic image.fits abs
 @end example
@@ -16426,7 +16425,7 @@ $ astarithmetic image.fits abs
 
 @item pow
 First operand to the power of the second, so ``@command{4.3 5 pow}'' is equivalent to @mymath{4.3^{5}}.
-for example, with the command below all pixels will be squared
+For example, with the command below all pixels will be squared
 @example
 $ astarithmetic image.fits 2 pow
 @end example
@@ -16437,7 +16436,7 @@ Since the square root is only defined for positive values, any negative-valued p
 The output will have a floating point type, but its precision is determined from the input: if the input is a 64-bit floating point, the output will also be 64-bit.
 Otherwise, the output will be 32-bit floating point (see @ref{Numeric data types} for the respective precision).
 Therefore if you require 64-bit precision in estimating the square root, convert the input to 64-bit floating point first, for example, with @code{5 float64 sqrt}.
-for example, each pixel of the output of the command below will be the square root of that pixel in the input.
+For example, each pixel of the output of the command below will be the square root of that pixel in the input.
 @example
 $ astarithmetic image.fits sqrt
 @end example
@@ -16457,7 +16456,7 @@ $ astarithmetic image.fits set-i i i minvalue - sqrt
 @item log
 Natural logarithm of first operand, so ``@command{4 log}'' is equivalent to @mymath{ln(4)}.
 Negative pixels will become NaN, and the output type is determined from the input, see the explanation under @command{sqrt} for more on these features.
-for example, the command below will take the natural logarithm of every pixel in the input.
+For example, the command below will take the natural logarithm of every pixel in the input.
 @example
 $ astarithmetic image.fits log --output=log.fits
 @end example
@@ -16465,7 +16464,7 @@ $ astarithmetic image.fits log --output=log.fits
 @item log10
 Base-10 logarithm of first popped operand, so ``@command{4 log}'' is equivalent to @mymath{log_{10}(4)}.
 Negative pixels will become NaN, and the output type is determined from the input, see the explanation under @command{sqrt} for more on these features.
-for example, the command below will take the base-10 logarithm of every pixel in the input.
+For example, the command below will take the base-10 logarithm of every pixel in the input.
 @example
 $ astarithmetic image.fits log10
 @end example
@@ -16496,7 +16495,7 @@ They take one operand and the returned values are in units of degrees.
 Inverse tangent (output in units of degrees) that uses the signs of the input coordinates to distinguish between the quadrants.
 This operator therefore needs two operands: the first popped operand is assumed to be the X axis position of the point, and the second popped operand is its Y axis coordinate.
 
-for example, see the commands below.
+For example, see the commands below.
 To be more clear, we are using Table's @ref{Column arithmetic} which uses exactly the same internal library function as the Arithmetic program for images.
 We are showing the results for four points in the four quadrants of the 2D space (if you want to try running them, you do not need to type/copy the parts after @key{#}).
 The first point (2,2) is in the first quadrant, therefore the returned angle is 45 degrees.
@@ -16604,7 +16603,7 @@ While the equations for the unit conversions can be easily found on the internet
 Convert counts (usually CCD outputs) to magnitudes using the given zero point.
 The zero point is the first popped operand and the count image or value is the second popped operand.
 
-for example, assume you have measured the standard deviation of the noise in an image to be @code{0.1} counts, and the image's zero point is @code{22.5} and you want to measure the @emph{per-pixel} surface brightness limit of the dataset@footnote{The @emph{per-pixel} surface brightness limit is the magnitude of the noise standard deviation. For more on surface brightness see @ref{Brightness flux magnitude}.
+For example, assume you have measured the standard deviation of the noise in an image to be @code{0.1} counts, and the image's zero point is @code{22.5} and you want to measure the @emph{per-pixel} surface brightness limit of the dataset@footnote{The @emph{per-pixel} surface brightness limit is the magnitude of the noise standard deviation. For more on surface brightness see @ref{Brightness flux magnitude}.
 In the example command, because the output is a single number, we are using @option{--quiet} to avoid printing extra information.}.
 To apply this operator on an image, simply replace @code{0.1} with the image name, as described below.
 
@@ -16618,7 +16617,7 @@ For an example of applying this operator on an image, see the description of sur
 @item mag-to-counts
 Convert magnitudes to counts (usually CCD outputs) using the given zero point.
 The zero point is the first popped operand and the magnitude value is the second.
-for example, if an object has a magnitude of 20, you can estimate the counts corresponding to it (when the image has a zero point of 24.8) with this command:
+For example, if an object has a magnitude of 20, you can estimate the counts corresponding to it (when the image has a zero point of 24.8) with this command:
 Note that because the output is a single number, we are using @option{--quiet} to avoid printing extra information.
 
 @example
@@ -16631,7 +16630,7 @@ The first popped operand is the area (in arcsec@mymath{^2}), the second popped o
 Estimating the surface brightness involves taking the logarithm.
 Therefore this operator will produce NaN for counts with a negative value.
 
-for example, with the commands below, we read the zero point from the image headers (assuming it is in the @code{ZPOINT} keyword), we calculate the pixel area from the image itself, and we call this operator to convert the image pixels (in counts) to surface brightness (mag/arcsec@mymath{^2}).
+For example, with the commands below, we read the zero point from the image headers (assuming it is in the @code{ZPOINT} keyword), we calculate the pixel area from the image itself, and we call this operator to convert the image pixels (in counts) to surface brightness (mag/arcsec@mymath{^2}).
 
 @example
 $ zero point=$(astfits image.fits --keyvalue=ZPOINT -q)
@@ -16670,7 +16669,7 @@ For the full equation and basic definitions, see @ref{Brightness flux magnitude}
 
 @cindex SDSS
 @cindex Nanomaggy
-for example, SDSS images are calibrated in units of nanomaggies, with a fixed zero point magnitude of 22.5.
+For example, SDSS images are calibrated in units of nanomaggies, with a fixed zero point magnitude of 22.5.
 Therefore you can convert the units of SDSS image pixels to Janskys with the command below:
 
 @example
@@ -16716,7 +16715,7 @@ Convert Light-years (LY) to Parsecs (PCs).
 This operator takes a single argument which is interpreted to be the input LYs.
 The conversion is done from IAU's definition of the light-year (9460730472580800 m @mymath{\approx} 63241.077 AU = 0.306601 PC, for the conversion of AU to PC, see the description of @code{au-to-pc}).
 
-for example, the distance of Andromeda galaxy to our galaxy is 2.5 million light-years, so its distance in kilo-Parsecs can be calculated with the command below (note that we want the output in kilo-parsecs, so we are dividing the output of this operator by 1000):
+For example, the distance of Andromeda galaxy to our galaxy is 2.5 million light-years, so its distance in kilo-Parsecs can be calculated with the command below (note that we want the output in kilo-parsecs, so we are dividing the output of this operator by 1000):
 
 @example
 echo 2.5e6 | asttable -c'arith $1 ly-to-pc 1000 /'
@@ -16752,7 +16751,7 @@ The output of this operand is in the same type as the input.
 This operator is mainly intended for multi-element datasets (for example, images or data cubes), if the popped operand is a number, it will just return it without any change.
 
 Note that when the final remaining/output operand is a single number, it is printed onto the standard output.
-for example, with the command below the minimum pixel value in @file{image.fits} will be printed in the terminal:
+For example, with the command below the minimum pixel value in @file{image.fits} will be printed in the terminal:
 @example
 $ astarithmetic image.fits minvalue
 @end example
@@ -16816,7 +16815,7 @@ But you can use @option{--onedasimage} or @option{--onedonstdout} to respectivel
 
 Although you can use this operator on the floating point dataset, due to floating-point errors it may give non-reasonable values: because the tenth digit of the decimal point is also considered although it may be statistically meaningless, see @ref{Numeric data types}.
 It is therefore better/recommended to use it on the integer dataset like the labeled images of @ref{Segment output} where each pixel has the integer label of the object/clump it is associated with.
-for example, let's assume you have cropped a region of a larger labeled image and want to find the labels/objects that are within the crop.
+For example, let's assume you have cropped a region of a larger labeled image and want to find the labels/objects that are within the crop.
 With this operator, this job is trivial:
 @example
 $ astarithmetic seg-crop.fits unique
@@ -16829,7 +16828,7 @@ Since the blank pixels are being removed, the output dataset will always be sing
 Recall that by default, single-dimensional datasets are stored as a table column in the output.
 But you can use @option{--onedasimage} or @option{--onedonstdout} to respectively store them as a single-dimensional FITS array/image, or to print them on the standard output.
 
-for example, with the command below, the non-blank pixel values of @file{cropped.fits} are printed on the command-line (the @option{--quiet} option is used to remove the extra information that Arithmetic prints as it reads the inputs, its version and its running time).
+For example, with the command below, the non-blank pixel values of @file{cropped.fits} are printed on the command-line (the @option{--quiet} option is used to remove the extra information that Arithmetic prints as it reads the inputs, its version and its running time).
 
 @example
 $ astarithmetic cropped.fits nonblank --onedonstdout --quiet
@@ -16860,7 +16859,7 @@ All the subsequently popped operands must have the same type and size.
 This operator (and all the variable-operand operators similar to it that are discussed below) will work in multi-threaded mode unless Arithmetic is called with the @option{--numthreads=1} option, see @ref{Multi-threaded operations}.
 
 Each pixel of the output of the @code{min} operator will be given the minimum value of the same pixel from all the popped operands/images.
-for example, the following command will produce an image with the same size and type as the three inputs, but each output pixel value will be the minimum of the same pixel's values in all three input images.
+For example, the following command will produce an image with the same size and type as the three inputs, but each output pixel value will be the minimum of the same pixel's values in all three input images.
 
 @example
 $ astarithmetic a.fits b.fits c.fits 3 min --output=min.fits
@@ -16963,7 +16962,7 @@ This operator will combine the specified number of inputs into a single output t
 This operator is very similar to @command{min}, with the exception that it expects two operands (parameters for sigma-clipping) before the total number of inputs.
 The first popped operand is the termination criteria and the second is the multiple of @mymath{\sigma}.
 
-for example, in the command below, the first popped operand (@command{0.2}) is the sigma clipping termination criteria.
+For example, in the command below, the first popped operand (@command{0.2}) is the sigma clipping termination criteria.
 If the termination criteria is larger than, or equal to, 1 it is interpreted as the number of clips to do.
 But if it is between 0 and 1, then it is the tolerance level on the standard deviation (see @ref{Sigma clipping}).
 The second popped operand (@command{5}) is the multiple of sigma to use in sigma-clipping.
@@ -17048,7 +17047,7 @@ This is very similar to @code{filter-mean}, except that all outliers (identified
 As described there, two extra input parameters are necessary for @mymath{\sigma}-clipping: the multiple of @mymath{\sigma} and the termination criteria.
 @code{filter-sigclip-mean} therefore needs to pop two other operands from the stack after the dimensions of the box.
 
-for example, the line below uses the same box size as the example of @code{filter-mean}.
+For example, the line below uses the same box size as the example of @code{filter-mean}.
 However, all elements in the box that are iteratively beyond @mymath{3\sigma} of the distribution's median are removed from the final calculation of the mean until the change in @mymath{\sigma} is less than @mymath{0.2}.
 
 @example
@@ -17078,7 +17077,7 @@ The number of the nearest non-blank neighbors used to calculate the median is gi
 The distance of the nearest non-blank neighbors is irrelevant in this interpolation.
 The neighbors of each blank pixel will be parsed in expanding circular rings (for 2D images) or spherical surfaces (for 3D cube) and each non-blank element over them is stored in memory.
 When the requested number of non-blank neighbors have been found, their median is used to replace that blank element.
-for example, the line below replaces each blank element with the median of the nearest 5 pixels.
+For example, the line below replaces each blank element with the median of the nearest 5 pixels.
 
 @example
 $ astarithmetic image.fits 5 interpolate-medianngb
@@ -17099,7 +17098,7 @@ One useful implementation of this operator is to fill the saturated pixels of st
 Interpolate all blank regions (consisting of many blank pixels that are touching) in the second popped operand with the minimum value of the pixels that are immediately bordering that region (a single value).
 The first popped operand is the connectivity (see description in @command{connected-components}).
 
-for example, with the command below all the connected blank regions of @file{image.fits} will be filled.
+For example, with the command below all the connected blank regions of @file{image.fits} will be filled.
 Its an image (2D dataset), so a 2 connectivity means that the independent blank regions are defined by 8-connected neighbors.
 If connectivity was 1, the regions would be defined by 4-connectivity: blank regions that may only be touching on the corner of one pixel would be identified as separate regions.
 
@@ -17196,7 +17195,7 @@ Therefore, when the WCS is important for later processing, be sure that the inpu
 @cindex IFU: Integral Field Unit
 @cindex Integral field unit (IFU)
 One common application of this operator is the creation of pseudo broad-band or narrow-band 2D images from 3D data cubes.
-for example, integral field unit (IFU) data products that have two spatial dimensions (first two FITS dimensions) and one spectral dimension (third FITS dimension).
+For example, integral field unit (IFU) data products that have two spatial dimensions (first two FITS dimensions) and one spectral dimension (third FITS dimension).
 The command below will collapse the whole third dimension into a 2D array the size of the first two dimensions, and then convert the output to single-precision floating point (as discussed above).
 
 @example
@@ -17357,7 +17356,7 @@ Both operands have to be the same kind: either both images or both numbers and i
 $ astarithmetic image1.fits image2.fits -g1 and
 @end example
 
-for example, if you only want to see which pixels in an image have a value @emph{between} 50 (greater equal, or inclusive) and 200 (less than, or exclusive), you can use this command:
+For example, if you only want to see which pixels in an image have a value @emph{between} 50 (greater equal, or inclusive) and 200 (less than, or exclusive), you can use this command:
 @example
 $ astarithmetic image.fits set-i i 50 ge i 200 lt and
 @end example
@@ -17367,7 +17366,7 @@ Logical OR: returns 1 if either one of the operands is non-zero and 0 only when 
 Both operands have to be the same kind: either both images or both numbers.
 The usage is similar to @code{and}.
 
-for example, if you only want to see which pixels in an image have a value @emph{outside of} -100 (greater equal, or inclusive) and 200 (less than, or exclusive), you can use this command:
+For example, if you only want to see which pixels in an image have a value @emph{outside of} -100 (greater equal, or inclusive) and 200 (less than, or exclusive), you can use this command:
 @example
 $ astarithmetic image.fits set-i i -100 lt i 200 ge or
 @end example
@@ -17375,7 +17374,7 @@ $ astarithmetic image.fits set-i i -100 lt i 200 ge or
 @item not
 Logical NOT: returns 1 when the operand is 0 and 0 when the operand is non-zero.
 The operand can be an image or number, for an image, it is applied to each pixel separately.
-for example, if you want to know which pixels are not blank, you can use not on the output of the @command{isblank} operator described below:
+For example, if you want to know which pixels are not blank, you can use not on the output of the @command{isblank} operator described below:
 @example
 $ astarithmetic image.fits isblank not
 @end example
@@ -17410,7 +17409,7 @@ The 2nd popped operand (@file{binary.fits}) has to have @code{uint8} (or @code{u
 It is treated as a binary dataset (with only two values: zero and non-zero, hence the name @code{binary.fits} in this example).
 However, commonly you will not be dealing with an actual FITS file of a condition/binary image.
 You will probably define the condition in the same run based on some other reference image and use the conditional and logical operators above to make a true/false (or one/zero) image for you internally.
-for example, the case below:
+For example, the case below:
 
 @example
 $ astarithmetic in.fits reference.fits 100 gt new.fits where
@@ -17442,7 +17441,7 @@ $ astarithmetic in.fits reference.fits 100 gt nan where
 @cindex Mathematical morphology
 From Wikipedia: ``Mathematical morphology (MM) is a theory and technique for the analysis and processing of geometrical structures, based on set theory, lattice theory, topology, and random functions. MM is most commonly applied to digital images''.
 In theory it extends a very large body of research and methods in image processing, but currently in Gnuastro it mainly applies to images that are binary (only have a value of 0 or 1).
-for example, you have applied the greater-than operator (@code{gt}, see @ref{Conditional operators}) to select all pixels in your image that are larger than a value of 100.
+For example, you have applied the greater-than operator (@code{gt}, see @ref{Conditional operators}) to select all pixels in your image that are larger than a value of 100.
 But they will all have a value of 1, and you want to separate the various groups of pixels that are connected (for example, peaks of stars in your image).
 With the @code{connected-components} operator, you can give each connected region of the output of @code{gt} a separate integer label.
 
@@ -17499,7 +17498,7 @@ This operator will return a labeled dataset where the non-zero pixels in the inp
 
 The connectivity is a number between 1 and the number of dimensions in the dataset (inclusive).
 1 corresponds to the weakest (symmetric) connectivity between elements and the number of dimensions the strongest.
-for example, on a 2D image, a connectivity of 1 corresponds to 4-connected neighbors and 2 corresponds to 8-connected neighbors.
+For example, on a 2D image, a connectivity of 1 corresponds to 4-connected neighbors and 2 corresponds to 8-connected neighbors.
 
 One example usage of this operator can be the identification of regions above a certain threshold, as in the command below.
 With this command, Arithmetic will first separate all pixels greater than 100 into a binary image (where pixels with a value of 1 are above that value).
@@ -17536,7 +17535,7 @@ $ astarithmetic image.fits invert
 
 @cindex Bitwise operators
 Astronomical images are usually stored as an array multi-byte pixels with different sizes for different precision levels (see @ref{Numeric data types}).
-for example, images from CCDs are usually in the unsigned 16-bit integer type (each pixel takes 16 bits, or 2 bytes, of memory) and fully reduced deep images have a 32-bit floating point type (each pixel takes 32 bits or 4 bytes).
+For example, images from CCDs are usually in the unsigned 16-bit integer type (each pixel takes 16 bits, or 2 bytes, of memory) and fully reduced deep images have a 32-bit floating point type (each pixel takes 32 bits or 4 bytes).
 
 On the other hand, during the data reduction, we need to preserve a lot of meta-data about some pixels.
 For example, if a cosmic ray had hit the pixel during the exposure, or if the pixel was saturated, or is known to have a problem, or if the optical vignetting is too strong on it.
@@ -17553,13 +17552,13 @@ So if a pixel is only affected by cosmic rays, it will have this sequence of bit
 The second bit shows that the pixel was saturated (@code{00000010}), the third bit shows that it has known problems (@code{00000100}) and the fourth bit shows that it was affected by vignetting (@code{00001000}).
 
 Since each bit is independent, we can thus mark multiple metadata about that pixel in the actual image, within a single ``flag'' or ``mask'' pixel of a flag or mask image that has the same number of pixels.
-for example, a flag-pixel with the following bits @code{00001001} shows that it has been affected by cosmic rays @emph{and} it has been affected by vignetting at the same time.
+For example, a flag-pixel with the following bits @code{00001001} shows that it has been affected by cosmic rays @emph{and} it has been affected by vignetting at the same time.
 The common data type to store these flagging pixels are unsigned integer types (see @ref{Numeric data types}).
 Therefore when you open an unsigned 8-bit flag image in a viewer like DS9, you will see a single integer in each pixel that actually has 8 layers of metadata in it!
-for example, the integer you will see for the bit sequences given above will respectively be: @mymath{2^0=1} (for a pixel that only has cosmic ray), @mymath{2^1=2} (for a pixel that was only saturated), @mymath{2^2=4} (for a pixel that only has known problems), @mymath{2^3=8} (for a pixel that is only affected by vignetting) and @mymath{2^0 + 2^3 = 9} (for a pixel that has a cosmic ray @emph{and} was affected by vignetting).
+For example, the integer you will see for the bit sequences given above will respectively be: @mymath{2^0=1} (for a pixel that only has cosmic ray), @mymath{2^1=2} (for a pixel that was only saturated), @mymath{2^2=4} (for a pixel that only has known problems), @mymath{2^3=8} (for a pixel that is only affected by vignetting) and @mymath{2^0 + 2^3 = 9} (for a pixel that has a cosmic ray @emph{and} was affected by vignetting).
 
 You can later use this bit information to mark objects in your final analysis or to mask certain pixels.
-for example, you may want to set all pixels affected by vignetting to NaN, but can interpolate over cosmic rays.
+For example, you may want to set all pixels affected by vignetting to NaN, but can interpolate over cosmic rays.
 You therefore need ways to separate the pixels with a desired flag(s) from the rest.
 It is possible to treat a flag pixel as a single integer (and try to define certain ranges in value to select certain flags).
 But a much more easier and robust way is to actually look at each pixel as a sequence of bits (not as a single integer!) and use the bitwise operators below for this job.
@@ -17569,34 +17568,34 @@ For more on the theory behind bitwise operators, see @url{https://en.wikipedia.o
 @table @command
 @item bitand
 Bitwise AND operator: only bits with values of 1 in both popped operands will get the value of 1, the rest will be set to 0.
-for example, (assuming numbers can be written as bit strings on the command-line): @code{00101000 00100010 bitand} will give @code{00100000}.
+For example, (assuming numbers can be written as bit strings on the command-line): @code{00101000 00100010 bitand} will give @code{00100000}.
 Note that the bitwise operators only work on integer type datasets.
 
 @item bitor
 Bitwise inclusive OR operator: The bits where at least one of the two popped operands has a 1 value get a value of 1, the others 0.
-for example, (assuming numbers can be written as bit strings on the command-line): @code{00101000 00100010 bitand} will give @code{00101010}.
+For example, (assuming numbers can be written as bit strings on the command-line): @code{00101000 00100010 bitand} will give @code{00101010}.
 Note that the bitwise operators only work on integer type datasets.
 
 @item bitxor
 Bitwise exclusive OR operator: A bit will be 1 if it differs between the two popped operands.
-for example, (assuming numbers can be written as bit strings on the command-line): @code{00101000 00100010 bitand} will give @code{00001010}.
+For example, (assuming numbers can be written as bit strings on the command-line): @code{00101000 00100010 bitand} will give @code{00001010}.
 Note that the bitwise operators only work on integer type datasets.
 
 @item lshift
 Bitwise left shift operator: shift all the bits of the first operand to the left by a number of times given by the second operand.
-for example, (assuming numbers can be written as bit strings on the command-line): @code{00101000 2 lshift} will give @code{10100000}.
+For example, (assuming numbers can be written as bit strings on the command-line): @code{00101000 2 lshift} will give @code{10100000}.
 This is equivalent to multiplication by 4.
 Note that the bitwise operators only work on integer type datasets.
 
 @item rshift
 Bitwise right shift operator: shift all the bits of the first operand to the right by a number of times given by the second operand.
-for example, (assuming numbers can be written as bit strings on the command-line): @code{00101000 2 rshift} will give @code{00001010}.
+For example, (assuming numbers can be written as bit strings on the command-line): @code{00101000 2 rshift} will give @code{00001010}.
 Note that the bitwise operators only work on integer type datasets.
 
 @item bitnot
 Bitwise not (more formally known as one's complement) operator: flip all the bits of the popped operand (note that this is the only unary, or single operand, bitwise operator).
 In other words, any bit with a value of @code{0} is changed to @code{1} and vice-versa.
-for example, (assuming numbers can be written as bit strings on the command-line): @code{00101000 bitnot} will give @code{11010111}.
+For example, (assuming numbers can be written as bit strings on the command-line): @code{00101000 bitnot} will give @code{11010111}.
 Note that the bitwise operators only work on integer type datasets/numbers.
 @end table
 
@@ -17643,7 +17642,7 @@ The internal conversion of C will be used.
 @item float32
 Convert the type of the popped operand to 32-bit (single precision) floating point (see @ref{Numeric data types}).
 The internal conversion of C will be used.
-for example, if @file{f64.fits} is a 64-bit floating point image, and you want to store it as a 32-bit floating point image, you can use the command below (the second command is to show that the output file consumes half the storage)
+For example, if @file{f64.fits} is a 64-bit floating point image, and you want to store it as a 32-bit floating point image, you can use the command below (the second command is to show that the output file consumes half the storage)
 
 @example
 $ astarithmetic f64.fits float32 --output=f32.fits
@@ -17672,7 +17671,7 @@ When @option{--quiet} is not given, a statement will be printed on each invocati
 It will show the random number generator function and seed that was used in that invocation, see @ref{Generating random numbers}.
 Reproducibility of the outputs can be ensured with the @option{--envseed} option, see below for more.
 
-for example, with the first command below, @file{image.fits} will be degraded by a noise of standard deviation 3 units.
+For example, with the first command below, @file{image.fits} will be degraded by a noise of standard deviation 3 units.
 @example
 $ astarithmetic image.fits 3 mknoise-sigma
 @end example
@@ -17724,7 +17723,7 @@ Recall that the background values reported by observatories (for example, to def
 You need to do the conversion to counts per pixel manually.
 The conversion of magnitudes to counts is described below.
 For converting arcseconds squared to number of pixels, you can use the @option{--pixelscale} option of @ref{Fits}.
-for example, @code{astfits image.fits --pixelscale}.
+For example, @code{astfits image.fits --pixelscale}.
 
 Except for the noise-model, this operator is very similar to @code{mknoise-sigma} and the examples there apply here too.
 The main difference with @code{mknoise-sigma} is that in a Poisson distribution the scatter/sigma will depend on each element's value.
@@ -17747,7 +17746,7 @@ This operator takes two arguments: the top/first popped operand is the width of 
 The returned random values may happen to be the minimum interval value, but will never be the maximum.
 Except for the noise-model, this operator behaves very similar to @code{mknoise-sigma}, see the explanation there for more.
 
-for example, with the command below, a random value will be selected between 10 to 14 (centered on 12, which is the only input data element, with a total width of 4).
+For example, with the command below, a random value will be selected between 10 to 14 (centered on 12, which is the only input data element, with a total width of 4).
 
 @example
 echo 12 | asttable -c'arith $1 4 mknoise-uniform'
@@ -17820,7 +17819,7 @@ $ aststatistics random.fits --asciihist --numasciibins=50
 As you see, the 10000 pixels in the image only have values 1, 2, 3 or 4 (which were the values in the bins column of @file{histogram.txt}), and the number of times each of these values occurs follows the @mymath{y=x^2} distribution.
 
 Generally, any value given in the bins column will be used for the final output values.
-for example, in the command below (for generating a histogram from an analytical function), we are adding the bins by 20 (while keeping the same probability distribution of @mymath{y=x^2}).
+For example, in the command below (for generating a histogram from an analytical function), we are adding the bins by 20 (while keeping the same probability distribution of @mymath{y=x^2}).
 If you re-run the Arithmetic command above after this, you will notice that the pixels values are now one of the following 21, 22, 23 or 24 (instead of 1, 2, 3, or 4).
 But the shape of the histogram of the resulting random distribution will be unchanged.
 
@@ -17977,7 +17976,7 @@ $ astarithmetic a.fits b.fits pa.fits box-around-ellipse \
 Finally, if you need to treat the width and height separately for further processing, you can call the @code{set-} operator two times afterwards like below.
 Recall that the @code{set-} operator will pop the top operand, and put it in memory with a certain name, bringing the next operand to the top of the stack.
 
-for example, let's assume @file{catalog.fits} has at least three columns @code{MAJOR}, @code{MINOR} and @code{PA} which specify the major axis, minor axis and position angle respectively.
+For example, let's assume @file{catalog.fits} has at least three columns @code{MAJOR}, @code{MINOR} and @code{PA} which specify the major axis, minor axis and position angle respectively.
 But you want the final width and height in 32-bit floating point numbers (not the default 64-bit, which may be too much precision in many scenarios).
 You can do this with the command below (note you can also break lines with @key{\}, within the single-quote environment)
 
@@ -18002,7 +18001,7 @@ However, in some situations, it is necessary to use certain columns of a table i
 @itemx load-col-%-from-%-hdu-%
 Load the requested column (first @command{%}) from the requested file (second @command{%}).
 If the file is a FITS file, it is also necessary to specify a HDU using the second form (where the HDU identifier is the third @command{%}.
-for example, @command{load-col-MAG-from-catalog.fits-hdu-1} will load the @code{MAG} column from HDU 1 of @code{catalog.fits}.
+For example, @command{load-col-MAG-from-catalog.fits-hdu-1} will load the @code{MAG} column from HDU 1 of @code{catalog.fits}.
 
 For example, let's assume you have the following two tables, and you would like to add the first column of the first with the second:
 
@@ -18276,7 +18275,7 @@ It will keep the popped dataset in memory through a separate list of named datas
 That list will be used to add/copy any requested dataset to the main processing stack when the name is called.
 
 The name to give the popped dataset is part of the operator's name.
-for example, the @code{set-a} operator of the command below, gives the name ``@code{a}'' to the contents of @file{image.fits}.
+For example, the @code{set-a} operator of the command below, gives the name ``@code{a}'' to the contents of @file{image.fits}.
 This name is then used instead of the actual filename to multiply the dataset by two.
 
 @example
@@ -18318,7 +18317,7 @@ By default, any file that is given to this operator is deleted before Arithmetic
 The deletion can be deactivated with the @option{--dontdelete} option (as in all Gnuastro programs, see @ref{Input output options}).
 If the same FITS file is given to this operator multiple times, it will contain multiple extensions (in the same order that it was called.
 
-for example, the operator @command{tofile-check.fits} will write the top operand to @file{check.fits}.
+For example, the operator @command{tofile-check.fits} will write the top operand to @file{check.fits}.
 Since it does not modify the operands stack, this operator is very convenient when you want to debug, or understanding, a string of operators and operands given to Arithmetic: simply put @command{tofile-AAA} anywhere in the process to see what is happening behind the scenes without modifying the overall process.
 
 @item tofilefree-AAA
@@ -18495,7 +18494,7 @@ To force a number to be read as float, put a @code{.} after it (possibly followe
 Hence while @command{5} will be read as an integer, @command{5.}, @command{5.0} or @command{5f} will be added to the stack as @code{float} (see @ref{Reverse polish notation}).
 
 Unless otherwise stated (in @ref{Arithmetic operators}), the operators can deal with numeric multiple data types (see @ref{Numeric data types}).
-for example, in ``@command{a.fits b.fits +}'', the image types can be @code{long} and @code{float}.
+For example, in ``@command{a.fits b.fits +}'', the image types can be @code{long} and @code{float}.
 In such cases, C's internal type conversion will be used.
 The output type will be set to the higher-ranking type of the two inputs.
 Unsigned integer types have smaller ranking than their signed counterparts and floating point types have higher ranking than the integer types.
@@ -18770,7 +18769,7 @@ At each point in time, we take the vertical coordinate of the point and use it t
 @cindex Abraham de Moivre
 @cindex de Moivre, Abraham
 Leonhard Euler@footnote{Other forms of this equation were known before Euler.
-for example, in 1707 A.D. (the year of Euler's birth) Abraham de Moivre (1667 -- 1754 A.D.) showed that @mymath{(\cos{x}+i\sin{x})^n=\cos(nx)+i\sin(nx)}.
+For example, in 1707 A.D. (the year of Euler's birth) Abraham de Moivre (1667 -- 1754 A.D.) showed that @mymath{(\cos{x}+i\sin{x})^n=\cos(nx)+i\sin(nx)}.
 In 1714 A.D., Roger Cotes (1682 -- 1716 A.D. a colleague of Newton who proofread the second edition of Principia) showed that: @mymath{ix=\ln(\cos{x}+i\sin{x})}.}  (1707 -- 1783 A.D.)  showed that the complex exponential (@mymath{e^{iv}} where @mymath{v} is real) is periodic and can be written as: @mymath{e^{iv}=\cos{v}+isin{v}}.
 Therefore @mymath{e^{iv+2\pi}=e^{iv}}.
 Later, Caspar Wessel (mathematician and cartographer 1745 -- 1818 A.D.)  showed how complex numbers can be displayed as vectors on a plane.
@@ -19801,7 +19800,7 @@ To increase the accuracy, you might also sample more than one point from within 
 @cindex Edges, image
 However, interpolation has several problems.
 The first one is that it will depend on the type of function you want to assume for the interpolation.
-for example, you can choose a bi-linear or bi-cubic (the `bi's are for the 2 dimensional nature of the data) interpolation method.
+For example, you can choose a bi-linear or bi-cubic (the `bi's are for the 2 dimensional nature of the data) interpolation method.
 For the latter there are various ways to set the constants@footnote{see @url{http://entropymine.com/imageworsener/bicubic/} for a nice introduction.}.
 Such parametric interpolation functions can fail seriously on the edges of an image, or when there is a sharp change in value (for example, the bleeding saturation of bright stars in astronomical CCDs).
 They will also need normalization so that the flux of the objects before and after the warping is comparable.
@@ -20555,7 +20554,7 @@ But in some cases it might be useful to keep it unchanged (for example, to corre
 @chapter Data analysis
 
 Astronomical datasets (images or tables) contain very valuable information, the tools in this section can help in analyzing, extracting, and quantifying that information.
-for example, getting general or specific statistics of the dataset (with @ref{Statistics}), detecting signal within a noisy dataset (with @ref{NoiseChisel}), or creating a catalog from an input dataset (with @ref{MakeCatalog}).
+For example, getting general or specific statistics of the dataset (with @ref{Statistics}), detecting signal within a noisy dataset (with @ref{NoiseChisel}), or creating a catalog from an input dataset (with @ref{MakeCatalog}).
 
 @menu
 * Statistics::                  Calculate dataset statistics.
@@ -20634,7 +20633,7 @@ But when the range is determined from the actual dataset (none of these options 
 In @ref{Histogram and Cumulative Frequency Plot} the concept of histograms were introduced on a single dataset.
 But they are only useful for viewing the distribution of a single variable (column in a table).
 In many contexts, the distribution of two variables in relation to each other may be of interest.
-for example, the color-magnitude diagrams in astronomy, where the horizontal axis is the luminosity or magnitude of an object, and the vertical axis is the color.
+For example, the color-magnitude diagrams in astronomy, where the horizontal axis is the luminosity or magnitude of an object, and the vertical axis is the color.
 Scatter plots are useful to see these relations between the objects of interest when the number of the objects is small.
 
 As the density of points in the scatter plot increases, the points will fall over each other and just make a large connected region hide potentially interesting behaviors/correlations in the densest regions.
@@ -20774,7 +20773,7 @@ You can also use the optimized and fast FITS viewer features for many aspects of
 
 @cindex Color-magnitude diagram
 @cindex Diagram, Color-magnitude
-for example, let's assume you want to derive the color-magnitude diagram (CMD) of the @url{http://uvudf.ipac.caltech.edu, UVUDF survey}.
+For example, let's assume you want to derive the color-magnitude diagram (CMD) of the @url{http://uvudf.ipac.caltech.edu, UVUDF survey}.
 You can run the first command below to download the table with magnitudes of objects in many filters and run the second command to see general column metadata after it is downloaded.
 
 @example
@@ -21323,9 +21322,9 @@ Therefore all such approaches that try to approximate the sky value prior to det
 @subsubsection Quantifying signal in a tile
 
 In order to define detection thresholds on the image, or calibrate it for measurements (subtract the signal of the background sky and define errors), we need some basic measurements.
-for example, the quantile threshold in NoiseChisel (@option{--qthresh} option), or the mean of the undetected regions (Sky) and the Sky standard deviation (Sky STD) which are the output of NoiseChisel and Statistics.
+For example, the quantile threshold in NoiseChisel (@option{--qthresh} option), or the mean of the undetected regions (Sky) and the Sky standard deviation (Sky STD) which are the output of NoiseChisel and Statistics.
 But astronomical images will contain a lot of stars and galaxies that will bias those measurements if not properly accounted for.
-Quantifying where signal is present is thus a very important step in the usage of a dataset: for example, if the Sky level is over-estimated, your target object's brightness will be under-estimated.
+Quantifying where signal is present is thus a very important step in the usage of a dataset; for example, if the Sky level is over-estimated, your target object's brightness will be under-estimated.
 
 @cindex Data
 @cindex Noise
@@ -21354,12 +21353,12 @@ This definition of skewness through the quantile of the mean is further introduc
 
 @cindex Signal-to-noise ratio
 However, in an astronomical image, some of the pixels will contain more signal than the rest, so we cannot simply check @mymath{q_{mean}} on the whole dataset.
-for example, if we only look at the patch of pixels that are placed under the central parts of the brightest stars in the field of view, @mymath{q_{mean}} will be very high.
+For example, if we only look at the patch of pixels that are placed under the central parts of the brightest stars in the field of view, @mymath{q_{mean}} will be very high.
 The signal in other parts of the image will be weaker, and in some parts it will be much smaller than the noise (for example, 1/100-th of the noise level).
 When the signal-to-noise ratio is very small, we can generally assume no signal (because its effectively impossible to measure it) and @mymath{q_{mean}} will be approximately 0.5.
 
 To address this problem, we break the image into a grid of tiles@footnote{The options to customize the tessellation are discussed in @ref{Processing options}.} (see @ref{Tessellation}).
-for example, a tile can be a square box of size @mymath{30\times30} pixels.
+For example, a tile can be a square box of size @mymath{30\times30} pixels.
 By measuring @mymath{q_{mean}} on each tile, we can find which tiles that contain significant signal and ignore them.
 Technically, if a tile's @mymath{|q_{mean}-0.5|} is larger than the value given to the @option{--meanmedqdiff} option, that tile will be ignored for the next steps.
 You can read this option as ``mean-median-quantile-difference''.
@@ -21889,7 +21888,7 @@ In some situations (for example, if you want to plot the histogram and cumulativ
 Make sure that one bin starts with the value to this option.
 In practice, this will shift the bins used to find the histogram and cumulative frequency plot such that one bin's lower interval becomes this value.
 
-for example, when a histogram range includes negative and positive values and zero has a special significance in your analysis, then zero might fall somewhere in one bin.
+For example, when a histogram range includes negative and positive values and zero has a special significance in your analysis, then zero might fall somewhere in one bin.
 As a result that bin will have counts of positive and negative.
 By setting @option{--onebinstart=0}, you can make sure that one bin will only count negative values in the vicinity of zero and the next bin will only count positive ones in that vicinity.
 
@@ -21960,7 +21959,7 @@ For a complete example, see the tutorial in @ref{Least squares fitting}).
 @table @asis
 @item Human friendly format
 By default (for example, the commands above) the output is an elaborate description of the model parameters.
-for example, @mymath{c_0} and @mymath{c_1} in the linear model (@mymath{Y=c_0+c_1X}).
+For example, @mymath{c_0} and @mymath{c_1} in the linear model (@mymath{Y=c_0+c_1X}).
 Their covariance matrix and the reduced @mymath{\chi^2} of the fit are also printed on the output.
 @item Raw numbers
 If you don't need the human friendly components of the output (which are annoying when you want to parse the outputs in some scenarios), you can use @option{--quiet} option.
@@ -22119,7 +22118,7 @@ Note that currently, this is a very crude/simple implementation, please let us k
 
 All the options described until now were from the first class of operations discussed above: those that treat the whole dataset as one.
 However, it often happens that the relative position of the dataset elements over the dataset is significant.
-for example, you do not want one median value for the whole input image, you want to know how the median changes over the image.
+For example, you do not want one median value for the whole input image, you want to know how the median changes over the image.
 For such operations, the input has to be tessellated (see @ref{Tessellation}).
 Thus this class of options cannot currently be called along with the options above in one run of Statistics.
 
@@ -22159,7 +22158,7 @@ Kernel HDU to help in estimating the significance of signal in a tile, see
 @item --meanmedqdiff=FLT
 The maximum acceptable distance between the quantiles of the mean and median, see @ref{Quantifying signal in a tile}.
 The initial Sky and its standard deviation estimates are measured on tiles where the quantiles of their mean and median are less distant than the value given to this option.
-for example, @option{--meanmedqdiff=0.01} means that only tiles where the mean's quantile is between 0.49 and 0.51 (recall that the median's quantile is 0.5) will be used.
+For example, @option{--meanmedqdiff=0.01} means that only tiles where the mean's quantile is between 0.49 and 0.51 (recall that the median's quantile is 0.5) will be used.
 
 @item --sclipparams=FLT,FLT
 The @mymath{\sigma}-clipping parameters, see @ref{Sigma clipping}.
@@ -22201,7 +22200,7 @@ Do Not set the input's blank pixels to blank in the tiled outputs (for example, 
 This is only applicable when the tiled output has the same size as the input, in other words, when @option{--oneelempertile} is not called.
 
 By default, blank values in the input (commonly on the edges which are outside the survey/field area) will be set to blank in the tiled outputs also.
-But in other scenarios this default behavior is not desired: for example, if you have masked something in the input, but want the tiled output under that also.
+But in other scenarios this default behavior is not desired; for example, if you have masked something in the input, but want the tiled output under that also.
 
 @item --checksky
 Create a multi-extension FITS file showing the steps that were used to estimate the Sky value over the input, see @ref{Quantifying signal in a tile}.
@@ -22217,7 +22216,7 @@ The file will have two extensions for each step (one for the Sky and one for the
 @cindex Segmentation
 Once instrumental signatures are removed from the raw data (image) in the initial reduction process (see @ref{Data manipulation}).
 You are naturally eager to start answering the scientific questions that motivated the data collection in the first place.
-However, the raw dataset/image is just an array of values/pixels, that is all! These raw values cannot directly be used to answer your scientific questions: for example, ``how many galaxies are there in the image?'' and ``What is their brightness?''.
+However, the raw dataset/image is just an array of values/pixels, that is all! These raw values cannot directly be used to answer your scientific questions; for example, ``how many galaxies are there in the image?'' and ``What is their brightness?''.
 
 The first high-level step your analysis will therefore be to classify, or label, the dataset elements (pixels) into two classes:
 1) Noise, where random effects are the major contributor to the value, and
@@ -22256,7 +22255,7 @@ NoiseChisel's primary output is a binary detection map with the same size as the
 Pixels that do not harbor any detected signal (noise) are given a label (or value) of zero and those with a value of 1 have been identified as hosting signal.
 
 Segmentation is the process of classifying the signal into higher-level constructs.
-for example, if you have two separate galaxies in one image, NoiseChisel will give a value of 1 to the pixels of both (each forming an ``island'' of touching foreground pixels).
+For example, if you have two separate galaxies in one image, NoiseChisel will give a value of 1 to the pixels of both (each forming an ``island'' of touching foreground pixels).
 After segmentation, the connected foreground pixels will get separate labels, enabling you to study them individually.
 NoiseChisel is only focused on detection (separating signal from noise), to @emph{segment} the signal (into separate galaxies for example), Gnuastro has a separate specialized program @ref{Segment}.
 NoiseChisel's output can be directly/readily fed into Segment.
@@ -22574,7 +22573,7 @@ Recall that you can always see the full list of NoiseChisel's options with the @
 @itemx --meanmedqdiff=FLT
 The maximum acceptable distance between the quantiles of the mean and median in each tile, see @ref{Quantifying signal in a tile}.
 The quantile threshold estimates are measured on tiles where the quantiles of their mean and median are less distant than the value given to this option.
-for example, @option{--meanmedqdiff=0.01} means that only tiles where the mean's quantile is between 0.49 and 0.51 (recall that the median's quantile is 0.5) will be used.
+For example, @option{--meanmedqdiff=0.01} means that only tiles where the mean's quantile is between 0.49 and 0.51 (recall that the median's quantile is 0.5) will be used.
 
 @item -a INT
 @itemx --outliernumngb=INT
@@ -22805,7 +22804,7 @@ The stronger the connectivity, the more smaller regions will be discarded.
 
 @item --holengb=INT
 The connectivity (defined by the number of neighbors) to fill holes after applying @option{--dthresh} (above) to find pseudo-detections.
-for example, in a 2D image it must be 4 (the neighbors that are most strongly connected) or 8 (all neighbors).
+For example, in a 2D image it must be 4 (the neighbors that are most strongly connected) or 8 (all neighbors).
 The stronger the connectivity, the stronger the hole will be enclosed.
 So setting a value of 8 in a 2D image means that the walls of the hole are 4-connected.
 If standard (near Sky level) values are given to @option{--dthresh}, setting @option{--holengb=4}, might fill the complete dataset and thus not create enough pseudo-detections.
@@ -22834,7 +22833,7 @@ You can use Gnuastro's @ref{Statistics} to make a histogram of the distribution 
 The minimum number of `pseudo-detections' over the undetected regions to identify a Signal-to-Noise ratio threshold.
 The Signal to noise ratio (S/N) of false pseudo-detections in each tile is found using the quantile of the S/N distribution of the pseudo-detections over the undetected pixels in each mesh.
 If the number of S/N measurements is not large enough, the quantile will not be accurate (can have large scatter).
-for example, if you set @option{--snquant=0.99} (or the top 1 percent), then it is best to have at least 100 S/N measurements.
+For example, if you set @option{--snquant=0.99} (or the top 1 percent), then it is best to have at least 100 S/N measurements.
 
 @item -c FLT
 @itemx --snquant=FLT
@@ -22871,7 +22870,7 @@ are 27 neighbors.
 The maximum hole size to fill during the final expansion of the true detections as described in @option{--detgrowquant}.
 This is necessary when the input contains many smaller objects and can be used to avoid marking blank sky regions as detections.
 
-for example, multiple galaxies can be positioned such that they surround an empty region of sky.
+For example, multiple galaxies can be positioned such that they surround an empty region of sky.
 If all the holes are filled, the Sky region in between them will be taken as a detection which is not desired.
 To avoid such cases, the integer given to this option must be smaller than the hole between such objects.
 However, we should caution that unless the ``hole'' is very large, the combined faint wings of the galaxies might actually be present in between them, so be very careful in not filling such holes.
@@ -22957,7 +22956,7 @@ Do Not set the input's blank pixels to blank in the tiled outputs (for example, 
 This is only applicable when the tiled output has the same size as the input, in other words, when @option{--oneelempertile} is not called.
 
 By default, blank values in the input (commonly on the edges which are outside the survey/field area) will be set to blank in the tiled outputs also.
-But in other scenarios this default behavior is not desired: for example, if you have masked something in the input, but want the tiled output under that also.
+But in other scenarios this default behavior is not desired; for example, if you have masked something in the input, but want the tiled output under that also.
 
 @item -l
 @itemx --label
@@ -22975,7 +22974,7 @@ Since the default output is just a binary dataset, an 8-bit unsigned dataset is 
 
 The binary output will also encourage users to segment the result separately prior to doing higher-level analysis.
 As an alternative to @option{--label}, if you have the binary detection image, you can use the @code{connected-components} operator in Gnuastro's Arithmetic program to identify regions that are connected with each other.
-for example, with this command (assuming NoiseChisel's output is called @file{nc.fits}):
+For example, with this command (assuming NoiseChisel's output is called @file{nc.fits}):
 
 @example
 $ astarithmetic nc.fits 2 connected-components -hDETECTIONS
@@ -23083,7 +23082,7 @@ To start learning about Segment, especially in relation to detection (@ref{Noise
 If you have used Segment within your research, please run it with @option{--cite} to list the papers you should cite and how to acknowledge its funding sources.
 
 Those papers cannot be updated any more but the software will evolve.
-for example, Segment became a separate program (from NoiseChisel) in 2018 (after those papers were published).
+For example, Segment became a separate program (from NoiseChisel) in 2018 (after those papers were published).
 Therefore this book is the definitive reference.
 @c To help in the transition from those papers to the software you are using, see @ref{Segment changes after publication}.
 Finally, in @ref{Invoking astsegment}, we will discuss Segment's inputs, outputs and configuration options.
@@ -23171,10 +23170,10 @@ If a dataset is used for the Sky and its standard deviation, they must either be
 
 The detected regions/pixels can be specified as a detection map (for example, see @ref{NoiseChisel output}).
 If @option{--detection=all}, Segment will not read any detection map and assume the whole input is a single detection.
-for example, when the dataset is fully covered by a large nearby galaxy/globular cluster.
+For example, when the dataset is fully covered by a large nearby galaxy/globular cluster.
 
 When dataset are to be used for any of the inputs, Segment will assume they are multiple extensions of a single file by default (when @option{--std} or @option{--detection} are not called).
-for example, NoiseChisel's default output @ref{NoiseChisel output}.
+For example, NoiseChisel's default output @ref{NoiseChisel output}.
 When the Sky-subtracted values are in one file, and the detection and Sky standard deviation are in another, you just need to use @option{--detection}: in the absence of @option{--std}, Segment will look for both the detection labels and Sky standard deviation in the file given to @option{--detection}.
 Ultimately, if all three are in separate files, you need to call both @option{--detection} and @option{--std}.
 
@@ -23549,7 +23548,7 @@ Following Gnuastro's modularity principle, there are separate and highly special
 
 These programs will/can return labeled dataset(s) to be fed into MakeCatalog.
 A labeled dataset for measurement has the same size/dimensions as the input, but with integer valued pixels that have the label/counter for each sub-set of pixels that must be measured together.
-for example, all the pixels covering one galaxy in an image, get the same label.
+For example, all the pixels covering one galaxy in an image, get the same label.
 
 The requested measurements are then done on similarly labeled pixels.
 The final result is a catalog where each row corresponds to the measurements on pixels with a specific label.
@@ -23702,7 +23701,7 @@ Because the image zero point corresponds to a pixel value of @mymath{1}, the @my
 Therefore you simply have to multiply your image by @mymath{B_z} to convert it to @mymath{\mu{Jy}}.
 Do Not forget that this only applies when your zero point was also estimated in the AB magnitude system.
 On the command-line, you can estimate this value for a certain zero point with AWK, then multiply it to all the pixels in the image with @ref{Arithmetic}.
-for example, let's assume you are using an SDSS image with a zero point of 22.5:
+For example, let's assume you are using an SDSS image with a zero point of 22.5:
 
 @example
 bz=$(echo 22.5 | awk '@{print 3631 * 10^(6-$1/2.5)@}')
@@ -23760,7 +23759,7 @@ The solid angle is expressed in units of arcsec@mymath{^2} because astronomical 
 Recall that the steradian is the dimension-less SI unit of a solid angle and 1 steradian covers @mymath{1/4\pi} (almost @mymath{8\%}) of the full celestial sphere.
 
 Surface brightness is therefore most commonly expressed in units of mag/arcsec@mymath{^2}.
-for example, when the brightness is measured over an area of A arcsec@mymath{^2}, then the surface brightness becomes:
+For example, when the brightness is measured over an area of A arcsec@mymath{^2}, then the surface brightness becomes:
 
 @dispmath{S = -2.5\log_{10}(B/A) + Z = -2.5\log_{10}(B) + 2.5\log_{10}(A) + Z}
 
@@ -24326,7 +24325,7 @@ This can slightly slow-down the run.
 
 Note that @code{NUMLABS} is automatically written by Segment in its outputs, so if you are feeding Segment's clump labels, you can benefit from the improved speed.
 Otherwise, if you are creating the clumps label dataset manually, it may be good to include the @code{NUMLABS} keyword in its header and also be sure that there is no gap in the clump labels.
-for example, if an object has three clumps, they are labeled as 1, 2, 3.
+For example, if an object has three clumps, they are labeled as 1, 2, 3.
 If they are labeled as 1, 3, 4, or any other combination of three positive integers that are not an increment of the previous, you might get unknown behavior.
 
 It may happen that your labeled objects image was created with a program that only outputs floating point files.
@@ -24910,7 +24909,7 @@ This is because objects can have more than one clump (peak with true signal) and
 Also, because of its non-parametric nature, this FWHM it does not account for the PSF, and it will be strongly affected by noise if the object is faint/diffuse
 So when half the maximum value (which can be requested using the @option{--maximum} column) is too close to the local noise level (which can be requested using the @option{--skystd} column), the value returned in this column is meaningless (its just noise peaks which are randomly distributed over the area).
 You can therefore use the @option{--maximum} and @option{--skystd} columns to remove, or flag, unreliable FWHMs.
-for example, if a labeled region's maximum is less than 2 times the sky standard deviation, the value will certainly be unreliable (half of that is @mymath{1\sigma}!).
+For example, if a labeled region's maximum is less than 2 times the sky standard deviation, the value will certainly be unreliable (half of that is @mymath{1\sigma}!).
 For a more reliable value, this fraction should be around 4 (so half the maximum is 2@mymath{\sigma}).
 
 @item --halfmaxarea
@@ -25079,7 +25078,7 @@ the same physical object.
 Output will contain one row for all integers between 1 and the largest label in the input (irrespective of their existance in the input image).
 By default, MakeCatalog's output will only contain rows with integers that actually corresponded to at least one pixel in the input dataset.
 
-for example, if the input's only labeled pixel values are 11 and 13, MakeCatalog's default output will only have two rows.
+For example, if the input's only labeled pixel values are 11 and 13, MakeCatalog's default output will only have two rows.
 If you use this option, it will have 13 rows and all the columns corresponding to integer identifiers that did not correspond to any pixel will be 0 or NaN (depending on context).
 @end table
 
@@ -25226,7 +25225,7 @@ This basic parsing algorithm is very computationally expensive:
 If an elliptical aperture is necessary, it can even get more complicated, see @ref{Defining an ellipse and ellipsoid}.
 Such operations are not simple, and will consume many cycles of your CPU!
 As a result, this basic algorithm will become terribly slow as your datasets grow in size.
-for example, when N or M exceed hundreds of thousands (which is common in the current days with datasets like the European Space Agency's Gaia mission).
+For example, when N or M exceed hundreds of thousands (which is common in the current days with datasets like the European Space Agency's Gaia mission).
 Therefore that basic parsing algorithm will take too much time and more efficient ways to @emph{find the nearest neighbor} need to be found.
 Gnuastro's Match currently has algorithms for finding the nearest neighbor:
 
@@ -25297,7 +25296,7 @@ The good match (@mymath{B_k} with @mymath{A_i} will therefore be lost, and repla
 
 In a single-dimensional match, this bias depends on the sorting of your two datasets (leading to different matches if you shuffle your datasets).
 But it will get more complex as you add dimensionality.
-for example, catalogs derived from 2D images or 3D cubes, where you have 2 and 3 different coordinates for each point.
+For example, catalogs derived from 2D images or 3D cubes, where you have 2 and 3 different coordinates for each point.
 
 To address this problem, in Gnuastro (the Match program, or the matching functions of the library) similar to above, we first parse over the elements of B.
 But we will not associate the first nearest-neighbor with a match!
@@ -25483,10 +25482,10 @@ The first character of each string specifies the input catalog: @option{a} for t
 The rest of the characters of the string will be directly used to identify the proper column(s) in the respective table.
 See @ref{Selecting table columns} for how columns can be specified in Gnuastro.
 
-for example, the output of @option{--outcols=a1,bRA,bDEC} will have three columns: the first column of the first input, along with the @option{RA} and @option{DEC} columns of the second input.
+For example, the output of @option{--outcols=a1,bRA,bDEC} will have three columns: the first column of the first input, along with the @option{RA} and @option{DEC} columns of the second input.
 
 If the string after @option{a} or @option{b} is @option{_all}, then all the columns of the respective input file will be written in the output.
-for example, the command below will print all the input columns from the first catalog along with the 5th column from the second:
+For example, the command below will print all the input columns from the first catalog along with the 5th column from the second:
 
 @example
 $ astmatch a.fits b.fits --outcols=a_all,b5
@@ -25502,7 +25501,7 @@ Combined with regular expressions in large tables, this can be a very powerful a
 When @option{--coord} is given, no second catalog will be read.
 The second catalog will be created internally based on the values given to @option{--coord}.
 So column names are not defined and you can only request integer column numbers that are less than the number of coordinates given to @option{--coord}.
-for example, if you want to find the row matching RA of 1.2345 and Dec of 6.7890, then you should use @option{--coord=1.2345,6.7890}.
+For example, if you want to find the row matching RA of 1.2345 and Dec of 6.7890, then you should use @option{--coord=1.2345,6.7890}.
 But when using @option{--outcols}, you cannot give @code{bRA}, or @code{b25}.
 
 @item With @option{--notmatched}
@@ -26170,7 +26169,7 @@ The catalog containing information about each profile can be in the FITS ASCII, 
 The latter can also be provided using standard input (see @ref{Standard input}).
 Its columns can be ordered in any desired manner.
 You can specify which columns belong to which parameters using the set of options discussed below.
-for example, through the @option{--rcol} and @option{--tcol} options, you can specify the column that contains the radial parameter for each profile and its truncation respectively.
+For example, through the @option{--rcol} and @option{--tcol} options, you can specify the column that contains the radial parameter for each profile and its truncation respectively.
 See @ref{Selecting table columns} for a thorough discussion on the values to these options.
 
 The value for the profile center in the catalog (the @option{--ccol} option) can be a floating point number so the profile center can be on any sub-pixel position.
@@ -26198,7 +26197,7 @@ The list of options directly related to the input catalog columns is shown below
 @item --ccol=STR/INT
 Center coordinate column for each dimension.
 This option must be called two times to define the center coordinates in an image.
-for example, @option{--ccol=RA} and @option{--ccol=DEC} (along with @option{--mode=wcs}) will inform MakeProfiles to look into the catalog columns named @option{RA} and @option{DEC} for the Right Ascension and Declination of the profile centers.
+For example, @option{--ccol=RA} and @option{--ccol=DEC} (along with @option{--mode=wcs}) will inform MakeProfiles to look into the catalog columns named @option{RA} and @option{DEC} for the Right Ascension and Declination of the profile centers.
 
 @item --fcol=INT/STR
 The functional form of the profile with one of the values below depending on the desired profile.
@@ -26309,7 +26308,7 @@ If @option{--tunitinp} is given, this value is interpreted in units of pixels (p
 
 The profile parameters that differ between each created profile are specified through the columns in the input catalog and described in @ref{MakeProfiles catalog}.
 Besides those there are general settings for some profiles that do not differ between one profile and another, they are a property of the general process.
-for example, how many random points to use in the monte-carlo integration, this value is fixed for all the profiles.
+For example, how many random points to use in the monte-carlo integration, this value is fixed for all the profiles.
 The options described in this section are for configuring such properties.
 
 @table @option
@@ -26414,7 +26413,7 @@ The interval's maximum radius.
 The value to be used for pixels within the given interval (including NaN/blank).
 @end table
 
-for example, let's assume you have the radial profile below in a file called @file{radial.txt}.
+For example, let's assume you have the radial profile below in a file called @file{radial.txt}.
 The first column is the larger interval radius (in units of pixels) and the second column is the value in that interval:
 
 @example
@@ -26450,7 +26449,7 @@ Multiple files can be given to this option (separated by a comma), and this opti
 If the HDU of the images are different, you can use @option{--customimghdu} (described below).
 
 Through the ``radius'' column, MakeProfiles will know which one of the images given to this option should be used in each row.
-for example, let's assume your input catalog (@file{cat.fits}) has the following contents (output of first command below), and you call MakeProfiles like the second command below to insert four profiles into the background @file{back.fits} image.
+For example, let's assume your input catalog (@file{cat.fits}) has the following contents (output of first command below), and you call MakeProfiles like the second command below to insert four profiles into the background @file{back.fits} image.
 
 The first profile below is Sersic (with an @option{--fcol}, or 4-th column, code of @code{1}).
 So MakeProfiles builds the pixels of the first profile, and all column values are meaningful.
@@ -26599,7 +26598,7 @@ Just call the @option{--individual} and @option{--nomerged} options to make sure
 @itemx --mergedsize=INT,INT
 The number of pixels along each axis of the output, in FITS order.
 This is before over-sampling.
-for example, if you call MakeProfiles with @option{--mergedsize=100,150 --oversample=5} (assuming no shift due for later convolution), then the final image size along the first axis will be 500 by 750 pixels.
+For example, if you call MakeProfiles with @option{--mergedsize=100,150 --oversample=5} (assuming no shift due for later convolution), then the final image size along the first axis will be 500 by 750 pixels.
 Fractions are acceptable as values for each dimension, however, they must reduce to an integer, so @option{--mergedsize=150/3,300/3} is acceptable but @option{--mergedsize=150/4,300/4} is not.
 
 When viewing a FITS image in DS9, the first FITS dimension is in the horizontal direction and the second is vertical.
@@ -26774,7 +26773,7 @@ With the very accurate electronics used in today's detectors, photon counting no
 To understand this noise (error in counting) and its effect on the images of astronomical targets, let's start by reviewing how a distribution produced by counting can be modeled as a parametric function.
 
 Counting is an inherently discrete operation, which can only produce positive integer outputs (including zero).
-for example, we cannot count @mymath{3.2} or @mymath{-2} of anything.
+For example, we cannot count @mymath{3.2} or @mymath{-2} of anything.
 We only count @mymath{0}, @mymath{1}, @mymath{2}, @mymath{3} and so on.
 The distribution of values, as a result of counting efforts is formally known as the @url{https://en.wikipedia.org/wiki/Poisson_distribution, Poisson distribution}.
 It is associated to Sim@'eon Denis Poisson, because he discussed it while working on the number of wrongful convictions in court cases in his 1837 book@footnote{[From Wikipedia] Poisson's result was also derived in a previous study by Abraham de Moivre in 1711.
@@ -27395,7 +27394,7 @@ Wavelengths are assumed to be in Angstroms.
 The first argument identifies the line.
 It can be one of the standard names below, or any rest-frame wavelength in Angstroms.
 The second argument is the observed wavelength of that line.
-for example, @option{--obsline=lyalpha,6000} is the same as @option{--obsline=1215.64,6000}.
+For example, @option{--obsline=lyalpha,6000} is the same as @option{--obsline=1215.64,6000}.
 
 The pre-defined names are listed below, sorted from red (longer wavelength) to blue (shorter wavelength).
 You can get this list on the command-line with the @option{--listlines}.
@@ -27617,7 +27616,7 @@ In case you have forgot the units, you can use the @option{--help} option which 
 @itemx --usedredshift
 The redshift that was used in this run.
 In many cases this is the main input parameter to CosmicCalculator, but it is useful in others.
-for example, in combination with @option{--obsline} (where you give an observed and rest-frame wavelength and would like to know the redshift) or with @option{--velocity} (where you specify the velocity instead of redshift).
+For example, in combination with @option{--obsline} (where you give an observed and rest-frame wavelength and would like to know the redshift) or with @option{--velocity} (where you specify the velocity instead of redshift).
 Another example is when you run CosmicCalculator in a loop, while changing the redshift and you want to keep the redshift value with the resulting calculation.
 
 @item -Y
@@ -27691,7 +27690,7 @@ At different redshifts, observed spectral lines are shifted compared to their re
 Although this relation is very simple and can be done for one line in the head (or a simple calculator!), it slowly becomes tiring when dealing with a lot of lines or redshifts, or some precision is necessary.
 The options in this section are thus provided to greatly simplify usage of this simple equation, and also helping by storing a list of pre-defined spectral line wavelengths.
 
-for example, if you want to know the wavelength of the @mymath{H\alpha} line (at 6562.8 Angstroms in rest frame), when @mymath{Ly\alpha} is at 8000 Angstroms, you can call CosmicCalculator like the first example below.
+For example, if you want to know the wavelength of the @mymath{H\alpha} line (at 6562.8 Angstroms in rest frame), when @mymath{Ly\alpha} is at 8000 Angstroms, you can call CosmicCalculator like the first example below.
 And if you want the wavelength of all pre-defined spectral lines at this redshift, you can use the second command.
 
 @example
@@ -27749,7 +27748,7 @@ In the latter (when a number is given), the returned value is the same units of 
 
 Gnuastro's programs (introduced in previous chapters) are designed to be highly modular and thus contain lower-level operations on the data.
 However, in many contexts, certain higher-level are also shared between many contexts.
-for example, a sequence of calls to multiple Gnuastro programs, or a special way of running a program and treating the output.
+For example, a sequence of calls to multiple Gnuastro programs, or a special way of running a program and treating the output.
 To facilitate such higher-level data analysis, Gnuastro also installs some scripts on your system with the (@code{astscript-}) prefix (in contrast to the other programs that only have the @code{ast} prefix).
 
 @cindex GNU Bash
@@ -27763,7 +27762,7 @@ Compilation optimizes the steps into the low-level hardware CPU instructions/lan
 Because compiled programs do not need an interpreter like Bash on every run, they are much faster and more independent than scripts.
 To read the source code of the programs, look into the @file{bin/progname} directory of Gnuastro's source (@ref{Downloading the source}).
 If you would like to read more about why C was chosen for the programs, please see @ref{Why C}.}.
-for example, with this command (just replace @code{nano} with your favorite text editor, like @command{emacs} or @command{vim}):
+For example, with this command (just replace @code{nano} with your favorite text editor, like @command{emacs} or @command{vim}):
 
 @example
 $ nano $(which astscript-NAME)
@@ -27821,7 +27820,7 @@ However, the FITS standard's date format (@code{YYYY-MM-DDThh:mm:ss.ddd}) is bas
 Dates that are stored in this format are complicated for automatic processing: a night starts in the final hours of one calendar day, and extends to the early hours of the next calendar day.
 As a result, to identify datasets from one night, we commonly need to search for two dates.
 However calendar peculiarities can make this identification very difficult.
-for example, when an observation is done on the night separating two months (like the night starting on March 31st and going into April 1st), or two years (like the night starting on December 31st 2018 and going into January 1st, 2019).
+For example, when an observation is done on the night separating two months (like the night starting on March 31st and going into April 1st), or two years (like the night starting on December 31st 2018 and going into January 1st, 2019).
 To account for such situations, it is necessary to keep track of how many days are in a month, and leap years, etc.
 
 @cindex Unix epoch time
@@ -27840,7 +27839,7 @@ If you need to copy the files, but only need a single extension (not the whole f
 
 @item
 If you need to classify the files with finer detail (for example, the purpose of the dataset), you can add a step just before the making of the symbolic links, or copies, to specify a file-name prefix based on other certain keyword values in the files.
-for example, when the FITS files have a keyword to specify if the dataset is a science, bias, or flat-field image.
+For example, when the FITS files have a keyword to specify if the dataset is a science, bias, or flat-field image.
 You can read it and to add a @code{sci-}, @code{bias-}, or @code{flat-} to the created file (after the @option{--prefix}) automatically.
 
 For example, let's assume the observing mode is stored in the hypothetical @code{MODE} keyword, which can have three values of @code{BIAS-IMAGE}, @code{SCIENCE-IMAGE} and @code{FLAT-EXP}.
@@ -27948,7 +27947,7 @@ It is possible to take this into account by setting the @option{--hour} option t
 
 For example, consider a set of images taken in Auckland (New Zealand, UTC+12) during different nights.
 If you want to classify these images by night, you have to know at which time (in UTC time) the Sun rises (or any other separator/definition of a different night).
-for example, if your observing night finishes before 9:00a.m in Auckland, you can use @option{--hour=21}.
+For example, if your observing night finishes before 9:00a.m in Auckland, you can use @option{--hour=21}.
 Because in Auckland the local time of 9:00 corresponds to 21:00 UTC.
 @end cartouche
 
@@ -27988,7 +27987,7 @@ See the description of @option{--link} for how it is used.
 For example, with @option{--prefix=img-}, all the created file names in the current directory will start with @code{img-}, making outputs like @file{img-n1-1.fits} or @file{img-n3-42.fits}.
 
 @option{--prefix} can also be used to store the links/copies in another directory relative to the directory this script is being run (it must already exist).
-for example, @code{--prefix=/path/to/processing/img-} will put all the links/copies in the @file{/path/to/processing} directory, and the files (in that directory) will all start with @file{img-}.
+For example, @code{--prefix=/path/to/processing/img-} will put all the links/copies in the @file{/path/to/processing} directory, and the files (in that directory) will all start with @file{img-}.
 
 @item --stdintimeout=INT
 Number of micro-seconds to wait for standard input within this script.
@@ -28305,7 +28304,7 @@ For example, to check that the profiles generated for obtaining the radial profi
 @section SAO DS9 region files from table
 
 Once your desired catalog (containing the positions of some objects) is created (for example, with @ref{MakeCatalog}, @ref{Match}, or @ref{Table}) it often happens that you want to see your selected objects on an image for a feeling of the spatial properties of your objects.
-for example, you want to see their positions relative to each other.
+For example, you want to see their positions relative to each other.
 
 In this section we describe a simple installed script that is provided within Gnuastro for converting your given columns to an SAO DS9 region file to help in this process.
 SAO DS9@footnote{@url{http://ds9.si.edu}} is one of the most common FITS image visualization tools in astronomy and is free software.
@@ -28425,7 +28424,7 @@ ds9 image.fits -zscale -regions ds9.reg
 @end example
 
 You can customize all aspects of SAO DS9 with its command-line options, therefore the value of this option can be as long and complicated as you like.
-for example, if you also want the image to fit into the window, this option will be: @command{--command="ds9 image.fits -zscale -zoom to fit"}.
+For example, if you also want the image to fit into the window, this option will be: @command{--command="ds9 image.fits -zscale -zoom to fit"}.
 You can see the SAO DS9 command-line descriptions by clicking on the ``Help'' menu and selecting ``Reference Manual''.
 In the opened window, click on ``Command Line Options''.
 @end table
@@ -28441,7 +28440,7 @@ In the opened window, click on ``Command Line Options''.
 The FITS definition allows for multiple extensions (or HDUs) inside one FITS file.
 Each HDU can have a completely independent dataset inside of it.
 One HDU can be a table, another can be an image and another can be another independent image.
-for example, each image HDU can be one CCD of a multi-CCD camera, or in processed images one can be the deep science image and the next can be its weight map, alternatively, one HDU can be an image, and another can be the catalog/table of objects within it.
+For example, each image HDU can be one CCD of a multi-CCD camera, or in processed images one can be the deep science image and the next can be its weight map, alternatively, one HDU can be an image, and another can be the catalog/table of objects within it.
 
 The most common software for viewing FITS images is SAO DS9 (see @ref{SAO DS9}) and for plotting tables, TOPCAT is the most commonly used tool in astronomy (see @ref{TOPCAT}).
 After installing them (as described in the respective appendix linked in the previous sentence), you can open any number of FITS images or tables with DS9 or TOPCAT with the commands below:
@@ -28452,10 +28451,10 @@ $ topcat table-a.fits table-b.fits
 @end example
 
 But usually the default mode is not enough.
-for example, in DS9, the window can be too small (not covering the height of your monitor), you probably want to match and lock multiple images, you have a favorite color map that you prefer to use, or you may want to open a multi-extension FITS file as a cube.
+For example, in DS9, the window can be too small (not covering the height of your monitor), you probably want to match and lock multiple images, you have a favorite color map that you prefer to use, or you may want to open a multi-extension FITS file as a cube.
 
 Using the simple commands above, you need to manually do all these in the DS9 window once it opens and this can take several tens of seconds (which is enough to distract you from what you wanted to inspect).
-for example, if you have a multi-extension file containing 2D images, one way to load and switch between each 2D extension is to take the following steps in the SAO DS9 window: @clicksequence{``File''@click{}``Open Other''@click{}``Open Multi Ext Cube''} and then choose the Multi extension FITS file in your computer's file structure.
+For example, if you have a multi-extension file containing 2D images, one way to load and switch between each 2D extension is to take the following steps in the SAO DS9 window: @clicksequence{``File''@click{}``Open Other''@click{}``Open Multi Ext Cube''} and then choose the Multi extension FITS file in your computer's file structure.
 
 @cindex @option{-mecube} (DS9)
 The method above is a little tedious to do every time you want view a multi-extension FITS file.
@@ -28468,7 +28467,7 @@ This allows you to flip through the extensions easily while keeping all the sett
 Just to avoid confusion, note that SAO DS9 does not follow the GNU style of separating long and short options as explained in @ref{Arguments and options}.
 In the GNU style, this `long' (multi-character) option should have been called like @option{--mecube}, but SAO DS9 follows its own conventions.
 
-for example, try running @command{$ds9 -mecube foo.fits} to see the effect (for example, on the output of @ref{NoiseChisel}).
+For example, try running @command{$ds9 -mecube foo.fits} to see the effect (for example, on the output of @ref{NoiseChisel}).
 If the file has multiple extensions, a small window will also be opened along with the main DS9 window.
 This small window allows you to slide through the image extensions of @file{foo.fits}.
 If @file{foo.fits} only consists of one extension, then SAO DS9 will open as usual.
@@ -29507,7 +29506,7 @@ Will select only the FITS files (from a list of many in @code{FITS_FILES}, non-F
 Only the HDU given in the @code{HDU} argument will be checked.
 According to the FITS standard, the keyword name is not case sensitive, but the keyword value is.
 
-for example, if you have many FITS files in the @file{/datasets/images} directory, the minimal Makefile below will put those with a value of @code{BAR} or @code{BAZ} for the @code{FOO} keyword in HDU number @code{1} in the @code{selected} Make variable.
+For example, if you have many FITS files in the @file{/datasets/images} directory, the minimal Makefile below will put those with a value of @code{BAR} or @code{BAZ} for the @code{FOO} keyword in HDU number @code{1} in the @code{selected} Make variable.
 Notice how there is no comma between @code{BAR} and @code{BAZ}: you can specify any series of values.
 
 @verbatim
@@ -29725,7 +29724,7 @@ See @ref{Known issues} for an example of how to set this variable at configure t
 As described in @ref{Installation directory}, you can select the top installation directory of a software using the GNU build system, when you @command{./configure} it.
 All the separate components will be put in their separate sub-directory under that, for example, the programs, compiled libraries and library headers will go into @file{$prefix/bin} (replace @file{$prefix} with a directory), @file{$prefix/lib}, and @file{$prefix/include} respectively.
 For enhanced modularity, libraries that contain diverse collections of functions (like GSL, WCSLIB, and Gnuastro), put their header files in a sub-directory unique to themselves.
-for example, all Gnuastro's header files are installed in @file{$prefix/include/gnuastro}.
+For example, all Gnuastro's header files are installed in @file{$prefix/include/gnuastro}.
 In your source code, you need to keep the library's sub-directory when including the headers from such libraries, for example, @code{#include <gnuastro/fits.h>}@footnote{the top @file{$prefix/include} directory is usually known to the compiler}.
 Not all libraries need to follow this convention, for example, CFITSIO only has one header (@file{fitsio.h}) which is directly installed in @file{$prefix/include}.
 
@@ -29746,7 +29745,7 @@ Afterwards, the object files are @emph{linked} together to create an executable 
 @cindex GNU Binutils
 The object files contain the full definition of the functions in the respective @file{.c} file along with a list of any other function (or generally ``symbol'') that is referenced there.
 To get a list of those functions you can use the @command{nm} program which is part of GNU Binutils.
-for example, from the top Gnuastro directory, run:
+For example, from the top Gnuastro directory, run:
 
 @example
 $ nm bin/arithmetic/arithmetic.o
@@ -29883,7 +29882,7 @@ You can see these options and their usage in practice while building Gnuastro (a
 @table @option
 @item -L DIR
 Will tell the linker to look into @file{DIR} for the libraries.
-for example, @file{-L/usr/local/lib}, or @file{-L/home/yourname/.local/lib}.
+For example, @file{-L/usr/local/lib}, or @file{-L/home/yourname/.local/lib}.
 You can make multiple calls to this option, so the linker looks into several directories at compilation time.
 Note that the space between @key{L} and the directory is optional and commonly ignored (written as @option{-LDIR}).
 
@@ -30865,12 +30864,12 @@ Read @code{string} into smallest type that can host the number, the allocated sp
 If @code{string} could not be read as a number, this function will return @code{NULL}.
 
 This function first calls the C library's @code{strtod} function to read @code{string} as a double-precision floating point number.
-When successful, it will check the value to put it in the smallest numerical data type that can handle it: for example, @code{120} and @code{50000} will be read as a signed 8-bit integer and unsigned 16-bit integer types.
+When successful, it will check the value to put it in the smallest numerical data type that can handle it; for example, @code{120} and @code{50000} will be read as a signed 8-bit integer and unsigned 16-bit integer types.
 When reading as an integer, the C library's @code{strtol} function is used (in base-10) to parse the string again.
 This re-parsing as an integer is necessary because integers with many digits (for example, the Unix epoch seconds) will not be accurately stored as a floating point and we cannot use the result of @code{strtod}.
 
 When @code{string} is successfully parsed as a number @emph{and} there is @code{.} in @code{string}, it will force the number into floating point types.
-for example, @code{"5"} is read as an integer, while @code{"5."} or @code{"5.0"}, or @code{"5.00"} will be read as a floating point (single-precision).
+For example, @code{"5"} is read as an integer, while @code{"5."} or @code{"5.0"}, or @code{"5.00"} will be read as a floating point (single-precision).
 
 For floating point types, this function will count the number of significant digits and determine if the given string is single or double precision as described in @ref{Numeric data types}.
 
@@ -31608,7 +31607,7 @@ dimensions of the two datasets are different.
 
 @deftypefun {size_t *} gal_dimension_increment (size_t @code{ndim}, size_t @code{*dsize})
 Return an allocated array that has the number of elements necessary to
-increment an index along every dimension. for example, along the fastest
+increment an index along every dimension. For example, along the fastest
 dimension (last element in the @code{dsize} and returned arrays), the value
 is @code{1} (one).
 @end deftypefun
@@ -31770,7 +31769,7 @@ Most distant neighbors to consider.
 Depending on the number of dimensions, different neighbors may be defined for each element.
 This function-like macro distinguish between these different neighbors with this argument.
 It has a value between @code{1} (one) and @code{ndim}.
-for example, in a 2D dataset, 4-connected neighbors have a connectivity of @code{1} and 8-connected neighbors have a connectivity of @code{2}.
+For example, in a 2D dataset, 4-connected neighbors have a connectivity of @code{1} and 8-connected neighbors have a connectivity of @code{2}.
 Note that this is inclusive, so in this example, a connectivity of @code{2} will also include connectivity @code{1} neighbors.
 @item dinc
 An array keeping the length necessary to increment along each dimension.
@@ -31804,7 +31803,7 @@ other. This makes array the primary data container when you have many
 elements (for example, an image which has millions of pixels). One major
 problem with an array is that the number of elements that go into it must
 be known in advance and adding or removing an element will require a re-set
-of all the other elements. for example, if you want to remove the 3rd
+of all the other elements. For example, if you want to remove the 3rd
 element in a 1000 element array, all 997 subsequent elements have to pulled
 back by one position, the reverse will happen if you need to add an
 element.
@@ -31949,7 +31948,7 @@ Print the strings within each node of @code{*list} on the standard output in the
 Each string is printed on one line.
 This function is mainly good for checking/debugging your program.
 For program outputs, it is best to make your own implementation with a better, more user-friendly, format.
-for example, the following code snippet.
+For example, the following code snippet.
 
 @example
 size_t i;
@@ -32042,7 +32041,7 @@ Print the integers within each node of @code{*list} on the standard output
 in the same order that they are stored. Each integer is printed on one
 line. This function is mainly good for checking/debugging your program. For
 program outputs, it is best to make your own implementation with a better,
-more user-friendly format. for example, the following code snippet. You can
+more user-friendly format. For example, the following code snippet. You can
 also modify it to print all values in one line, etc., depending on the
 context of your program.
 
@@ -32366,7 +32365,7 @@ Free every node in @code{list}.
 @subsubsection List of @code{void *}
 
 In C, @code{void *} is the most generic pointer. Usually pointers are
-associated with the type of content they point to. for example, @code{int *}
+associated with the type of content they point to. For example, @code{int *}
 means a pointer to an integer. This ancillary information about the
 contents of the memory location is very useful for the compiler, catching
 bad errors and also documentation (it helps the reader see what the address
@@ -32436,7 +32435,7 @@ Free every node in @code{list}.
 
 Positions/sizes in a dataset are conventionally in the @code{size_t} type
 (see @ref{List of size_t}) and it sometimes occurs that you want to parse
-and read the values in a specific order. for example, you want to start from
+and read the values in a specific order. For example, you want to start from
 one pixel and add pixels to the list based on their distance to that
 pixel. So that ever time you pop an element from the list, you know it is
 the nearest that has not yet been studied. The @code{gal_list_osizet_t}
@@ -32565,7 +32564,7 @@ Free the doubly linked, ordered @code{sizet_t} list.
 Gnuastro's generic data container has a @code{next} element which enables
 it to be used as a singly-linked list (see @ref{Generic data
 container}). The ability to connect the different data containers offers
-great advantages. for example, each column in a table in an independent
+great advantages. For example, each column in a table in an independent
 dataset: with its own name, units, numeric data type (see @ref{Numeric data
 types}). Another application is in Tessellating an input dataset into
 separate tiles or only studying particular regions, or tiles, of a larger
@@ -34226,7 +34225,7 @@ A complete working example is given in the description of @code{gal_wcs_create}.
 
 @deftypefun {char *} gal_wcs_dimension_name (struct wcsprm @code{*wcs}, size_t @code{dimension})
 Return an allocated string array (that should be freed later) containing the first part of the @code{CTYPEi} FITS keyword (which contains the dimension name in the FITS standard).
-for example, if @code{CTYPE1} is @code{RA---TAN}, the string that function returns will be @code{RA}.
+For example, if @code{CTYPE1} is @code{RA---TAN}, the string that function returns will be @code{RA}.
 Recall that the second component of @code{CTYPEi} contains the type of projection.
 @end deftypefun
 
@@ -34436,7 +34435,7 @@ See the description of @code{gal_wcs_world_to_img} for more details.
 When the dataset's type and other information are already known, any programming language (including C) provides some very good tools for various operations (including arithmetic operations like addition) on the dataset with a simple loop.
 However, as an author of a program, making assumptions about the type of data, its dimensions and other basic characteristics will come with a large processing burden.
 
-for example, if you always read your data as double precision floating points for a simple operation like addition with an integer constant, you will be wasting a lot of CPU and memory when the input dataset is @code{int32} type for example, (see @ref{Numeric data types}).
+For example, if you always read your data as double precision floating points for a simple operation like addition with an integer constant, you will be wasting a lot of CPU and memory when the input dataset is @code{int32} type for example, (see @ref{Numeric data types}).
 This overhead may be small for small images, but as you scale your process up and work with hundred/thousands of files that can be very large, this overhead will take a significant portion of the processing power.
 The functions and macros in this section are designed precisely for this purpose: to allow you to do any of the defined operations on any dataset with no overhead (in the native type of the dataset).
 
@@ -34456,7 +34455,7 @@ So first we will review the constants for the recognized flags and operators and
 @cindex Bitwise Or
 Bit-wise flags to pass onto @code{gal_arithmetic} (see below).
 To pass multiple flags, use the bitwise-or operator.
-for example, if you pass @code{GAL_ARITHMETIC_FLAG_INPLACE | GAL_ARITHMETIC_FLAG_NUMOK}, then the operation will be done in-place (without allocating a new array), and a single number will also be acceptable (that will be applied to all the pixels).
+For example, if you pass @code{GAL_ARITHMETIC_FLAG_INPLACE | GAL_ARITHMETIC_FLAG_NUMOK}, then the operation will be done in-place (without allocating a new array), and a single number will also be acceptable (that will be applied to all the pixels).
 Each flag is described below:
 
 @table @code
@@ -34469,7 +34468,7 @@ Hence the inputs are no longer usable after @code{gal_arithmetic}.
 
 @item GAL_ARITHMETIC_FLAG_NUMOK
 It is acceptable to use a number and an array together.
-for example, if you want to add all the pixels in an image with a single number you can pass this flag to avoid having to allocate a constant array the size of the image (with all the pixels having the same number).
+For example, if you want to add all the pixels in an image with a single number you can pass this flag to avoid having to allocate a constant array the size of the image (with all the pixels having the same number).
 
 @item GAL_ARITHMETIC_FLAG_ENVSEED
 Use the pre-defined environment variable for setting the random number generator seed when an operator needs it (for example, @code{mknoise-sigma}).
@@ -34477,7 +34476,7 @@ For more on random number generation in Gnuastro see @ref{Generating random numb
 
 @item GAL_ARITHMETIC_FLAG_QUIET
 Do Not print any warnings or messages for operators that may benefit from it.
-for example, by default the @code{mknoise-sigma} operator prints the random number generator function and seed that it used (in case the user wants to reproduce this result later).
+For example, by default the @code{mknoise-sigma} operator prints the random number generator function and seed that it used (in case the user wants to reproduce this result later).
 By activating this bit flag to the call, that extra information is not printed on the command-line.
 
 @item GAL_ARITHMETIC_FLAGS_BASIC
@@ -34864,7 +34863,7 @@ Note that @code{string} must only contain the single operator name and nothing e
 
 @deftypefun {char *} gal_arithmetic_operator_string (int @code{operator})
 Return the human-readable standard string that corresponds to the given operator.
-for example, when the input is @code{GAL_ARITHMETIC_OP_PLUS} or @code{GAL_ARITHMETIC_OP_MEAN}, the strings @code{+} or @code{mean} will be returned.
+For example, when the input is @code{GAL_ARITHMETIC_OP_PLUS} or @code{GAL_ARITHMETIC_OP_MEAN}, the strings @code{+} or @code{mean} will be returned.
 @end deftypefun
 
 @deftypefun {gal_data_t *} gal_arithmetic_load_col (char @code{*str}, int @code{searchin}, int @code{ignorecase}, size_t @code{minmapsize}, int @code{quietmmap})
@@ -35517,7 +35516,7 @@ When there is an overlap, the coordinates of the first and last pixels of the ov
 @subsection Polygons (@file{polygon.h})
 
 Polygons are commonly necessary in image processing.
-for example, in Crop they are used for cutting out non-rectangular regions of a image (see @ref{Crop}), and in Warp, for mapping different pixel grids over each other (see @ref{Warp}).
+For example, in Crop they are used for cutting out non-rectangular regions of a image (see @ref{Crop}), and in Warp, for mapping different pixel grids over each other (see @ref{Warp}).
 
 @cindex Convex polygons
 @cindex Concave polygons
@@ -35547,7 +35546,7 @@ The largest number of vertices a polygon can have in this library.
 @deffn Macro GAL_POLYGON_ROUND_ERR
 @cindex Round-off error
 We have to consider floating point round-off errors when dealing with polygons.
-for example, we will take @code{A} as the maximum of @code{A} and @code{B} when @code{A>B-GAL_POLYGON_ROUND_ERR}.
+For example, we will take @code{A} as the maximum of @code{A} and @code{B} when @code{A>B-GAL_POLYGON_ROUND_ERR}.
 @end deffn
 
 @deftypefun void gal_polygon_vertices_sort_convex (double @code{*in}, size_t @code{n}, size_t @code{*ordinds})
@@ -36790,7 +36789,7 @@ The classification is done by the distance from element center to the
 neighbor's center. The nearest immediate neighbors have a connectivity of
 1, the second nearest class of neighbors have a connectivity of 2 and so
 on. In total, the largest possible connectivity for data with @code{ndim}
-dimensions is @code{ndim}. for example, in a 2D dataset, 4-connected
+dimensions is @code{ndim}. For example, in a 2D dataset, 4-connected
 neighbors (that share an edge and have a distance of 1 pixel) have a
 connectivity of 1. The other 4 neighbors that only share a vertice (with a
 distance of @mymath{\sqrt{2}} pixels) have a connectivity of
@@ -37186,7 +37185,7 @@ measurement is made) will not be included in the output table.
 This function is initially intended for a multi-threaded environment.
 In such cases, you will be writing arrays of clump measures from different regions in parallel into an array of @code{gal_data_t}s.
 You can simply allocate (and initialize), such an array with the @code{gal_data_array_calloc} function in @ref{Arrays of datasets}.
-for example, if the @code{gal_data_t} array is called @code{array}, you can pass @code{&array[i]} as @code{sig}.
+For example, if the @code{gal_data_t} array is called @code{array}, you can pass @code{&array[i]} as @code{sig}.
 
 Along with some other functions in @code{label.h}, this function was initially written for @ref{Segment}.
 The description of the parameter used to measure a clump's significance is fully given in @url{https://arxiv.org/abs/1909.11230, Akhlaghi [2019]}.
@@ -37222,7 +37221,7 @@ Note that the @code{indexs->array} is not re-allocated to its new size at the en
 But since @code{indexs->dsize[0]} and @code{indexs->size} have new values after this function is returned, the extra elements just will not be used until they are ultimately freed by @code{gal_data_free}.
 
 Connectivity is a value between @code{1} (fewest number of neighbors) and the number of dimensions in the input (most number of neighbors).
-for example, in a 2D dataset, a connectivity of @code{1} and @code{2} corresponds to 4-connected and 8-connected neighbors.
+For example, in a 2D dataset, a connectivity of @code{1} and @code{2} corresponds to 4-connected and 8-connected neighbors.
 @end deftypefun
 
 
@@ -37286,7 +37285,7 @@ is much faster.
 @cindex Sky line
 @cindex Interpolation
 During data analysis, it happens that parts of the data cannot be given a value, but one is necessary for the higher-level analysis.
-for example, a very bright star saturated part of your image and you need to fill in the saturated pixels with some values.
+For example, a very bright star saturated part of your image and you need to fill in the saturated pixels with some values.
 Another common usage case are masked sky-lines in 1D spectra that similarly need to be assigned a value for higher-level analysis.
 In other situations, you might want a value in an arbitrary point: between the elements/pixels where you have data.
 The functions described in this section are for such operations.
@@ -37425,7 +37424,7 @@ Once @code{gsl_spline} has been initialized by this function, the
 interpolation can be evaluated for any X value within the non-blank range
 of the input using @code{gsl_spline_eval} or @code{gsl_spline_eval_e}.
 
-for example, in the small program below (@file{sample-interp.c}), we read the first two columns of the table in @file{table.txt} and feed them to this function to later estimate the values in the second column for three selected points.
+For example, in the small program below (@file{sample-interp.c}), we read the first two columns of the table in @file{table.txt} and feed them to this function to later estimate the values in the second column for three selected points.
 You can use @ref{BuildProgram} to compile and run this function, see @ref{Library demo programs} for more.
 
 Contents of the @file{table.txt} file:
@@ -39044,7 +39043,7 @@ that the authors had never dreamed of. We have put a few simple examples in
 @cindex Python Matplotlib
 @cindex Matplotlib, Python
 @cindex PGFplots in @TeX{} or @LaTeX{}
-for example, all the analysis output can be saved as ASCII tables which can
+For example, all the analysis output can be saved as ASCII tables which can
 be fed into your favorite plotting program to inspect visually. Python's
 Matplotlib is very useful for fast plotting of the tables to immediately
 check your results. If you want to include the plots in a document, you can
@@ -39238,7 +39237,7 @@ the file in which they are defined as prefix, using underscores to separate
 words@footnote{The convention to use underscores to separate words, called
 ``snake case'' (or ``snake_case''). This is also recommended by the GNU
 coding standards.}. The same applies to exported macros, but in upper case.
-for example, in Gnuastro's top source directory, the prototype of function
+For example, in Gnuastro's top source directory, the prototype of function
 @code{gal_box_border_from_center} is in @file{lib/gnuastro/box.h}, and the
 macro @code{GAL_POLYGON_MAX_CORNERS} is defined in
 @code{lib/gnuastro/polygon.h}.
@@ -39425,7 +39424,7 @@ The main root structure of all programs contains at least one instance of the @c
 This structure will keep the values to all common options in Gnuastro's programs (see @ref{Common options}).
 This top root structure is conveniently called @code{p} (short for parameters) by all the functions in the programs and the common options parameters within it are called @code{cp}.
 With this convention any reader can immediately understand where to look for the definition of one parameter.
-for example, you know that @code{p->cp->output} is in the common parameters while @code{p->threshold} is in the program's parameters.
+For example, you know that @code{p->cp->output} is in the common parameters while @code{p->threshold} is in the program's parameters.
 
 @cindex Structure de-reference operator
 @cindex Operator, structure de-reference
@@ -40143,7 +40142,7 @@ As a result, Bash's TAB completion is implemented as multiple files in Gnuastro:
 @table @asis
 @item @file{bin/completion.bash.built} (in build directory, automatically created)
 This file contains the values of all Gnuastro options or arguments that take fixed strings as values (not file names).
-for example, the names of Arithmetic's operators (see @ref{Arithmetic operators}), or spectral line names (like @option{--obsline} in @ref{CosmicCalculator input options}).
+For example, the names of Arithmetic's operators (see @ref{Arithmetic operators}), or spectral line names (like @option{--obsline} in @ref{CosmicCalculator input options}).
 
 This file is created automatically during the building of Gnuastro.
 The recipe to build it is available in Gnuastro's top-level @file{Makefile.am} (under the target @code{bin/completion.bash}).
@@ -40352,7 +40351,7 @@ to this item at:''. That link will take you directly to the issue
 discussion page, where you can read the discussion history or join it.
 
 While you are posting comments on the Savannah issues, be sure to update
-the meta-data. for example, if the task/bug is not assigned to anyone and
+the meta-data. For example, if the task/bug is not assigned to anyone and
 you would like to take it, change the ``Assigned to'' box, or if you want
 to report that it has been applied, change the status and so on. All these
 changes will also be circulated with the email very clearly.
