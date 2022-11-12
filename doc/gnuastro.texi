@@ -629,12 +629,16 @@ MakeCatalog
 
 * Detection and catalog production::  Discussing why/how to treat these separately
 * Brightness flux magnitude::   More on Magnitudes, surface brightness, etc.
-* Photometric calibration zeropoint:: Calculating zeropoint of images
+* Photometric calibration zero point:: Calculating zeropoint of images
 * Quantifying measurement limits::  For comparing different catalogs.
 * Measuring elliptical parameters::  Estimating elliptical parameters.
 * Adding new columns to MakeCatalog::  How to add new columns.
 * MakeCatalog measurements::    List of all the measurements/columns by MakeCatalog.
 * Invoking astmkcatalog::       Options and arguments to MakeCatalog.
+
+Photometric calibration zero point
+* Using the image as a zero point reference
+* Using the catalog as a zero point reference
 
 Quantifying measurement limits
 
@@ -24609,14 +24613,14 @@ If you need to warp or convolve the image, do it @emph{before} the conversion.
 
 
 
-@node Photometric calibration of images with finding zeropoint, Quantifying measurement limits, Measuring elliptical parameters, Brightness flux magnitude, MakeCatalog
-@subsection Photometric calibration of images with finding zeropoint
+@node Photometric calibration of images with finding zero point, Quantifying measurement limits, Measuring elliptical parameters, Brightness flux magnitude, MakeCatalog
+@subsection Photometric calibration of images with finding zero point
 
 As described in @ref{Brightness flux magnitude}, to convert astronomical data pixel values from counts to energy/time (physical units such as Janskys), we need to know the zero point of the image.
 This conversion is necessary to can compare two images independent of instruments that were observed with them.
 Actually, the zero point is used to calibrate an astronomical image to the standard state.
 
-To find zero point, it is common to use photometric systems with defined zero point such as some images or catalogs.
+To find the zero point, it is common to use photometric systems with defined zero points such as some images or catalogs.
 For example, the SDSS data can be a good reference for finding zero point in optical and 2MASS data for near infra-red images.
 The general outline of the steps that we use to estimate zero point in an image is given below:
 
@@ -24624,10 +24628,10 @@ The general outline of the steps that we use to estimate zero point in an image 
 @item
 Download of Gaia catalog using Gnuastro’s Query program (see @ref{Query}) to determine correct coordinates of stars in the image.
 @item
-Select of reference image or catalog and download of it.
+Select of reference image or catalog and download it.
 @item
 Aperture photometry with MakeProfiles (see @ref{MakeProfiles}) and MakeCatalog (see @ref{MakeCatalog}); a complete tutorial is in @ref{Aperture photometry}.
-If an image is selected as a reference for finding zero point, aperture photometry should be done in the same way for it.
+If an image is selected as a reference for finding the zero point, aperture photometry should be done in the same way for it.
 @item
 Match catalogs (see @ref{Match} and also a tutorial in @ref{Matching catalogs}) to obtain differences of magnitudes in two catalogs and estimate zero point value.
 @end enumerate
@@ -24636,6 +24640,46 @@ Clearly, all of top steps are very long and somewhat complicated.
 Fortunately, Gnuastro has an installed script, designed to simplify find zero point in an image based on a reference image or catalog with a defined zero point.
 Here we have a tutorial on how to use @command{astscript-zeropoint}.
 This tutorial is divided into two parts to cover both of using image or catalog as reference data.
+
+
+@node Using the image as a zero point reference, Using catalog as a zero point reference
+@subsubsection Using the image as a zero point reference
+
+First, let's find the zero point for a single exposure image from the @url{https://www.j-plus.es,J-PLUS survey} based on an SDSS reference image @url{http://www.sdss.org/, Sloan Digital Sky Survey} with a zero point of 22.5 mag.
+With the commands below, you can download an image such as one used in @ref{Moire pattern and its correction} from J-PLUS dataset in the r (SDSS) band and then crop the center part of the image to speed up the analysis in this tutorial.
+
+@example
+## Download a single exposure image from J-PLUS dataset.
+$ jplusdr2=http://archive.cefca.es/catalogues/vo/siap/jplus-dr2/reduced
+$ wget $jplusdr2/get_fits?id=771463 -Ojplus.fits.fz
+
+## crop the center part of image with the sky coordinates.
+$ astcrop jplus.fits.fz --center=107.7263056,40.17544223 \
+          --width=0.6 --output=jplus-crop.fits
+@end example
+
+Although we cropped the J-PLUS image, it is still very large in comparison with SDSS image.
+So let's download two SDSS images in the region of J-PLUS cropped image for having a more accurate result.
+
+@example
+## Download two SDSS images in r filter and decompress it.
+## (Bzip2 is not a standard FITS compression algorithm).
+$ sdssbase=https://dr12.sdss.org/sas/dr12/boss/photoObj/frames
+$ wget $sdssbase/301/6509/5/frame-r-006509-5-0115.fits.bz2 \
+       -O sdss1.fits.bz2
+$ wget $sdssbase/301/6509/5/frame-r-006573-5-0174.fits.bz2 \
+       -O sdss2.fits.bz2
+@end example
+
+
+
+
+
+
+@node Using the catalog as a zero point reference
+@subsubsection Using the catalog as a zero point reference
+
+
 
 
 
