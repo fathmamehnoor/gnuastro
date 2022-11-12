@@ -24645,33 +24645,56 @@ This tutorial is divided into two parts to cover both of using image or catalog 
 @node Using the image as a zero point reference, Using catalog as a zero point reference
 @subsubsection Using the image as a zero point reference
 
-First, let's find the zero point for a single exposure image from the @url{https://www.j-plus.es,J-PLUS survey} based on an SDSS reference image @url{http://www.sdss.org/, Sloan Digital Sky Survey} with a zero point of 22.5 mag.
-With the commands below, you can download an image such as one used in @ref{Moire pattern and its correction} from J-PLUS dataset in the r (SDSS) band and then crop the center part of the image to speed up the analysis in this tutorial.
+To understand how to use the @command{astscript-zeropoint}, let's find the zero point for a single exposure image from the @url{https://www.j-plus.es,J-PLUS survey} based on an SDSS reference image @url{http://www.sdss.org/, Sloan Digital Sky Survey} with a zero point of 22.5 mag.
+
+First, let’s create a directory that named @file{zp}, to keep things clean.
+Then with the commands below, you can download an image such as one used in @ref{Moire pattern and its correction} from J-PLUS dataset in the r (SDSS) band and then crop the center part of the image to speed up the analysis in this tutorial.
 
 @example
-## Download a single exposure image from J-PLUS dataset.
+$ mkdir zp
 $ jplusdr2=http://archive.cefca.es/catalogues/vo/siap/jplus-dr2/reduced
-$ wget $jplusdr2/get_fits?id=771463 -Ojplus.fits.fz
-
-## crop the center part of image with the sky coordinates.
-$ astcrop jplus.fits.fz --center=107.7263056,40.17544223 \
-          --width=0.6 --output=jplus-crop.fits
+$ wget $jplusdr2/get_fits?id=771463 -O zp/jplus.fits.fz
+$ astcrop zp/jplus.fits.fz --center=107.7263056,40.17544223 \
+          --width=0.6 --output=zp/jplus-crop.fits
 @end example
 
 Although we cropped the J-PLUS image, it is still very large in comparison with SDSS image.
 So let's download two SDSS images in the region of J-PLUS cropped image for having a more accurate result.
 
 @example
-## Download two SDSS images in r filter and decompress it.
-## (Bzip2 is not a standard FITS compression algorithm).
 $ sdssbase=https://dr12.sdss.org/sas/dr12/boss/photoObj/frames
 $ wget $sdssbase/301/6509/5/frame-r-006509-5-0115.fits.bz2 \
-       -O sdss1.fits.bz2
+       -O zp/sdss1.fits.bz2
+$ bunzip2 zp/sdss1.fits.bz2
 $ wget $sdssbase/301/6509/5/frame-r-006573-5-0174.fits.bz2 \
-       -O sdss2.fits.bz2
+       -O zp/sdss2.fits.bz2
+$ bunzip2 zp/sdss2.fits.bz2
 @end example
 
+To have a feeling of the data, please, open all three images with SAO DS9, and also estimate the covered area of each image by using the @option{--skycoverage} option of Gnuastro's @command{astfits} program (for more details see @ref{Angular coverage on the sky}.)
 
+Before continuing, due to the referenced image (SDSS) being a Sky-subtracted calibrated image, thus we should subtract the Sky value from the J-PLUS image to be comparable.
+To subtract the Sky value, we use the INPUT-NO-SKY extension of NoiseChisel’s output simply, here.
+You can see @ref{NoiseChisel} for more details.
+
+@example
+$ astnoisechisel zp/jplus-crop.fits --output=zp/jplus-nc.fits
+$ astfits zp/jplus-nc.fits --copy=INPUT-NO-SKY \
+          --output=zp/jplus-no-sky.fits
+@end example
+
+We are now ready to start finding zero point.
+Please, call the @command{astscript-zeropoint} with the @option{--help} to see option names and also see @ref{Invoking astscript-zeropoint}.
+For the first time, let's use the script in a simple state.
+Keep only two options @option{--keeptmp} and @option{--tmpdir} besides the essential ones; with these options, the temporal files will save in a directory and thus by studying them we can improve the result.
+
+@example
+$ astscript-zeropoint --help
+$ astscript-zeropoint zp/jplus-no-sky.fits --hdu=1 \
+                      --reference=sdss1.fits,sdss2.fits \
+                      --referencehdu=0,0 --referencezp=22.5,22.5 \
+                      --keeptmp --tmpdir=checking-zp
+@end example
 
 
 
