@@ -637,8 +637,8 @@ MakeCatalog
 * Invoking astmkcatalog::       Options and arguments to MakeCatalog.
 
 Photometric calibration zero point
-* Using the image as a zero point reference
-* Using the catalog as a zero point reference
+* Zero point based on the reference image
+* Zero point based on the reference catalog
 
 Quantifying measurement limits
 
@@ -24613,8 +24613,8 @@ If you need to warp or convolve the image, do it @emph{before} the conversion.
 
 
 
-@node Photometric calibration of images with finding zero point, Quantifying measurement limits, Measuring elliptical parameters, Brightness flux magnitude, MakeCatalog
-@subsection Photometric calibration of images with finding zero point
+@node Photometric calibration of images by zero point, Quantifying measurement limits, Measuring elliptical parameters, Brightness flux magnitude, MakeCatalog
+@subsection Photometric calibration of images by zero point
 
 As described in @ref{Brightness flux magnitude}, to convert astronomical data pixel values from counts to energy/time (physical units such as Janskys), we need to know the zero point of the image.
 This conversion is necessary to can compare two images independent of instruments that were observed with them.
@@ -24642,8 +24642,8 @@ Here we have a tutorial on how to use @command{astscript-zeropoint}.
 This tutorial is divided into two parts to cover both of using image or catalog as reference data.
 
 
-@node Using the image as a zero point reference, Using catalog as a zero point reference
-@subsubsection Using the image as a zero point reference
+@node Zero point based on the reference image, Zero point based on the reference catalog
+@subsubsection Zero point based on the reference image
 
 To understand how to use the @command{astscript-zeropoint}, let's find the zero point for a single exposure image from the @url{https://www.j-plus.es,J-PLUS survey} based on an SDSS reference image @url{http://www.sdss.org/, Sloan Digital Sky Survey} with a zero point of 22.5 mag.
 
@@ -24697,29 +24697,36 @@ $ astscript-zeropoint zp/jplus-no-sky.fits --hdu=1 \
 @end example
 
 One of the most important parameters of this script is the aperture size, @option{--aperarcsec}, for the aperture photometry of images and creating the catalogs.
-On the one hand, if the selected aperture size is very small, part of the light of the star will be ignored in the magnitude estimation.
+On the one hand, if the selected aperture radius is very small, part of the light of the star will be ignored in the magnitude estimation.
 On the other hand, with large aperture size, the light of neighboring stars affects the magnitude calculation.
-Logically we should select aperture sizes around 2 to 3 times the FWHM of the image.
+Logically we should select an aperture radius around 2 to 3 times the FWHM of the image.
 Practically, we compare the result for several aperture sizes and choose the best one.
 For now, let's assume the values 2, 3, 4, 5, and 6 arcsec for this option and identify the most accurate result in continuing.
 
 In parallel, the next important point is whether all of the bright or faint stars in the input image are comparable with reference stars.
-To better clarify, let’s see a plot that shows the difference of magnitudes of JPLUS and SDSS stars versus SDSS magnitudes for a specific aperture size, for example, 3 arcsec.
+To better clarify, let’s consider the result of matching the J-PLUS catalog with the SDSS reference catalog.
 Note that two catalogs created by aperture photometry from SDSS image are merged so that there are more stars to compare.
-You can draw similar plots for each of the selected apertures using the temporal files which are saved in the checking directory.
-
-Figure ...
-
-Ideally, it is expected that differences in magnitudes be around a straight line with very small fluctuations.
-But in practice, this behaviour is seen only for stars with magnitudes about 19 to 21 mag in reference SDSS catalog.
-The brighter stars are probabely saturated in J-PLUS image and thus they do have not the correct magnitude in the J-PLUS catalog (for more details about saturated pixels and recognition of the saturated level of the image, please see @ref{Saturated pixels and Segment's clumps}).
-You can check some of these stars visually by opening the J-PLUS image.
-
-On the other hand, it is natural can not see accurate magnitudes for the faint stars in SDSS catalog, because the completness limit of each image is limited and since the J-PLUS image is deeper than SDSS image, such faint stars in SDSS image are not good references for estimating of zero point of J-PLUS.
-So, let's limit the range of magnitudes used from the SDSS catalog to calculate more accurate zero point for J-PLUS image.
-For that, there is the option @option{--magnituderange} in the @command{astscript-zeropoint}.
+Using the temporal files which are saved in the checking directory and Gnuastro’s @command{astscript-fits-view}, you can visualize this result as a plot by TOPCAT.
 
 @example
+$ astscript-fits-view zp/checking/zeropoint-3-merged.fits
+@end example
+
+After TOPCAT opens, you can select the ``Graphics'' menu and then ``Plain plot'' to see a plot that shows the difference of magnitudes of JPLUS and SDSS stars versus SDSS magnitudes for a specific aperture radius, for example, 3 arcsec.
+
+Ideally, it is expected that differences in magnitudes be around a straight line with very small fluctuations.
+But in practice, as you can see in your plot, this behaviour is seen only for stars with magnitudes about 19 to 21 mag in reference SDSS catalog.
+
+The brighter stars are probabely saturated and thus they do have not the correct magnitude in the SDSS catalogs (for more details about saturated pixels and recognition of the saturated level of the image, please see @ref{Saturated pixels and Segment's clumps}).
+You can check some of these stars visually by opening the images.
+
+On the other hand, it is natural there are no accurate magnitudes for the faint stars in the SDSS catalog, because the completeness limit of each image is limited and so such faint stars are not good references for estimating zero point.
+So, let's limit the range of magnitudes used from the SDSS catalog to clculate a more accurate zero point for the J-PLUS image.
+For that, there is the @option{--magnituderange} option in the @command{astscript-zeropoint}.
+Please, remove the temporary directory and re-run the script with two new options:
+
+@example
+$ rm -r zp/checking
 $ astscript-zeropoint zp/jplus-no-sky.fits --hdu=1 \
                       --reference=zp/sdss1.fits,zp/sdss2.fits \
                       --referencehdu=0,0 --referencezp=22.5,22.5 \
@@ -24727,11 +24734,43 @@ $ astscript-zeropoint zp/jplus-no-sky.fits --hdu=1 \
                       --keeptmp --tmpdir=zp/checking
 @end example
 
+For more understanding of the effect of subtracting the sky from the J-PLUS image, please, repeat the above commands only by changing the input file to ``jplus-crop.fits''.
+Then use Gnuastro’s @command{astscript-fits-view} again to draw a plot by TOPCAT such as before.
+Clearly, you can see a bad result so that there is not any reasonable range of magnitude for finding the zero point.
+
+Now that we know the proper range of magnitude, we are ready to recognize the best aperture radius.
+For that, we can consider the standard deviation of zero point (ZPSTD) for each aperture.
+With @option{--keepzpap}, you can keep the zero point of each aperture in the different extensions of a table.
+
+@example
+$ rm -r zp/checking
+$ astscript-zeropoint zp/jplus-no-sky.fits --hdu=1 \
+                      --reference=zp/sdss1.fits,zp/sdss2.fits \
+                      --referencehdu=0,0 --referencezp=22.5,22.5 \
+                      --aperarcsec=2,3,4,5,6 --magnituderange=19,21 \
+                      --keepzpap --output=zp/jplus-zeropoint.fits
+@end example
+
+Let's see the result with @command{asttable} along with column information by @option{--colinfoinstdout} option:
+
+@example
+$ asttable jplus-zeropoint.fits --colinfoinstdout
+
+  Column 1: APERTURE  [arcsec,f32,]
+  Column 2: ZEROPOINT [mag   ,f32,]
+  Column 3: ZPSTD     [mag   ,f32,]
+2.000000e+00  2.641005e+01  1.735315e-01
+3.000000e+00  2.640731e+01  2.441020e-01
+4.000000e+00  2.636572e+01  3.049804e-01
+5.000000e+00  2.636776e+01  5.332106e-01
+6.000000e+00  2.618131e+01  7.447639e-01
+@end example
+
+The minimum of ZPSTD is related to aperture radius 2 arcsec, so we can select it as the best aperture in this example and estimate a zero point value of 26.4 mag for the J-PLUS image.
 
 
-
-@node Using the catalog as a zero point reference
-@subsubsection Using the catalog as a zero point reference
+@node Zero point based on the reference catalog
+@subsubsection Zero point based on the reference catalog
 
 
 
