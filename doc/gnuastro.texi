@@ -629,7 +629,7 @@ MakeCatalog
 
 * Detection and catalog production::  Discussing why/how to treat these separately
 * Brightness flux magnitude::   More on Magnitudes, surface brightness, etc.
-* Photometric calibration zero point:: Calculating zeropoint of images
+* Photometric calibraion zero point:: Calculating zeropoint of images
 * Quantifying measurement limits::  For comparing different catalogs.
 * Measuring elliptical parameters::  Estimating elliptical parameters.
 * Adding new columns to MakeCatalog::  How to add new columns.
@@ -24691,9 +24691,40 @@ Keep only two options @option{--keeptmp} and @option{--tmpdir} besides the essen
 @example
 $ astscript-zeropoint --help
 $ astscript-zeropoint zp/jplus-no-sky.fits --hdu=1 \
-                      --reference=sdss1.fits,sdss2.fits \
+                      --reference=zp/sdss1.fits,zp/sdss2.fits \
                       --referencehdu=0,0 --referencezp=22.5,22.5 \
-                      --keeptmp --tmpdir=checking-zp
+                      --keeptmp --tmpdir=zp/checking
+@end example
+
+One of the most important parameters of this script is the aperture size, @option{--aperarcsec}, for the aperture photometry of images and creating the catalogs.
+On the one hand, if the selected aperture size is very small, part of the light of the star will be ignored in the magnitude estimation.
+On the other hand, with large aperture size, the light of neighboring stars affects the magnitude calculation.
+Logically we should select aperture sizes around 2 to 3 times the FWHM of the image.
+Practically, we compare the result for several aperture sizes and choose the best one.
+For now, let's assume the values 2, 3, 4, 5, and 6 arcsec for this option and identify the most accurate result in continuing.
+
+In parallel, the next important point is whether all of the bright or faint stars in the input image are comparable with reference stars.
+To better clarify, let’s see a plot that shows the difference of magnitudes of JPLUS and SDSS stars versus SDSS magnitudes for a specific aperture size, for example, 3 arcsec.
+Note that two catalogs created by aperture photometry from SDSS image are merged so that there are more stars to compare.
+You can draw similar plots for each of the selected apertures using the temporal files which are saved in the checking directory.
+
+Figure ...
+
+Ideally, it is expected that differences in magnitudes be around a straight line with very small fluctuations.
+But in practice, this behaviour is seen only for stars with magnitudes about 19 to 21 mag in reference SDSS catalog.
+The brighter stars are probabely saturated in J-PLUS image and thus they do have not the correct magnitude in the J-PLUS catalog (for more details about saturated pixels and recognition of the saturated level of the image, please see @ref{Saturated pixels and Segment's clumps}).
+You can check some of these stars visually by opening the J-PLUS image.
+
+On the other hand, it is natural can not see accurate magnitudes for the faint stars in SDSS catalog, because the completness limit of each image is limited and since the J-PLUS image is deeper than SDSS image, such faint stars in SDSS image are not good references for estimating of zero point of J-PLUS.
+So, let's limit the range of magnitudes used from the SDSS catalog to calculate more accurate zero point for J-PLUS image.
+For that, there is the option @option{--magnituderange} in the @command{astscript-zeropoint}.
+
+@example
+$ astscript-zeropoint zp/jplus-no-sky.fits --hdu=1 \
+                      --reference=zp/sdss1.fits,zp/sdss2.fits \
+                      --referencehdu=0,0 --referencezp=22.5,22.5 \
+                      --aperarcsec=2,3,4,5,6 --magnituderange=19,21 \
+                      --keeptmp --tmpdir=zp/checking
 @end example
 
 
