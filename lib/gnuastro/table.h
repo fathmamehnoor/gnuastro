@@ -65,7 +65,7 @@ __BEGIN_C_DECLS  /* From C++ preparations */
 
 #define GAL_TABLE_DEF_PRECISION_INT   0
 #define GAL_TABLE_DEF_PRECISION_FLT   6
-#define GAL_TABLE_DEF_PRECISION_DBL   14
+#define GAL_TABLE_DEF_PRECISION_DBL   15
 
 
 

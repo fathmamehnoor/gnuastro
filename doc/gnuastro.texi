@@ -468,6 +468,7 @@ Invoking ConvertType
 
 Table
 
+* Printing floating point numbers::  Optimal storage of floating point types.
 * Column arithmetic::           How to do operations on table columns.
 * Operation precedence in Table::  Order of running options in Table.
 * Invoking asttable::           Options and arguments to Table.
@@ -523,7 +524,7 @@ Arithmetic operators
 * Elliptical shape operators::  Operations that are focused on an ellipse.
 * Loading external columns::    Read a column from a table into the stack.
 * Size and position operators::  Extracting image size and pixel positions.
-* Building new dataset and stack management::        How to construct an empty dataset from scratch.
+* Building new dataset and stack management::  How to construct an empty dataset from scratch.
 * Operand storage in memory or a file::  Tools for complex operations in one command.
 
 Convolve
@@ -10998,6 +10999,7 @@ The ranges listed below are inclusive.
 The maximum (minimum is its negative) possible value is @mymath{3.402823\times10^{38}}.
 Single-precision floating points can accurately represent a floating point number up to @mymath{\sim7.2} significant decimals.
 Given the heavy noise in astronomical data, this is usually more than sufficient for storing results.
+For more, see @ref{Printing floating point numbers}.
 
 @item f64
 @itemx float64
@@ -11005,6 +11007,7 @@ Given the heavy noise in astronomical data, this is usually more than sufficient
 The maximum (minimum is its negative) possible value is @mymath{\sim10^{308}}.
 Double-precision floating points can accurately represent a floating point number @mymath{\sim15.9} significant decimals.
 This is usually good for processing (mixing) the data internally, for example, a sum of single precision data (and later storing the result as @code{float32}).
+For more, see @ref{Printing floating point numbers}.
 @end table
 
 @cartouche
@@ -14013,12 +14016,78 @@ This is a good place to get a general feeling of all the things you can do with 
 Finally, in @ref{Invoking asttable}, we give some examples and describe each option in Table.
 
 @menu
+* Printing floating point numbers::  Optimal storage of floating point types.
 * Column arithmetic::           How to do operations on table columns.
 * Operation precedence in Table::  Order of running options in Table.
 * Invoking asttable::           Options and arguments to Table.
 @end menu
 
-@node Column arithmetic, Operation precedence in Table, Table, Table
+@node Printing floating point numbers, Column arithmetic, Table, Table
+@subsection Printing floating point numbers
+
+@cindex Floating point numbers
+@cindex Printing floating point numbers
+Many of the columns containing astronomical data will contain floating point numbers (those that aren't an integer, like @mymath{1.23} or @mymath{4.56\times10^{-7}}).
+However, printing (for human readability) of floating point numbers has some intricacies that we will explain in this section.
+For a basic introduction to different types of integers or floating points, see @ref{Numeric data types}.
+
+It may be tempting to simply use 64-bit floating points all the time and avoid this section over all.
+But have in mind that compared to 32-bit floating point type, a 64-bit floating point type will consume double the storage, double the RAM and will take almost double the time for processing.
+So when the statistical precision of your numbers is less than that offered by 32-bit floating point precision, it is much better to store them in this format.
+
+Within almost all commonly used CPUs of today, numbers (including integers or floating points) are stored in binary base-2 format (where the only digits that can be used to represent the number are 0 and 1).
+However, we (humans) are use to numbers in base-10 (where we have 10 digits: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9).
+For integers, there is a one-to-one correspondance between a base-2 and base-10 representation.
+Therefore, converting a base-10 integer (that you will be giving as an option value when running a Gnuastro program, for example) to base-2 (that the computer will store in memory), or vice-versa, will not cause any loss of information for integers.
+
+The problem is that floating point numbers don't have such a one-to-one correspondance between the two notations.
+The full discussion on how floating point numbers are stored in binary format is beyond the scope of this book.
+But please have a look at the corresponding @url{https://en.wikipedia.org/wiki/Floating-point_arithmetic, Wikipedia article} to get a rough feeling about the complexity.
+Of course, if you are interested in the details, that Wikipedia article should be a good starting point for further reading.
+
+@cindex IEEE 754 (floating point)
+The most common convention for storing floating point numbers in digital storage is IEEE Standard for Floating-Point Arithmetic; @url{https://en.wikipedia.org/wiki/IEEE_754, IEEE 754}.
+In short, the full width (in bits) assigned to that type (for example the 32 bits allocated for 32-bit floating point types) is divided into separate components: The first bit is the ``sign'' (specifying if the number is negative or positive).
+In 32-bit floats, the next 8 bits are the ``exponent'' and finally (again, in 32-bit floats), the ``fraction'' is stored in the next 23 bits.
+For example see @url{https://commons.wikimedia.org/wiki/File:Float_example.svg, this image on Wikipedia}.
+
+@cindex Decimal digits
+@cindex Precision of floats
+In IEEE 754, around zero, the base-2 and base-10 representations approximately match.
+However, as we go away from 0, you will loose precision.
+The important concept in understanding the precision of floating point numbers is ``decimal digits'', or the number of digits in the number, independent of where the decimal point is.
+For example @mymath{1.23} has three decimal digits and @mymath{4.5678\times10^9} has 5 decimal digits.
+According to IEEE 754@footnote{@url{https://en.wikipedia.org/wiki/IEEE_754#Basic_and_interchange_formats}}, 32-bit and 64-bit floating point numbers can accurately (statistically) represent a floating point with 7.22 and 15.95 decimal digits respectively.
+
+@cartouche
+@noindent
+@strong{Should I store my columns as 32-bit or 64-bit floating point type?} If your floating point numbers have 7 decimal digits or less (for example noisy image pixel values, measured star or galaxy magnitudes, and anything that is derived from them like galaxy mass and etc), you can safely use 32-bit precision (the statistical error on the measurements is usually significantly larger than 7 digits!).
+However, some columns require more digits; thus 64-bit precision.
+For example, RA or Dec with more than one arcsecond accuracy: the degrees can have 3 digits, and 1 arcsecond is @mymath{1/3600\sim0.0003} of a degree, requiring 4 more digits).
+You can use the @ref{Numerical type conversion operators} of @ref{Column arithmetic} to convert your columns to a certain type for storage.
+@end cartouche
+
+The discussion above was for the storage of floating point numbers.
+When printing floating point numbers in a human-friendly format (for example, in a plain-text file or on standard output in the command-line), the computer has to convert its internal base-2 representation to a base-10 representation.
+This second conversion may cause a small discrepancy between the stored and printed values.
+
+@cartouche
+@noindent
+@strong{Use FITS tables as output of measurement programs:} When you are doing a measurement to produce a catalog (for example with @ref{MakeCatalog}) set the output to be a FITS table (for example @option{--output=mycatalog.fits}).
+A FITS binary table will store the same the base-2 number that was measured by the CPU.
+However, if you choose to store the output table as a plain-text table, you risk loosing information due to the human friendly base-10 floating point conversion (which is necessary in a plain-text output).
+@end cartouche
+
+To customize how columns containing floating point values are printed (in a plain-text output file, or in the standard output in your terminal), Table has four options for the two different types: @option{--txtf32format}, @option{--txtf32precision}, @option{--txtf64format} and @option{--txtf64precision}.
+They are fully described in @ref{Invoking asttable}.
+
+@cartouche
+@noindent
+@strong{Summary:} it is therefore recommended to always store your tables as FITS (binary) tables.
+To view the contents of the table on the command-line or to feed it to a program that doesn't recognize FITS tables, you can use the four options above for a custom base-10 conversion that will not cause any loss of data.
+@end cartouche
+
+@node Column arithmetic, Operation precedence in Table, Printing floating point numbers, Table
 @subsection Column arithmetic
 
 In many scenarios, you want to apply some kind of operation on the columns and save them in another table or feed them into another program.
@@ -14449,7 +14518,7 @@ If any output file is explicitly requested (with @option{--output}) the output t
 When no output file is explicitly requested the output table will be written to the standard output.
 If the specified output is a FITS file, the type of FITS table (binary or ASCII) will be determined from the @option{--tabletype} option.
 If the output is not a FITS file, it will be printed as a plain text table (with space characters between the columns).
-When the output is not binary (for example standard output or a plain-text), the @option{--txtf32*} or @option{--txtf64*} options can be used for the formatting of floating point columns.
+When the output is not binary (for example standard output or a plain-text), the @option{--txtf32*} or @option{--txtf64*} options can be used for the formatting of floating point columns (see @ref{Printing floating point numbers}).
 When the columns are accompanied by meta-data (like column name, units, or comments), this information will also printed in the plain text file before the table, as described in @ref{Gnuastro text table format}.
 
 For the full list of options common to all Gnuastro programs please see @ref{Common options}.
@@ -14858,39 +14927,65 @@ Finally, if you already have a FITS table by other means (for example, by downlo
 
 @item  -f STR
 @itemx --txtf32format=STR
-The plain-text format of 32-bit floating point columns when output is not binary (this option is ignored for binary outputs like FITS tables).
+The plain-text format of 32-bit floating point columns when output is not binary (this option is ignored for binary outputs like FITS tables, see @ref{Printing floating point numbers}).
 The acceptable values are listed below.
 This is just the format of the plain-text outputs; see @option{--txtf32precision} for customizing their precision.
 @table @code
 @item fixed
-Fixed-point notation (for example @code{1234567.89012})
+Fixed-point notation (for example @code{123.4567}).
 @item exp
-Exponential notation (for example @code{1.2345689012e+06})
+Exponential notation (for example @code{1.234567e+02}).
 @end table
+
+The default mode is @code{exp} since it is the most generic and will not cause any loss of data.
+Be very cautious if you set it to @code{fixed}.
+As a rule of thumb, the fixed-point notation is only good if the numbers are larger than 1.0, but not too large!
+Given that the total number of accurate decimal digits is fixed the more digits you have on the left of the decimal point (integer part), the more un-accurate digits will be printed on the right of the decimal point.
 
 @item  -p STR
 @itemx --txtf32precision=INT
-Number of digits after the decimal point (precision) for columns with a 32-bit floating point datatype.
+Number of digits after (to the right side of) the decimal point (precision) for columns with a 32-bit floating point datatype (this option is ignored for binary outputs like FITS tables, see @ref{Printing floating point numbers}).
 This can take any positive integer (including 0).
 When given a value of zero, the floating point number will be rounded to the nearest integer.
 
+@cindex IEEE 754
+The default value to this option is 6.
+This is because according to IEEE 754, 32-bit floating point numbers can be accurately presented to 7.22 decimal digits (see @ref{Printing floating point numbers}).
+Since we only have an integer number of digits in a number, we'll round it to 7 decimal digits.
+Furthermore, the precision is only defined to the right side of the decimal point.
+In exponential notation (default of @option{--txtf32format}), one decimal digit will be printed on the left of the decimal point.
+So the default value to this option is @mymath{7-1=6}.
+
 @item  -A STR
 @itemx --txtf64format=STR
-The plain-text format of 64-bit floating point columns when output is not binary (this option is ignored for binary outputs like FITS tables).
+The plain-text format of 64-bit floating point columns when output is not binary (this option is ignored for binary outputs like FITS tables, see @ref{Printing floating point numbers}).
 The acceptable values are listed below.
 This is just the format of the plain-text outputs; see @option{--txtf64precision} for customizing their precision.
 @table @code
 @item fixed
-Fixed-point notation (for example @code{1234567.89012})
+Fixed-point notation (for example @code{12345.6789012345}).
 @item exp
-Exponential notation (for example @code{1.2345689012e+06})
+Exponential notation (for example @code{1.23456789012345e4}).
 @end table
+
+The default mode is @code{exp} since it is the most generic and will not cause any loss of data.
+Be very cautious if you set it to @code{fixed}.
+As a rule of thumb, the fixed-point notation is only good if the numbers are larger than 1.0, but not too large!
+Given that the total number of accurate decimal digits is fixed the more digits you have on the left of the decimal point (integer part), the more un-accurate digits will be printed on the right of the decimal point.
 
 @item  -B STR
 @itemx --txtf64precision=INT
-Number of digits after the decimal point (precision) for columns with a 64-bit floating point datatype.
+Number of digits after the decimal point (precision) for columns with a 64-bit floating point datatype (this option is ignored for binary outputs like FITS tables, see @ref{Printing floating point numbers}).
 This can take any positive integer (including 0).
 When given a value of zero, the floating point number will be rounded to the nearest integer.
+
+@cindex IEEE 754
+The default value to this option is 15.
+This is because according to IEEE 754, 64-bit floating point numbers can be accurately presented to 15.95 decimal digits (see @ref{Printing floating point numbers}).
+Since we only have an integer number of digits in a number, we'll round it to 16 decimal digits.
+Furthermore, the precision is only defined to the right side of the decimal point.
+In exponential notation (default of @option{--txtf64format}), one decimal digit will be printed on the left of the decimal point.
+So the default value to this option is @mymath{16-1=15}.
 @end table
 
 
@@ -16343,7 +16438,7 @@ Reading NaN as a floating point number in Gnuastro is not case-sensitive.
 * Elliptical shape operators::  Operations that are focused on an ellipse.
 * Loading external columns::    Read a column from a table into the stack.
 * Size and position operators::  Extracting image size and pixel positions.
-* Building new dataset and stack management::        How to construct an empty dataset from scratch.
+* Building new dataset and stack management::  How to construct an empty dataset from scratch.
 * Operand storage in memory or a file::  Tools for complex operations in one command.
 @end menu
 

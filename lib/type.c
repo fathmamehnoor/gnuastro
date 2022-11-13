@@ -393,8 +393,6 @@ gal_type_bit_string(void *in, size_t size)
 char *
 gal_type_to_string(void *ptr, uint8_t type, int quote_if_str_has_space)
 {
-  float *f=ptr;
-  double *d=ptr;
   char *c, *str=NULL;
   switch(type)
     {
@@ -434,17 +432,10 @@ gal_type_to_string(void *ptr, uint8_t type, int quote_if_str_has_space)
        statisically significant digits in some scenarios and its result is
        generally not easily predictable: can be fixed-point or exponential
        depending on printed length! But the printed length of a number can
-       hide statisical significance. Therefore, the most conservative
-       format is '%Nf' (where 'N' is the number of digits after the decimal
-       point; depending on the precision of the type). But in this case,
-       when the number is smaller than 1.0, '%.Nf' will loose precision!
-       For example '0.0001234567' will be printed as '0.000123'! Thefore
-       when the value is less than 1.0, we should use %Ne (with the same
-       number of digits after the decimal point). */
-    case GAL_TYPE_FLOAT32:
-      TO_STRING( float,  *f<1.0  ? "%.6e"  : "%.6f" );  break;
-    case GAL_TYPE_FLOAT64:
-      TO_STRING( double, *d<1.0f ? "%.14e" : "%.14f");  break;
+       hide statisical significance. See the discussion in
+       'bin/table/asttable.conf' for the values used here. */
+    case GAL_TYPE_FLOAT32: TO_STRING( float,  "%.6e" ); break;
+    case GAL_TYPE_FLOAT64: TO_STRING( double, "%.14e"); break;
 
     /* Unknown type! */
     default:
@@ -578,8 +569,8 @@ void *
 gal_type_string_to_number(char *string, uint8_t *type)
 {
   long int l;
+  size_t digits;
   void *ptr, *out;
-  int fnz=-1, lnz=0;     /* 'F'irst (or 'L'ast) 'N'on-'Z'ero. */
   uint8_t forcedfloat=0;
   char *c, *tailptr, *cp;
 
@@ -673,38 +664,46 @@ gal_type_string_to_number(char *string, uint8_t *type)
     }
   else
     {
-      /* The maximum number of decimal digits to store in float or double
-         precision floating point are:
-
-         float:  23 mantissa bits + 1 hidden bit: log(224)÷log(10) = 7.22
-         double: 52 mantissa bits + 1 hidden bit: log(253)÷log(10) = 15.95
-
-         FLT_DIG (at least 6 in ISO C) keeps the number of digits (not zero
-         before or after) that can be represented by a single precision
-         floating point number. If there are more digits, then we should
-         store the value as a double precision.
-
-         Note that the number can have non-digit characters that we don't
-         want, like: '.', 'e', 'E', ','. */
+      /* Start counting the number of digits from the start of the string
+         (while ignoring any '0's at the start) */
+      digits=0;
       for(cp=string;*cp!='\0';++cp)
-        if(isdigit(*cp) && *cp!='0' && fnz==-1)
-          fnz=cp-string;
+        {
+          if(isdigit(*cp))
+            { if(!(digits==0 && *cp=='0')) ++digits; }
+          if(*cp=='e') break;
+        }
 
-      /* In the previous loop, we went to the end of the string, so 'cp'
-         now points to its '\0'. We just have to iterate backwards! */
+      /* In the previous loop, we went to the end of the string (or the 'e'
+         character in an exponential), so 'cp' now points to its end. We
+         just have to iterate backwards and stop when we hit a non-zero
+         character */
       for(;cp!=string;--cp)
-        if(isdigit(*cp) && *cp!='0')
+        if(isdigit(*cp))
           {
-            lnz=cp-string;
-            break;
+            if(*cp=='0') --digits;
+            else break;
           }
 
       /* Calculate the number of decimal digits and decide if it the number
-         should be a float or a double. */
-      if( lnz-fnz > FLT_DIG || fabs(d)>FLT_MAX || fabs(d)<FLT_MIN )
+         should be a float or a double.
+
+         The maximum number of decimal digits to store 32-bit floating
+         point is 7.22 (see "Printing floating point numbers" section of
+         the book). We will round this to 7 to be on the safe side. If the
+         given number has more than 7 decimal digits, or is outside the
+         range of possible values for a 32-bit float, it should be saved as
+         a 64-bit float. */
+      if( digits > 7 || fabs(d)>FLT_MAX || fabs(d)<FLT_MIN )
         {      ptr=&d; *type=GAL_TYPE_FLOAT64; }
       else
         { f=d; ptr=&f; *type=GAL_TYPE_FLOAT32; }
+
+      /* For a check:
+      printf("%s:%s: %zu %s\n", __func__, string, digits,
+             gal_type_name(*type, 1));
+      printf("%s: GOOD\n", __func__); exit(0);
+      */
     }
 
   /* Allocate a one-element dataset, then copy the number into it. */

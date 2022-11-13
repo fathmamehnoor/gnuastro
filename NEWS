@@ -58,6 +58,13 @@ See the end of the file for license conditions.
 ** Changed features
 
   Table:
+  - To avoid potential loss of information in floating point columns, when
+    printing the columns to standard output (in the terminal) or saving in
+    a plain-text file, the default floating point formats are now printed
+    in exponential (scientific) notation (e.g., 1.234e-5). Until now the
+    default notation was fixed-point notation (e.g., 0.00001234). A new
+    sub-section called "Printing floating point numbers" has been added to
+    the book (under the "Table" section) to clarify this important point.
   -A: new short format for --txtf64format. The '-d' short format was
    conflicting with the short option name for '--descending'.
 
