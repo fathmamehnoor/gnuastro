@@ -20,6 +20,11 @@ See the end of the file for license conditions.
      - counter: similar to 'index', but integers start with 1.
      - indexonly: similar to 'index', but pops the top stack dataset.
      - counteronly: similar to 'counter', but pops the top stack dataset.
+     - counts-to-nanomaggy: convert counts to Nanomaggy (with fixed
+       zeropoint of 22.5, used as the pixel units of many surveys like
+       SDSS). This was suggested by Giulia Golini.
+     - nanomaggy-to-counts: convert nanomaggy to counts. This was suggested
+       by Giulia Golini.
 
    Crop:
    --append: if the output file already exists, append the cropped image
@@ -50,6 +55,10 @@ See the end of the file for license conditions.
    - GAL_ARITHMETIC_OP_INDEXONLY: Similar to 'GAL_ARITHMETIC_OP_INDEX'.
    - GAL_ARITHMETIC_OP_COUNTER: A counter (counting from 1) for every element.
    - GAL_ARITHMETIC_OP_COUNTERONLY: Similar to 'GAL_ARITHMETIC_OP_COUNTER'.
+   - GAL_ARITHMETIC_OP_COUNTS_TO_NANOMAGGY: convert counts to nanomaggy.
+   - GAL_ARITHMETIC_OP_NANOMAGGY_TO_COUNTS: convert nanomaggy to counts.
+   - gal_units_counts_to_nanomaggy: Convert counts to nanomaggy.
+   - gal_units_nanomaggy_to_counts: Convert nanomaggy to counts.
    - gal_data_alloc_empty: Allocate an empty dataset with a given number of
      dimensions.
 

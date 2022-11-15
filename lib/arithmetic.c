@@ -2451,6 +2451,10 @@ arithmetic_function_binary_flt(int operator, int flags, gal_data_t *il,
       BINFUNC_F_OPERATOR_SET( gal_units_counts_to_jy, +0 ); break;
     case GAL_ARITHMETIC_OP_JY_TO_COUNTS:
       BINFUNC_F_OPERATOR_SET( gal_units_jy_to_counts, +0 ); break;
+    case GAL_ARITHMETIC_OP_COUNTS_TO_NANOMAGGY:
+      BINFUNC_F_OPERATOR_SET( gal_units_counts_to_nanomaggy, +0 ); break;
+    case GAL_ARITHMETIC_OP_NANOMAGGY_TO_COUNTS:
+      BINFUNC_F_OPERATOR_SET( gal_units_nanomaggy_to_counts, +0 ); break;
     default:
       error(EXIT_FAILURE, 0, "%s: operator code %d not recognized",
             __func__, operator);
@@ -3018,6 +3022,10 @@ gal_arithmetic_set_operator(char *string, size_t *num_operands)
     { op=GAL_ARITHMETIC_OP_COUNTS_TO_JY;      *num_operands=2;  }
   else if (!strcmp(string, "jy-to-counts"))
     { op=GAL_ARITHMETIC_OP_JY_TO_COUNTS;      *num_operands=2;  }
+  else if (!strcmp(string, "counts-to-nanomaggy"))
+    { op=GAL_ARITHMETIC_OP_COUNTS_TO_NANOMAGGY; *num_operands=2;}
+  else if (!strcmp(string, "nanomaggy-to-counts"))
+    { op=GAL_ARITHMETIC_OP_NANOMAGGY_TO_COUNTS; *num_operands=2;}
   else if (!strcmp(string, "mag-to-jy"))
     { op=GAL_ARITHMETIC_OP_MAG_TO_JY;         *num_operands=1;  }
   else if (!strcmp(string, "jy-to-mag"))
@@ -3269,6 +3277,8 @@ gal_arithmetic_operator_string(int operator)
     case GAL_ARITHMETIC_OP_SB_TO_COUNTS:    return "sb-to-counts";
     case GAL_ARITHMETIC_OP_COUNTS_TO_JY:    return "counts-to-jy";
     case GAL_ARITHMETIC_OP_JY_TO_COUNTS:    return "jy-to-counts";
+    case GAL_ARITHMETIC_OP_COUNTS_TO_NANOMAGGY: return "counts-to-nanomaggy";
+    case GAL_ARITHMETIC_OP_NANOMAGGY_TO_COUNTS: return "nanomaggy-to-counts";
     case GAL_ARITHMETIC_OP_MAG_TO_JY:       return "mag-to-jy";
     case GAL_ARITHMETIC_OP_JY_TO_MAG:       return "jy-to-mag";
     case GAL_ARITHMETIC_OP_AU_TO_PC:        return "au-to-pc";
@@ -3440,6 +3450,8 @@ gal_arithmetic(int operator, size_t numthreads, int flags, ...)
     case GAL_ARITHMETIC_OP_COUNTS_TO_JY:
     case GAL_ARITHMETIC_OP_COUNTS_TO_MAG:
     case GAL_ARITHMETIC_OP_MAG_TO_COUNTS:
+    case GAL_ARITHMETIC_OP_NANOMAGGY_TO_COUNTS:
+    case GAL_ARITHMETIC_OP_COUNTS_TO_NANOMAGGY:
       d1 = va_arg(va, gal_data_t *);
       d2 = va_arg(va, gal_data_t *);
       out=arithmetic_function_binary_flt(operator, flags, d1, d2);

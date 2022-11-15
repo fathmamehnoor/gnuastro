@@ -100,6 +100,12 @@ double
 gal_units_jy_to_counts(double jy, double zeropoint_ab);
 
 double
+gal_units_counts_to_nanomaggy(double counts, double zeropoint_ab);
+
+double
+gal_units_nanomaggy_to_counts(double counts, double zeropoint_ab);
+
+double
 gal_units_jy_to_mag(double jy);
 
 double

@@ -16775,6 +16775,25 @@ $ astarithmetic sdss-image.fits 22.5 counts-to-jy
 Convert Janskys to counts (usually CCD outputs) through an AB-magnitude based zero point.
 This is the inverse operation of the @code{counts-to-jy}, see there for usage example.
 
+@item counts-to-nanomaggy
+@cindex Nanomaggy
+Convert counts to Nanomaggy (with fixed zeropoint of 22.5, used as the pixel units of many surveys like SDSS).
+For example if your image has a zeropoint of 24.93, you can convert it to Nanomaggies with the command below:
+
+@example
+$ astarithmetic image.fits 24.93 counts-to-nanomaggy
+@end example
+
+@item nanomaggy-to-counts
+@cindex Nanomaggy
+Convert Nanomaggy to counts.
+Nanomaggy is defined to have a fixed zeropoint of 22.5 and is the pixel units of many surveys like SDSS.
+For example if you would like to convert an image in units of Nanomaggy (for example from SDSS) to the counts of a camera with a zeropoint of 25.92, you can use the command below:
+
+@example
+$ astarithmetic image.fits 25.92 nanomaggy-to-counts
+@end example
+
 @item mag-to-jy
 Convert AB magnitudes to Janskys, see @ref{Brightness flux magnitude}.
 
@@ -23780,8 +23799,9 @@ Using the zero point magnitude (@mymath{Z}), we can write the magnitude relation
 @cindex Janskys (Jy)
 @cindex AB magnitude
 @cindex Magnitude, AB
-Having the zero point of an image, you can convert its pixel values to physical units of microJanskys (or @mymath{\mu{}Jy}).
-This enables direct pixel-based comparisons with images from other instruments@footnote{Comparing data from different instruments assumes instrument and observation signatures are properly corrected, things like the flat-field or the Sky absorption}.
+Having the zero point of an image, you can convert its pixel values to physical units like microJanskys (or @mymath{\mu{}Jy}).
+This enables direct pixel-based comparisons with images from other instruments@footnote{Comparing data from different instruments assumes instrument and observation signatures are properly corrected, things like the flat-field or the Sky absorption.
+It is also valid for pixel values, assuming that factors that can change the morphology (like the @ref{PSF}) are the same.}.
 Jansky is a commonly used unit for measuring spectral flux density and one Jansky is equivalent to @mymath{10^{-26} W/m^2/Hz} (watts per square meter per hertz).
 
 This conversion can be done with the fact that in the AB magnitude standard@footnote{@url{https://en.wikipedia.org/wiki/AB_magnitude}}, @mymath{3631Jy} corresponds to the zero-th magnitude, therefore @mymath{B\equiv3631\times10^{6}\mu{Jy}} and @mymath{m\equiv0}.
@@ -34676,11 +34696,14 @@ The latter two are the opposite.
 @deffnx Macro GAL_ARITHMETIC_OP_JY_TO_COUNTS
 @deffnx Macro GAL_ARITHMETIC_OP_MAG_TO_JY
 @deffnx Macro GAL_ARITHMETIC_OP_JY_TO_MAG
+@deffnx Macro GAL_ARITHMETIC_OP_MAG_TO_NANOMAGGY
+@deffnx Macro GAL_ARITHMETIC_OP_NANOMAGGY_TO_MAG
 @cindex Surface Brightness
 Binary operators for converting brightness and surface brightness units to and from each other.
-The first operand to all of them are the values in the respective input unit.
-The second popped operand is the zero point, except for the operators that involve surface brightness (those with @code{SB}).
-For the surface brightness related operators, the second popped operand is the area in units of arcsec@mymath{^2}.
+The first operand to all of them are the values in the input unit (left of the @code{-TO-}, for example counts in @code{COUNTS_TO_MAG}).
+The second popped operand is the zero point (right of the @code{-TO-}, for example magnitudes in @code{COUNTS_TO_MAG}).
+The exceptions are the operators that involve surface brightness (those with @code{SB}).
+For the surface brightness related operators, the second popped operand is the area in units of arcsec@mymath{^2} and the third popped operand is the final unit.
 @end deffn
 
 @deffn  Macro GAL_ARITHMETIC_OP_COUNTS_TO_SB
@@ -37991,6 +38014,16 @@ For more on the equation, see @ref{Brightness flux magnitude}.
 @cindex Astronomical Units (AU)
 Convert the input value (assumed to be in Astronomical Units) to Parsecs.
 For the conversion equation, see the description of @code{au-to-pc} operator in @ref{Arithmetic operators}.
+@end deftypefun
+
+@deftypefun double gal_units_counts_to_nanomaggy (double @code{counts}, double @code{zeropoint_ab})
+@cindex Nanomaggy
+@cindex Magnitude (nanomaggy)
+Convert counts to Nanomaggy (with fixed zeropoint of 22.5) through an AB magnitude-based zero point.
+@end deftypefun
+
+@deftypefun double gal_units_nanomaggy_to_counts (double @code{counts}, double @code{zeropoint_ab})
+Convert Nanomaggy (with fixed zeropoint of 22.5) to counts through an AB magnitude-based zero point.
 @end deftypefun
 
 @deftypefun double gal_units_pc_to_au (double @code{pc})
