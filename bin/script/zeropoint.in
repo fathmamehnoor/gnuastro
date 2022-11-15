@@ -345,6 +345,15 @@ EOF
     fi
 fi
 
+# If an aperture size is not given at all.
+if [ x"$aperarcsec" = x ]; then
+    cat <<EOF
+$scriptname: ERROR: '--aperarcsec' (or '-a') is necessary at least with one value. Run with '--help' for more information.
+EOF
+    exit 1
+fi
+
+
 
 
 
