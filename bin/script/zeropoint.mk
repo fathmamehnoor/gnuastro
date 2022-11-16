@@ -270,8 +270,12 @@ $(zeropoint): $(aperzeropoint)
 	astfits $@.fits --write=ZPAPER,"$$bestaper","Best aperture."
 	astfits $@.fits --write=ZPVALUE,"$$bestzp","Best zeropoint."
 	astfits $@.fits --write=ZPSTD,"$$beststd","Best standard deviation of zeropoint."
-	astfits $@.fits --write=MAGMIN,"$$magmin","Minimum magnitude for obtaining zeropoint."
-	astfits $@.fits --write=MAGMAX,"$$magmax","Maximum magnitude for obtaining zeropoint."
+
+#	If the user requested a certain magnitude range, add minmag and maxmag to header.
+	if [ x"$(magrange)" != x ]; then
+	  astfits $@.fits --write=MAGMIN,"$$magmin","Minimum magnitude for obtaining zeropoint."
+	  astfits $@.fits --write=MAGMAX,"$$magmax","Maximum magnitude for obtaining zeropoint."
+	fi
 
 	if [ x"$(keepzpap)" = x ]; then
 
