@@ -7048,7 +7048,7 @@ Make some mock profiles in an over-sampled image.
 The initial mock image has to be over-sampled prior to convolution or other forms of transformation in the image.
 Through his experiences, Sufi knew that this is because the image of heavenly bodies is actually transformed by the atmosphere or other sources outside the atmosphere (for example, gravitational lenses) prior to being sampled on an image.
 Since that transformation occurs on a continuous grid, to best approximate it, he should do all the work on a finer pixel grid.
-In the end he can re-sample the result to the initially desired grid size.
+In the end he can resample the result to the initially desired grid size.
 
 @item
 @cindex PSF
@@ -7057,7 +7057,7 @@ Since he wants to finish in a reasonable time and the PSF kernel will be very la
 So in the first step above he also has to build the image to be larger by at least half the width of the PSF convolution kernel on each edge.
 
 @item
-With all the transformations complete, the image should be re-sampled to the same size of the pixels in his detector.
+With all the transformations complete, the image should be resampled to the same size of the pixels in his detector.
 
 @item
 He should remove those extra pixels on all edges to remove frequency domain convolution artifacts in the final product.
@@ -7384,7 +7384,7 @@ $ astscript-fits-view cat_convolved.fits --ds9scale=95
 
 It was interesting for the student that all the flux in that single pixel is now distributed over so many pixels (the sum of all the pixels in each convolved star is actually equal to the value of the single pixel before convolution).
 Sufi explained how a PSF with a larger FWHM would make the points even wider than this (distributing their flux in a larger area).
-With the convolved image ready, they were prepared to re-sample it to the original pixel scale Sufi had planned [from the @command{$ astmkprof -P} command above, recall that MakeProfiles had over-sampled the image by 5 times].
+With the convolved image ready, they were prepared to resample it to the original pixel scale Sufi had planned [from the @command{$ astmkprof -P} command above, recall that MakeProfiles had over-sampled the image by 5 times].
 Sufi explained the basic concepts of warping the image to his student and ran Warp with the following command:
 
 @example
@@ -7405,7 +7405,7 @@ $ astfits cat_convolved_scaled.fits --quiet
 @noindent
 @file{cat_convolved_scaled.fits} now has the correct pixel scale.
 However, the image is still larger than what we had wanted, it is @mymath{523\times523} pixels (not our desired @mymath{499\times499}).
-The student is slightly confused, so Sufi also re-samples the PSF with the same scale by running
+The student is slightly confused, so Sufi also resamples the PSF with the same scale by running
 
 @example
 $ astwarp --scale=1/5 --centeroncorner 0_cat_profiles.fits
@@ -8381,7 +8381,7 @@ Always use the most recent version (see @ref{Version numbering}).
 By clicking on the ``Last modified'' title of the second column, the files will be sorted by their date which you can also use to find the latest version.
 It is recommended to use a mirror to download these tarballs, please visit @url{http://ftpmirror.gnu.org/gnuastro/} and see below.
 
-@item Pre-release tar-balls (@url{http://alpha.gnu.org/gnu/gnuastro}):
+@item Pre-release tarballs (@url{http://alpha.gnu.org/gnu/gnuastro}):
 This URL contains unofficial pre-release versions of Gnuastro.
 The pre-release versions of Gnuastro here are for enthusiasts to try out before an official release.
 If there are problems, or bugs then the testers will inform the developers to fix before the next official release.
@@ -8410,7 +8410,7 @@ Also note that if you want to download immediately after and announcement (see @
 
 @cindex Git
 @cindex Version control
-The publicly distributed Gnuastro tar-ball (for example, @file{gnuastro-X.X.tar.gz}) does not contain the revision history, it is only a snapshot of the source code at one significant instant of Gnuastro's history (specified by the version number, see @ref{Version numbering}), ready to be configured and built.
+The publicly distributed Gnuastro tarball (for example, @file{gnuastro-X.X.tar.gz}) does not contain the revision history, it is only a snapshot of the source code at one significant instant of Gnuastro's history (specified by the version number, see @ref{Version numbering}), ready to be configured and built.
 To be able to develop successfully, the revision history of the code can be very useful to track when something was added or changed, also some updates that are not yet officially released might be in it.
 
 We use Git for the version control of Gnuastro.
@@ -8437,7 +8437,7 @@ For more on Gnuastro's source code structure, please see @ref{Developing}.
 We will not go any deeper here.
 
 The cloned Gnuastro source cannot immediately be configured, compiled, or installed since it only contains hand-written files, not automatically generated or imported files which do all the hard work of the build process.
-See @ref{Bootstrapping} for the process of generating and importing those files (its not too hard!).
+See @ref{Bootstrapping} for the process of generating and importing those files (it is not too hard!).
 Once you have bootstrapped Gnuastro, you can run the standard procedures (in @ref{Quick start}).
 Very soon after you have cloned it, Gnuastro's main @file{master} branch will be updated on the main repository (since the developers are actively working on Gnuastro), for the best practices in keeping your local history in sync with the main repository see @ref{Synchronizing}.
 
@@ -8460,7 +8460,7 @@ Very soon after you have cloned it, Gnuastro's main @file{master} branch will be
 @cindex Automatically created build files
 @noindent
 The version controlled source code lacks the source files that we have not written or are automatically built.
-These automatically generated files are included in the distributed tar ball for each distribution (for example, @file{gnuastro-X.X.tar.gz}, see @ref{Version numbering}) and make it easy to immediately configure, build, and install Gnuastro.
+These automatically generated files are included in the distributed tarball for each distribution (for example, @file{gnuastro-X.X.tar.gz}, see @ref{Version numbering}) and make it easy to immediately configure, build, and install Gnuastro.
 However from the perspective of version control, they are just bloatware and sources of confusion (since they are not changed by Gnuastro developers).
 
 The process of automatically building and importing necessary files into the cloned directory is known as @emph{bootstrapping}.
@@ -8530,7 +8530,7 @@ To get a list of the non-version controlled files instead of deleting them, add 
 
 Besides the @file{bootstrap} and @file{bootstrap.conf}, the @file{bootstrapped/} directory and @file{README-hacking} file are also related to the bootstrapping process.
 The former hosts all the imported (bootstrapped) directories.
-Thus, in the version controlled source, it only contains a @file{README} file, but in the distributed tar-ball it also contains sub-directories filled with all bootstrapped files.
+Thus, in the version controlled source, it only contains a @file{README} file, but in the distributed tarball it also contains sub-directories filled with all bootstrapped files.
 @file{README-hacking} contains a summary of the bootstrapping process discussed in this section.
 It is a necessary reference when you have not built this book yet.
 It is thus not distributed in the Gnuastro tarball.
@@ -9414,13 +9414,13 @@ directory}.
 @command{$ make}: @emph{Complains about an unknown function on a non-GNU based operating system.}
 In this case, please run @command{$ ./configure} with the @option{--enable-gnulibcheck} option to see if the problem is from the GNU Portability Library (Gnulib) not supporting your system or if there is a problem in Gnuastro, see @ref{Gnuastro configure options}.
 If the problem is not in Gnulib and after all its tests you get the same complaint from @command{make}, then please contact us at @file{bug-gnuastro@@gnu.org}.
-The cause is probably that a function that we have used is not supported by your operating system and we did not included it along with the source tar ball.
+The cause is probably that a function that we have used is not supported by your operating system and we did not included it along with the source tarball.
 If the function is available in Gnulib, it can be fixed immediately.
 
 @item
 @cindex @command{CPPFLAGS}
 @command{$ make}: @emph{Cannot find the headers (.h files) of installed libraries.}
-Your C pre-processor (CPP) is not looking in the right place.
+Your C preprocessor (CPP) is not looking in the right place.
 To fix this, configure Gnuastro with an additional @code{CPPFLAGS} like below (assuming the library is installed in @file{/usr/local/include}:
 
 @example
@@ -19898,7 +19898,7 @@ A digital image is composed of discrete `picture elements' or `pixels'.
 When a real image is created from a camera or detector, each pixel's area is used to store the number of photo-electrons that were created when incident photons collided with that pixel's surface area.
 This process is called the `sampling' of a continuous or analog data into digital data.
 
-When we change the pixel grid of an image, or ``warp'' it, we have to calculate the flux value of each pixel on the new grid based on the old grid, or re-sample it.
+When we change the pixel grid of an image, or ``warp'' it, we have to calculate the flux value of each pixel on the new grid based on the old grid, or resample it.
 Because of the calculation (as opposed to observation), any form of warping on the data is going to degrade the image and mix the original pixel values with each other.
 So if an analysis can be done on an unwarped data image, it is best to leave the image untouched and pursue the analysis.
 However as discussed in @ref{Warp} this is not possible in some scenarios and re-sampling is necessary.
@@ -19912,7 +19912,7 @@ However as discussed in @ref{Warp} this is not possible in some scenarios and re
 @cindex Interpolation, bicubic
 @cindex Interpolation, bi-linear
 When the FWHM of the PSF of the camera is much larger than the pixel scale (see @ref{Sampling theorem}) we are sampling the signal in a much higher resolution than the camera can offer.
-This is usually the case in many applications of image processing (non-astronomical imaging).
+This is usually the case in many applications of image processing (nonastronomical imaging).
 In such cases, we can consider each pixel to be a point and not an area: the PSF doesn't vary much over a single pixel.
 
 Approximating a pixel's area to a point can significantly speed up the resampling and also the simplicity of the code.
@@ -20317,7 +20317,7 @@ Since a central pixel is only defined with an odd number of pixels along both di
 When @option{--center} or @option{--gridfile} aren't given, the output will have the same central WCS coordinate as the input.
 
 Usually, the WCS coordinates are Right Ascension and Declination (when the first three characters of @code{CTYPE1} and @code{CTYPE2} are respectively @code{RA-} and @code{DEC}).
-For more on the @code{CTYPEi} keyword values, see @code{--ctype}.
+For more on the @code{CTYPEi} keyword values, see @code{--ctype} below.
 
 @item -w INT[,INT]
 @itemx --width=INT[,INT]
@@ -29498,7 +29498,7 @@ The positions along each dimension must be separated by a comma (@key{,}).
 The number of values given to this option must be the same as the dimensions of the input dataset.
 The units of the coordinates are read based on the value to the @option{--mode} option, see above.
 
-If the central position does not fall in the center of a pixel in the input image, the PSF is re-sampled with sub-pixel change in the pixel grid before subtraction.
+If the central position does not fall in the center of a pixel in the input image, the PSF is resampled with sub-pixel change in the pixel grid before subtraction.
 
 @item -s FLT
 @itemx --scale=FLT
@@ -29818,7 +29818,7 @@ So if this was all, the caller would have to manually copy and paste (@emph{incl
 To address this problem, programmers have adopted the header file convention: the header file of a source code contains all the declarations that a caller would need to be able to use any of its functions.
 For example, in Gnuastro, @file{lib/statistics.c} (file containing function definitions) comes with @file{lib/gnuastro/statistics.h} (only containing function declarations).
 
-The discussion above was mainly focused on functions, however, there are many more programming constructs such as pre-processor macros and data structures.
+The discussion above was mainly focused on functions, however, there are many more programming constructs such as preprocessor macros and data structures.
 Like functions, they also need to be known to the compiler when it confronts a call to them.
 So the header file also contains their definitions or declarations when they are necessary for the functions.
 
@@ -29826,7 +29826,7 @@ So the header file also contains their definitions or declarations when they are
 @cindex Structures
 @cindex Data structures
 @cindex Pre-processor macros
-Pre-processor macros (or macros for short) are replaced with their defined value by the pre-processor before compilation.
+Preprocessor macros (or macros for short) are replaced with their defined value by the preprocessor before compilation.
 Conventionally they are written only in capital letters to be easily recognized.
 It is just important to understand that the compiler does not see the macros, it sees their fixed values.
 So when a header specifies macros you can do your programming without worrying about the actual values.
@@ -29834,8 +29834,8 @@ The standard C types (for example, @code{int}, or @code{float}) are very low-lev
 We can collect multiple C types into a @emph{structure} for a higher-level way to keep and pass-along data.
 See @ref{Generic data container} for some examples of macros and data structures.
 
-The contents in the header need to be @emph{include}d into the caller's source code with a special pre-processor command: @code{#include <path/to/header.h>}.
-As the name suggests, the @emph{pre-processor} goes through the source code prior to the processor (or compiler).
+The contents in the header need to be @emph{include}d into the caller's source code with a special preprocessor command: @code{#include <path/to/header.h>}.
+As the name suggests, the @emph{preprocessor} goes through the source code prior to the processor (or compiler).
 One of its jobs is to include, or merge, the contents of files that are mentioned with this directive in the source code.
 Therefore the compiler sees a single entity containing the contents of the main file and all the included files.
 This allows you to include many (sometimes thousands of) declarations into your code with only one line.
@@ -29849,8 +29849,8 @@ You will notice that files like @file{stdio.h}, or @file{string.h} are not in th
 On most systems the basic C header files (like @file{stdio.h} and @file{string.h} mentioned above) are located in @file{/usr/include/}@footnote{The @file{include/} directory name is taken from the pre-processor's @code{#include} directive, which is also the motivation behind the `I' in the @option{-I} option to the pre-processor.}.
 Your compiler is configured to automatically search that directory (and possibly others), so you do not have to explicitly mention these directories.
 Go ahead, look into the @file{/usr/include} directory and find @file{stdio.h} for example.
-When the necessary header files are not in those specific libraries, the pre-processor can also search in places other than the current directory.
-You can specify those directories with this pre-processor option@footnote{Try running Gnuastro's @command{make} and find the directories given to the compiler with the @option{-I} option.}:
+When the necessary header files are not in those specific libraries, the preprocessor can also search in places other than the current directory.
+You can specify those directories with this preprocessor option@footnote{Try running Gnuastro's @command{make} and find the directories given to the compiler with the @option{-I} option.}:
 
 @table @option
 @item -I DIR
@@ -29860,8 +29860,8 @@ If the directory @file{DIR} is a standard system include directory, the option i
 Note that the space between @key{I} and the directory is optional and commonly not used.
 @end table
 
-If the pre-processor cannot find the included files, it will abort with an error.
-In fact a common error when building programs that depend on a library is that the compiler does not not know where a library's header is (see @ref{Known issues}).
+If the preprocessor cannot find the included files, it will abort with an error.
+In fact a common error when building programs that depend on a library is that the compiler does not know where a library's header is (see @ref{Known issues}).
 So you have to manually tell the compiler where to look for the library's headers with the @option{-I} option.
 For a small software with one or two source files, this can be done manually (see @ref{Summary and example on libraries}).
 However, to enhance modularity, Gnuastro (and most other bin/libraries) contain many source files, so the compiler is invoked many times@footnote{Nearly every command you see being executed after running @command{make} is one call to the compiler.}.
@@ -29871,7 +29871,7 @@ This makes manual addition or modification of this option practically impossible
 @cindex @command{CPPFLAGS}
 To solve this problem, in the GNU build system, there are conventional environment variables for the various kinds of compiler options (or flags).
 These environment variables are used in every call to the compiler (they can be empty).
-The environment variable used for the C Pre-Processor (or CPP) is @command{CPPFLAGS}.
+The environment variable used for the C preprocessor (or CPP) is @command{CPPFLAGS}.
 By giving @command{CPPFLAGS} a value once, you can be sure that each call to the compiler will be affected.
 See @ref{Known issues} for an example of how to set this variable at configure time.
 
@@ -29975,7 +29975,7 @@ It should be around 4.2 Megabytes with this static linking.
 If you configure and build Gnuastro again with shared libraries enabled (which is the default), you will notice that it is roughly 100 Kilobytes!
 
 This huge difference would have been very significant in the old days, but with the roughly Terabyte storage drives commonly in use today, it is negligible.
-Fortunately, output file size is not the only benefit of dynamic linking: since it links to the libraries at run-time (rather than build-time), you do not have to re-build a higher-level program or library when an update comes for one of the lower-level libraries it depends on.
+Fortunately, output file size is not the only benefit of dynamic linking: since it links to the libraries at run-time (rather than build-time), you do not have to rebuild a higher-level program or library when an update comes for one of the lower-level libraries it depends on.
 You just install the new low-level library and it will automatically be used/linked next time in the programs that use it.
 To be fair, this also creates a few complications@footnote{Both of these can be avoided by joining the mailing lists of the lower-level libraries and checking the changes in newer versions before installing them.
 Updates that result in such behaviors are generally heavily emphasized in the release notes.}:
@@ -30078,11 +30078,11 @@ But before that, let's recall the general steps of how your source code is prepa
 
 @enumerate
 @item
-The @strong{pre-processor} includes the header (@file{.h}) files into the function definition (@file{.c}) files, expands pre-processor macros.
-Generally the pre-processor prepares the human-readable source for compilation (reviewed in @ref{Headers}).
+The @strong{preprocessor} includes the header (@file{.h}) files into the function definition (@file{.c}) files, expands preprocessor macros.
+Generally the preprocessor prepares the human-readable source for compilation (reviewed in @ref{Headers}).
 
 @item
-The @strong{compiler} will translate (compile) the human-readable contents of each source (merged @file{.c} and the @file{.h} files, or generally the output of the pre-processor) into the computer-readable code of @file{.o} files.
+The @strong{compiler} will translate (compile) the human-readable contents of each source (merged @file{.c} and the @file{.h} files, or generally the output of the preprocessor) into the computer-readable code of @file{.o} files.
 
 @item
 The @strong{linker} will link the called function definitions from various compiled files to create one unified object.
@@ -30107,7 +30107,7 @@ $ gcc arraymanip.c -lgnuastro -lm -o arraymanip
 The two @option{-lgnuastro} and @option{-lm} options (in this order) tell GCC to first link with the Gnuastro library and then with C's math library.
 The @option{-o} option is used to specify the name of the output executable, without it the output file name will be @file{a.out} (on most OSs), independent of your input file name(s).
 
-If your top Gnuastro installation directory (let's call it @file{$prefix}, see @ref{Installation directory}) is not recognized by GCC, you will get pre-processor errors for unknown header files.
+If your top Gnuastro installation directory (let's call it @file{$prefix}, see @ref{Installation directory}) is not recognized by GCC, you will get preprocessor errors for unknown header files.
 Once you fix it, you will get linker errors for undefined functions.
 To fix both, you should run GCC as follows: additionally telling it which directories it can find Gnuastro's headers and compiled library (see @ref{Headers} and @ref{Linking}):
 
@@ -30117,7 +30117,7 @@ $ gcc -I$prefix/include -L$prefix/lib arraymanip.c -lgnuastro -lm     \
 @end example
 
 @noindent
-This single command has done all the pre-processor, compilation and linker operations.
+This single command has done all the preprocessor, compilation and linker operations.
 Therefore no intermediate files (object files in particular) were created, only a single output executable was created.
 You are now ready to run the program with:
 
@@ -30226,7 +30226,7 @@ If they are also not defined, BuildProgram will ultimately default to the @comma
 @item -I STR
 @itemx --includedir=STR
 @cindex GNU CPP
-@cindex C Pre-Processor
+@cindex C preprocessor
 Directory to search for files that you @code{#include} in your C program.
 Note that headers relating to Gnuastro and its dependencies do not need this option.
 This is only necessary if you want to use other headers.
@@ -30234,7 +30234,7 @@ It may be called multiple times and order matters.
 This directory will be searched before those of Gnuastro's build and also the system search directories.
 See @ref{Headers} for a thorough introduction.
 
-From the GNU C Pre-Processor manual: ``Add the directory @code{STR} to the list of directories to be searched for header files.
+From the GNU C preprocessor manual: ``Add the directory @code{STR} to the list of directories to be searched for header files.
 Directories named by @option{-I} are searched before the standard system include directories.
 If the directory @code{STR} is a standard system include directory, the option is ignored to ensure that the default search order for system directories and the special treatment of system headers are not defeated''.
 
@@ -31122,7 +31122,7 @@ The name of the file containing the allocated space is an allocated string that 
 
 Note that the kernel does not allow an infinite number of memory mappings to files.
 So it is not recommended to use this function with every allocation.
-The best case scenario to use this function is for large arrays that are very large and can fill up the RAM.
+The best-case scenario to use this function is for arrays that are very large and can fill up the RAM.(or : ... is for arrays that are large enough and can fill up the RAM.)
 Keep the smaller arrays in RAM, which is faster and can have a (theoretically) unlimited number of allocations.
 
 When you are done with the dataset and do not need it anymore, do not use @code{free} (the dataset is not in RAM).
@@ -31319,9 +31319,9 @@ on these flags. If @code{input==NULL}, then this function will return
 
 
 @deftypefun {gal_data_t *} gal_blank_flag (gal_data_t @code{*input})
-Create a dataset of the same size as the input, but with an
-@code{uint8_t} type that has a value of 1 for data that are blank and 0 for
-those that are not.
+Find which elements in an array are blank. So, create a dataset of the
+same size as the input, but with an @code{uint8_t} type that
+has a value of 1 for data that are blank and 0 for those that are not.
 @end deftypefun
 
 @deftypefun void gal_blank_flag_apply (gal_data_t @code{*input}, gal_data_t @code{*flag})
@@ -31480,7 +31480,7 @@ This is actually a multiplication of all the values in the @code{dsize} array, s
 However, low-level operations with the dataset (irrespective of its dimensions) commonly need this number, so this element is designed to avoid calculating it every time.
 
 @item int quietmmap
-When this value is zero, and the dataset must not be allocated in RAM (see @code{mmapname} and @code{minmapsize}), a warning will be printed to inform the user when the file is created and when it is deleted.
+When this value is zero, and the dataset must not be allocated in RAM (see @code{mmapname} and @code{minmapsize} below), a warning will be printed to inform the user when the file is created and when it is deleted.
 The warning includes the filename, the size in bytes, and the fact that they can toggle this behavior through @code{--minmapsize} option in Gnuastro's programs.
 
 @item char *mmapname
@@ -31558,7 +31558,7 @@ If the dataset is a one-dimensional table column, this will be the column name.
 If it is set to @code{NULL} (by default), it will be ignored.
 
 @item char *unit
-The units of the dataset (for example, @code{BUNIT} in the standard FITS keywords) that will be read from or written to files/tables along with thedataset.
+The units of the dataset (for example, @code{BUNIT} in the standard FITS keywords) that will be read from or written to files/tables along with the dataset.
 If it is set to @code{NULL} (by default), it will be ignored.
 
 @item char *comment
@@ -33007,6 +33007,7 @@ The information to search for columns should be specified by the @code{cols} lis
 The string in each node of the list may be a number, an exact match to a column name, or a regular expression (in GNU AWK format) enclosed in @code{/ /}.
 The @code{searchin} value must be one of the macros defined above.
 If @code{cols} is NULL, then this function will read the full table.
+Also, the @code{ignorecase} value should be 1 if you want to ignore the case of alphabetic characters while matching/searching column meta-data (see @ref{Input output options}).
 
 For FITS tables, each column will be read independently.
 Therefore they will be read in @code{numthreads} CPU threads to greatly speed up the reading when there are many columns and rows.
@@ -33678,7 +33679,7 @@ the @code{gal_data_free} function will free both the dataset and any WCS
 structure (if there are any).
 @example
 data=gal_fits_img_read(filename, hdu, -1, 1);
-data->wcs=gal_wcs_read(filename, hdu, 0, 0, &data->wcs->nwcs);
+data->wcs=gal_wcs_read(filename, hdu, 0, 0, 0, &data->wcs->nwcs);
 @end example
 @end deftypefun
 
@@ -34518,7 +34519,7 @@ For example, if you want to convert the TPV coefficients of your input @file{ima
 @example
 int nwcs;
 gal_data_t *data=gal_fits_img_read("image.fits", "1", -1, 1);
-inwcs=gal_wcs_read("image.fits", "1", 0, &nwcs);
+inwcs=gal_wcs_read("image.fits", "1", 0, 0, 0, &nwcs);
 data->wcs=gal_wcs_distortion_convert(inwcs, GAL_WCS_DISTORTION_TPV,
                                      NULL);
 wcsfree(inwcs);
@@ -38397,24 +38398,47 @@ use those that are generated by Gnuastro after @command{make check} in the
 @node Library demo - reading a image, Library demo - inspecting neighbors, Library demo programs, Library demo programs
 @subsection Library demo - reading a FITS image
 
-The following simple program demonstrates how to read a FITS image into
-memory and use the @code{void *array} pointer in of @ref{Generic data
-container}. For easy linking/compilation of this program along with a first
-run see @ref{BuildProgram}. Before running, also change the @code{filename}
-and @code{hdu} variable values to specify an existing FITS file and/or
-extension/HDU.
+The following simple program demonstrates how to read a FITS image into memory and use the @code{void *array} pointer in of @ref{Generic data container}.
+For easy linking/compilation of this program along with a first run see @ref{BuildProgram} (in short: Compile, link and run ‘myprogram.c' with this command: `@command{astbuildprog myprogram.c}).
+Before running, also change the @code{filename} and @code{hdu} variable values to specify an existing FITS file and/or extension/HDU.
 
-This is just intended to demonstrate how to use the @code{array} pointer of
-@code{gal_data_t}. Hence it does not do important sanity checks, for example
-in real datasets you may also have blank pixels. In such cases, this
-program will return a NaN value (see @ref{Blank pixels}). So for general
-statistical information of a dataset, it is much better to use Gnuastro's
-@ref{Statistics} program which can deal with blank pixels and many other
-issues in a generic dataset.
+This is just intended to demonstrate how to use the @code{array} pointer of @code{gal_data_t}.
+Hence it does not do important sanity checks, for example in real datasets you may also have blank pixels.
+In such cases, this program will return a NaN value (see @ref{Blank pixels}).
+So for general statistical information of a dataset, it is much better to use Gnuastro's @ref{Statistics} program which can deal with blank pixels and many other issues in a generic dataset.
+
+To encourage good coding practices, this script contains a copyright notice with a place holder for your name and your email (as you customize it for your own purpose).
+Always keep a one-line description and copyright notice like this in all your scripts, such ``metadata'' is very important to accompany every source file you write.
+Of course, when you write the source file from scratch and just learn how to use a single function from this manual, only your name/year should appear.
+The existing name of the original author of this example program is only for cases where you copy-paste this whole file.
 
 @example
+/* Reading a FITS image into memory.
+ *
+ * The following simple program demonstrates how to read a FITS image
+ * into memory  and use the 'void *array' pointer. This is just intended
+ * to demonstrate how to use the array pointer of 'gal_data_t'.
+ *
+ * Copyright (C) 2022      Your Name <your@@email.address>
+ * Copyright (C) 2020-2022 Mohammad Akhlaghi <mohammad@@akhlaghi.org>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
+
 #include <gnuastro/fits.h> /* includes gnuastro's data.h and type.h */
 #include <gnuastro/statistics.h>
 
@@ -38435,7 +38459,7 @@ main(void)
 
   /* Use the allocated space as a single precision floating
    * point array (recall that `image->array' has `void *'
-   * type, so it is not directly usable. */
+   * type, so it is not directly usable). */
   farray=image->array;
 
 
@@ -38459,17 +38483,41 @@ main(void)
 @node Library demo - inspecting neighbors, Library demo - multi-threaded operation, Library demo - reading a image, Library demo programs
 @subsection Library demo - inspecting neighbors
 
-The following simple program shows how you can inspect the neighbors of a
-pixel using the @code{GAL_DIMENSION_NEIGHBOR_OP} function-like macro that
-was introduced in @ref{Dimensions}. For easy linking/compilation of this
-program along with a first run see @ref{BuildProgram}. Before running, also
-change the file name and HDU (first and second arguments to
-@code{gal_fits_img_read_to_type}) to specify an existing FITS file and/or
-extension/HDU.
+The following simple program shows how you can inspect the neighbors of a pixel using the @code{GAL_DIMENSION_NEIGHBOR_OP} function-like macro that was introduced in @ref{Dimensions}.
+For easy linking/compilation of this program along with a first run see @ref{BuildProgram}.
+Before running, also change the file name and HDU (first and second arguments to @code{gal_fits_img_read_to_type}) to specify an existing FITS file and/or extension/HDU.
+
+To encourage good coding practices, this script contains a copyright notice with a place holder for your name and your email (as you customize it for your own purpose).
+Always keep a one-line description and copyright notice like this in all your scripts, such ``metadata'' is very important to accompany every source file you write.
+Of course, when you write the source file from scratch and just learn how to use a single function from this manual, only your name/year should appear.
+The existing name of the original author of this example program is only for cases where you copy-paste this whole file.
 
 @example
+/* Reading a FITS image into memory.
+ *
+ * The following simple program shows how you can inspect the neighbors
+ * of a pixel using the GAL_DIMENSION_NEIGHBOR_OP function-like macro.
+ *
+ * Copyright (C) 2022      Your Name <your@@email.address>
+ * Copyright (C) 2020-2022 Mohammad Akhlaghi <mohammad@@akhlaghi.org>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
+
 #include <gnuastro/fits.h>
 #include <gnuastro/dimension.h>
 
@@ -38515,12 +38563,12 @@ Before running, also change the @code{filename} and @code{hdu} variable values t
 
 This is a very simple program to open a FITS image, distribute its pixels between different threads and print the value of each pixel and the thread it was assigned to.
 The actual operation is very simple (and would not usually be done with threads in a real-life program).
-It is intentionally chosen to put more focus on the important steps in spinning of threads and how the worker function (which is called by each thread) can identify the job-IDs it should work on.
+It is intentionally chosen to put more focus on the important steps in spinning off threads and how the worker function (which is called by each thread) can identify the job-IDs it should work on.
 
 For example, instead of an array of pixels, you can define an array of tiles or any other context-specific structures as separate targets.
 The important thing is that each action should have its own unique ID (counting from zero, as is done in an array in C).
 You can then follow the process below and use each thread to work on all the targets that are assigned to it.
-Recall that spinning-off threads is itself an expensive process and we do not want to spin-off one thread for each target (see the description of @code{gal_threads_dist_in_threads} in @ref{Gnuastro's thread related functions}.
+Recall that spinning off threads is itself an expensive process and we do not want to spin-off one thread for each target (see the description of @code{gal_threads_dist_in_threads} in @ref{Gnuastro's thread related functions}.
 
 There are many (more complicated, real-world) examples of using @code{gal_threads_spin_off} in Gnuastro's actual source code, you can see them by searching for the @code{gal_threads_spin_off} function from the top source (after unpacking the tarball) directory (for example, with this command):
 
@@ -38528,16 +38576,44 @@ There are many (more complicated, real-world) examples of using @code{gal_thread
 $ grep -r gal_threads_spin_off ./
 @end example
 
-@noindent
+To encourage good coding practices, this script contains a copyright notice with a place holder for your name and your email (as you customize it for your own purpose).
+Always keep a one-line description and copyright notice like this in all your scripts, such ``metadata'' is very important to accompany every source file you write.
+Of course, when you write the source file from scratch and just learn how to use a single function from this manual, only your name/year should appear.
+The existing name of the original author of this example program is only for cases where you copy-paste this whole file.
+
 The code of this demonstration program is shown below.
 This program was also built and run when you ran @code{make check} during the building of Gnuastro (@code{tests/lib/multithread.c}), so it is already tested for your system and you can safely use it as a guide.
 
 @example
+/* Demo of Gnuastro's high-level multi-threaded interface.
+ *
+ * This is a very simple program to open a FITS image, distribute its
+ * pixels between different threads and print the value of each pixel
+ * and the thread it was assigned to.
+ *
+ * Copyright (C) 2022      Your Name <your@@email.address>
+ * Copyright (C) 2020-2022 Mohammad Akhlaghi <mohammad@@akhlaghi.org>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 
 #include <gnuastro/fits.h>
 #include <gnuastro/threads.h>
+
 
 
 /* This structure can keep all information you want to pass onto the
@@ -38546,7 +38622,6 @@ struct params
 @{
   gal_data_t *image;            /* Dataset to print values of. */
 @};
-
 
 
 
@@ -38599,8 +38674,8 @@ main(void)
   size_t numthreads=gal_threads_number();
 
   /* We are using * `-1' for `minmapsize' to ensure that the image is
-     read into * memory and `1' for `quietmmap' (which can also be
-     zero), see the "Memory management" section in the book. */
+   * read into * memory and `1' for `quietmmap' (which can also be
+   * zero), see the "Memory management" section in the book. */
   int quietmmap=1;
   size_t minmapsize=-1;
 
@@ -38614,7 +38689,7 @@ main(void)
   printf("Pixel values of %s (HDU: %s) on %zu threads.\n", filename,
          hdu, numthreads);
   printf("Used to check the compiled library's capability in opening "
-         "a FITS file, and also spinning-off threads.\n");
+         "a FITS file, and also spinning off threads.\n");
 
 
   /* A small sanity check: this is only intended for 2D arrays (to
@@ -38642,44 +38717,62 @@ main(void)
 @node Library demo - reading and writing table columns, Library demo - Warp to another image, Library demo - multi-threaded operation, Library demo programs
 @subsection Library demo - reading and writing table columns
 
-Tables are some of the most common inputs to, and outputs of programs. This
-section contains a small program for reading and writing tables using the
-constructs described in @ref{Table input output}. For easy
-linking/compilation of this program, along with a first run, see Gnuastro's
-@ref{BuildProgram}. Before running, also set the following file and column
-names in the first two lines of @code{main}. The input and output names may
-be @file{.txt} and @file{.fits} tables, @code{gal_table_read} and
-@code{gal_table_write} will be able to write to both formats. For plain
-text tables see @ref{Gnuastro text table format}.
+Tables are some of the most common inputs to, and outputs of programs.
+This section contains a small program for reading and writing tables using the constructs described in @ref{Table input output}.
+For easy linking/compilation of this program, along with a first run, see Gnuastro's @ref{BuildProgram}.
+Before running, also set the following file and column names in the first two lines of @code{main}.
+The input and output names may be @file{.txt} and @file{.fits} tables, @code{gal_table_read} and @code{gal_table_write} will be able to write to both formats.
+For plain text tables see @ref{Gnuastro text table format}.
+If you do not have any table in text file format to use as your input, you can use the table that is generated in @ref{Sufi simulates a detection} section.
 
-This example program reads three columns from a table. The first two
-columns are selected by their name (@code{NAME1} and @code{NAME2}) and the
-third is selected by its number: column 10 (counting from 1). Gnuastro's
-column selection is discussed in @ref{Selecting table columns}. The first
-and second columns can be any type, but this program will convert them to
-@code{int32_t} and @code{float} for its internal usage
-respectively. However, the third column must be double for this program. So
-if it is not, the program will abort with an error. Having the columns in
-memory, it will print them out along with their sum (just a simple
-application, you can do what ever you want at this stage). Reading the
-table finishes here.
+This example program reads three columns from a table.
+The first two columns are selected by their name (@code{NAME1} and @code{NAME2}) and the third is selected by its number: column 10 (counting from 1).
+Gnuastro's column selection is discussed in @ref{Selecting table columns}.
+The first and second columns can be any type, but this program will convert them to @code{int32_t} and @code{float} for its internal usage respectively.
+However, the third column must be double for this program.
+So if it is not, the program will abort with an error.
+Having the columns in memory, it will print them out along with their sum (just a simple application, you can do what ever you want at this stage).
+Reading the table finishes here.
 
-The rest of the program is a demonstration of writing a table. While
-parsing the rows, this program will change the first column (to be
-counters) and multiply the second by 10 (so the output will be
-different). Then it will define the order of the output columns by setting
-the @code{next} element (to create a @ref{List of gal_data_t}). Before
-writing, this function will also set names for the columns (units and
-comments can be defined in a similar manner). Writing the columns to a file
-is then done through a simple call to @code{gal_table_write}.
+The rest of the program is a demonstration of writing a table.
+While parsing the rows, this program will change the first column (to be counters) and multiply the second by 10 (so the output will be different).
+Then it will define the order of the output columns by setting the @code{next} element (to create a @ref{List of gal_data_t}).
+Before writing, this function will also set names for the columns (units and comments can be defined in a similar manner).
+Writing the columns to a file is then done through a simple call to @code{gal_table_write}.
 
-The operations that are shown in this example program are not necessary all
-the time. For example, in many cases, you know the numerical data type of
-the column before writing your program (see @ref{Numeric data types}), so
-type checking and copying to a specific type will not be necessary.
+The operations that are shown in this example program are not necessary all the time.
+For example, in many cases, you know the numerical data type of the column before writing your program (see @ref{Numeric data types}), so type checking and copying to a specific type will not be necessary.
+
+To encourage good coding practices, this script contains a copyright notice with a place holder for your name and your email (as you customize it for your own purpose).
+Always keep a one-line description and copyright notice like this in all your scripts, such ``metadata'' is very important to accompany every source file you write.
+Of course, when you write the source file from scratch and just learn how to use a single function from this manual, only your name/year should appear.
+The existing name of the original author of this example program is only for cases where you copy-paste this whole file.
 
 @example
 @verbatim
+/* Reading and writing table columns.
+ *
+ * This example program reads three columns from a table. Having the
+ * columns in memory, it will print them out along with their sum. The
+ * rest of the program is a demonstration of writing a table.
+ *
+ * Copyright (C) 2022      Your Name <your@@email.address>
+ * Copyright (C) 2020-2022 Mohammad Akhlaghi <mohammad@@akhlaghi.org>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -38693,11 +38786,12 @@ main(void)
   char *inname="input.fits", *hdu="1", *outname="out.fits";
 
   /* Internal parameters. */
-  float *array2;
-  double *array3;
-  int32_t *array1;
+  float *array2=NULL;
+  double *array3=NULL;
+  int32_t *array1=NULL;
   size_t i, counter=0;
-  gal_data_t *c1, *c2;
+  gal_data_t *c1=NULL;
+  gal_data_t *c2=NULL;
   gal_data_t tmp, *col, *columns;
   gal_list_str_t *column_ids=NULL;
 
@@ -38710,8 +38804,8 @@ main(void)
   gal_list_str_reverse(&column_ids);
 
   /* Read the desired columns. */
-  columns = gal_table_read(inname, hdu, column_ids,
-                           GAL_TABLE_SEARCH_NAME, 1, -1, 1, NULL);
+  columns = gal_table_read(inname, hdu, NULL, column_ids,
+                           GAL_TABLE_SEARCH_NAME, 0, 1, -1, 1, NULL);
 
   /* Go over the columns, we will assume that you do not know their type
    * a-priori, so we will check  */
@@ -38738,6 +38832,9 @@ main(void)
           }
         array3 = col->array;
         break;
+
+      default:
+        exit(EXIT_FAILURE);
       }
 
   /* As an example application we will just print them out. In the
@@ -38787,6 +38884,7 @@ The most generic uses cases for this library are already available in the @ref{I
 For a related demo (where the output grid and WCS are constructed from scratch), see @ref{Library demo - Warp to new grid}.
 
 In the example below, we are warping the @code{input.fits} file to the same pixel grid and WCS as @code{reference.fits} image (assuming it is in hdu @code{0}).
+You can download the FITS files in the @ref{Color channels in same pixel grid} section and use them as @code{input.fits} and @code{reference.fits} files.
 Feel free to change these names to your own test file names.
 This can be useful when you have a complex grid and WCS containing various keywords such as non-linear distortion coefficients, etc.
 For example datasets, see the description of the @option{--gridfile} option in @ref{Align pixels with WCS considering distortions}.
@@ -38795,8 +38893,35 @@ To compile the demonstration program below, copy and paste the contents in a pla
 Please note that the demo program does not perform many sanity checks to avoid making it too complex and to highlight this particular feature in the library.
 For a robust method write programs with all the necessary sanity checks, see Gnuastro's Warp source code, see @ref{Program source}.
 
+To encourage good coding practices, this script contains a copyright notice with a place holder for your name and your email (as you customize it for your own purpose).
+Always keep a one-line description and copyright notice like this in all your scripts, such ``metadata'' is very important to accompany every source file you write.
+Of course, when you write the source file from scratch and just learn how to use a single function from this manual, only your name/year should appear.
+The existing name of the original author of this example program is only for cases where you copy-paste this whole file.
+
 @example
 @verbatim
+/* Warp to another image.
+ *
+ * In the example below, we are warping the input.fits file to the same
+ * pixel grid and WCS as reference.fits image.
+ *
+ * Copyright (C) 2022      Your Name <your@@email.address>
+ * Copyright (C) 2022 Pedram Ashofteh-Ardakani <pedramardakani@pm.me>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -38841,7 +38966,7 @@ main(void)
     }
 
   /* Read the output image size (from the reference image). Note that
-     'dsize' will be freed while freeing 'widthinpix'). */
+   * 'dsize' will be freed while freeing 'widthinpix'). */
   dsize=gal_fits_img_info_dim(gridfile, gridhdu, &ndim);
 
   /* Convert the 'dsize' to a 'gal_data_t' so the library can use it. */
@@ -38849,15 +38974,15 @@ main(void)
 			       NULL, 1, -1, 0, NULL, NULL, NULL);
 
   /* Do the warp, then convert the output to a 32-bit float (the default
-     float64 is too much for observational data and just wastes
-     storage!). But if you are warping mock data before adding noise
-     (where you do have float64 level precision), remove the type
-     conversion line. */
+   * float64 is too much for observational data and just wastes
+   * storage!). But if you are warping mock data before adding noise
+   * (where you do have float64 level precision), remove the type
+   * conversion line. */
   gal_warp_wcsalign(&wa);
   wa.output=gal_data_copy_to_new_type_free(wa.output, GAL_TYPE_FLOAT32);
 
   /* WARNING: make sure there is no file with same name as 'out.fits'
-     or the result will be appended to its final HDU. */
+   * or the result will be appended to its final HDU. */
   gal_fits_img_write(wa.output, outname, NULL, "warp-demo");
 
   /* Clean up. */
@@ -38892,8 +39017,38 @@ To compile the demonstration program below, copy and paste the contents in a pla
 Please note that the demo program does not perform many sanity checks to avoid making it too complex and to highlight this particular feature in the library.
 For a robust method write programs with all the necessary sanity checks, see Gnuastro's Warp source code, see @ref{Program source}.
 
+To encourage good coding practices, this script contains a copyright notice with a place holder for your name and your email (as you customize it for your own purpose).
+Always keep a one-line description and copyright notice like this in all your scripts, such ``metadata'' is very important to accompany every source file you write.
+Of course, when you write the source file from scratch and just learn how to use a single function from this manual, only your name/year should appear.
+The existing name of the original author of this example program is only for cases where you copy-paste this whole file.
+
 @example
 @verbatim
+/* Warp an image to a new grid.
+ *
+ * In the example below, We will use 'r.fits' as the input. The image is
+ * not aligned to the celestial coordinates, so we will align the pixel
+ * and WCS coordinates. We also give it a TAN projection. However, we’ll
+ * let the Warp library measure the proper output image size that will
+ * contain the aligned image.
+ *
+ * Copyright (C) 2022 Your Name <your@@email.address>
+ * Copyright (C) 2022 Pedram Ashofteh-Ardakani <pedramardakani@pm.me>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -38911,7 +39066,7 @@ main(void)
   char *outname="align-to-new.fits";
 
   /* RA/Dec of the center of the central pixel of output. Please
-     change the center based on your input. */
+   * change the center based on your input. */
   double center[]={202.4173735, 47.3374525};
 
   /* Coordinate and Projection algorithms of output. */
@@ -38927,14 +39082,14 @@ main(void)
   gal_warp_wcsalign_t wa=gal_warp_wcsalign_template();
 
   /* Set the width (and height!) of the output in pixels (as a 1D and
-     2 element 'gal_data_t'). When it is NULL, the library will
-     calculate the appropriate width to fully fit the input image
-     after alignment. */
+   * 2 element 'gal_data_t'). When it is NULL, the library will
+   * calculate the appropriate width to fully fit the input image
+   * after alignment. */
   wa.widthinpix=NULL;
 
   /* Set the number of threads to use. If the value is '0', the
-     library will estimate the maximum available threads at
-     run-time on the host operating system. */
+   * library will estimate the maximum available threads at
+   * run-time on the host operating system. */
   wa.numthreads=0;
 
 
@@ -38960,12 +39115,12 @@ main(void)
 
 
   /* WARNING: make sure there is no file with same name as 'out.fits'
-     or the result will be appended to its final HDU. */
+   * or the result will be appended to its final HDU. */
   gal_fits_img_write(wa.output, outname, NULL, "warp-demo");
 
 
   /* Remove the pointers to arrays that we didn't allocate (and thus,
-     should not be freed by 'gal_data_free' below). */
+   * should not be freed by 'gal_data_free' below). */
   wa.cdelt->array=wa.center->array=wa.ctype->array=NULL;
 
 
