@@ -3144,25 +3144,25 @@ gal_arithmetic_set_operator(char *string, size_t *num_operands)
     { op=GAL_ARITHMETIC_OP_BITNOT;            *num_operands=1;  }
 
   /* Type conversion. */
-  else if (!strcmp(string, "uint8"))
+  else if (!strcmp(string, "uint8")   || !strcmp(string, "u8"))
     { op=GAL_ARITHMETIC_OP_TO_UINT8;          *num_operands=1;  }
-  else if (!strcmp(string, "int8"))
+  else if (!strcmp(string, "int8")    || !strcmp(string, "i8"))
     { op=GAL_ARITHMETIC_OP_TO_INT8;           *num_operands=1;  }
-  else if (!strcmp(string, "uint16"))
+  else if (!strcmp(string, "uint16")  || !strcmp(string, "u16"))
     { op=GAL_ARITHMETIC_OP_TO_UINT16;         *num_operands=1;  }
-  else if (!strcmp(string, "int16"))
+  else if (!strcmp(string, "int16")   || !strcmp(string, "i16"))
     { op=GAL_ARITHMETIC_OP_TO_INT16;          *num_operands=1;  }
-  else if (!strcmp(string, "uint32"))
+  else if (!strcmp(string, "uint32")  || !strcmp(string, "u32"))
     { op=GAL_ARITHMETIC_OP_TO_UINT32;         *num_operands=1;  }
-  else if (!strcmp(string, "int32"))
+  else if (!strcmp(string, "int32")   || !strcmp(string, "i32"))
     { op=GAL_ARITHMETIC_OP_TO_INT32;          *num_operands=1;  }
-  else if (!strcmp(string, "uint64"))
+  else if (!strcmp(string, "uint64")  || !strcmp(string, "u64"))
     { op=GAL_ARITHMETIC_OP_TO_UINT64;         *num_operands=1;  }
-  else if (!strcmp(string, "int64"))
+  else if (!strcmp(string, "int64")   || !strcmp(string, "i64"))
     { op=GAL_ARITHMETIC_OP_TO_INT64;          *num_operands=1;  }
-  else if (!strcmp(string, "float32"))
+  else if (!strcmp(string, "float32") || !strcmp(string, "f32"))
     { op=GAL_ARITHMETIC_OP_TO_FLOAT32;        *num_operands=1;  }
-  else if (!strcmp(string, "float64"))
+  else if (!strcmp(string, "float64") || !strcmp(string, "f64"))
     { op=GAL_ARITHMETIC_OP_TO_FLOAT64;        *num_operands=1;  }
 
   /* Constants. */

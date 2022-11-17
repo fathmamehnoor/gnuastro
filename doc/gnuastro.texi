@@ -17725,35 +17725,43 @@ You can do this with the @code{float32} operator described below.
 
 @table @command
 
-@item uint8
+@item  u8
+@itemx uint8
 Convert the type of the popped operand to 8-bit unsigned integer type (see @ref{Numeric data types}).
 The internal conversion of C will be used.
 
-@item int8
+@item i8
+@itemx int8
 Convert the type of the popped operand to 8-bit signed integer type (see @ref{Numeric data types}).
 The internal conversion of C will be used.
 
-@item uint16
+@item u16
+@itemx uint16
 Convert the type of the popped operand to 16-bit unsigned integer type (see @ref{Numeric data types}).
 The internal conversion of C will be used.
 
-@item int16
+@item i16
+@itemx int16
 Convert the type of the popped operand to 16-bit signed integer (see @ref{Numeric data types}).
 The internal conversion of C will be used.
 
-@item uint32
+@item u32
+@itemx uint32
 Convert the type of the popped operand to 32-bit unsigned integer type (see @ref{Numeric data types}).
 The internal conversion of C will be used.
 
-@item int32
+@item i32
+@itemx int32
 Convert the type of the popped operand to 32-bit signed integer type (see @ref{Numeric data types}).
 The internal conversion of C will be used.
 
-@item uint64
+@item u64
+@itemx uint64
 Convert the type of the popped operand to 64-bit unsigned integer (see @ref{Numeric data types}).
 The internal conversion of C will be used.
 
-@item float32
+@item f32
+@itemx float32
 Convert the type of the popped operand to 32-bit (single precision) floating point (see @ref{Numeric data types}).
 The internal conversion of C will be used.
 For example, if @file{f64.fits} is a 64-bit floating point image, and you want to store it as a 32-bit floating point image, you can use the command below (the second command is to show that the output file consumes half the storage)
@@ -17763,7 +17771,8 @@ $ astarithmetic f64.fits float32 --output=f32.fits
 $ ls -lh f64.fits f32.fits
 @end example
 
-@item float64
+@item f64
+@itemx float64
 Convert the type of the popped operand to 64-bit (double precision) floating point (see @ref{Numeric data types}).
 The internal conversion of C will be used.
 @end table

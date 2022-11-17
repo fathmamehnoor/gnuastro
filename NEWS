@@ -25,6 +25,18 @@ See the end of the file for license conditions.
        SDSS). This was suggested by Giulia Golini.
      - nanomaggy-to-counts: convert nanomaggy to counts. This was suggested
        by Giulia Golini.
+   - Alternative (shorter) names for existing operators, added after
+     discussion with Samane Raji.
+     - u8:  same as 'uint8'   (to convert to unsigned 8-bit integers).
+     - i8:  same as 'int8'    (to convert to signed 8-bit integers).
+     - u16: same as 'uint16'  (to convert to unsigned 16-bit integers).
+     - i16: same as 'int16'   (to convert to signed 16-bit integers).
+     - u32: same as 'uint32'  (to convert to unsigned 32-bit integers).
+     - i32: same as 'int32'   (to convert to signed 32-bit integers).
+     - u64: same as 'uint64'  (to convert to unsigned 64-bit integers).
+     - i64: same as 'int64'   (to convert to signed 64-bit integers).
+     - f32: same as 'float32' (to convert to 32-bit floating point).
+     - f64: same as 'float64' (to convert to 64-bit floating point).
 
    Crop:
    --append: if the output file already exists, append the cropped image
