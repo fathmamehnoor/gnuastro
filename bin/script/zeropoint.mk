@@ -247,6 +247,7 @@ $(zeropoint): $(aperzeropoint)
 
 #	Obtained the zeropoint and zeropoint std of each apertures.
 	zp=$(subst .fits,-tmp.txt,$@)
+
 	echo "# Column 1: APERTURE  [arcsec,f32,]" > $$zp
 	echo "# Column 2: ZEROPOINT [mag,f32,]"  >> $$zp
 	echo "# Column 3: ZPSTD     [mag,f32,]"  >> $$zp
@@ -263,6 +264,7 @@ $(zeropoint): $(aperzeropoint)
 	  magmax=$$(echo "$(magrange)" | sed 's\,\ \' | awk '{print $$2}')
 	fi
 	asttable $$zp --output=$@.fits
+
 	bestaper=$$(asttable $$zp --sort=ZPSTD --head=1 --column=APERTURE)
 	bestzp=$$(asttable $$zp --sort=ZPSTD --head=1  --column=ZEROPOINT)
 	beststd=$$(asttable $$zp --sort=ZPSTD --head=1  --column=ZPSTD)
@@ -286,7 +288,8 @@ $(zeropoint): $(aperzeropoint)
 	     check=$$(echo $$a \
 	                   | awk -vb=$$bestaper \
 	                         '$$1>b-1e-6 && $$1<b+1e-6{print "yes"}')
-	     if [ x$$check == xyes ]; then bestaperstr=$$a; fi
+	     if [ x$$check = xyes ]; then bestaperstr=$$a; fi
+
 	   done
 
 #	   Move the main table to the output and copy the Mag-vs-Zeroppoint
