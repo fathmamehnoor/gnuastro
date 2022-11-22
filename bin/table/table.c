@@ -400,7 +400,8 @@ table_select_by_value(struct tableparams *p)
 
   /* It may happen that the input table is empty! In such cases, just
      return and don't bother with this step. */
-  if(p->table->dsize==NULL) return;
+  if(p->table->size==0 || p->table->array==NULL || p->table->dsize==NULL)
+    return;
 
   /* Allocate datasets for the necessary numbers and write them in. */
   mask=gal_data_alloc(NULL, GAL_TYPE_UINT8, 1, p->table->dsize, NULL, 1,

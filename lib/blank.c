@@ -569,9 +569,16 @@ gal_blank_flag(gal_data_t *input)
   gal_data_t *out;
   char **str=input->array, **strf=str+input->size;
 
-  /* The datasets may be empty. In this case the output should also be
-     empty (we can have tables and images with 0 rows or pixels!). */
-  if(input->size==0 || input->array==NULL) return input;
+  /* The datasets may be empty. In this case, the output should also be
+     empty, but with the standard 'uint8' type of a flag (we can have
+     tables and images with 0 rows or pixels!). */
+  if(input->size==0 || input->array==NULL)
+    {
+      out=gal_data_alloc_empty(input->ndim, input->minmapsize,
+                               input->quietmmap);
+      out->type=GAL_TYPE_UINT8;
+      return out;
+    }
 
   /* Do all the checks and allocations if a blank is actually present! */
   if( gal_blank_present(input, 0) )
@@ -732,6 +739,11 @@ gal_blank_flag_remove(gal_data_t *input, gal_data_t *flag)
   if(gal_dimension_is_different(input, flag))
     error(EXIT_FAILURE, 0, "%s: the 'flag' argument doesn't have the same "
           "size as the 'input' argument", __func__);
+
+  /* If there is no elements in the input or the flag (we have already
+     confirmed that they are the same size), then just return (nothing is
+     necessary to do). */
+  if(flag->size==0 || flag->array==NULL) return;
 
   /* Shift all non-blank elements to the start of the array. */
   switch(input->type)
@@ -927,7 +939,6 @@ gal_blank_remove_rows(gal_data_t *columns, gal_list_sizet_t *column_indexs)
   /* Now that the flags have been set, remove the rows. */
   for(tmp=columns; tmp!=NULL; tmp=tmp->next)
     gal_blank_flag_remove(tmp, flag);
-
   /* For a check.
   double *d1=columns->array, *d2=columns->next->array;
   for(i=0;i<columns->size;++i)

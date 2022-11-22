@@ -105,6 +105,8 @@ See the end of the file for license conditions.
   bug #63345: WCS coordinate change not accounting for new equinox (only
               relevant for equatorial outputs). Reported by Alejandro
               Serrano Borlaff.
+  bug #63399: Table's '--noblank' or '--noblankend' crashing when input
+              has no rows. Reported by Elham Saremi.
 
 
 
