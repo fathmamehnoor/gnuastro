@@ -63,7 +63,7 @@ field="phot_g_mean_mag"
 scriptname=@SCRIPT_NAME@
 parallaxanderrorcolumn=""
 matchaperturedeg=0.002777778    # 10 arcsec: 10/3600
-dataset="gaia --dataset=edr3"
+dataset="gaia --dataset=dr3"
 
 
 

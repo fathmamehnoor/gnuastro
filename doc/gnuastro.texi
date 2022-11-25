@@ -6327,11 +6327,11 @@ We are now ready to start building the extended PSF.
 
 First we will build the outer parts of the PSF, so we want the brightest stars.
 You will see we have several bright stars in this very large field of view, but we do not yet have a feeling how many they are, and at what magnitudes.
-So let's use Gnuastro's Query program to find the magnitudes of the brightest stars (those brighter than g-magnitude 10 in Gaia early data release 3, or eDR3).
+So let's use Gnuastro's Query program to find the magnitudes of the brightest stars (those brighter than g-magnitude 10 in Gaia data release 3, or DR3).
 For more on Query, see @ref{Query}.
 
 @example
-$ astquery gaia --dataset=edr3 --overlapwith=flat/67510.fits \
+$ astquery gaia --dataset=dr3 --overlapwith=flat/67510.fits \
            --range=phot_g_mean_mag,-inf,10 \
            --output=flat/67510-bright.fits
 @end example
@@ -15083,11 +15083,11 @@ However, some datasets do not have this column (for example, SDSS DR12).
 So when you use the short name and Query knows about this dataset, it will internally set the coordinate columns that SDSS DR12 has: @code{RA_ICRS} and @code{DEC_ICRS}.
 Recall that you can always change the coordinate columns with @option{--ccol}.
 
-For example, in the VizieR and Gaia databases, the recognized name for the early data release 3 data is respectively @code{I/350/gaiaedr3} and @code{gaiaedr3.gaia_source}.
-These technical names can be hard to remember.
-Therefore Query provides @code{gaiaedr3} (for VizieR) and @code{edr3} (for ESA's Gaia) shortcuts which you can give to @option{--dataset} instead.
-They will be directly mapped to the fully recognized name by Query.
-In the list below that describes the available databases, the available short names are also listed.
+For example, in the VizieR and Gaia databases, the recognized name for data release 3 data is respectively @code{I/355/gaiadr3} and @code{gaiadr3.gaia_source}.
+These technical names are hard to remember.
+Therefore Query provides @code{gaiadr3} (for VizieR) and @code{dr3} (for ESA's Gaia database) shortcuts which you can give to @option{--dataset} instead.
+They will be internally mapped to the fully recognized name by Query.
+In the list below that describes the available databases, the available short names, that are recognized for each, are also listed.
 
 @cartouche
 @noindent
@@ -15242,7 +15242,7 @@ For details on each dataset with necessary citations, and links to web pages, lo
 @item
 @code{gaiadr3 --> I/355/gaiadr3} (GAIA Data Release 3)
 @item
-@code{gaiaedr3 --> I/350/gaiaedr3} (GAIA early Data Release 3)
+@code{gaiaedr3 --> I/350/gaiadr3} (GAIA Early Data Release 3)
 @item
 @code{gaiadr2 --> I/345/gaia2} (GAIA Data Release 2)
 @item
@@ -15295,7 +15295,7 @@ $ astquery vizier -i --limitinfo=MUSE
 $ astquery vizier --dataset=J/A+A/608/A2/udf10 -i
 
 ## ID, RA and Dec of all Gaia sources within an image.
-$ astquery gaia --dataset=edr3 --overlapwith=image.fits \
+$ astquery gaia --dataset=dr3 --overlapwith=image.fits \
            -csource_id,ra,dec
 
 ## RA, Dec and Spectroscopic redshifts of objects in SDSS DR12
@@ -15303,17 +15303,17 @@ $ astquery gaia --dataset=edr3 --overlapwith=image.fits \
 $ astquery vizier --dataset=sdss12 --overlapwith=image.fits \
            -cRA_ICRS,DE_ICRS,zsp --range=zsp,1e-10,inf
 
-## All columns of all entries in the Gaia eDR3 catalog (hosted at
+## All columns of all entries in the Gaia DR3 catalog (hosted at
 ## VizieR) within 1 arc-minute of the given coordinate.
-$ astquery vizier --dataset=I/350/gaiaedr3 --output=my-gaia.fits \
+$ astquery vizier --dataset=gaiadr3 --output=my-gaia.fits \
            --center=113.8729761,31.9027152 --radius=1/60 \
 
 ## Similar to above, but only ID, RA and Dec columns for objects with
 ## magnitude range 10 to 15. In VizieR, this column is called 'Gmag'.
 ## Also, using sexagesimal coordinates instead of degrees for center.
-$ astquery vizier --dataset=I/350/gaiaedr3 --output=my-gaia.fits \
+$ astquery vizier --dataset=gaiadr3 --output=my-gaia.fits \
            --center=07h35m29.51,31d54m9.77 --radius=1/60 \
-           --range=Gmag,10:15 -cEDR3Name,RAJ2000,DEJ2000
+           --range=Gmag,10:15 -cDR3Name,RAJ2000,DEJ2000
 @end example
 
 Query takes a single argument which is the name of the database.
@@ -28866,7 +28866,7 @@ $ astscript-psf-select-stars image.fits \
 
 The input of this script is an image, and the output is a catalog of stars with magnitude in the requested range of magnitudes (provided with @option{--magnituderange}).
 The output catalog will also only contain stars that are sufficiently distant (@option{--mindistdeg}) from all other brighter, and some fainter stars.
-It is possible to consider different datasets with the option @option{--dataset} (by default, Gaia eDR3 dataset is considered)
+It is possible to consider different datasets with the option @option{--dataset} (by default, Gaia DR3 dataset is considered)
 All stars that are @option{--faintmagdiff} fainter than the faintest limit will also be accounted for, when selecting good stars.
 The @option{--magnituderange}, and @option{--mindistdeg} are mandatory: if not specified the code will abort.
 
@@ -28902,7 +28902,8 @@ When this option is given, @option{--dataset} (described below) will be ignored 
 Optional dataset to query (see @ref{Query}).
 It should contain the database and dataset entries to Query.
 Its value will be immediately given to @command{astquery}.
-By default, its value is @code{gaia --dataset=edr3} (so it connects to the Gaia database and requests the early data release 3).
+By default, its value is @code{gaia --dataset=dr3} (so it connects to the Gaia database and requests the data release 3).
+For example, if you want to use VizieR's Gaia DR3 instead (for example due to a mtainenance on ESA's Gaia servers), you should use @option{--dataset="vizier --dataset=gaiadr3"}.
 
 It is possible to specify a different dataset from which the catalog is downloaded.
 In that case, the necessary column names may also differ, so you also have to set @option{--racolumn}, @option{--deccolumn} and @option{--field}.
@@ -40034,19 +40035,19 @@ Gnuastro provides Programmable completion facilities in Bash.
 This greatly helps users reach their desired result with minimal keystrokes, and helps them spend less time on figuring out the option names and values their acceptable values.
 Gnuastro's completion script not only completes the half-written commands, but also prints suggestions based on previous arguments.
 
-Imagine a scenario where we need to download three columns containing the right ascension, declination, and parallax from the GAIA EDR3 dataset.
+Imagine a scenario where we need to download three columns containing the right ascension, declination, and parallax from the GAIA DR3 dataset.
 We have to make sure how these columns are abbreviated or spelled.
-So we can call the command below, and store the column names in a file such as @file{gaia-edr3-columns.txt}.
+So we can call the command below, and store the column names in a file such as @file{gaia-dr3-columns.txt}.
 
 @example
-$ astquery gaia --information > gaia-edr3-columns.txt
+$ astquery gaia --information > gaia-dr3-columns.txt
 @end example
 
 @noindent
 Then we need to memorize or copy the column names of interest, and specify an output fits file name such as @file{gaia.fits}:
 
 @example
-$ astquery gaia --dataset=edr3 --output=gaia.fits \
+$ astquery gaia --dataset=dr3 --output=gaia.fits \
                 --column=ra,dec,parallax
 @end example
 
@@ -40054,11 +40055,11 @@ $ astquery gaia --dataset=edr3 --output=gaia.fits \
 However, this is much easier using the auto-completion feature:
 
 @example
-$ astquery gaia --dataset=edr3 --output=gaia.fits --column=@key{[TAB]}
+$ astquery gaia --dataset=dr3 --output=gaia.fits --column=@key{[TAB]}
 @end example
 
 @noindent
-After pressing @key{[TAB]}, a full list of gaia edr3 dataset column names will be displayed.
+After pressing @key{[TAB]}, a full list of gaia dr3 dataset column names will be displayed.
 Typing the first key of the desired column and pressing @key{[TAB]} again will limit the displayed list to only the matching ones until the desired column is found.
 
 @menu

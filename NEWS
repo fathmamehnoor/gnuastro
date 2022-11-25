@@ -127,6 +127,9 @@ See the end of the file for license conditions.
   -A: new short format for --txtf64format. The '-d' short format was
    conflicting with the short option name for '--descending'.
 
+  astscript-psf-select-stars:
+  - Now uses the Gaia DR3 dataset by default (until now it was using eDR3).
+
 ** Bugs fixed
   bug #63266: Table ignores a value of 0 given to '--txtf32precision' or
               '--txtf32precision=0' (happens when floating point columns
