@@ -219,7 +219,7 @@ To go to the sections or subsections, you have to click on the menu entries that
 @end ifhtml
 
 @end ifnottex
-
+m
 @menu
 * Introduction::                General introduction.
 * Tutorials::                   Tutorials or Cookbooks.
@@ -755,6 +755,7 @@ Zero point estimation
 
 Photometric calibration of images by zero point
 
+* Zero point based on the reference image::
 * Zero point based on the reference catalog::  Using SDSS catalog to find J-PLUS zero point
 
 PSF construction and subtraction
@@ -29620,7 +29621,7 @@ But Vega star is not eternaly in the sky, and it can not be used as reference of
 These days, instead of Vega's magnitude, AB magnitude standard is used for calibration@footnote{@url{https://en.wikipedia.org/wiki/AB_magnitude}}.
 
 Gnuastro’s @command{astscript-zeropoint} script is created to obtain zero point of an image in a device, based on the image or catalog of another device that overlap with original image and their zero point are known.
-All the details of this script are explaines in section @ref{Photometric calibration of images by zero point}, @ref{Zero point based on the reference image} and @ref{Zero point based on the reference catalog}.
+All the details of this script are explained in @ref{Photometric calibration of images by zero point}, @ref{Zero point based on the reference image} and @ref{Zero point based on the reference catalog}.
 
 
 @menu
@@ -29658,11 +29659,12 @@ This tutorial is divided into two parts to cover both using image or catalog as 
 
 
 @menu
+* Zero point based on the reference image::    Using SDSS images to find J-PLUS zero point
 * Zero point based on the reference catalog::  Using SDSS catalog to find J-PLUS zero point
 @end menu
 
 @node Zero point based on the reference image, Zero point based on the reference catalog, Photometric calibration of images by zero point, Photometric calibration of images by zero point
-	    @subsubsection Zero point based on the reference image
+@subsubsection Zero point based on the reference image
 
 To understand how to use the @command{astscript-zeropoint}, we find the zero point for a single exposure image from the @url{https://www.j-plus.es,J-PLUS survey} based on an SDSS reference image @url{http://www.sdss.org/, Sloan Digital Sky Survey} with a zero point of 22.5 mag.
 
@@ -29677,11 +29679,11 @@ $ astcrop zp/jplus.fits.fz --center=107.7263,40.1754 \
           --width=0.6 --output=zp/jplus-crop.fits
 @end example
 
-Although we cropped the J-PLUS image, it is still very large in comparison with the SDSS image (the J-PLUS field of view is almost @mymath{1.5\times1.5} deg@mymath{^2}, while the field of view of SDSS in each filter is almost @mymath{0.3\times0.25} deg@mymath{^2}).
+Although we cropped the J-PLUS image, it is still very large in comparison with the SDSS image (the J-PLUS field of view is almost @mymath{1.5\times1.5} deg@mymath{^2}, while the field of view of SDSS in each filter is almost @mymath{0.3\times0.5} deg@mymath{^2}).
 So let's download two SDSS images (and then decompress them) in the region of the J-PLUS cropped image for having a more accurate result.
 Make sure that the filters you use are both same.
-Because we have different r filters such as SDSS, Johnson.
-In this case we use r SDSS filter for both cases.
+Because we have different @emph{r} filters such as SDSS, Johnson.
+In this case we use the SDSS @emph{r} filter for both cases.
 
 @example
 $ sdssbase=https://dr12.sdss.org/sas/dr12/boss/photoObj/frames
@@ -29774,7 +29776,7 @@ For now, let's assume the values 2, 3, 4, 5, and 6 arcsec for this option.
 In parallel, the next important point is whether all of the bright or faint stars in the input image are comparable with reference stars.
 To better clarify, let’s check the result of matching the J-PLUS catalog with the SDSS reference catalog.
 Note that two catalogs created by aperture photometry from SDSS image are merged so that there are more stars to compare.
-If you like to access to the temporal files in the intermediate steps, you can see use @option{--keeptmp} option to prevent from being removed of them.
+If you like to access to the temporal files in the intermediate steps, you can use @option{--keeptmp} option to prevent from being removed of them.
 
 Using Gnuastro’s @command{astscript-fits-view}, you can visualize a table created from matching J-PLUS and SDSS catalogs in the second extension of the output file as a plot by @code{TOPCAT}.
 
@@ -29843,7 +29845,8 @@ $ astscript-zeropoint zp/jplus-nc.fits --hdu=INPUT-NO-SKY \
                       --output=zp/jplus-zeropoint.fits
 @end example
 
-Fortunately, the @command{astscript-zeropoint} script can estimate the best aperture (as @code{ZPAPER} keyword in header) and thus the best zero point (as @code{ZPVALUE} keyword in header) based on the minimum of @code{ZPSTD} automatically, magnitude range which based on the zeropoiny obtained (as @code{MAGMIN} and @code{MAGMAX} keywords in header) and set it in the header of the output file easily.
+Fortunately, the @command{astscript-zeropoint} script can estimate the best aperture (as @code{ZPAPER} keyword) and thus the best zero point (as @code{ZPVALUE} keyword) based on the minimum of @code{ZPSTD} automatically.
+Then set them along with magnitude range (as @code{MAGMIN} and @code{MAGMAX} keywords) in the header of the output file easily.
 Please see it by the command like below:
 
 @example
@@ -29856,11 +29859,48 @@ $ astfits zp/jplus-zeropoint.fits --hdu=1 --quiet \
 @node Zero point based on the reference catalog,  , Zero point based on the reference image, Photometric calibration of images by zero point
 @subsubsection Zero point based on the reference catalog
 
+In @ref{Zero point based on the reference image}, we saw how to use the @command{astscript-zeropoint} to estimate the zero point of one image based on a reference image.
+Sometimes there isn't a reference image and we need to use a reference catalog.
+Fortunately, @command{astscript-zeropoint} can use the catalog instead of the image to find the zero point.
+
+To show this, let's download a catalog of SDSS in the area overlapped with cropped J-PLUS image in the top @ref{Zero point based on the reference image}.
+For more on Gnuastro's Query program, please see @ref{Query}.
+
+@example
+$ astquery vizier --dataset=sdss12 --overlapwith=zp/jplus-crop.fits \
+                  -cRA_ICRS,DE_ICRS,rmag --output=zp/sdss-catalog.fits
+@end example
+
+As you can see, we select columns of RA and Dec and magnitude in the SDSS @emph{r} filter based on their name in the SDSS catalog.
+To visualize the position of the SDSS objects over the J-PLUS image, let's use @command{astscript-ds9-region} (for more details please see @ref{Query}) and ds9 with two commands below:
+
+@example
+$ astscript-ds9-region zp/sdss-catalog.fits --column=RA_ICRS,DE_ICRS \
+                       --color=red --width=3 --output=zp/sdss.reg
+$ ds9 zp/jplus-nc.fits[INPUT-NO-SKY] -regions load zp/sdss.reg
+@end example
+
+Now, we are ready to estimate the zero point of the J-PLUS image based on the SDSS catalog.
+To download the input image and understand how to use the @command{astscript-zeropoint}, please see @ref{Zero point based on the reference image}. Only the related options to the reference catalog will be added instead of the reference image.
+
+@example
+$ astscript-zeropoint zp/jplus-nc.fits --hdu=INPUT-NO-SKY \
+                      --catalog=zp/sdss1-catalog.fits \
+                      --cataloghdu=1 --racolumn=RA_ICRS \
+                      --deccolumn=DE_ICRS --magcolumn=rmag \
+                      --referencezp=22.5 --keepzpap \
+                      --aperarcsec=2,3,4,5,6 \
+                      --magnituderange=16,18 \
+                      --output=zp/jplus-zeropoint.fits
+@end example
+
+
+
 @node Invoking astscript-zeropoint,  , Photometric calibration of images by zero point, Zero point estimation
 @subsection Invoking astscript-zeropoint
 This installed script will calculate the zeropoint @ref{Brightness flux magnitude} and @ref{Zero point estimation} to calibrate the image magnitude to the standard magnitude.
 It will obtained the zeropoint of image based on the image(s) or catalog(s) which their magnitude are known.
-It allows to the user determine the options disparate options that presente here.
+It allows to the user determine the options disparate options that presented here.
 This script can be used with the following general template:
 
 @example
