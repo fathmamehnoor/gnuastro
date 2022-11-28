@@ -597,7 +597,7 @@ oneprofile_set_prof_params(struct mkonthread *mkp)
   size_t id=mkp->ibq->id, ndim=p->ndim;
 
   /* Fill the most basic profile agnostic parameters. */
-  mkp->brightness = ( p->mcolisbrightness
+  mkp->brightness = ( p->mcolissum
                       ? p->m[id]
                       : pow( 10, (p->zeropoint - p->m[id]) / 2.5f ) );
   mkp->ibq->ispsf = p->kernel ? 1 : oneprofile_ispsf(p->f[id]);
@@ -833,7 +833,7 @@ oneprofile_make(struct mkonthread *mkp)
       mkp->ibq->image=gal_data_alloc(NULL, GAL_TYPE_FLOAT32, ndim, dsize,
                                      NULL, 1, p->cp.minmapsize,
                                      p->cp.quietmmap, "MOCK",
-                                     "Brightness", NULL);
+                                     "counts", NULL);
 
 
       /* Build the profile in the image. */

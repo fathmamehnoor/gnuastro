@@ -154,7 +154,7 @@ struct mkprofparams
   char                *mcol;  /* Magnitude column.                        */
   char                *tcol;  /* Truncation of the profiles.              */
   uint8_t       mforflatpix;  /* mcol is flat pixel value (f is 4 or 5).  */
-  uint8_t  mcolisbrightness;  /* mcol is total brightness, not magnitude. */
+  uint8_t         mcolissum;  /* mcol is total sum, not magnitude.        */
   uint8_t     mcolnocustimg;  /* mcol is ignored in 'custom-img'.         */
   uint8_t    mcolnocustprof;  /* mcol is ignored in 'custom-profile'.     */
   gal_data_t         *crpix;  /* CRPIX FITS header keywords.              */

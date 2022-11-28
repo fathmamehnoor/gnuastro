@@ -43,7 +43,7 @@ enum option_keys_enum
   UI_KEY_BACKGROUND     = 'b',
   UI_KEY_ZEROPOINT      = 'z',
   UI_KEY_ENVSEED        = 'e',
-  UI_KEY_BGISBRIGHTNESS = 'B',
+  UI_KEY_BGNOTMAG       = 'B',
 
   /* Only with long version (start with a value 1000, the rest will be set
      automatically). */

@@ -236,7 +236,7 @@ To go to the sections or subsections, you have to click on the menu entries that
 * Developing::                  The development environment.
 * Gnuastro programs list::      List and short summary of Gnuastro.
 * Other useful software::       Installing other useful software.
-* GNU Free Doc. License::       Full text of the GNU Free documentation license.
+* GNU Free Doc License::        Full text of the GNU Free documentation license.
 * GNU General Public License::  Full text of the GNU General public license.
 * Index::                       Index of terms
 
@@ -909,7 +909,7 @@ GNU Astronomy Utilities (Gnuastro) is an official GNU package consisting of sepa
 All the programs share the same basic command-line user interface for the comfort of both the users and developers.
 Gnuastro is written to comply fully with the GNU coding standards so it integrates finely with the GNU/Linux operating system.
 This also enables astronomers to expect a fully familiar experience in the source code, building, installing and command-line user interaction that they have seen in all the other GNU software that they use.
-The official and always up to date version of this book (or manual) is freely available under @ref{GNU Free Doc. License} in various formats (PDF, HTML, plain text, info, and as its Texinfo source) at @url{http://www.gnu.org/software/gnuastro/manual/}.
+The official and always up to date version of this book (or manual) is freely available under @ref{GNU Free Doc License} in various formats (PDF, HTML, plain text, info, and as its Texinfo source) at @url{http://www.gnu.org/software/gnuastro/manual/}.
 
 For users who are new to the GNU/Linux environment, unless otherwise specified most of the topics in @ref{Installation} and @ref{Common program behavior} are common to all GNU software, for example, installation, managing command-line options or getting help (also see @ref{New to GNU/Linux?}).
 So if you are new to this empowering environment, we encourage you to go through these chapters carefully.
@@ -1176,7 +1176,7 @@ If these programs are modified by someone else and passed on, we want their reci
 
 @cindex GNU General Public License (GPL)
 @cindex GNU Free Documentation License
-The full text of the licenses for the Gnuastro book and software can be respectively found in @ref{GNU General Public License}@footnote{Also available in @url{http://www.gnu.org/copyleft/gpl.html}} and @ref{GNU Free Doc. License}@footnote{Also available in @url{http://www.gnu.org/copyleft/fdl.html}}.
+The full text of the licenses for the Gnuastro book and software can be respectively found in @ref{GNU General Public License}@footnote{Also available in @url{http://www.gnu.org/copyleft/gpl.html}} and @ref{GNU Free Doc License}@footnote{Also available in @url{http://www.gnu.org/copyleft/fdl.html}}.
 
 
 @node Logo of Gnuastro, Naming convention, Your rights, Introduction
@@ -1784,7 +1784,7 @@ The first three tutorials (@ref{General program usage tutorial} and @ref{Detecti
 Their aim is to demonstrate some real-world problems that many astronomers often face and how they can be solved with Gnuastro's programs.
 The fourth tutorial (@ref{Sufi simulates a detection}) focuses on simulating astronomical images, which is another critical aspect of any analysis!
 
-The ultimate aim of @ref{General program usage tutorial} is to detect galaxies in a deep HST image, measure their positions and brightness and select those with the strongest colors.
+The ultimate aim of @ref{General program usage tutorial} is to detect galaxies in a deep HST image, measure their positions, magnitude and select those with the strongest colors.
 In the process, it takes many detours to introduce you to the useful capabilities of many of the programs.
 So please be patient in reading it.
 If you do not have much time and can only try one of the tutorials, we recommend this one.
@@ -3314,7 +3314,7 @@ $ asttable xdf-f160w.fits -hclumps -cmagnitude,upperlimit_mag \
            -c'arith upperlimit_mag magnitude -'
 @end example
 
-The ones with a positive third column (difference) we can say that the clump seems to has sufficiently higher brightness than the noisy background to be usable.
+The ones with a positive third column (difference) show that the clump has sufficiently higher brightness than the noisy background to be usable.
 Let's use Table's @ref{Column arithmetic} to find only those that have a negative difference:
 
 @example
@@ -6860,7 +6860,7 @@ We should have two things in mind:
 @item
 The brightest (subtract-able, see the point below) star should be the first star to be subtracted.
 This is because of its extended wings which may affect the scale factor of nearby stars.
-So we should sort the catalog by brightness and come down from the brightest.
+So we should sort the catalog by magnitude and come down from the brightest.
 @item
 We should only subtract stars where the scale factor is less than the S/N of the PSF (in relation to the data).
 @end itemize
@@ -13061,7 +13061,7 @@ $ astcrop ah_f160w.fits --center=53.1616278,-27.7802446 --mode=wcs \
 
 To better show the low surface brightness (LSB) outskirts, we will warp the image, then convert the pixel units to surface brightness with the commands below.
 It is very important that the warping is done @emph{before} the conversion to surface brightness (in units of mag/arcsec@mymath{^2}), because the definition of surface brightness is non-linear.
-For more, see the Surface brightness topic of @ref{Brightness flux magnitude}, and for a more complete tutorial, see @ref{FITS images in a publication}.
+For more, see the surface brightness topic of @ref{Brightness flux magnitude}, and for a more complete tutorial, see @ref{FITS images in a publication}.
 
 @example
 $ zeropoint=25.94
@@ -13363,7 +13363,7 @@ pixarea=$(astfits $scaled --pixelareaarcsec2)
 astarithmetic $scaled $zeropoint $pixarea counts-to-sb \
               --output=$sb
 
-# Convert the Surface brightness image into PDF.
+# Convert the surface brightness image into PDF.
 sbpdf=$bdir/sb.pdf
 astconvertt $sb --colormap=gray --borderwidth=0 \
             --fluxhigh=$sbhigh --fluxlow=$sblow --output=$sbpdf
@@ -16689,8 +16689,8 @@ See @url{https://en.wikipedia.org/wiki/Fine-structure_constant, Wikipedia}.
 @node Unit conversion operators, Statistical operators, Constants, Arithmetic operators
 @subsubsection Unit conversion operators
 
-It often happens that you have data in one unit (for example, magnitudes to measure the brightness of a galaxy), but would like to convert it into another (for example, electron counts on your CCD).
-While the equations for the unit conversions can be easily found on the internet, the operators in this section are designed to simplify the process and let you do it easily.
+It often happens that you have data in one unit (for example, counts on your CCD), but would like to convert it into another (for example, magnitudes, to measure the brightness of a galaxy).
+While the equations for the unit conversions can be easily found on the internet, the operators in this section are designed to simplify the process and let you do it easily and fast without having to remember constants and relations.
 
 @table @command
 
@@ -21340,7 +21340,7 @@ A more crude (but simpler method) that is usable in such situations is discussed
 
 @cindex Sky value
 This analysis is taken from @url{https://arxiv.org/abs/1505.01664, Akhlaghi and Ichikawa (2015)}.
-Let's assume that all instrument defects -- bias, dark and flat -- have been corrected and the brightness (see @ref{Brightness flux magnitude}) of a detected object, @mymath{O}, is desired.
+Let's assume that all instrument defects -- bias, dark and flat -- have been corrected and the magnitude (see @ref{Brightness flux magnitude}) of a detected object, @mymath{O}, is desired.
 The sources of flux on pixel@footnote{For this analysis the dimension of the data (image) is irrelevant.
 So if the data is an image (2D) with width of @mymath{w} pixels, then a pixel located on column @mymath{x} and row @mymath{y} (where all counting starts from zero and (0, 0) is located on the bottom left corner of the image), would have an index: @mymath{i=x+y\times{}w}.} @mymath{i} of the image can be written as follows:
 
@@ -21388,11 +21388,11 @@ With this definition of Sky, the object flux in the data can be calculated, per 
 @cindex photo-electrons
 In the fainter outskirts of an object, a very small fraction of the photo-electrons in a pixel actually belongs to objects, the rest is caused by random factors (noise), see Figure 1b in @url{https://arxiv.org/abs/1505.01664, Akhlaghi and Ichikawa (2015)}.
 Therefore even a small over estimation of the Sky value will result in the loss of a very large portion of most galaxies.
-Besides the lost area/brightness, this will also cause an over-estimation of the Sky value and thus even more under-estimation of the object's brightness.
+Besides the lost area/brightness, this will also cause an over-estimation of the Sky value and thus even more under-estimation of the object's magnitude.
 It is thus very important to detect the diffuse flux of a target, even if they are not your primary target.
 
-In summary, the more accurately the Sky is measured, the more accurately the brightness (sum of pixel values) of the target object can be measured (photometry).
-Any under/over-estimation in the Sky will directly translate to an over/under-estimation of the measured object's brightness.
+In summary, the more accurately the Sky is measured, the more accurately the magnitude (calculated from the sum of pixel values) of the target object can be measured (photometry).
+Any under/over-estimation in the Sky will directly translate to an over/under-estimation of the measured object's magnitude.
 
 @cartouche
 @noindent
@@ -21447,7 +21447,7 @@ Therefore all such approaches that try to approximate the sky value prior to det
 In order to define detection thresholds on the image, or calibrate it for measurements (subtract the signal of the background sky and define errors), we need some basic measurements.
 For example, the quantile threshold in NoiseChisel (@option{--qthresh} option), or the mean of the undetected regions (Sky) and the Sky standard deviation (Sky STD) which are the output of NoiseChisel and Statistics.
 But astronomical images will contain a lot of stars and galaxies that will bias those measurements if not properly accounted for.
-Quantifying where signal is present is thus a very important step in the usage of a dataset; for example, if the Sky level is over-estimated, your target object's brightness will be under-estimated.
+Quantifying where signal is present is thus a very important step in the usage of a dataset; for example, if the Sky level is over-estimated, your target object's magnitude will be under-estimated.
 
 @cindex Data
 @cindex Noise
@@ -21631,7 +21631,7 @@ Statistics (GNU Astronomy Utilities) X.X
 -------
 Input: convolve_spatial_scaled_noised.fits (hdu: 0)
 Range: from (inclusive) 9500, upto (exclusive) 11000.
-Unit: Brightness
+Unit: counts
 -------
   Number of elements:                      9074
   Minimum:                                 9622.35
@@ -22339,7 +22339,7 @@ The file will have two extensions for each step (one for the Sky and one for the
 @cindex Segmentation
 Once instrumental signatures are removed from the raw data (image) in the initial reduction process (see @ref{Data manipulation}).
 You are naturally eager to start answering the scientific questions that motivated the data collection in the first place.
-However, the raw dataset/image is just an array of values/pixels, that is all! These raw values cannot directly be used to answer your scientific questions; for example, ``how many galaxies are there in the image?'' and ``What is their brightness?''.
+However, the raw dataset/image is just an array of values/pixels, that is all! These raw values cannot directly be used to answer your scientific questions; for example, ``how many galaxies are there in the image?'' and ``What is their magnitude?''.
 
 The first high-level step your analysis will therefore be to classify, or label, the dataset elements (pixels) into two classes:
 1) Noise, where random effects are the major contributor to the value, and
@@ -22349,7 +22349,7 @@ This classification of the elements in a dataset is formally known as @emph{dete
 In an observational/experimental dataset, signal is always buried in noise: only mock/simulated datasets are free of noise.
 Therefore detection, or the process of separating signal from noise, determines the number of objects you study and the accuracy of any higher-level measurement you do on them.
 Detection is thus the most important step of any analysis and is not trivial.
-In particular, the most scientifically interesting astronomical targets are faint, can have a large variety of morphologies, along with a large distribution in brightness and size.
+In particular, the most scientifically interesting astronomical targets are faint, can have a large variety of morphologies, along with a large distribution in magnitude and size.
 Therefore when noise is significant, proper detection of your targets is a uniquely decisive step in your final scientific analysis/result.
 
 @cindex Erosion
@@ -23484,7 +23484,7 @@ The full distribution of clump signal-to-noise ratios over the undetected areas 
 @item -v
 @itemx --keepmaxnearriver
 Keep a clump whose maximum (minimum if @option{--minima} is called) flux is 8-connected to a river pixel.
-By default such clumps over detections are considered to be noise and are removed irrespective of their brightness (see @ref{Brightness flux magnitude}).
+By default such clumps over detections are considered to be noise and are removed irrespective of their significance measure (see @url{https://arxiv.org/abs/1909.11230,Akhlaghi 2019}).
 Over large profiles, that sink into the noise very slowly, noise can cause part of the profile (which was flat without noise) to become a very large and with a very high Signal to noise ratio.
 In such cases, the pixel with the maximum flux in the clump will be immediately touching a river pixel.
 
@@ -23676,7 +23676,7 @@ For example, all the pixels covering one galaxy in an image, get the same label.
 The requested measurements are then done on similarly labeled pixels.
 The final result is a catalog where each row corresponds to the measurements on pixels with a specific label.
 For example, the flux weighted average position of all the pixels with a label of 42 will be written into the 42nd row of the output catalog/table's central position column@footnote{See @ref{Measuring elliptical parameters} for a discussion on this and the derivation of positional parameters, which includes the center.}.
-Similarly, the sum of all these pixels will be the 42nd row in the brightness column, etc.
+Similarly, the sum of all these pixels will be the 42nd row in the sum column, etc.
 Pixels with labels equal to, or smaller than, zero will be ignored by MakeCatalog.
 In other words, the number of rows in MakeCatalog's output is already known before running it (the maximum value of the labeled dataset).
 
@@ -23762,29 +23762,28 @@ We will continue the discussion assuming the pixels are in units of energy/time.
 @cindex Luminosity
 @cindex Brightness
 @item Brightness
-The @emph{brightness} of an object is defined as its total detected energy per time.
-In the case of an imaged source, this is simply the sum of the pixels that are associated with that detection by our detection tool (for example, @ref{NoiseChisel}@footnote{If further processing is done, for example, the Kron or Petrosian radii are calculated, then the detected area is not sufficient and the total area that was within the respective radius must be used.}).
+The @emph{brightness} of an object is defined as its measured energy in units of time.
+If our detector pixels directly measured the energy from the astronomical object@footnote{In practice, the measured pixels don't just count the astronomical object's energy: imaging detectors insert a certain bias level before the exposure, they amplify the photo-electrons, there are optical artifacts like flat-fielding, and finally, there is the background light.}, then the brightness would be the total sum of pixel values (energy) associated to the object, divided by the exposure time.
 The @emph{flux} of an object is defined in units of energy/time/collecting-area.
 For an astronomical target, the flux is therefore defined as its brightness divided by the area used to collect the light from the source; or the telescope aperture (for example, in units of @mymath{cm^2}).
 Knowing the flux (@mymath{f}) and distance to the object (@mymath{r}), we can define its @emph{luminosity}: @mymath{L=4{\pi}r^2f}.
 
 Therefore, while flux and luminosity are intrinsic properties of the object, brightness depends on our detecting tools (hardware and software).
 In low-level observational astronomy data analysis, we are usually more concerned with measuring the brightness, because it is the thing we directly measure from the image pixels and create in catalogs.
-On the other hand, luminosity is used in higher-level analysis (after image contents are measured as catalogs to deduce physical interpretations).
-It is just important avoid possible confusion between luminosity and brightness because both have the same units of energy per seconds.
+On the other hand, luminosity is used in higher-level analysis (after image contents are measured as catalogs to deduce physical interpretations, because high-level things like distance/redshift need to be calculated).
+At this stage, it is just important avoid confusion between luminosity and brightness because both have the same units of energy per seconds.
 
 @item Magnitude
 @cindex Magnitudes from flux
 @cindex Flux to magnitude conversion
 @cindex Astronomical Magnitude system
-Images of astronomical objects span over a very large range of brightness.
-With the Sun (as the brightest object) being roughly @mymath{2.5^{60}=10^{24}} times brighter than the fainter galaxies we can currently detect in the deepest images.
+Images of astronomical objects span over a very large range of brightness: the Sun (as the brightest object) is roughly @mymath{2.5^{60}=10^{24}} times brighter than the fainter galaxies we can currently detect in the deepest images.
 Therefore discussing brightness directly will involve a large range of values which is inconvenient.
-So astronomers have chosen to use a logarithmic scale to talk about the brightness of astronomical objects.
+So astronomers have chosen to use a logarithmic scale for the brightness of astronomical objects.
 
 @cindex Hipparchus of Nicaea
 But the logarithm can only be usable with a dimensionless value that is always positive.
-Fortunately brightness is always positive (at least in theory@footnote{In practice, for very faint objects, if the background brightness is over-subtracted, we may end up with a negative brightness in a real object.}).
+Fortunately brightness is always positive (at least in theory@footnote{In practice, for very faint objects, if the background brightness is over-subtracted, we may end up with a negative ``brightness'' or sum of pixels in a real object.}).
 To remove the dimensions, we divide the brightness of the object (@mymath{B}) by a reference brightness (@mymath{B_r}).
 We then define a logarithmic scale as @mymath{magnitude} through the relation below.
 The @mymath{-2.5} factor in the definition of magnitudes is a legacy of the our ancient colleagues and in particular Hipparchus of Nicaea (190-120 BC).
@@ -24000,7 +23999,7 @@ Since the measure of spatial resolution (or area error) is the FWHM of the PSF w
 @subsubsection Completeness limit of each detection
 @cindex Completeness
 As the surface brightness of the objects decreases, the ability to detect them will also decrease.
-An important statistic is thus the fraction of objects of similar morphology and brightness that will be detected with our detection algorithm/parameters in a given image.
+An important statistic is thus the fraction of objects of similar morphology and magnitude that will be detected with our detection algorithm/parameters in a given image.
 This fraction is known as @emph{completeness}.
 For brighter objects, completeness is 1: all bright objects that might exist over the image will be detected.
 However, as we go to objects of lower overall surface brightness, we will fail to detect a fraction of them, and fainter than a certain surface brightness level (for each morphology),nothing will be detectable in the image: you will need more data to construct a ``deeper'' image.
@@ -24020,14 +24019,16 @@ However in such a study we must be really careful to choose model profiles as si
 
 @node Upper limit magnitude of each detection, Magnitude limit of image, Completeness limit of each detection, Quantifying measurement limits
 @subsubsection Upper limit magnitude of each detection
-Due to the noisy nature of data, it is possible to get arbitrarily low values for a faint object's brightness (or arbitrarily high @emph{magnitudes}).
+Due to the noisy nature of data, it is possible to get arbitrarily faint magnitudes, especially when you use labels from another image (for example see @ref{Working with catalogs estimating colors}).
 Given the scatter caused by the dataset's noise, values fainter than a certain level are meaningless: another similar depth observation will give a radically different value.
+In such cases, measurements like the image magnitude limit are not useful because it is estimated for a certain morphology and is given for the whole image (it is a crude generalization; see see @ref{Magnitude limit of image}).
+You want a quality measure that is specific to each object.
 
 For example, assume that you have done your detection and segmentation on one filter and now you do measurements over the same labeled regions, but on other filters to measure colors (as we did in the tutorial @ref{Segmentation and making a catalog}).
 Some objects are not going to have any significant signal in the other filters, but for example, you measure magnitude of 36 for one of them!
 This is clearly unreliable (no dataset in current astronomy is able to detect such a faint signal).
 In another image with the same depth, using the same filter, you might measure a magnitude of 30 for it, and yet another might give you 33.
-Furthermore, the total brightness might actually be negative in some images of the same depth (due to noise).
+Furthermore, the total sum of pixel values might actually be negative in some images of the same depth (due to noise).
 In these cases, no magnitude can be defined and MakeCatalog will place a NaN there (recall that a magnitude is a base-10 logarithm).
 
 @cindex Upper limit magnitude
@@ -24037,8 +24038,8 @@ When approaching the limits of your detection method, it is therefore important 
 But how can we know how reliable a measurement of one object on a given dataset is?
 
 When we confront such unreasonably faint magnitudes, there is one thing we can deduce: that if something actually exists under our labeled pixels (possibly buried deep under the noise), it's inherent magnitude is fainter than an @emph{upper limit magnitude}.
-To find this upper limit magnitude, we place the object's footprint (segmentation map) over a random part of the image where there are no detections, and measure the total brightness within the footprint.
-Doing this a large number of times will give us a distribution of brightness values.
+To find this upper limit magnitude, we place the object's footprint (segmentation map) over a random part of the image where there are no detections, and measure the sum of pixel values within the footprint.
+Doing this a large number of times will give us a distribution of measurements of the sum.
 The standard deviation (@mymath{\sigma}) of that distribution can be used to quantify the upper limit magnitude for that particular object (given its particular shape and area):
 
 @dispmath{M_{up,n\sigma}=-2.5\times\log_{10}{(n\sigma_m)}+z \quad\quad [mag/target]}
@@ -24118,7 +24119,7 @@ As an example, the XDF survey covers part of the sky that the HST has observed t
 On the other hand, the CANDELS survey, is one of the widest multi-color surveys done by the HST covering several fields (about 720 arcmin@mymath{^2}) but its deepest fields have only 9 orbits observation.
 The @mymath{1\sigma} depth of the XDF and CANDELS-deep surveys in the near infrared WFC3/F160W filter are respectively 34.40 and 32.45 magnitudes/pixel.
 In a single orbit image, this same field has a @mymath{1\sigma} depth of 31.32 magnitudes/pixel.
-Recall that a larger magnitude corresponds to less brightness, see @ref{Brightness flux magnitude}.
+Recall that a larger magnitude corresponds to fainter objects, see @ref{Brightness flux magnitude}.
 
 @cindex Pixel scale
 The low-level magnitude/pixel measurement above is only useful when all the datasets you want to use, or compare, have the same pixel size.
@@ -24418,7 +24419,7 @@ When the requested measurements only need this dataset (for example, @option{--g
 Low-level measurements that only use the labeled image are rarely sufficient for any high-level science case.
 Therefore necessary input datasets depend on the requested columns in each run.
 For example, let's assume you want the brightness/magnitude and signal-to-noise ratio of your labeled regions.
-For these columns, you will also need to provide an extra dataset containing values for every pixel of the labeled input (to measure brightness) and another for the Sky standard deviation (to measure error).
+For these columns, you will also need to provide an extra dataset containing values for every pixel of the labeled input (to measure magnitude) and another for the Sky standard deviation (to measure error).
 All such auxiliary input files have to have the same size (number of pixels in each dimension) as the input labeled image.
 Their numeric data type is irrelevant (they will be converted to 32-bit floating point internally).
 For the full list of available measurements, see @ref{MakeCatalog measurements}.
@@ -24481,7 +24482,7 @@ See @ref{Segment output} for a description of the expected format.
 @item -v FITS
 @itemx --valuesfile=FITS
 The file name of the (sky-subtracted) values dataset.
-When any of the columns need values to associate with the input labels (for example, to measure the brightness/magnitude of a galaxy), MakeCatalog will look into a ``values'' for the respective pixel values.
+When any of the columns need values to associate with the input labels (for example, to measure the sum of pixel values or magnitude of a galaxy, see @ref{Brightness flux magnitude}), MakeCatalog will look into a ``values'' for the respective pixel values.
 In most common processing, this is the actual astronomical image that the labels were defined, or detected, over.
 The HDU/extension of this dataset in the given file can be specified with @option{--valueshdu}.
 If this option is not called, MakeCatalog will look for the given extension in the main input file.
@@ -24631,7 +24632,7 @@ If the latter is larger than 1, it is read as an integer number and will be the 
 If it is smaller than 1, it is interpreted as the tolerance level to stop clipping. See @ref{Sigma clipping} for a complete explanation.
 
 @item --upnsigma=FLT
-The multiple of the final (@mymath{\sigma}-clipped) standard deviation (or @mymath{\sigma}) used to measure the upper-limit brightness or magnitude.
+The multiple of the final (@mymath{\sigma}-clipped) standard deviation (or @mymath{\sigma}) used to measure the upper-limit sum or magnitude.
 
 @item --checkuplim=INT[,INT]
 Print a table of positions and measured values for all the full random distribution used for one particular object or clump.
@@ -24651,7 +24652,7 @@ The total number of rows is thus unknown, but you can be sure that the number of
 @subsubsection MakeCatalog measurements
 
 The final group of options particular to MakeCatalog are those that specify which measurements/columns should be written into the final output table.
-The current measurements in MakeCatalog are those which only produce one final value for each label (for example, its total brightness: a single number).
+The current measurements in MakeCatalog are those which only produce one final value for each label (for example, its magnitude: a single number).
 All the different label's measurements can be written as one column in a final table/catalog that contains other columns for other similar single-number measurements.
 
 In this case, all the different label's measurements can be written as one column in a final table/catalog that contains other columns for other similar single-number measurements.
@@ -24836,29 +24837,29 @@ see @option{--geox}. The third WCS axis is commonly used as wavelength in
 integral field unit data cubes.
 
 @item -b
-@itemx --brightness
-The brightness (sum of all pixel values), see @ref{Brightness flux magnitude}.
-For clumps, the ambient brightness (flux of river pixels around the clump multiplied by the area of the clump) is removed, see @option{--riverave}.
-So the sum of all the clumps brightness in the clump catalog will be smaller than the total clump brightness in the @option{--clumpbrightness} column of the objects catalog.
+@itemx --sum
+The sum of all pixel values associated to this label (object or clump).
+Note that if a sky value or image has been given, it will be subtracted before any column measurement.
+For clumps, the ambient values (average of river pixels around the clump, multiplied by the area of the clump) is subtracted, see @option{--riverave}.
+So the sum of all the clump-sums in the clump catalog of one object will be smaller than the @option{--clumpssum} column of the objects catalog.
 
 If no usable pixels are present over the clump or object (for example, they are all blank), the returned value will be NaN (note that zero is meaningful).
 
-@item --brightnesserr
-The (@mymath{1\sigma}) error in measuring the brightness of a label (objects or clumps).
+@item --sumerr
+The (@mymath{1\sigma}) error in measuring the sum of values of a label (objects or clumps).
 
 The returned value will be NaN when the label covers only NaN pixels in the values image, or a pixel is NaN in the @option{--instd} image, but non-NaN in the values image.
 The latter situation usually happens when there is a bug in the previous steps of your analysis, and is important because those pixels with a NaN in the @option{--instd} image may contribute significantly to the final error.
 If you want to ignore those pixels in the error measurement, set them to zero (which is a meaningful number in such scenarios).
 
-@item --clumpbrightness
-[Objects] The total brightness of the clumps within an object.
+@item --clumpssum
+[Objects] The total sum of the clumps within an object.
 This is simply the sum of the pixels associated with clumps in the object.
 If no usable pixels are present over the clump or object (for example, they are all blank), the stored value will be NaN (note that zero is meaningful).
 
-@item --brightnessnoriver
-[Clumps] The Sky (not river) subtracted clump brightness.
-By definition, for the clumps, the average brightness of the rivers surrounding it are subtracted from it for a first order accounting for contamination by neighbors.
-In cases where you will be calculating the flux brightness difference later (one example below) the contamination will be (mostly) removed at that stage, which is why this column was added.
+@item --sumnoriver
+[Clumps] The sum of Sky (not river) subtracted clump pixel values.
+By definition, for the clumps, the average value of the rivers surrounding it are subtracted from it for a first order accounting for contamination by neighbors.
 
 If no usable pixels are present over the clump or object (for example, they are all blank), the stored value will be NaN (note that zero is meaningful).
 
@@ -24897,9 +24898,32 @@ For more on sigma-clipping and how to define it, see @option{--sigclip-number}.
 The sigma-clipped standard deviation of the object of clump's pixel distribution.
 For more on sigma-clipping and how to define it, see @option{--sigclip-number}.
 
+@item --sigclip-mean-sb
+Surface brightness (over 1 pixel's area in arcsec@mymath{^2}) of the sigma-clipped mean value of the pixel values distribution associated to each label (object or clump).
+This is useful in scenarios where your labels have approximately @emph{constant} surface brightness values @emph{after} after removing outliers: for example in a radial profile, see @ref{Invoking astscript-radial-profile}).
+
+In other scenarios it should be used with extreme care.
+For example over the full area of a galaxy/star the pixel distribution is not constant (or symmetric after adding noise), their pixel distributions are inherently skewed (with fewer pixels in the center, having a very large value and many pixels in the outer parts having lower values).
+Therefore, sigma-clipping is not meaningful for such objects!
+For more on the definition of the surface brightness, see @ref{Brightness flux magnitude}, for more on sigma-clipping, see @ref{Sigma clipping}.
+
+The error in this magnitude can be retrieved from the @option{--sigclip-mean-sb-error} column described below, and you can use the @option{--sigclip-std-sb} column to find when the magnitude has become noise-dominated (signal-to-noise ratio is roughly 1).
+See the description of these two options for more.
+
+@item --sigclip-mean-sb-err
+Error in the @option{--sigclip-mean-sb}.
+This is calculated using the equation in @ref{Surface brightness error of each detection}, where @mymath{\Delta{A}=0} (since sigma-clip is calculated per pixel and there is no error in a single pixel).
+Within the equation to derive @mymath{\Delta{M}} (the error in magnitude, derived in @ref{Magnitude measurement error of each detection}), the signal-to-noise ratio is defined by dividing the sigma-clipped mean by the sigma-clipped standard deviation.
+
+@item --sigclip-std-sb
+The surface brightness of the sigma-clipped standard deviation.
+This can be used to find the reliable (@mymath{1\sigma}) surface brightness for that label.
+In other words, if @option{--sigclip-mean-sb} is fainter than the value of this column, you know that noise is becoming significant.
+However, as described in @option{--sigclip-mean-sb}, the sigma-clipped measurements of MakeCatalog should only be used in certain situations like radial profiles, see the description there for more.
+
 @item -m
 @itemx --magnitude
-The magnitude of clumps or objects, see @option{--brightness}.
+The magnitude of clumps or objects, see @option{--sum}.
 
 @item -e
 @itemx --magnitudeerr
@@ -24916,7 +24940,7 @@ If you want to ignore those pixels in the error measurement, set them to zero (w
 
 
 @item --clumpsmagnitude
-[Objects] The magnitude of all clumps in this object, see @option{--clumpbrightness}.
+[Objects] The magnitude of all clumps in this object, see @option{--clumpssum}.
 
 @item --upperlimit
 The upper limit value (in units of the input image) for this object or clump.
@@ -24939,11 +24963,11 @@ See @ref{Quantifying measurement limits} and @ref{Upper-limit settings} for a co
 When @option{--upnsigma=1}, this column's values will be the same as @option{--upperlimit}.
 
 @item --upperlimitsigma
-The position of the total brightness measured within the distribution of randomly placed upperlimit measurements in units of the distribution's @mymath{\sigma} or standard deviation.
+The position of the label's sum measured within the distribution of randomly placed upperlimit measurements in units of the distribution's @mymath{\sigma} or standard deviation.
 See @ref{Quantifying measurement limits} and @ref{Upper-limit settings} for a complete explanation.
 
 @item --upperlimitquantile
-The position of the total brightness measured within the distribution of randomly placed upperlimit measurements as a quantile (value between 0 or 1).
+The position of the label's sum within the distribution of randomly placed upperlimit measurements as a quantile (value between 0 or 1).
 See @ref{Quantifying measurement limits} and @ref{Upper-limit settings} for a complete explanation.
 If the object is brighter than the brightest randomly placed profile, a value of @code{inf} is returned.
 If it is less than the minimum, a value of @code{-inf} is reported.
@@ -24956,10 +24980,10 @@ Taking @mymath{\mu} as the mean, @mymath{\nu} as the median and @mymath{\sigma} 
 This can be a good measure to see how much you can trust the random measurements, or in other words, how accurately the regions with signal have been masked/detected. If the skewness is strong (and to the positive), then you can tell that you have a lot of undetected signal in the dataset, and therefore that the upper-limit measurement (and other measurements) are not reliable.
 
 @item --riverave
-[Clumps] The average brightness of the river pixels around this clump.
+[Clumps] The average of the river pixel values around this clump.
 River pixels were defined in Akhlaghi and Ichikawa 2015.
 In short they are the pixels immediately outside of the clumps.
-This value is used internally to find the brightness (or magnitude) and signal to noise ratio of the clumps.
+This value is used internally to find the sum (or magnitude) and signal to noise ratio of the clumps.
 It can generally also be used as a scale to gauge the base (ambient) flux surrounding the clump.
 In case there was no river pixels, then this column will have the value of the Sky under the clump.
 So note that this value is @emph{not} sky subtracted.
@@ -25053,7 +25077,7 @@ The surface brightness (in units of mag/arcsec@mymath{^2}) within the region tha
 For more on the definition of the surface brightness, see @ref{Brightness flux magnitude}.
 
 @item --halfsumarea
-The number of pixels that contain half the object or clump's total sum of pixels (half the value in the @option{--brightness} column).
+The number of pixels that contain half the object or clump's total sum of pixels (half the value in the @option{--sum} column).
 To count this area, all the non-blank values associated with the given label (object or clump) will be sorted and summed in order (starting from the maximum), until the sum becomes larger than half the total sum of the label's pixels.
 
 This option is thus good for clumps (which are defined to have a single peak in their morphology), but for objects you should be careful: if the object includes multiple peaks/clumps at roughly the same level, then the area reported by this option will be distributed over all the peaks.
@@ -25062,7 +25086,7 @@ This option is thus good for clumps (which are defined to have a single peak in 
 Surface brightness (in units of mag/arcsec@mymath{^2}) within the area that contains half the total sum of the label's pixels (object or clump).
 For more on the definition of the surface brightness, see @ref{Brightness flux magnitude}.
 
-This column just plugs in the values of half the value of the @option{--brightness} column and the @option{--halfsumarea} column, into the surface brightness equation.
+This column just plugs in the values of half the value of the @option{--sum} column and the @option{--halfsumarea} column, into the surface brightness equation.
 Therefore please see the description in @option{--halfsumarea} to understand the systematics of this column and potential biases.
 
 @item --halfsumradius
@@ -25951,7 +25975,7 @@ For example, the simple fact that we are sampling in a discrete space, namely th
 @cindex Image blurring
 @cindex PSF image size
 Convolution is the mathematical process by which we can apply a `spread' to an image, or in other words blur the image, see @ref{Convolution process}.
-The Brightness of an object should remain unchanged after convolution, see @ref{Brightness flux magnitude}.
+The sum of pixels of an image should remain unchanged after convolution.
 Therefore, it is important that the sum of all the pixels of the PSF be unity.
 The PSF image also has to have an odd number of pixels on its sides so one pixel can be defined as the center.
 
@@ -26066,7 +26090,7 @@ Today, most practitioners agree that the flux of galaxies can be modeled with on
 @cindex G@'erard de Vaucouleurs
 G@'erard de Vaucouleurs (1918-1995) was first to show in 1948 that this function resembles the galaxy light profiles, with the only difference that he held @mymath{n} fixed to a value of 4.
 Twenty years later in 1968, J. L. S@'ersic showed that @mymath{n} can have a variety of values and does not necessarily need to be 4.
-This profile depends on the effective radius (@mymath{r_e}) which is defined as the radius which contains half of the profile brightness (see @ref{Profile magnitude}).
+This profile depends on the effective radius (@mymath{r_e}) which is defined as the radius which contains half of the profile's 2-dimensional integral to infinity (see @ref{Profile magnitude}).
 @mymath{I_e} is the flux at the effective radius.
 The S@'ersic index @mymath{n} is used to define the concentration of the profile within @mymath{r_e} and @mymath{b_n} is a constant dependent on @mymath{n}.
 MacArthur et al.@footnote{MacArthur, L. A., S. Courteau, and J. A. Holtzman (2003). ``Structure of Disk-dominated Galaxies. I. Bulge/Disk Parameters, Simulations, and Secular Evolution''. In: ApJ 582, pp. 689---722.} show that for @mymath{n>0.35}, @mymath{b_n} can be accurately approximated using this equation:
@@ -26179,20 +26203,19 @@ To facilitate this shift, MakeProfiles has the options @option{--xshift}, @optio
 @node Profile magnitude, Invoking astmkprof, If convolving afterwards, MakeProfiles
 @subsection Profile magnitude
 
-@cindex Brightness
 @cindex Truncation radius
 @cindex Sum for total flux
-To find the profile brightness or its magnitude, (see @ref{Brightness flux magnitude}), it is customary to use the 2D integration of the flux to infinity.
-However, in MakeProfiles we do not follow this idealistic approach and apply a more realistic method to find the total brightness or magnitude: the sum of all the pixels belonging to a profile within its predefined truncation radius.
+To find the profile's total magnitude, (see @ref{Brightness flux magnitude}), it is customary to use the 2D integration of the flux to infinity.
+However, in MakeProfiles we do not follow this idealistic approach and apply a more realistic method to find the total magnitude: the sum of all the pixels belonging to a profile within its predefined truncation radius.
 Note that if the truncation radius is not large enough, this can be significantly different from the total integrated light to infinity.
 
 @cindex Integration to infinity
 An integration to infinity is not a realistic condition because no galaxy extends indefinitely (important for high S@'ersic index profiles), pixelation can also cause a significant difference between the actual total pixel sum value of the profile and that of integration to infinity, especially in small and high S@'ersic index profiles.
 To be safe, you can specify a large enough truncation radius for such compact high S@'ersic index profiles.
 
-If oversampling is used then the brightness is calculated using the over-sampled image, see @ref{Oversampling} which is much more accurate.
+If oversampling is used then the pixel value is calculated using the over-sampled image, see @ref{Oversampling} which is much more accurate.
 The profile is first built in an array completely bounding it with a normalization constant of unity (see @ref{Galaxies}).
-Taking @mymath{B} to be the desired brightness and @mymath{S} to be the sum of the pixels in the created profile, every pixel is then multiplied by @mymath{B/S} so the sum is exactly @mymath{B}.
+Taking @mymath{V} to be the desired pixel value and @mymath{S} to be the sum of the pixels in the created profile, every pixel is then multiplied by @mymath{V/S} so the sum is exactly @mymath{V}.
 
 If the @option{--individual} option is called, this same array is written to a FITS file.
 If not, only the overlapping pixels of this array and the output image are kept and added to the output array.
@@ -26482,23 +26505,23 @@ using Arithmetic (see @ref{Arithmetic}), then use that value in the magnitude co
 Please note that when using MakeProfiles on an already existing image, you have to set `@option{--oversample=1}'.
 Otherwise all the profiles will be scaled up based on the oversampling scale in your configuration files (see @ref{Configuration files}) unless you have accounted for oversampling in your catalog.
 
-@item --mcolisbrightness
-The value given in the ``magnitude column'' (specified by @option{--mcol}, see @ref{MakeProfiles catalog}) must be interpreted as brightness, not magnitude.
-The zero point magnitude (value to the @option{--zeropoint} option) is ignored and the given value must have the same units as the input dataset's pixels.
+@item --mcolissum
+The value given in the ``magnitude'' column (specified by @option{--mcol}, see @ref{MakeProfiles catalog}) must be interpreted as total sum of pixel values, not magnitude (which is measured from the total sum and zero point, see @ref{Brightness flux magnitude}).
+When this option is called, the zero point magnitude (value to the @option{--zeropoint} option) is ignored and the given value must have the same units as the input dataset's pixels.
 
-Recall that the total profile magnitude or brightness that is specified with in the @option{--mcol} column of the input catalog is not an integration to infinity, but the actual sum of pixels in the profile (until the desired truncation radius).
+Recall that the total profile magnitude that is specified with in the @option{--mcol} column of the input catalog is not an integration to infinity, but the actual sum of pixels in the profile (until the desired truncation radius).
 See @ref{Profile magnitude} for more on this point.
 
 @item --mcolnocustprof
 Do Not touch (re-scale) the custom profile that should be inserted in @code{custom-prof} profile (see the description of @option{--fcol} in @ref{MakeProfiles catalog} or the description of @option{--customtable} below).
-By default, MakeProfiles will scale (multiply) the custom image's pixels to have the desired magnitude (or brightness if @option{--mcolisbrightness} is called) in that row.
+By default, MakeProfiles will scale (multiply) the custom image's pixels to have the desired magnitude (or sum of pixels if @option{--mcolissum} is called) in that row.
 
 @item --mcolnocustimg
 Do Not touch (re-scale) the custom image that should be inserted in @code{custom-img} profile (see the description of @option{--fcol} in @ref{MakeProfiles catalog}).
-By default, MakeProfiles will scale (multiply) the custom image's pixels to have the desired magnitude (or brightness if @option{--mcolisbrightness} is called) in that row.
+By default, MakeProfiles will scale (multiply) the custom image's pixels to have the desired magnitude (or sum of pixels if @option{--mcolissum} is called) in that row.
 
 @item --magatpeak
-The magnitude column in the catalog (see @ref{MakeProfiles catalog}) will be used to set the brightness only for the profile's peak (maximum) pixel, not the full profile.
+The magnitude column in the catalog (see @ref{MakeProfiles catalog}) will be used to set the value only for the profile's peak (maximum) pixel, not the full profile.
 Note that this is the flux of the profile's peak (maximum) pixel in the final output of MakeProfiles.
 So beware of the oversampling, see @ref{Oversampling}.
 
@@ -26506,7 +26529,7 @@ This option can be useful if you want to check a mock profile's total magnitude 
 Without this option, no matter what the truncation radius is, the total magnitude will be the same as that given in the catalog.
 But with this option, the total magnitude will become brighter as you increase the truncation radius.
 
-In sharper profiles, sometimes the accuracy of measuring the peak profile flux is more than the overall object brightness.
+In sharper profiles, sometimes the accuracy of measuring the peak profile flux is more than the overall object sum or magnitude.
 In such cases, with this option, the final profile will be built such that its peak has the given magnitude, not the total profile.
 
 @cartouche
@@ -27128,14 +27151,14 @@ The background value (per pixel) that will be added to each pixel value (interna
 By default the units of this value are assumed to be in magnitudes, hence a @option{--zeropoint} is also necessary.
 If the background is in units of counts, you need add @option{--bgisbrightness}, see @ref{Brightness flux magnitude}.
 
-Internally, the value given to this option will be converted to counts (@mymath{b}, when @option{--bgisbrightness} is called, the value will be used directly).
+Internally, the value given to this option will be converted to counts (@mymath{b}, when @option{--bgnotmag} is called, the value will be used directly).
 Assuming the pixel value is @mymath{p}, the random value for that pixel will be taken from a Gaussian distribution with mean of @mymath{p+b} and standard deviation of @mymath{\sqrt{p+b}}.
 With this option, the noise will therefore be dependent on the pixel values: according to the Poission noise model, as the pixel value becomes larger, its noise will also become larger.
 This is thus a realistic way to model noise, see @ref{Photon counting noise}.
 
 @item -B
-@itemx --bgisbrightness
-The value given to @option{--background} should be interpreted as brightness, not as a magnitude.
+@itemx --bgnotmag
+The value given to @option{--background} should not be interpreted as a magnitude, but the raw pixel units (usually counts).
 
 @item -z FLT
 @itemx --zeropoint=FLT
@@ -28329,9 +28352,16 @@ $ astscript-fits-view radial-tmp/values.fits \
 The operator for measuring the values over each radial distance.
 The values given to this option will be directly passed to @ref{MakeCatalog}.
 As a consequence, all MakeCatalog measurements like the magnitude, magnitude error, median, mean, signal-to-noise ratio (S/N), std, surface brightness, sigclip-mean, and sigclip-number can be used here.
-For a full list of MakeCatalog's measurements, please run @command{astmkcatalog --help}.
+For a full list of MakeCatalog's measurements, please run @command{astmkcatalog --help} or see @ref{MakeCatalog measurements}.
 Multiple values can be given to this option, each separated by a comma.
 This option can also be called multiple times.
+
+@cartouche
+@noindent
+@strong{Masking background/foreground objects:} For crude rejection of outliers, you can use sigma-clipping using MakeCatalog measurements like @option{--sigclip-mean} or @option{--sigclip-mean-sb} (see @ref{MakeCatalog measurements}).
+To properly mask the effect of background/foreground objects from your target object's radial profile, you can use @command{astscript-psf-stamp} script, see @ref{Invoking astscript-psf-stamp}, and feed it the output of @ref{Segment}.
+This script will mask unwanted objects from the image that is later used to measure the radial profile.
+@end cartouche
 
 Some measurements by MakeCatalog require a per-pixel sky standard deviation (for example, magnitude error or S/N).
 Therefore when asking for such measurements, use the @option{--instd} option (described below) to specify the per-pixel sky standard deviation over each pixel.
@@ -28356,7 +28386,7 @@ $ astmkcatalog -P | grep " sigmaclip "
 @item -z FLT
 @itemx --zeropoint=FLT
 The Zero point of the input dataset.
-This is necessary when you request measurements like Magnitude, or Surface brightness.
+This is necessary when you request measurements like magnitude, or surface brightness.
 
 @item -Z
 @itemx --zeroisnotblank
@@ -28794,7 +28824,7 @@ Once clean stacks of different parts of the PSF have been constructed through th
 This is done by finding a common radial region in both, and scaling the inner region by a factor to add with the outer region.
 This is not trivial, therefore, a third script is in charge of it, see @ref{Invoking astscript-psf-unite}.
 
-Having constructed the PSF as described above (or by any other procedure), it can be scaled to the brightness of the various stars in the image to get subtracted (and thus remove the extended/bright wings; better showing the background objects of interest).
+Having constructed the PSF as described above (or by any other procedure), it can be scaled to the magnitude of the various stars in the image to get subtracted (and thus remove the extended/bright wings; better showing the background objects of interest).
 Note that the absolute flux of a PSF is meaningless (and in fact, it is usually normalized to have a total sum of unity!), so it should be scaled.
 We therefore have another script that will calculate the scale (multiplication) factor of the PSF for each star.
 For more on the scaling script, see @ref{Invoking astscript-psf-scale-factor}.
@@ -28814,7 +28844,7 @@ Just do not forget to run every command, and try to tweak its steps based on the
 @node Invoking astscript-psf-select-stars, Invoking astscript-psf-stamp, Overview of the PSF scripts, PSF construction and subtraction
 @subsection Invoking astscript-psf-select-stars
 This installed script will select good star candidates for constructing a PSF.
-It will consider stars within a given range of brightness without nearby contaminant objects.
+It will consider stars within a given range of magnitudes without nearby contaminant objects.
 To do that, it allows to the user to specify different options described here.
 A complete tutorial is available to show the operation of this script as a modular component to extract the PSF of a dataset: @ref{Building the extended PSF}.
 The executable name is @file{astscript-psf-select-stars}, with the following general template:
@@ -28834,7 +28864,7 @@ $ astscript-psf-select-stars image.fits \
            --magnituderange=6,10 --mindistdeg=0.02
 @end example
 
-The input of this script is an image, and the output is a catalog of stars with brightness in the requested range of magnitudes (provided with @option{--magnituderange}).
+The input of this script is an image, and the output is a catalog of stars with magnitude in the requested range of magnitudes (provided with @option{--magnituderange}).
 The output catalog will also only contain stars that are sufficiently distant (@option{--mindistdeg}) from all other brighter, and some fainter stars.
 It is possible to consider different datasets with the option @option{--dataset} (by default, Gaia eDR3 dataset is considered)
 All stars that are @option{--faintmagdiff} fainter than the faintest limit will also be accounted for, when selecting good stars.
@@ -36208,11 +36238,11 @@ have any type), see above for the definition of permutation.
 @cindex Coordinate matching
 Matching is often necessary when two measurements of the same points have been done using different instruments (or hardware), different software or different configurations of the same software.
 In other words, you have two catalogs or tables, and each has N columns containing the N-dimensional ``coordinate'' values of each point.
-Each table can have other columns too, for example, one can have brightness measurements in one filter, and another can have morphology measurements.
+Each table can have other columns too, for example, one can have magnitudes in one filter, and another can have morphology measurements.
 
 The matching functions here will use the coordinate columns of the two tables to find a permutation for each, and the total number of matched rows (@mymath{N_{match}}).
 This will enable you to match by the positions if you like.
-At a higher level, you can apply the permutation to the brightness or morphology columns to merge the catalogs over the @mymath{N_{match}} rows.
+At a higher level, you can apply the permutation to the magnitude or morphology columns to merge the catalogs over the @mymath{N_{match}} rows.
 The input and output data formats of the functions are the some and described below before the actual functions.
 Each function also has extra arguments due to the particular algorithm it uses for the matching.
 
@@ -36248,7 +36278,7 @@ When the aperture is an ellipse, distances between the points are also calculate
 
 @strong{Output permutations ignore internal sorting}: the output permutations will correspond to the initial inputs.
 Therefore, even when @code{inplace!=0} (and this function re-arranges the inputs in place), the output permutation will correspond to original (possibly non-sorted) inputs. The reason for this is that you rarely want to permute the actual positional columns after the match.
-Usually, you also have other columns (such as the brightness and morphology) and you want to find how they differ between the objects that match.
+Usually, you also have other columns (such as the magnitude and morphology) and you want to find how they differ between the objects that match.
 Once you have the permutations, they can be applied to those other columns (see @ref{Permutations}) and the higher-level processing can continue.
 So if you do not need the coordinate columns for the rest of your analysis, it is better to set @code{inplace=1}.
 
@@ -40971,7 +41001,7 @@ Because of saturation and non-linearity, to get a good estimate of the extended 
 
 
 
-@node Other useful software, GNU Free Doc. License, Gnuastro programs list, Top
+@node Other useful software, GNU Free Doc License, Gnuastro programs list, Top
 @appendix Other useful software
 
 In this appendix the installation of programs and libraries that are
@@ -41229,7 +41259,7 @@ $ ./pgdemoXX
 
 
 
-@node GNU Free Doc. License, GNU General Public License, Other useful software, Top
+@node GNU Free Doc License, GNU General Public License, Other useful software, Top
 @appendix GNU Free Doc. License
 
 @cindex GNU Free Documentation License
@@ -41237,7 +41267,7 @@ $ ./pgdemoXX
 
 
 
-@node GNU General Public License, Index, GNU Free Doc. License, Top
+@node GNU General Public License, Index, GNU Free Doc License, Top
 @appendix GNU Gen. Pub. License v3
 
 @cindex GPL

@@ -45,6 +45,22 @@ See the end of the file for license conditions.
    --metaname: Specify the name of the cropped output HDU (value to the
      'EXTNAME' keyword in FITS).
 
+   MakeCatalog:
+   --sigclip-mean-sb: surface brightness (over one pixel's area in
+     arcsec^2) of the sigma-clipped mean of the values. This is useful in
+     scenarios where you want to compare surface brightness values
+     independent of the object's area, and by removing outliers (for
+     example in a radial profile). See the description of this option in
+     the book for more. This was added after a discussion by Ignacio
+     Trujillo and Zahra Sharbaf.
+   --sigclip-mean-sb-err: the error in '--sigclip-mean-sb' but using the
+     sigma-clipped standard deviation of the values as the error, not the
+     standard deviation image.
+   --sigclip-std-sb: the surface brightness (over one pixel's area in
+     arcsec^2) of the sigma-clipped standard deviation of the values. This
+     can be used to find the reliable surface brightness of a radial
+     profile for example.
+
    NoiseChisel:
    --outliernumngb: the number of neighboring tiles to reject those that
      have passed (the mean-median quantile difference criteria) because of
@@ -77,6 +93,28 @@ See the end of the file for license conditions.
 ** Removed features
 
 ** Changed features
+
+  MakeCatalog:
+  --sum: new name for the old '--brightness' column. "Brightness" has a
+    specific meaning in astronomy/physics and has units of
+    energy/time. However, astronomical images aren't in this unit, they
+    are usually in counts, or can have an arbitray units (like
+    nanomaggy). The new name is derived from what this column does (sum of
+    pixel values) to avoid confusions.
+  --sumerr: new name for '--brightnesserr'.
+  --clumpssum: new name for '--clumpbrightness'.
+  --sumnoriver: new name for '--brightnessnoriver'.
+
+  MakeNoise:
+  --bgnotmag: new name for the old '--bgisbrightness' option. See the
+    description of changed '--sum' in MakeCatalog (above) for more.
+
+  MakeProfiles:
+  --mcolissum: new name for the old '--mcolisbrightness' option. See the
+    description of changed '--sum' in MakeCatalog (above) for more.
+  - Units of the output FITS image (value to 'BUNIT' keyword) is now
+    "counts", until now, it was "brightness". See the description of
+    changed '--sum' in MakeCatalog (above) for more.
 
   Table:
   - To avoid potential loss of information in floating point columns, when

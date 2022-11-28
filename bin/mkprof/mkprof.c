@@ -258,9 +258,9 @@ saveindividual(struct mkonthread *mkp)
       gal_fits_key_list_add(&keys, GAL_TYPE_UINT8, "MFORFLATPIX", 0,
                             &p->mforflatpix, 0, "Magnitude is flat pixel "
                             "value", 0, NULL, 0);
-  gal_fits_key_list_add(&keys, GAL_TYPE_UINT8, "MCOLISBRIGHTNESS", 0,
-                        &p->mcolisbrightness, 0, "Catalog's magnitude is "
-                        "actually brightness", 0, NULL, 0);
+  gal_fits_key_list_add(&keys, GAL_TYPE_UINT8, "MCOLISSUM", 0,
+                        &p->mcolissum, 0, "Catalog's magnitude is "
+                        "total sum", 0, NULL, 0);
   gal_fits_key_list_add(&keys, GAL_TYPE_UINT8, "MAGATPEAK", 0,
                         &p->magatpeak, 0, "Magnitude is for peak pixel, "
                         "not full profile", 0, NULL, 0);

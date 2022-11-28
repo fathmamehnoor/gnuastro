@@ -210,6 +210,9 @@ columns_wcs_preparation(struct mkcatalogparams *p)
             case UI_KEY_HALFMAXSB:
             case UI_KEY_HALFSUMSB:
             case UI_KEY_AREAARCSEC2:
+            case UI_KEY_SIGCLIPSTDSB:
+            case UI_KEY_SIGCLIPMEANSB:
+            case UI_KEY_SIGCLIPMEANSBERR:
             case UI_KEY_SURFACEBRIGHTNESS:
 
             /* Low-level. */
@@ -225,9 +228,9 @@ columns_wcs_preparation(struct mkcatalogparams *p)
                 continue_wcs_check=0;
               else
                 error(EXIT_FAILURE, 0, "%s (hdu: %s): no WCS meta-data "
-                      "found by WCSLIB. Atleast one of the requested columns "
-                      "requires world coordinate system meta-data",
-                      p->objectsfile, p->cp.hdu);
+                      "found by WCSLIB. Atleast one of the requested "
+                      "columns requires world coordinate system "
+                      "meta-data", p->objectsfile, p->cp.hdu);
               break;
             }
         }
@@ -262,6 +265,9 @@ columns_wcs_preparation(struct mkcatalogparams *p)
       case UI_KEY_HALFSUMSB:
       case UI_KEY_AREAARCSEC2:
       case UI_KEY_UPPERLIMITSB:
+      case UI_KEY_SIGCLIPSTDSB:
+      case UI_KEY_SIGCLIPMEANSB:
+      case UI_KEY_SIGCLIPMEANSBERR:
       case UI_KEY_SURFACEBRIGHTNESS:
         pixscale=gal_wcs_pixel_scale(p->objects->wcs);
         p->pixelarcsecsq=pixscale[0]*pixscale[1]*3600.0f*3600.0f;
@@ -293,8 +299,11 @@ columns_sanity_check(struct mkcatalogparams *p)
       {
       case UI_KEY_SIGCLIPSTD:
       case UI_KEY_SIGCLIPMEAN:
+      case UI_KEY_SIGCLIPSTDSB:
+      case UI_KEY_SIGCLIPMEANSB:
       case UI_KEY_SIGCLIPNUMBER:
       case UI_KEY_SIGCLIPMEDIAN:
+      case UI_KEY_SIGCLIPMEANSBERR:
         if(isnan(p->sigmaclip[0]) || isnan(p->sigmaclip[1]))
           error(EXIT_FAILURE, 0, "no sigma-clip defined! When any of the "
                 "sigma-clipping columns are requested, it is necessary to "
@@ -1185,11 +1194,11 @@ columns_define_alloc(struct mkcatalogparams *p)
           oiflag[ OCOL_C_NUMALL ] = 1;
           break;
 
-        case UI_KEY_BRIGHTNESS:
-          name           = "BRIGHTNESS";
+        case UI_KEY_SUM:
+          name           = "SUM";
           unit           = MKCATALOG_NO_UNIT;
-          ocomment       = "Brightness (sum of sky subtracted values).";
-          ccomment       = "Brightness (sum of pixels subtracted by rivers).";
+          ocomment       = "Sum of sky subtracted values.";
+          ccomment       = "Sum of pixels subtracted by rivers.";
           otype          = GAL_TYPE_FLOAT32;
           ctype          = GAL_TYPE_FLOAT32;
           disp_fmt       = GAL_TABLE_DISPLAY_FMT_GENERAL;
@@ -1201,10 +1210,10 @@ columns_define_alloc(struct mkcatalogparams *p)
                                    ciflag[ CCOL_RIV_SUM ] = 1;
           break;
 
-        case UI_KEY_BRIGHTNESSERR:
-          name           = "BRIGHTNESS_ERROR";
+        case UI_KEY_SUMERR:
+          name           = "SUM_ERROR";
           unit           = MKCATALOG_NO_UNIT;
-          ocomment       = "Error (1-sigma) in measuring brightness.";
+          ocomment       = "Error (1-sigma) in measuring sum.";
           ccomment       = ocomment;
           otype          = GAL_TYPE_FLOAT32;
           ctype          = GAL_TYPE_FLOAT32;
@@ -1218,10 +1227,10 @@ columns_define_alloc(struct mkcatalogparams *p)
                                        ciflag[ CCOL_RIV_SUM_VAR ] = 1;
           break;
 
-        case UI_KEY_CLUMPSBRIGHTNESS:
-          name           = "CLUMPS_BRIGHTNESS";
+        case UI_KEY_CLUMPSSUM:
+          name           = "CLUMPS_SUM";
           unit           = MKCATALOG_NO_UNIT;
-          ocomment       = "Brightness (sum of pixel values) in clumps.";
+          ocomment       = "Sum of pixel values in clumps.";
           ccomment       = NULL;
           otype          = GAL_TYPE_FLOAT32;
           ctype          = GAL_TYPE_INVALID;
@@ -1232,11 +1241,11 @@ columns_define_alloc(struct mkcatalogparams *p)
           oiflag[ OCOL_C_SUM ] = 1;
           break;
 
-        case UI_KEY_BRIGHTNESSNORIVER:
-          name           = "NO_RIVER_BRIGHTNESS";
+        case UI_KEY_SUMNORIVER:
+          name           = "NO_RIVER_SUM";
           unit           = MKCATALOG_NO_UNIT;
           ocomment       = NULL;
-          ccomment       = "Brightness (sum of sky subtracted values).";
+          ccomment       = "Sum of sky subtracted values.";
           otype          = GAL_TYPE_INVALID;
           ctype          = GAL_TYPE_FLOAT32;
           disp_fmt       = GAL_TABLE_DISPLAY_FMT_GENERAL;
@@ -1369,6 +1378,58 @@ columns_define_alloc(struct mkcatalogparams *p)
           oiflag[ OCOL_SIGCLIPSTD ] = ciflag[ CCOL_SIGCLIPSTD ] = 1;
                                       ciflag[ CCOL_RIV_NUM   ] = 1;
                                       ciflag[ CCOL_RIV_SUM   ] = 1;
+          break;
+
+        case UI_KEY_SIGCLIPMEANSB:
+          name           = "SIGCLIP-MEAN-SB";
+          unit           = "mag/arcsec^2";
+          ocomment       = "Surface brightness (over one pixel) of "
+                           "sig-clip mean of pixels.";
+          ccomment       = ocomment;
+          otype          = GAL_TYPE_FLOAT32;
+          ctype          = GAL_TYPE_FLOAT32;
+          disp_fmt       = GAL_TABLE_DISPLAY_FMT_GENERAL;
+          disp_width     = 10;
+          disp_precision = 5;
+          oiflag[ OCOL_NUM         ] = ciflag[ CCOL_NUM         ] = 1;
+          oiflag[ OCOL_SIGCLIPMEAN ] = ciflag[ CCOL_SIGCLIPMEAN ] = 1;
+                                       ciflag[ CCOL_RIV_NUM     ] = 1;
+                                       ciflag[ CCOL_RIV_SUM     ] = 1;
+          break;
+
+        case UI_KEY_SIGCLIPMEANSBERR:
+          name           = "SIGCLIP-MEAN-SB-ERR";
+          unit           = "mag/arcsec^2";
+          ocomment       = "Error in SB (over one pixel) of "
+                           "sig-clip mean of pixels.";
+          ccomment       = ocomment;
+          otype          = GAL_TYPE_FLOAT32;
+          ctype          = GAL_TYPE_FLOAT32;
+          disp_fmt       = GAL_TABLE_DISPLAY_FMT_GENERAL;
+          disp_width     = 10;
+          disp_precision = 5;
+          oiflag[ OCOL_NUM         ] = ciflag[ CCOL_NUM         ] = 1;
+          oiflag[ OCOL_SIGCLIPSTD  ] = ciflag[ CCOL_SIGCLIPSTD  ] = 1;
+          oiflag[ OCOL_SIGCLIPMEAN ] = ciflag[ CCOL_SIGCLIPMEAN ] = 1;
+                                       ciflag[ CCOL_RIV_NUM     ] = 1;
+                                       ciflag[ CCOL_RIV_SUM     ] = 1;
+          break;
+
+        case UI_KEY_SIGCLIPSTDSB:
+          name           = "SIGCLIP-STD-SB";
+          unit           = "mag/arcsec^2";
+          ocomment       = "Surface brightness of sigma-clipped "
+                           "standard deviation.";
+          ccomment       = ocomment;
+          otype          = GAL_TYPE_FLOAT32;
+          ctype          = GAL_TYPE_FLOAT32;
+          disp_fmt       = GAL_TABLE_DISPLAY_FMT_GENERAL;
+          disp_width     = 10;
+          disp_precision = 5;
+          oiflag[ OCOL_NUM        ] = ciflag[ CCOL_NUM        ] = 1;
+          oiflag[ OCOL_SIGCLIPSTD ] = ciflag[ CCOL_SIGCLIPSTD ] = 1;
+                                      ciflag[ CCOL_RIV_NUM    ] = 1;
+                                      ciflag[ CCOL_RIV_SUM    ] = 1;
           break;
 
         case UI_KEY_MAGNITUDE:
@@ -2064,12 +2125,13 @@ columns_define_alloc(struct mkcatalogparams *p)
    to find variance and number of pixels used to find brightness are the
    same). */
 static double
-columns_brightness_error(struct mkcatalogparams *p, double *row, int o0c1)
+columns_sum_error(struct mkcatalogparams *p, double *row, int o0c1)
 {
   size_t numind = o0c1 ? CCOL_NUM         : OCOL_NUM;
   double V = row[ o0c1 ? CCOL_SUM_VAR     : OCOL_SUM_VAR ];
   size_t svnind = o0c1 ? CCOL_SUM_VAR_NUM : OCOL_SUM_VAR_NUM;
-  double OV = (o0c1 && row[ CCOL_RIV_NUM ]) ? row[ CCOL_RIV_SUM_VAR ] : 0.0;
+  double OV = ( (o0c1 && row[ CCOL_RIV_NUM ])
+                ? row[ CCOL_RIV_SUM_VAR ] : 0.0 );
 
   return ( (row[ numind ]>0.0f && row[ numind ] == row[ svnind ] )
            ? sqrt( (V+OV)*p->cpscorr )
@@ -2095,7 +2157,7 @@ columns_sn(struct mkcatalogparams *p, double *row, int o0c1)
                : 0.0 );
 
   /* Return the derived value. */
-  return (I-O) / columns_brightness_error(p, row, o0c1);
+  return (I-O) / columns_sum_error(p, row, o0c1);
 }
 
 
@@ -2201,7 +2263,7 @@ columns_second_order(struct mkcatalog_passparams *pp, double *row,
 /* The clump brightness is needed in several places, so we've defined this
    function to have an easier code. */
 static double
-columns_clump_brightness(double *ci)
+columns_clump_sum(double *ci)
 {
   double tmp;
   /* Calculate the river flux over the clump area. But only when rivers are
@@ -2303,6 +2365,7 @@ columns_xy_extrema(struct mkcatalog_passparams *pp, double *oi,
                                    / ( ROW[   O0C1?CCOL_NUM:OCOL_NUM ]  \
                                        ? ROW[ O0C1?CCOL_NUM:OCOL_NUM ]  \
                                        : NAN ) ) )
+#define SCLIP_SBERR(SIG, STD) ( SIG<=0 ? NAN : 2.5/log(10)*STD/SIG )
 
 
 
@@ -2544,17 +2607,17 @@ columns_fill(struct mkcatalog_passparams *pp)
             gcc[2][oind] = MKC_RATIO( oi[OCOL_C_GZ], oi[OCOL_C_NUMALL] );
           break;
 
-        case UI_KEY_BRIGHTNESS:
+        case UI_KEY_SUM:
           ((float *)colarr)[oind] = ( oi[ OCOL_NUM ]>0.0f
                                       ? oi[ OCOL_SUM ]
                                       : NAN );
           break;
 
-        case UI_KEY_BRIGHTNESSERR:
-          ((float *)colarr)[oind] = columns_brightness_error(p, oi, 0);
+        case UI_KEY_SUMERR:
+          ((float *)colarr)[oind] = columns_sum_error(p, oi, 0);
           break;
 
-        case UI_KEY_CLUMPSBRIGHTNESS:
+        case UI_KEY_CLUMPSSUM:
           ((float *)colarr)[oind] = ( oi[ OCOL_C_NUM ]>0.0f
                                       ? oi[ OCOL_C_SUM ]
                                       : NAN );
@@ -2596,6 +2659,19 @@ columns_fill(struct mkcatalog_passparams *pp)
 
         case UI_KEY_SIGCLIPSTD:
           ((float *)colarr)[oind] = oi[ OCOL_SIGCLIPSTD ];
+          break;
+
+        case UI_KEY_SIGCLIPMEANSB:
+          ((float *)colarr)[oind] = MKC_SB(oi[ OCOL_SIGCLIPMEAN ], 1);
+          break;
+
+        case UI_KEY_SIGCLIPMEANSBERR:
+          ((float *)colarr)[oind] = SCLIP_SBERR(oi[ OCOL_SIGCLIPMEAN ],
+                                                oi[ OCOL_SIGCLIPSTD ]);
+          break;
+
+        case UI_KEY_SIGCLIPSTDSB:
+          ((float *)colarr)[oind] = MKC_SB(oi[ OCOL_SIGCLIPSTD ], 1);
           break;
 
         case UI_KEY_MAGNITUDE:
@@ -2910,21 +2986,21 @@ columns_fill(struct mkcatalog_passparams *pp)
               gc[2][cind] = MKC_RATIO( ci[CCOL_GZ], ci[CCOL_NUMALL] );
             break;
 
-          case UI_KEY_BRIGHTNESS:
-            ((float *)colarr)[cind] = columns_clump_brightness(ci);
+          case UI_KEY_SUM:
+            ((float *)colarr)[cind] = columns_clump_sum(ci);
             break;
 
-          case UI_KEY_BRIGHTNESSERR:
-            ((float *)colarr)[cind] = columns_brightness_error(p, ci, 1);
+          case UI_KEY_SUMERR:
+            ((float *)colarr)[cind] = columns_sum_error(p, ci, 1);
             break;
 
-          case UI_KEY_BRIGHTNESSNORIVER:
+          case UI_KEY_SUMNORIVER:
             ((float *)colarr)[cind] = ( ci[ CCOL_NUM ]>0.0f
                                         ? ci[ CCOL_SUM ] : NAN );
             break;
 
           case UI_KEY_MEAN:
-            ((float *)colarr)[cind] = ( columns_clump_brightness(ci)
+            ((float *)colarr)[cind] = ( columns_clump_sum(ci)
                                         /ci[CCOL_NUM] );
             break;
 
@@ -2959,6 +3035,14 @@ columns_fill(struct mkcatalog_passparams *pp)
             ((float *)colarr)[cind] = ci[ CCOL_SIGCLIPSTD ];
             break;
 
+          case UI_KEY_SIGCLIPMEANSB:
+            ((float *)colarr)[cind] = MKC_SB(ci[ CCOL_SIGCLIPMEAN ], 1);
+            break;
+
+          case UI_KEY_SIGCLIPSTDSB:
+            ((float *)colarr)[cind] = MKC_SB(ci[ CCOL_SIGCLIPSTD ], 1);
+            break;
+
           case UI_KEY_MAGNITUDE: /* Similar: brightness for clumps */
             tmp = ( ci[ CCOL_RIV_NUM ]
                     ? ci[ CCOL_RIV_SUM ]/ci[ CCOL_RIV_NUM ]*ci[ CCOL_NUM ]
@@ -2988,7 +3072,7 @@ columns_fill(struct mkcatalog_passparams *pp)
             break;
 
           case UI_KEY_UPPERLIMITSIGMA:
-            ((float *)colarr)[cind] = ( columns_clump_brightness(ci)
+            ((float *)colarr)[cind] = ( columns_clump_sum(ci)
                                         / ci[ CCOL_UPPERLIMIT_S ] );
             break;
 

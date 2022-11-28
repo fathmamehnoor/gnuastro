@@ -237,17 +237,17 @@ ui_read_check_only_options(struct mknoiseparams *p)
   if( !isnan(p->background) )
     {
       /* Make sure that the background can be interpretted properly. */
-      if( p->bgisbrightness==0 && isnan(p->zeropoint) )
+      if( p->bgnotmag==0 && isnan(p->zeropoint) )
         error(EXIT_FAILURE, 0, "missing background information. When the "
               "noise is identified by the background, a zeropoint magnitude "
               "is mandatory. Please use the '--zeropoint' option to specify "
               "a zeropoint magnitude. Alternatively, if your background value "
               "is brightness (which is in linear scale and doesn't need a "
-              "zeropoint), please use '--bgisbrightness'");
+              "zeropoint), please use '--bgnotmag'");
 
       /* If the background is in units of magnitudes, convert it to
          brightness. */
-      if( p->bgisbrightness==0 )
+      if( p->bgnotmag==0 )
         p->background = pow(10, (p->zeropoint-p->background)/2.5f);
 
       /* Make sure that the background is larger than 1 (where Poisson

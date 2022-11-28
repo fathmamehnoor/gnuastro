@@ -296,13 +296,13 @@ struct argp_option program_options[] =
       GAL_OPTIONS_NOT_SET
     },
     {
-      "mcolisbrightness",
-      UI_KEY_MCOLISBRIGHTNESS,
+      "mcolissum",
+      UI_KEY_MCOLISSUM,
       0,
       0,
-      "mcol is total brightness, not magnitude.",
+      "mcol is total sum, not magnitude.",
       UI_GROUP_PROFILES,
-      &p->mcolisbrightness,
+      &p->mcolissum,
       GAL_OPTIONS_NO_ARG_TYPE,
       GAL_OPTIONS_RANGE_0_OR_1,
       GAL_OPTIONS_NOT_MANDATORY,

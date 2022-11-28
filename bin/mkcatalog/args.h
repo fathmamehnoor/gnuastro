@@ -1070,15 +1070,15 @@ struct argp_option program_options[] =
     /* Brightness/pixel-value related columns. */
     {
       0, 0, 0, 0,
-      "Brightness/magnitude related columns",
+      "Brightness/magnitude (only using pixel value/error) related columns",
       UI_GROUP_COLUMNS_BRIGHTNESS
     },
     {
-      "brightness",
-      UI_KEY_BRIGHTNESS,
+      "sum",
+      UI_KEY_SUM,
       0,
       0,
-      "Brightness (sum of pixel values).",
+      "Sum of pixel values in each label.",
       UI_GROUP_COLUMNS_BRIGHTNESS,
       0,
       GAL_TYPE_INVALID,
@@ -1088,11 +1088,11 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "brightnesserr",
-      UI_KEY_BRIGHTNESSERR,
+      "sumerr",
+      UI_KEY_SUMERR,
       0,
       0,
-      "Error (1-sigma) in measuring brightness.",
+      "Error (1-sigma) in measuring sum.",
       UI_GROUP_COLUMNS_BRIGHTNESS,
       0,
       GAL_TYPE_INVALID,
@@ -1102,8 +1102,8 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "clumpbrightness",
-      UI_KEY_CLUMPSBRIGHTNESS,
+      "clumpssum",
+      UI_KEY_CLUMPSSUM,
       0,
       0,
       "Brightness of clumps in an object.",
@@ -1116,11 +1116,11 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "brightnessnoriver",
-      UI_KEY_BRIGHTNESSNORIVER,
+      "sumnoriver",
+      UI_KEY_SUMNORIVER,
       0,
       0,
-      "Sky (not river) subtracted clump brightness.",
+      "Sky (not river) subtracted clump sum.",
       UI_GROUP_COLUMNS_BRIGHTNESS,
       0,
       GAL_TYPE_INVALID,
@@ -1247,20 +1247,6 @@ struct argp_option program_options[] =
       0,
       0,
       "Upper-limit mag. use other options to config.",
-      UI_GROUP_COLUMNS_BRIGHTNESS,
-      0,
-      GAL_TYPE_INVALID,
-      GAL_OPTIONS_RANGE_ANY,
-      GAL_OPTIONS_NOT_MANDATORY,
-      GAL_OPTIONS_NOT_SET,
-      ui_column_codes_ll
-    },
-    {
-      "upperlimitsb",
-      UI_KEY_UPPERLIMITSB,
-      0,
-      0,
-      "Upper-limit surface brightness (mag/arcsec^2).",
       UI_GROUP_COLUMNS_BRIGHTNESS,
       0,
       GAL_TYPE_INVALID,
@@ -1455,6 +1441,102 @@ struct argp_option program_options[] =
 
 
 
+    /* Brightness/pixel-value related columns. */
+    {
+      0, 0, 0, 0,
+      "Surface brightness related columns (all: mag/arcsec^2)",
+      UI_GROUP_COLUMNS_SURFACEBRIGHTNESS
+    },
+    {
+      "surfacebrightness",
+      UI_KEY_SURFACEBRIGHTNESS,
+      0,
+      0,
+      "Surface brightness.",
+      UI_GROUP_COLUMNS_SURFACEBRIGHTNESS,
+      0,
+      GAL_TYPE_INVALID,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
+      ui_column_codes_ll
+    },
+    {
+      "sberror",
+      UI_KEY_SBERROR,
+      0,
+      0,
+      "Surface brightness error.",
+      UI_GROUP_COLUMNS_SURFACEBRIGHTNESS,
+      0,
+      GAL_TYPE_INVALID,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
+      ui_column_codes_ll
+    },
+    {
+      "upperlimitsb",
+      UI_KEY_UPPERLIMITSB,
+      0,
+      0,
+      "Upper-limit surface brightness.",
+      UI_GROUP_COLUMNS_SURFACEBRIGHTNESS,
+      0,
+      GAL_TYPE_INVALID,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
+      ui_column_codes_ll
+    },
+    {
+      "sigclip-mean-sb",
+      UI_KEY_SIGCLIPMEANSB,
+      0,
+      0,
+      "Surface brightness of sigclip-mean (1 pix area).",
+      UI_GROUP_COLUMNS_SURFACEBRIGHTNESS,
+      0,
+      GAL_TYPE_INVALID,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
+      ui_column_codes_ll
+    },
+    {
+      "sigclip-mean-sb-err",
+      UI_KEY_SIGCLIPMEANSBERR,
+      0,
+      0,
+      "Error in SB of sigclip-mean (1 pix area).",
+      UI_GROUP_COLUMNS_SURFACEBRIGHTNESS,
+      0,
+      GAL_TYPE_INVALID,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
+      ui_column_codes_ll
+    },
+    {
+      "sigclip-std-sb",
+      UI_KEY_SIGCLIPSTDSB,
+      0,
+      0,
+      "Surface brightness of sigclip-std (1 pix area).",
+      UI_GROUP_COLUMNS_SURFACEBRIGHTNESS,
+      0,
+      GAL_TYPE_INVALID,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
+      ui_column_codes_ll
+    },
+
+
+
+
+
+
     /* Morphology/shape related columns. */
     {
       0, 0, 0, 0,
@@ -1524,34 +1606,6 @@ struct argp_option program_options[] =
       0,
       "Number of pixels with maximum value.",
       UI_GROUP_COLUMNS_POSITION_PIXEL,
-      0,
-      GAL_TYPE_INVALID,
-      GAL_OPTIONS_RANGE_ANY,
-      GAL_OPTIONS_NOT_MANDATORY,
-      GAL_OPTIONS_NOT_SET,
-      ui_column_codes_ll
-    },
-    {
-      "surfacebrightness",
-      UI_KEY_SURFACEBRIGHTNESS,
-      0,
-      0,
-      "Surface brightness (mag/arcsec^2).",
-      UI_GROUP_COLUMNS_MORPHOLOGY,
-      0,
-      GAL_TYPE_INVALID,
-      GAL_OPTIONS_RANGE_ANY,
-      GAL_OPTIONS_NOT_MANDATORY,
-      GAL_OPTIONS_NOT_SET,
-      ui_column_codes_ll
-    },
-    {
-      "sberror",
-      UI_KEY_SBERROR,
-      0,
-      0,
-      "Surface brightness error (mag/arcsec^2).",
-      UI_GROUP_COLUMNS_MORPHOLOGY,
       0,
       GAL_TYPE_INVALID,
       GAL_OPTIONS_RANGE_ANY,

@@ -74,7 +74,7 @@ enum option_keys_enum
   /* Only with long version. */
   UI_KEY_PSFINIMG        = 1000,
   UI_KEY_MAGATPEAK,
-  UI_KEY_MCOLISBRIGHTNESS,
+  UI_KEY_MCOLISSUM,
   UI_KEY_MCOLNOCUSTPROF,
   UI_KEY_MCOLNOCUSTIMG,
   UI_KEY_MODE,

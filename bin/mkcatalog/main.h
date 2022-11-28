@@ -233,7 +233,7 @@ struct mkcatalogparams
   float           sfmagnsigma;  /* Surface brightness multiple of sigma.*/
   float             sfmagarea;  /* Surface brightness area (arcsec^2).  */
   uint8_t            spectrum;  /* Object spectrum for 3D datasets.     */
-  uint8_t       inbetweenints;  /* Keep rows (integer ids) with no labels. */
+  uint8_t       inbetweenints;  /* Keep rows (integer ids) with no labs.*/
   double         sigmaclip[2];  /* Sigma clip column settings.          */
 
   char            *upmaskfile;  /* Name of upper limit mask file.       */

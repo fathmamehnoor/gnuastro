@@ -546,13 +546,13 @@ ui_read_check_only_options(struct mkprofparams *p)
               "coordinate columns");
     }
 
-  /* The zeropoint magnitude is only necessary when 'mcolisbrightness' is
+  /* The zeropoint magnitude is only necessary when 'mcolissum' is
      not called.  */
-  if( p->mcolisbrightness==0 && isnan(p->zeropoint) )
+  if( p->mcolissum==0 && isnan(p->zeropoint) )
     error(EXIT_FAILURE, 0, "no zeropoint magnitude given. A zeropoint "
-          "magnitude is necessary when '--mcolisbrightness' is not "
-          "called (i.e., when the contents of '--mcol' must be "
-          "interpretted as a magnitude, not brightness).");
+          "magnitude is necessary when '--mcolissum' is not called (i.e., "
+          "when the contents of '--mcol' must be interpretted as a "
+          "magnitude, not brightness).");
 
   /* The kernel should always be normalized to 1.0. So '--magatpeak' should
      never be called with '--kernel'. */
@@ -919,7 +919,7 @@ ui_read_cols_2d(struct mkprofparams *p)
 
   /* Make sure flat profiles aren't given a value of zero. */
   counter=0;
-  if( !p->cp.quiet && (p->mforflatpix || p->mcolisbrightness) )
+  if( !p->cp.quiet && (p->mforflatpix || p->mcolissum) )
     for(i=0;i<p->num;++i)
       if( p->m[i]==0.0 && ( p->f[i]==PROFILE_POINT
                             || p->f[i]==PROFILE_FLAT
@@ -1279,7 +1279,7 @@ ui_prepare_columns(struct mkprofparams *p)
       p->n[0]  = n;
       p->p1[0] = 0.0f;
       p->q1[0] = 1.0f;
-      p->m[0]  = p->mcolisbrightness ? 1.0f : p->zeropoint;
+      p->m[0]  = p->mcolissum ? 1.0f : p->zeropoint;
       p->t[0]  = t;
       if(p->ndim==3)
         {
@@ -1678,7 +1678,7 @@ ui_prepare_canvas(struct mkprofparams *p)
       if(p->out->name) free(p->out->name);
       gal_checkset_allocate_copy("Mock profiles", &p->out->name);
       if(p->out->unit==NULL)
-        gal_checkset_allocate_copy("Brightness", &p->out->unit);
+        gal_checkset_allocate_copy("counts", &p->out->unit);
     }
 }
 
