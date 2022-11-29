@@ -175,17 +175,16 @@ magdiff=$(foreach r,$(allrefs), \
 $(magdiff): $(tmpdir)/%-magdiff.fits: $(tmpdir)/%-cat.fits \
             $(tmpdir)/input-$$(word 2,$$(subst -, ,%))-cat.fits
 
-#	Find the matching objects in both catalogs. Note that the
-#	labels are the same so we don't need to use RA,Dec
+#	Find the matching objects in both catalogs.
 	ref=$(tmpdir)/$*-cat.fits
 	match=$(subst .fits,-match.fits,$@)
 	input=$(tmpdir)/input-$(word 2,$(subst -, ,$*))-cat.fits
 	astmatch $$ref --hdu=1 $$input --hdu2=1 \
-	         --ccol1=OBJ_ID --ccol2=OBJ_ID --aperture=0.2 \
+	         --ccol1=RA,DEC --ccol2=RA,DEC --aperture=0.2 \
 	         --outcols=aMAGNITUDE,bMAGNITUDE \
 	         --output=$$match
 
-#	Subtract the refrence catalog mag from input catalog's mag.
+#	Subtract the reference catalog mag from input catalog's mag.
 	asttable $$match -c1 -c'arith $$1 $$2 -' \
 	         --colmetadat=1,MAG-REF,f32,"Magnitude of reference." \
                  --colmetadat=2,MAG-DIFF,f32,"Magnitude diff with input." \

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Calculate the Zeropoint of the image based on the refrence images or
+# Calculate the Zeropoint of the image based on the reference images or
 # catalog.
 #
 # Run with '--help' for more information.
@@ -43,12 +43,12 @@ tmpdir=""
 catalog=""
 keeptmp=""
 keepzpap=""
-refrence=""
+reference=""
 aperarcsec=""
 cataloghdu=""
-refrencezp=""
+referencezp=""
 racolumn="RA"
-refrencehdu=""
+referencehdu=""
 deccolumn="DEC"
 version=@VERSION@magmg
 magnituderange=""
@@ -74,13 +74,13 @@ print_help() {
    cat <<EOF
 Usage: $scriptname [OPTIONS] image.fits
 
-Calculate the Zeropoint of the image based on the refrence images or
+Calculate the Zeropoint of the image based on the reference images or
 catalog.
 
 $scriptname options:
  Input:
   -h, --hdu=STR/INT            HDU/Extension name of number of the input file.
-  -c, --catalog=STR            Refrence catalog which based on it zeropoint of
+  -c, --catalog=STR            Reference catalog which based on it zeropoint of
                                input will be compute.
   -C, --cataloghdu=STR/INT     HDU/Extension name of number of the catalog.
   -r, --racolumn=STR           Right Ascension (R.A.) column name of the reference
@@ -92,7 +92,7 @@ $scriptname options:
   -R, --reference=STR[,STR]    Rerence image(s) which based on them zeropoint of
                                input will be compute.
   -z, --referencezp=FLT[,FLT]  Zeropoints of reference images.
-  -H, --referencehdu=STR/INT   HDU/Extension name of number of the refrence files.
+  -H, --referencehdu=STR/INT   HDU/Extension name of number of the reference files.
   -a, --aperarcsec=FLT[,FLT]   Aperure arcseconds.
   -K, --keepzpap               Keep zeropoint of each aperture in different extension.
 
