@@ -29854,25 +29854,26 @@ $ astfits zp/jplus-zeropoint.fits --hdu=1 --quiet \
           --keyvalue=ZPAPER,ZPVALUE,ZPSTD,MAGMIN,MAGMAX
 3.000000  26.431959  0.029635  16.400000  17.799999
 @end example
-
+7
 
 @node Zero point based on the reference catalog,  , Zero point based on the reference image, Photometric calibration of images by zero point
 @subsubsection Zero point based on the reference catalog
 
-In @ref{Zero point based on the reference image}, we saw how to use the @command{astscript-zeropoint} to estimate the zero point of one image based on a reference image.
+In @ref{Zero point based on the reference image}, we saw how to use the @command{astscript-zeropoint} for estimating the zero point of one image based on a reference image.
 Sometimes there isn't a reference image and we need to use a reference catalog.
 Fortunately, @command{astscript-zeropoint} can use the catalog instead of the image to find the zero point.
 
 To show this, let's download a catalog of SDSS in the area overlapped with cropped J-PLUS image in the top @ref{Zero point based on the reference image}.
 For more on Gnuastro's Query program, please see @ref{Query}.
+The columns of ID, RA, Dec and magnitude in the SDSS @emph{r} filter are called by their name in the SDSS catalog.
 
 @example
 $ astquery vizier --dataset=sdss12 --overlapwith=zp/jplus-crop.fits \
-                  -cRA_ICRS,DE_ICRS,rmag --output=zp/sdss-catalog.fits
+                  --column=objID,RA_ICRS,DE_ICRS,rmag \
+                  --output=zp/sdss-catalog.fits
 @end example
 
-As you can see, we select columns of RA and Dec and magnitude in the SDSS @emph{r} filter based on their name in the SDSS catalog.
-To visualize the position of the SDSS objects over the J-PLUS image, let's use @command{astscript-ds9-region} (for more details please see @ref{Query}) and ds9 with two commands below:
+To visualize the position of the SDSS objects over the J-PLUS image, let's use @command{astscript-ds9-region} (for more details please see @ref{SAO DS9 region files from table}) and ds9 with two commands below:
 
 @example
 $ astscript-ds9-region zp/sdss-catalog.fits --column=RA_ICRS,DE_ICRS \
@@ -29885,13 +29886,48 @@ To download the input image and understand how to use the @command{astscript-zer
 
 @example
 $ astscript-zeropoint zp/jplus-nc.fits --hdu=INPUT-NO-SKY \
-                      --catalog=zp/sdss1-catalog.fits \
+                      --catalog=zp/sdss-catalog.fits \
                       --cataloghdu=1 --racolumn=RA_ICRS \
                       --deccolumn=DE_ICRS --magcolumn=rmag \
                       --referencezp=22.5 --keepzpap \
                       --aperarcsec=2,3,4,5,6 \
-                      --magnituderange=16,18 \
                       --output=zp/jplus-zeropoint.fits
+@end example
+
+Please see the ZPSTD of zero points for each aperture at the first extension of the output file.
+The best ZPSTDs are related to aperture radii of 2 and 3 arcsec.
+At the same time, please open the output file by TOPCAT and plot all magnitude tables and especially those which are related to aperture sizes of 2 and 3 arcsec to estimate an accurate magnitude range.
+As you can see, the differences in magnitudes are around a straight line in the range of around 15.5 to 18 mag, however, there are many fluctuations in the plot.
+Although we use the sigma clipping in calculating zero points and so remove the most of outliers (for more details please see @ref{Sigma clipping}), nevertheless, it is good to limit the range of magnitude.
+We can select an area with lower fluctuations for example around 16.8 to 17.8 mag.
+
+@example
+$ astscript-zeropoint zp/jplus-nc.fits --hdu=INPUT-NO-SKY \
+                      --catalog=zp/sdss-catalog.fits \
+                      --cataloghdu=1 --racolumn=RA_ICRS \
+                      --deccolumn=DE_ICRS --magcolumn=rmag \
+                      --referencezp=22.5 --keepzpap \
+                      --aperarcsec=2,3,4,5,6 \
+                      --magnituderange=16.8,17.8 \
+                      --output=zp/jplus-zeropoint.fits
+@end example
+
+The best zero point is in the header of the output file that is estimated based on the minimum of ZPSTD.
+
+@example
+$ astfits zp/jplus-zeropoint.fits --hdu=1 --quiet \
+          --keyvalue=ZPAPER,ZPVALUE,ZPSTD,MAGMIN,MAGMAX
+2.000000  26.336220  0.029594  16.799999  17.799999
+@end example
+
+The @command{astscript-zeropoint} script selected an aperture radius of 2 arcsec as best, however, you can see that the result for an aperture size of 3 arcsec is acceptable, also.
+Actually, ZPSTDs for them have no significant difference.
+So it is good to check all of the results in the first extension of the output file before making a final decision.
+
+Finally, let's delete the zp directory to keep clean everything:
+
+@example
+$ rm -rf zp
 @end example
 
 
@@ -29964,7 +30000,7 @@ The number of this should be the same as the number of referene image(s).
 
 @item -H STR/INT
 @itemx --referencehdu=STR/INT
-HDU/Extension name of number of the refrence files.
+HDU/Extension name of number of the reference files.
 The number of this should be the same as the number of referene image(s).
 
 @item -a FLT,[FLT]
