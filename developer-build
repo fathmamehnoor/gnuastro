@@ -161,6 +161,12 @@ Options:
  -o, --prefix STR         Install architecture-independent files here.
                           Current value: $prefix
 
+     --confopts "STR"     Add extra configure options manually.
+                          Please note that all of the options must
+                          be wrapped between double quotations '"',
+                          so that the script does not confuse them
+                          with 'developer-build' options.
+
  -V, --version            Print current version to be used in absolute
                           build directory name.
                           Current value: $version
@@ -228,6 +234,15 @@ while [[ $# -gt 0 ]]
 do
     key="$1"
     case $key in
+        --confopts)
+            confopts="$2"
+            if [ x"$confopts" = x ]; then
+                echo "No argument given to '--confopts'."
+                exit 1;
+            fi
+            shift # past argument
+            shift # past value
+            ;;
         -o|--prefix)
             prefix="$2"
             if [ x"$prefix" = x ]; then
@@ -483,10 +498,10 @@ if [ ! -f Makefile ]; then
 
     # Set the proper flags.
     if [ x$debug = x1 ]; then
-        confopts="--enable-debug"
+        confopts="$confopts --enable-debug"
     fi
     if [ x$valgrind = x1 ]; then
-        confopts="--enable-check-with-valgrind"
+        confopts="$confopts --enable-check-with-valgrind"
     fi
 
     # Run the configure script.
