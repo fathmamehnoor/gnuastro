@@ -11827,7 +11827,7 @@ $ astfits --write=MYKEY1,20.00,"An example keyword" --write=MYKEY2,fd
 
 ## Inspect individual pixel area taken based on its WCS (in degree^2).
 ## Then convert the area to arcsec^2 with the Arithmetic program.
-$ astfits input.fits --pixareaonwcs -o pixarea.fits
+$ astfits input.fits --pixelareaonwcs -o pixarea.fits
 $ astarithmetic pixarea.fits 3600 3600 x x -o pixarea_arcsec2.fits
 @end example
 
@@ -12533,7 +12533,7 @@ Such images can be useful in understanding the underlying pixel grid with the sa
 After all, nothing beats visual inspection with tools you are familiar with.
 
 @table @code
-@item --pixareaonwcs
+@item --pixelareaonwcs
 Create a meta-image where each pixel's value shows its area in the WCS units (usually degrees squared).
 The output is therefore the same size as the input.
 
@@ -12550,11 +12550,11 @@ You may observe gradients after warping and can check if they caused by the dist
 Such gradients can happen due to distortions because the detectors pixels are measuring photons from different areas on the sky (or the type of projection you're seeing).
 This effect is more pronounced in images covering larger portions of the sky, for instance, the TESS images@footnote{@url{https://www.nasa.gov/tess-transiting-exoplanet-survey-satellite}}.
 
-Here is an example usage of the @option{--pixareaonwcs} option:
+Here is an example usage of the @option{--pixelareaonwcs} option:
 
 @example
 # Check the area each 'input.fits' pixel takes in sky
-$ astfits input.fits -h1 --pixareaonwcs -o pixarea.fits
+$ astfits input.fits -h1 --pixelareaonwcs -o pixarea.fits
 
 # Convert each pixel's area to arcsec^2
 $ astarithmetic pixarea.fits 3600 3600 x x \
@@ -12567,7 +12567,7 @@ $ astarithmetic pixarea.fits $pixarea / -o pixarea_rel.fits
 @end example
 
 @item --edgesampling=INT
-Extra sampling along the pixel edges for @option{--pixareaonwcs}.
+Extra sampling along the pixel edges for @option{--pixelareaonwcs}.
 The default value is 0, meaning that only the pixel vertices are used.
 Values greater than zero improve the accuracy in the expense of greater time and memory consumption.
 With that said, the default value of zero usually has a good precision unless the given image has extreme distortions that produce irregular pixel shapes.
@@ -20072,7 +20072,7 @@ However, deep astronomical data are usually built by several exposures (images),
 Each image is also taken by (slightly) shifting the telescope compared to the previous exposure.
 This shift is known as ``dithering''.
 We do this for many reasons (for example tracking errors in the telescope, high background values, removing the effect of bad pixels or those affected by cosmic rays, robust flat pattern measurement, etc.@footnote{E.g., @url{https://www.stsci.edu/hst/instrumentation/wfc3/proposing/dithering-strategies}}).
-One of those ``etc.'' reasons is to correct for the Moir@'e pattern in the final coadded deep image.
+One of those ``etc.'' reasons is to correct the Moir@'e pattern in the final coadded deep image.
 
 The Moir@'e pattern is fixed to the grid of the image, slightly shifting the telescope will result in the pattern appearing in different parts of the sky.
 Therefore when we later stack, or coadd, the separate exposures into a deep image, the Moir@'e pattern will be decreased there.
@@ -20185,7 +20185,7 @@ Based on the dithering pattern, you want to select the increased resolution such
 @node Invoking astwarp,  , Moire pattern and its correction, Warp
 @subsection Invoking Warp
 
-Warp an input image into a new pixel grid by pixel mixing (see @ref{Resampling}).
+Warp will warp an input image into a new pixel grid by pixel mixing (see @ref{Resampling}).
 Without any options, Warp will remove any non-linear distortions from the image and align the output pixel coordinates to its WCS coordinates.
 Any homographic warp (for example, scaling, rotation, translation, projection, see @ref{Linear warping basics}) can also be done by calling the relevant option explicitly.
 The general template for invoking Warp is:
@@ -20314,7 +20314,7 @@ See the description of @option{--gridfile} below for more.
 @cindex Aligning an image
 WCS coordinates of the center of the central pixel of the output image.
 Since a central pixel is only defined with an odd number of pixels along both dimensions, the output will always have an odd number of pixels.
-When @option{--center} or @option{--gridfile} aren't given, the output will have have the same central WCS coordinate as the input.
+When @option{--center} or @option{--gridfile} aren't given, the output will have the same central WCS coordinate as the input.
 
 Usually, the WCS coordinates are Right Ascension and Declination (when the first three characters of @code{CTYPE1} and @code{CTYPE2} are respectively @code{RA-} and @code{DEC}).
 For more on the @code{CTYPEi} keyword values, see @code{--ctype}.
@@ -20519,14 +20519,14 @@ The HDU/extension of the reference WCS file specified with option @option{--wcsf
 Number of extra samplings along the edge of a pixel.
 By default the value is @code{0} (the output pixel's polygon over the input will be a quadrilateral (a polygon with four edges/vertices).
 
-Warp uses pixel mixing to derive the output pixel values, for a complete introduction.
-See @ref{Resampling}, and in particular its later part on distortions.
+Warp uses pixel mixing to derive the output pixel values.
+For a complete introduction, see @ref{Resampling}, and in particular its later part on distortions.
 To account for this possible curvature due to distortion, you can use this option.
 For example, @option{--edgesampling=1} will add one extra vertice in the middle of each edge of the output pixel, producing an 8-vertice polygon.
 Similarly, @option{--edgesampling=5} will put 5 extra vertices along each edge, thus sampling the shape (and possible curvature) of the output pixel over an input pixel with @mymath{4+5\times4=24} vertice polygon.
 Since the polygon clipping will happen for every output pixel, a higher value to this option can significantly reduce the running speed and increase the RAM usage of Warp; so use it with caution: in most cases the default @option{--edgesampling=0} is sufficient.
 
-To visually inspect the curvature effect on pixel area of the input image, see option @option{--pixareaonwcs} in @ref{Pixel information images}.
+To visually inspect the curvature effect on pixel area of the input image, see option @option{--pixelareaonwcs} in @ref{Pixel information images}.
 
 @item --checkmaxfrac
 Check each output pixel's maximum coverage on the input data and append as the `@code{MAX-FRAC}' HDU/extension to the output aligned image.
