@@ -29878,7 +29878,7 @@ To visualize the position of the SDSS objects over the J-PLUS image, let's use @
 @example
 $ astscript-ds9-region zp/sdss-catalog.fits --column=RA_ICRS,DE_ICRS \
                        --color=red --width=3 --output=zp/sdss.reg
-$ ds9 zp/jplus-nc.fits[INPUT-NO-SKY] -regions load zp/sdss.reg
+$ ds9 zp/jplus-nc.fits[INPUT-NO-SKY] -regions load zp/sdss.reg -scale zscale
 @end example
 
 Now, we are ready to estimate the zero point of the J-PLUS image based on the SDSS catalog.
@@ -29894,8 +29894,8 @@ $ astscript-zeropoint zp/jplus-nc.fits --hdu=INPUT-NO-SKY \
                       --output=zp/jplus-zeropoint.fits
 @end example
 
-Please see the ZPSTD of zero points for each aperture at the first extension of the output file.
-The best ZPSTDs are related to aperture radii of 2 and 3 arcsec.
+Please see the @code{ZPSTD} of zero points for each aperture at the first extension of the output file.
+The best @code{ZPSTD}s are related to aperture radii of 2 and 3 arcsec.
 At the same time, please open the output file by TOPCAT and plot all magnitude tables and especially those which are related to aperture sizes of 2 and 3 arcsec to estimate an accurate magnitude range.
 As you can see, the differences in magnitudes are around a straight line in the range of around 15.5 to 18 mag, however, there are many fluctuations in the plot.
 Although we use the sigma clipping in calculating zero points and so remove the most of outliers (for more details please see @ref{Sigma clipping}), nevertheless, it is good to limit the range of magnitude.
@@ -29912,7 +29912,7 @@ $ astscript-zeropoint zp/jplus-nc.fits --hdu=INPUT-NO-SKY \
                       --output=zp/jplus-zeropoint.fits
 @end example
 
-The best zero point is in the header of the output file that is estimated based on the minimum of ZPSTD.
+The best zero point is in the header of the output file that is estimated based on the minimum of @code{ZPSTD}.
 
 @example
 $ astfits zp/jplus-zeropoint.fits --hdu=1 --quiet \
@@ -29921,7 +29921,7 @@ $ astfits zp/jplus-zeropoint.fits --hdu=1 --quiet \
 @end example
 
 The @command{astscript-zeropoint} script selected an aperture radius of 2 arcsec as best, however, you can see that the result for an aperture size of 3 arcsec is acceptable, also.
-Actually, ZPSTDs for them have no significant difference.
+Actually, @code{ZPSTD}s for them have no significant difference.
 So it is good to check all of the results in the first extension of the output file before making a final decision.
 
 Finally, let's delete the zp directory to keep clean everything:
