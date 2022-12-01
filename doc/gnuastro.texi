@@ -629,16 +629,11 @@ MakeCatalog
 
 * Detection and catalog production::  Discussing why/how to treat these separately
 * Brightness flux magnitude::   More on Magnitudes, surface brightness, etc.
-* Photometric calibraion zero point:: Calculating zeropoint of images
 * Quantifying measurement limits::  For comparing different catalogs.
 * Measuring elliptical parameters::  Estimating elliptical parameters.
 * Adding new columns to MakeCatalog::  How to add new columns.
 * MakeCatalog measurements::    List of all the measurements/columns by MakeCatalog.
 * Invoking astmkcatalog::       Options and arguments to MakeCatalog.
-
-Photometric calibration zero point
-* Zero point based on the reference image
-* Zero point based on the reference catalog
 
 Quantifying measurement limits
 
@@ -734,7 +729,7 @@ Installed scripts
 * Generate radial profile::     Radial profile of an object in an image.
 * SAO DS9 region files from table::  Create ds9 region file from a table.
 * Viewing FITS file contents with DS9 or TOPCAT::  Open DS9 (images/cubes) or TOPCAT (tables).
-* Zero point estimation::        Zero point of an image from reference catalog or image(s).
+* Zero point estimation::       Zero point of an image from reference catalog or image(s).
 * PSF construction and subtraction::  Set of scripts to create extended PSF of an image.
 
 Sort FITS files by night
@@ -752,6 +747,15 @@ SAO DS9 region files from table
 Viewing FITS file contents with DS9 or TOPCAT
 
 * Invoking astscript-fits-view::  How to call this script
+
+Zero point estimation
+
+* Photometric calibration of images by zero point::  Tutorial of zero point estimation
+* Invoking astscript-zeropoint::  How to call the script
+
+Photometric calibration of images by zero point
+
+* Zero point based on the reference catalog::  Using SDSS catalog to find J-PLUS zero point
 
 PSF construction and subtraction
 
@@ -24434,7 +24438,7 @@ It might even be so intertwined with its processing, that adding new columns mig
 
 
 
-@node Brightness flux magnitude, Photometric calibration of images with finding zeropoint, Quantifying measurement limits, Detection and catalog production, MakeCatalog
+@node Brightness flux magnitude, Quantifying measurement limits, Detection and catalog production, MakeCatalog
 @subsection Brightness, Flux, Magnitude and Surface brightness
 
 @cindex ADU
@@ -24613,7 +24617,7 @@ If you need to warp or convolve the image, do it @emph{before} the conversion.
 
 
 
-@node Quantifying measurement limits, Measuring elliptical parameters, Adding new columns to MakeCatalog, Invoking MakeCatalog
+@node Quantifying measurement limits, Measuring elliptical parameters, Brightness flux magnitude, MakeCatalog
 @subsection Quantifying measurement limits
 
 @cindex Depth
@@ -28738,7 +28742,7 @@ If you do confront such strange errors, please submit a bug report so we fix it 
 * Generate radial profile::     Radial profile of an object in an image.
 * SAO DS9 region files from table::  Create ds9 region file from a table.
 * Viewing FITS file contents with DS9 or TOPCAT::  Open DS9 (images/cubes) or TOPCAT (tables).
-* Zero point estimation::        Zero point of an image from reference catalog or image(s).
+* Zero point estimation::       Zero point of an image from reference catalog or image(s).
 * PSF construction and subtraction::  Set of scripts to create extended PSF of an image.
 @end menu
 
@@ -29434,7 +29438,7 @@ In the opened window, click on ``Command Line Options''.
 
 
 
-@node Viewing FITS file contents with DS9 or TOPCAT, Zeropoint estimation, SAO DS9 region files from table, Installed scripts
+@node Viewing FITS file contents with DS9 or TOPCAT, Zero point estimation, SAO DS9 region files from table, Installed scripts
 @section Viewing FITS file contents with DS9 or TOPCAT
 
 @cindex Multi-Extension FITS
@@ -29619,7 +29623,12 @@ Gnuastro’s @command{astscript-zeropoint} script is created to obtain zero poin
 All the details of this script are explaines in section @ref{Photometric calibration of images by zero point}, @ref{Zero point based on the reference image} and @ref{Zero point based on the reference catalog}.
 
 
-@node Photometric calibration of images by zero point, Quantifying measurement limits, Measuring elliptical parameters, Brightness flux magnitude, MakeCatalog
+@menu
+* Photometric calibration of images by zero point::  Tutorial of zero point estimation
+* Invoking astscript-zeropoint::  How to call the script
+@end menu
+
+@node Photometric calibration of images by zero point, Invoking astscript-zeropoint, Zero point estimation, Zero point estimation
 @subsection Photometric calibration of images by zero point
 
 As described in @ref{Brightness flux magnitude}, to convert astronomical data pixel values from counts to energy/time (physical units such as Janskys), we need to know the zero point of the image.
@@ -29648,13 +29657,17 @@ Here we have a tutorial on how to use @command{astscript-zeropoint}.
 This tutorial is divided into two parts to cover both using image or catalog as reference data.
 
 
-@node Zero point based on the reference image, Zero point based on the reference catalog
-@subsubsection Zero point based on the reference image
+@menu
+* Zero point based on the reference catalog::  Using SDSS catalog to find J-PLUS zero point
+@end menu
+
+@node Zero point based on the reference image, Zero point based on the reference catalog, Photometric calibration of images by zero point, Photometric calibration of images by zero point
+	    @subsubsection Zero point based on the reference image
 
 To understand how to use the @command{astscript-zeropoint}, we find the zero point for a single exposure image from the @url{https://www.j-plus.es,J-PLUS survey} based on an SDSS reference image @url{http://www.sdss.org/, Sloan Digital Sky Survey} with a zero point of 22.5 mag.
 
 First, let’s create a directory named @file{zp}, to keep things clean.
-Then with the commands below, you can download an image such as one used in @ref{Moir@'e pattern and its correction} from the J-PLUS dataset in the r (SDSS) band and then crop the center part of the image to speed up the analysis in this tutorial.
+Then with the commands below, you can download an image such as one used in @ref{Moire pattern and its correction} from the J-PLUS dataset in the r (SDSS) band and then crop the center part of the image to speed up the analysis in this tutorial.
 
 @example
 $ mkdir zp
@@ -29840,10 +29853,10 @@ $ astfits zp/jplus-zeropoint.fits --hdu=1 --quiet \
 @end example
 
 
-@node Zero point based on the reference catalog
+@node Zero point based on the reference catalog,  , Zero point based on the reference image, Photometric calibration of images by zero point
 @subsubsection Zero point based on the reference catalog
 
-@node Invoking astscript-zeropoint
+@node Invoking astscript-zeropoint,  , Photometric calibration of images by zero point, Zero point estimation
 @subsection Invoking astscript-zeropoint
 This installed script will calculate the zeropoint @ref{Brightness flux magnitude} and @ref{Zero point estimation} to calibrate the image magnitude to the standard magnitude.
 It will obtained the zeropoint of image based on the image(s) or catalog(s) which their magnitude are known.
@@ -29945,7 +29958,7 @@ The output name of the final file contain the best aperture and the zeropoint.
 @end table
 
 
-@node PSF construction and subtraction,  , Zeropoint estimation, Installed scripts
+@node PSF construction and subtraction,  , Zero point estimation, Installed scripts
 @section PSF construction and subtraction
 
 The point spread function (PSF) describes how the light of a point-like source is affected by several optical scattering effects (atmosphere, telescope, instrument, etc.).
@@ -42589,7 +42602,7 @@ $ ./pgdemoXX
 
 
 @node GNU Free Doc License, GNU General Public License, Other useful software, Top
-@appendix GNU Free Doc. License
+@appendix GNU Free Doc License
 
 @cindex GNU Free Documentation License
 @include fdl.texi
