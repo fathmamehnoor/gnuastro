@@ -22530,7 +22530,7 @@ You can use this for default values on datacubes.
 For example, if you installed Gnuastro with the prefix @file{/usr/local} (the default location, see @ref{Installation directory}), you can benefit from this configuration file by running NoiseChisel like the example below.
 
 @example
-$ astnoisechisel cube.fits                                      \
+$ astnoisechisel cube.fits \
                  --config=/usr/local/etc/astnoisechisel-3d.conf
 @end example
 
@@ -22542,7 +22542,7 @@ To further simplify the process, you can define a shell alias in any startup fil
 Assuming that you installed Gnuastro in @file{/usr/local}, you can add this line to the startup file (you may put it all in one line, it is broken into two lines here for fitting within page limits).
 
 @example
-alias astnoisechisel-3d="astnoisechisel
+alias astnoisechisel-3d="astnoisechisel \
                     --config=/usr/local/etc/astnoisechisel-3d.conf"
 @end example
 
