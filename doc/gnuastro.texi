@@ -8774,13 +8774,15 @@ libjpeg is an optional dependency, with this option, Gnuastro will ignore any po
 Build Gnuastro without libtiff (for reading/writing to TIFF files), see @ref{Optional dependencies}.
 libtiff is an optional dependency, with this option, Gnuastro will ignore any possibly existing libtiff that may already be on the system.
 
-@item --without-python
+@item --with-python
 @cindex PyPI
 @cindex Python
-Don't build the Python interface within Gnuastro's dynamic library.
+Build the Python interface within Gnuastro's dynamic library.
 This interface can be used for easy communication with Python wrappers (for example, the pyGnuastro package).
-However upon installing the pyGnuastro package from PyPI, the correct configuration of the Gnuastro Library(with the python interface) is already packaged with it.
-The Python interface is only necessary if you want to build pyGnuastro from source.
+
+When you install the pyGnuastro package from PyPI, the correct configuration of the Gnuastro Library is already packaged with it (with the Python interface) and that is independent of your Gnuastro installation.
+The Python interface is only necessary if you want to build pyGnuastro from source (which is only necessary for developers).
+Therefore it has to be explicitly activated at configure time with this option.
 For more on the interface functions, see @ref{Python interface}.
 
 @end vtable
@@ -37945,6 +37947,13 @@ Python itself is written in C, which is the same language that Gnuastro is writt
 Hence Gnuastro's library can be directly used in Python wrappers.
 The functions in this section provide some low-level features to simplify the creation of Python modules that may want to use Gnuastro's advanced and powerful features directly.
 To see why Gnuastro was written in C, please see @ref{Why C}.
+
+@cartouche
+@noindent
+@strong{Python interface is not built by default:} to have the features described in this section, Gnuastro's library needs to be built with the @option{--with-python} configuration option.
+For more, on this configuration option, see @ref{Gnuastro configure options}.
+To see if the Gnuastro library that you are linking with has these features, you can check the value of @code{GAL_CONFIG_HAVE_PYTHON} macro, see @ref{Configuration information}.
+@end cartouche
 
 The Gnuastro Python Package is built using CPython.
 This entails using Python wrappers around currently existing Gnuastro library functions to build @url{https://docs.python.org/3/extending/extending.html#, Python Extension Modules}.

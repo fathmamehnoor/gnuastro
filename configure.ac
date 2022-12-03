@@ -766,16 +766,18 @@ AS_IF([test "x$has_topcat" = "xno"], [anywarnings=yes])
 # NOTE: If using a venv then set the $PYTHON variable to point to the
 #       python3 command of the venv before running ./configure to perform
 #       all the following checks in the venv.
-py_check_cmd='from sysconfig import get_paths; \
-              print(get_paths().get("include"))'
-np_check_cmd='from numpy import get_include; \
-              print(get_include())'
 AC_ARG_WITH([python],
-            [AS_HELP_STRING([--without-python],
+            [AS_HELP_STRING([--with-python],
                             [disable support for python])],
-            [], [with_python=yes])
+            [], [with_python=no])
 AS_IF([test "x$with_python" != xno],
       [
+        # Variables to simplify commands below.
+        py_check_cmd='from sysconfig import get_paths; \
+                      print(get_paths().get("include"))'
+        np_check_cmd='from numpy import get_include; \
+                      print(get_include())'
+
         # Checks if user has a Python version>=3.0
         AM_PATH_PYTHON(3.0,,[:])
         AS_IF([test "$PYTHON" != :],
@@ -794,7 +796,7 @@ AS_IF([test "x$with_python" != xno],
         AC_SUBST(PYTHON_INCLUDE_DIR, [$python_includedir])
       ])
 AS_IF([test "x$numpy_includedir" = x],
-      [has_numpy=0; anywarnings=yes;], [has_numpy=1;])
+      [has_numpy=0], [has_numpy=1;])
 AC_SUBST(HAVE_PYTHON, [$has_numpy])
 AM_CONDITIONAL([COND_NUMPY], [test "x$numpy_includedir" != x])
 
@@ -838,8 +840,8 @@ AS_IF([test "x$missing_mandatory" = "xyes"],
                       [ AS_ECHO([" - Missing Libgit2: https://libgit2.org"])                      ])
                 AS_IF([test "x$has_curl" = "x0"],
                       [ AS_ECHO([" - Missing cURL: https://curl.haxx.se"])                        ])
-                AS_IF([test "x$has_numpy" = "x0"],
-                      [ AS_ECHO([" - Missing Numpy (for Python wrappers): https://numpy.org"])    ])
+dnl             AS_IF([test "x$has_numpy" = "x0"],
+dnl                   [ AS_ECHO([" - Missing Numpy (for Python wrappers): https://numpy.org"])    ])
                 AS_IF([test "x$has_ds9" = "xno"],
                       [ AS_ECHO([" - Missing SAO DS9: https://sites.google.com/cfa.harvard.edu/saoimageds9"]) ])
                 AS_IF([test "x$has_topcat" = "xno"],
@@ -1352,16 +1354,16 @@ AS_IF([test x$enable_guide_message = xyes],
                AS_ECHO(["    to improve your Makefiles for data analysis workflows."])
                AS_ECHO([]) ])
 
-        AS_IF([test "x$has_numpy" = "x0"],
-              [dependency_notice=yes
-               AS_ECHO(["  - Numpy (https://numpy.org) headers couldn't be found within a "])
-               AS_ECHO(["    Python3 installation. If available, Gnuastro's library will be "])
-               AS_ECHO(["    installed with some functions that can help Python wrappers "])
-               AS_ECHO(["    communicate with Gnuastro's library (for example pyGnuastro)."])
-               AS_ECHO(["    If you are within a virtual environment, and Python3 is"])
-               AS_ECHO(["    available there, please set the 'PYTHON' environment variable"])
-               AS_ECHO(["    to the Python3 executable's absolute location."])
-               AS_ECHO([]) ])
+dnl    AS_IF([test "x$has_numpy" = "x0"],
+dnl          [dependency_notice=yes
+dnl           AS_ECHO(["  - Numpy (https://numpy.org) headers couldn't be found within a "])
+dnl           AS_ECHO(["    Python3 installation. If available, Gnuastro's library will be "])
+dnl           AS_ECHO(["    installed with some functions that can help Python wrappers "])
+dnl           AS_ECHO(["    communicate with Gnuastro's library (for example pyGnuastro)."])
+dnl           AS_ECHO(["    If you are within a virtual environment, and Python3 is"])
+dnl           AS_ECHO(["    available there, please set the 'PYTHON' environment variable"])
+dnl           AS_ECHO(["    to the Python3 executable's absolute location."])
+dnl           AS_ECHO([]) ])
 
         AS_IF([test "x$has_ds9" = "xno"],
               [dependency_notice=yes

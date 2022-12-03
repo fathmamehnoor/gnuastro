@@ -2,6 +2,7 @@ Alphabetically ordered list to acknowledge in the next release.
 
 Alejandro Serrano Borlaff
 Sepideh Eskandarlou
+Zohreh Ghaffari
 Giulia Golini
 Samane Raji
 Elham Saremi
