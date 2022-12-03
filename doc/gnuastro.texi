@@ -16473,7 +16473,23 @@ $ astarithmetic a.fits b.fits + c.fits + -osum.fits
 $ astarithmetic a.fits b.fits c.fits + + -osum.fits
 @end example
 
-However, this can get annoying/buggy if you have more than three or four images, in that case, a better way to sum data is to use the @code{sum} operator (which also ignores blank pixels), that is discussed below.
+However, this can get annoying/buggy if you have more than three or four images, in that case, a better way to sum data is to use the @code{sum} operator (which also ignores blank pixels), that is discussed in @ref{Stacking operators}.
+
+@cartouche
+@noindent
+@strong{NaN values:} if a single argument of @code{+} has a NaN value, the output will also be NaN.
+To ignore NaN values, use the @code{sum} operator of @ref{Stacking operators}.
+You can see the difference with the two commands below:
+
+@example
+$ astarithmetic --quiet 1.0 2.0 3.0 nan + + +
+nan
+$ astarithmetic --quiet 1.0 2.0 3.0 nan 4 sum
+6.000000e+00
+@end example
+
+The same goes for all the @ref{Stacking operators} so if your data may include NaN pixels, be sure to use the stacking operators.
+@end cartouche
 
 @item -
 Subtraction, so ``@command{4 5 -}'' is equivalent to @mymath{4-5}.
