@@ -26578,8 +26578,10 @@ The interval's maximum radius.
 The value to be used for pixels within the given interval (including NaN/blank).
 @end table
 
-For example, let's assume you have the radial profile below in a file called @file{radial.txt}.
-The first column is the larger interval radius (in units of pixels) and the second column is the value in that interval:
+If you are using Gnuastro's radial profile script to build the profile, you can use its @option{--radinterval} option to make the properly formatted input for a custom table in MakeProfiles.
+For more, see the description of @option{--radinterval}, and its example usage in @ref{Invoking astscript-radial-profile}.
+
+For example, let's assume you have the radial profile below in a file called @file{radial.txt}, and that the first column is the @emph{larger} interval radius (in units of pixels) and the second column is the value in that interval:
 
 @example
 1    100
@@ -26592,7 +26594,7 @@ The first column is the larger interval radius (in units of pixels) and the seco
 @end example
 
 @noindent
-You can construct the table to give to @option{--customtable} with the command below (using Gnuastro's @ref{Column arithmetic}).
+In this case, you can construct the table to give to @option{--customtable} with the command below (using Gnuastro's @ref{Column arithmetic}).
 
 @example
 asttable radial.txt -c'arith $1 1 -' -c1,2 -ocustom.fits
