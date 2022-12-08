@@ -26559,7 +26559,7 @@ Also note that in such cases, besides de-convolution, you will have to set @opti
 
 @item --customtable FITS/TXT
 The filename of the table to use in the custom radial profiles (see description of @option{--fcol} in @ref{MakeProfiles catalog}.
-This can be a plain-text table, or FITS table, see @ref{Tables}, if it is a FITS table, you can use @option{--customtablehdu} to specify which HDU should be used (described below).
+This can be a plain-text table, or FITS table, see @ref{Recognized table formats}, if it is a FITS table, you can use @option{--customtablehdu} to specify which HDU should be used (described below).
 
 A custom radial profile can have any value you want for a given radial profile (including NaN/blank values).
 Each interval is defined by its minimum (inclusive) and maximum (exclusive) radius, when a pixel center falls within a radius interval, the value specified for that interval will be used.
@@ -26567,7 +26567,7 @@ If a pixel is not in the given intervals, a value of 0.0 will be used for that p
 
 The table should have 3 columns as shown below.
 If the intervals are contiguous (the maximum value of the previous interval is equal to the minimum value of an interval) and the intervals all have the same size (difference between minimum and maximum values) the creation of these profiles will be fast.
-However, if the intervals are not sorted and contiguous, Makeprofiles will parse the intervals from the top of the table and use the first interval that contains the pixel center.
+However, if the intervals are not sorted and contiguous, Makeprofiles will parse the intervals from the top of the table and use the first interval that contains the pixel center (this may slow it down).
 
 @table @asis
 @item Column 1:
@@ -28325,6 +28325,80 @@ By default, it is @option{--mode=img}.
 Maximum radius for the radial profile (in pixels).
 By default, the radial profile will be computed up to a radial distance equal to the maximum radius that fits into the image (assuming circular shape).
 
+@item -P INT
+@itemx --precision=INT
+The precision (number of digits after the decimal point) in resolving the radius.
+The default value is @option{--precision=0} (or @option{-P0}), and the value cannot be larger than @option{6}.
+A higher precision is primarily useful when the very central few pixels are important for you.
+A larger precision will over-resolve larger radial regions, causing scatter to significantly affect the measurements.
+
+For example, in the command below, we will generate the radial profile of an imaginary source (at RA,DEC of 1.23,4.567) and check the output without setting a precision:
+
+@example
+$ astscript-radial-profile image.fits --center=1.23,4.567 \
+            --mode=wcs --measure=mean,area --rmax=10 \
+            --output=radial.fits --quiet
+$ asttable radial.fits --head=10 -ffixed -p4
+0.0000        0.0139        1
+1.0000        0.0048        8
+2.0000        0.0023        16
+3.0000        0.0015        20
+4.0000        0.0011        24
+5.0000        0.0008        40
+6.0000        0.0006        36
+7.0000        0.0005        48
+8.0000        0.0004        56
+9.0000        0.0003        56
+@end example
+
+Let's repeat the command above, but use a precision of 3 to resolve more finer details of the radial profile, while only printing the top 10 rows of the profile:
+
+@example
+$ astscript-radial-profile image.fits --center=1.23,4.567 \
+            --mode=wcs --measure=mean,area --rmax=10 \
+            --output=radial.fits --quiet
+$ asttable radial.fits --head=10 -ffixed -p4
+0.0000        0.0139        1
+1.0000        0.0056        4
+1.4140        0.0040        4
+2.0000        0.0027        4
+2.2360        0.0024        8
+2.8280        0.0018        4
+3.0000        0.0017        4
+3.1620        0.0016        8
+3.6050        0.0013        8
+4.0000        0.0011        4
+@end example
+
+Do you see how how many more radii have been added?
+Between 1.0 and 2.0, we now have one extra radius, between 2.0 to 3.0, we have two new radii and so on.
+If you go to larger and larger radii, you will notice that they get resolved into many sub-components and the number of pixels used in each measurement will not be significant (you can already see that in the comparison above).
+This has two problems:
+1. statistically, the scatter in larger radii (where the signal-to-noise ratio is usually low will make it hard to interpret the profile.
+2. technically, the output table will have many more rows!
+
+@cartouche
+@noindent
+@strong{Use higher precision only for small radii:} If you want to look at the whole profile (or the outer parts!), don't set the precision, the default mode is usually more than enough!
+But when you are targetting the very central few pixels (usually less than a pixel radius of 5), use a higher precision.
+@end cartouche
+
+@item -v INT
+@itemx --oversample=INT
+Oversample the input dataset to the fraction given to this option.
+Therefore if you set @option{--rmax=20} for example, and @option{--oversample=5}, your output will have 100 rows (without @option{--oversample} it will only have 20 rows).
+Unless the object is heavily undersampled (the pixels are larger than the actual object), this method provides a much more accurate result and there are sufficient number of pixels to get the profile accurately.
+
+Due to the descrete nature of pixels, if you use this option to oversample your profile, set @option{--precision=0}.
+Otherwise, your profile will become step-like (with several radii having a single value).
+
+@item -u INT
+@itemx --undersample=INT
+Undersample the input dataset by the number given to this option.
+This option is for considering larger apertures than the original pixel size (aperture size is equal to 1 pixel).
+For example, if a radial profile computed by default has 100 different radii (apertures of 1 pixel width), by considering @option{--undersample=2} the radial profile will be computed over apertures of 2 pixels, so the final radial profile will have 50 different radii.
+This option is good to measure over a larger number of pixels to improve the measurement.
+
 @item -Q FLT
 @itemx --axisratio=FLT
 The axis ratio of the apertures (minor axis divided by the major axis in a 2D ellipse).
@@ -28413,19 +28487,6 @@ By default, such pixels are not considered (when this script crops the necessary
 The long format of this option is identical to a similarly named option in Crop (see @ref{Invoking astcrop}).
 When this option is called, it is passed directly to Crop, therefore the zero-valued pixels are not considered as blank and used in the profile creation.
 
-@item -v INT
-@itemx --oversample=INT
-Oversample the input dataset to the fraction given to this option.
-Therefore if you set @option{--rmax=20} for example, and @option{--oversample=5}, your output will have 100 rows (without @option{--oversample} it will only have 20 rows).
-Unless the object is heavily undersampled (the pixels are larger than the actual object), this method provides a much more accurate result and there are sufficient number of pixels to get the profile accurately.
-
-@item -u INT
-@itemx --undersample=INT
-Undersample the input dataset by the number given to this option.
-This option is for considering larger apertures than the original pixel size (aperture size is equal to 1 pixel).
-For example, if a radial profile computed by default has 100 different radii (apertures of 1 pixel width), by considering @option{--undersample=2} the radial profile will be computed over apertures of 2 pixels, so the final radial profile will have 50 different radii.
-This option is good to measure over a larger number of pixels to improve the measurement.
-
 @item -i FLT/STR
 @itemx --instd=FLT/STR
 Sky standard deviation as a single number (FLT) or as the filename (STR) containing the image with the std value for each pixel (the HDU within the file should be given to the @option{--stdhdu} option mentioned below).
@@ -28451,6 +28512,39 @@ You can disable the deletion of the temporary directory with the @option{--keept
 Do Not delete the temporary directory (see description of @option{--tmpdir} above).
 This option is useful for debugging.
 For example, to check that the profiles generated for obtaining the radial profile have the desired center, shape and orientation.
+
+@item -I
+@itemx --radinterval
+Output will contain the radial interval of each measurement (in two radius columns: minimum and maximum radii of each measurement/row).
+Without this option, only the central radius value is used (so the default output only has a single radius column).
+
+With this option, the output can be directly fed to the @option{--customtable} option of MakeProfiles (see @ref{MakeProfiles profile settings}).
+In this format, the radial interval of each row is needed, not just the central value.
+Therefore when this option is called, the radial profile script output will have two radius columns showing the minimum (inclusive) and maximum (exclusive) radii that the measurement was done on.
+
+In the example below, we are first measuring the radial profile of a hypothetical object (at RA,Dec of 1.234,6.789), while activating the @option{--radinterval} feature.
+The resulting radial profile is then given to MakeProfiles.
+Note that this is a minimal call to MakeProfiles just to show this feature, you can heavily customize MakeProfiles (for example build the profile over a background image, or have many rows with many different types of other profiles and etc.).
+For more on MakeProfiles see @ref{MakeProfiles}.
+
+@example
+$ astscript-radial-profile image.fits --center=1.234,6.789 \
+           --mode=wcs --rmax=10 --precision=1 --radinterval \
+           --measure=mean --output=rad.fits
+
+$ echo "1 50 50 8 20 0 0 1 1 1" \
+       | astmkprof --oversample=1 --mergedsize=99,99 \
+                   --customtable=rad.fits --mcolnocustprof \
+                   --output=prof2d.fits
+
+$ astscript-fits-view prof2d.fits
+@end example
+
+@cartouche
+@noindent
+@strong{Use a single measurement to feed to MakeProfiles:} The table that is given to the @option{--customtable} option must have three columns.
+Therefore if you plan to feed the output to MakeProfiles, only use a single measurement for the radial profile script.
+@end cartouche
 @end table
 
 

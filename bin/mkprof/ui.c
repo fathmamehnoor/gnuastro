@@ -1850,7 +1850,7 @@ ui_read_custom_table(struct mkprofparams *p)
   /* Make sure the table only has three columns. */
   if(gal_list_data_number(cols) != 3 )
     error(EXIT_FAILURE, 0, "%s: has %zu columns, but it should only "
-          "have three columns. Column1: the radial interval's lower "
+          "have three columns. Column 1: the radial interval's lower "
           "value. Column 2: the radial interval's higher value. "
           "Column 3: the value to use for pixels within that radius "
           "interval",

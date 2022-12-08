@@ -77,6 +77,20 @@ See the end of the file for license conditions.
    Statistics:
    --outliernumngb: see description of same option in NoiseChisel.
 
+   astscript-radial-profile:
+   --precision: sample the radial profile at precisions less than one
+     pixel. This is useful when you need to sample the profile within the
+     central few pixels more accurately than integer pixels. See the
+     documentation of this option in the book for a complete explanation
+     with examples.
+   --radinterval: output will contain two radius columns (showing the
+     radial interval of each measurement). Without this option, the output
+     only contains a single radius column (showing the central radius of
+     the measurement in each row). This greatly simplifies scenarios where
+     you want to build a 2D image of the profile, see the description of
+     this option in the book for a more complete description and an example
+     usage.
+
    Library:
    - GAL_ARITHMETIC_OP_SWAP: swap the top two operands.
    - GAL_ARITHMETIC_OP_INDEX: An index (counting from 0) for every element.
@@ -159,6 +173,8 @@ See the end of the file for license conditions.
               Serrano Borlaff.
   bug #63399: Table's '--noblank' or '--noblankend' crashing when input
               has no rows. Reported by Elham Saremi.
+  bug #63485: Oversampling in radial profile has incorrect center. Reported
+              by Nafiseh Sedighi.
 
 
 

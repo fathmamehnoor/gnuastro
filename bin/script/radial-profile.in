@@ -50,11 +50,13 @@ keeptmp=0
 mode="img"
 azimuth=""
 measure=""
+precision=0
 axisratio=1
 zeropoint=""
 sigmaclip=""
 measuretmp=""
 oversample=""
+radinterval=0
 undersample=""
 positionangle=0
 zeroisnotblank=""
@@ -78,6 +80,9 @@ $scriptname: run with '--help' for list of options
 EOF
 }
 
+# Short options available for use:
+#   b e f g j l n r w x y
+#   A B C D E F G H J K L M N S T U W X Y
 print_help() {
     cat <<EOF
 Usage: $scriptname [OPTION] FITS-files
@@ -111,24 +116,27 @@ $scriptname options:
   -p, --positionangle=FLT Position angle for ellipse profiles.
   -s, --sigmaclip=FLT,FLT Sigma-clip multiple and tolerance.
   -z, --zeropoint=FLT     Zeropoint magnitude of input dataset.
+  -Z, --zeroisnotblank    0.0 in float or double images are not blank.
 
  Output:
   -o, --output            Output table with the radial profile.
   -t, --tmpdir            Directory to keep temporary files.
   -k, --keeptmp           Keep temporal/auxiliar files.
   -m, --measure=STR       Measurement operator (mean, sigclip-mean, etc.).
+  -P, --precision=INT     Number of digits after the decimal point for radius.
   -v, --oversample=INT    Oversample for higher resolution radial profile.
   -u, --undersample=INT   Undersample for lower resolution radial profile.
-  -i, --instd=FLT/STR     Sky standard deviation per pixel, as a single number
-                          or as the filename.
+  -i, --instd=FLT/STR     Sky standard deviation per pixel, as a single
+                          number or as the filename.
   -d, --stdhdu=STR        HDU/extension of the sky standard deviation image.
+  -I, --radinterval       Format output for the '--customtable' feature
+                          of MakeProfile.
 
  Operating mode:
   -?, --help              Print this help list.
       --cite              BibTeX citation for this program.
   -q, --quiet             Don't print any extra information in stdout.
   -V, --version           Print program version.
-  -Z, --zeroisnotblank    0.0 in float or double images are not blank.
 
 Mandatory or optional arguments to long options are also mandatory or optional
 for any corresponding short options.
@@ -246,24 +254,29 @@ do
         -t|--tmpdir)      tmpdir="$2";                          check_v "$1" "$tmpdir";  shift;shift;;
         -t=*|--tmpdir=*)  tmpdir="${1#*=}";                     check_v "$1" "$tmpdir";  shift;;
         -t*)              tmpdir=$(echo "$1" | sed -e's/-t//'); check_v "$1" "$tmpdir";  shift;;
-        -m|--measure)     measuretmp="$2";                           check_v "$1" "$measuretmp";  shift;shift;;
-        -m=*|--measure=*) measuretmp="${1#*=}";                      check_v "$1" "$measuretmp";  shift;;
+        -m|--measure)     measuretmp="$2";                      check_v "$1" "$measuretmp";  shift;shift;;
+        -m=*|--measure=*) measuretmp="${1#*=}";                 check_v "$1" "$measuretmp";  shift;;
         -m*)              measuretmp=$(echo "$1"  | sed -e's/-m//'); check_v "$1" "$measuretmp";  shift;;
+        -P|--precision)   precision="$2";                      check_v "$1" "$precision";  shift;shift;;
+        -P=*|--precision=*) precision="${1#*=}";               check_v "$1" "$precision";  shift;;
+        -P*)              precision=$(echo "$1"  | sed -e's/-P//'); check_v "$1" "$precision";  shift;;
         -o|--output)      output="$2";                          check_v "$1" "$output"; shift;shift;;
         -o=*|--output=*)  output="${1#*=}";                     check_v "$1" "$output"; shift;;
         -o*)              output=$(echo "$1" | sed -e's/-o//'); check_v "$1" "$output"; shift;;
-        -v|--oversample)  oversample="$2";                          check_v "$1" "$oversample"; shift;shift;;
-        -v=*|--oversample=*) oversample="${1#*=}";                  check_v "$1" "$oversample"; shift;;
+        -v|--oversample)  oversample="$2";                      check_v "$1" "$oversample"; shift;shift;;
+        -v=*|--oversample=*) oversample="${1#*=}";              check_v "$1" "$oversample"; shift;;
         -v*)              oversample=$(echo "$1" | sed -e's/-v//'); check_v "$1" "$oversample"; shift;;
-        -u|--undersample) undersample="$2";                         check_v "$1" "$undersample"; shift;shift;;
-        -u=*|--undersample=*) undersample="${1#*=}";                check_v "$1" "$undersample"; shift;;
+        -u|--undersample) undersample="$2";                     check_v "$1" "$undersample"; shift;shift;;
+        -u=*|--undersample=*) undersample="${1#*=}";            check_v "$1" "$undersample"; shift;;
         -u*)              undersample=$(echo "$1" | sed -e's/-u//'); check_v "$1" "$undersample"; shift;;
         -i|--instd)      instd="$2";                            check_v "$1" "$instd";  shift;shift;;
         -i=*|--instd=*)  instd="${1#*=}";                       check_v "$1" "$instd";  shift;;
         -i*)             instd=$(echo "$1"  | sed -e's/-i//');  check_v "$1" "$instd";  shift;;
-        -d|--stdhdu)     stdhdu="$2";                            check_v "$1" "$stdhdu";  shift;shift;;
-        -d=*|--stdhdu=*) stdhdu="${1#*=}";                       check_v "$1" "$stdhdu";  shift;;
-        -d*)             stdhdu=$(echo "$1"  | sed -e's/-d//');  check_v "$1" "$stdhdu";  shift;;
+        -d|--stdhdu)     stdhdu="$2";                           check_v "$1" "$stdhdu";  shift;shift;;
+        -d=*|--stdhdu=*) stdhdu="${1#*=}";                      check_v "$1" "$stdhdu";  shift;;
+        -d*)             stdhdu=$(echo "$1"  | sed -e's/-d//'); check_v "$1" "$stdhdu";  shift;;
+        -F|--radinterval)  radinterval=1; shift;;
+        -F*|--radinterval=*) on_off_option_error --radinterval -I;;
 
         # Non-operating options.
         -q|--quiet)             quiet="--quiet"; shift;;
@@ -338,6 +351,14 @@ if [ x"$azimuth" != x ]; then
         echo "$scriptname: '--azimuth' (or '-a') only take two values, but $nazimuth were given"
         exit 1
     fi
+fi
+
+# The precision should be an integer, smaller than 6.
+pcheck=$(echo $precision \
+             | awk 'int($1)==$1 && $1>=0 && $1<=6 {print 1}')
+if [ x$pcheck = x ]; then
+    echo "$scriptname: value of '--precision' ($precision) must be an integer between 0 to 6 (inclusive)"
+    exit 1
 fi
 
 # If no specific measurement has been requested, use the mean.
@@ -512,8 +533,14 @@ if [ x"$oversample" = x ]; then
         cd $tmpdir; ln -fs $cropstdbase $valuesstdbase; cd $curdir
     fi
 else
-    xcenter=$(echo $xcenter | awk '{print '$oversample'*$1}')
-    ycenter=$(echo $ycenter | awk '{print '$oversample'*$1}')
+    # For the central coordinate, we can't simply multiply the X,Y by the
+    # oversample factor otherwise the over-sampled pixel with distance of 0
+    # will be on the edge of the original pixel. To make sure that the
+    # central oversampled pixel is in the center of the original pixel, we
+    # need to shift by half the oversampling factor (as an integer).
+    os=$oversample # To shorten the next two commands!.
+    xcenter=$(echo $xcenter | awk '{print '$os'*$1-int('$os'/2)}')
+    ycenter=$(echo $ycenter | awk '{print '$os'*$1-int('$os'/2)}')
     rmax=$(echo    $rmax    | awk '{print '$oversample'*$1}')
     astwarp $crop --scale=$oversample,$oversample -o$values
     if [ x"$instd" != x    -a    -f "$instd" ]; then
@@ -574,14 +601,15 @@ fi
 # the radius 1 (to avoid missing the central pixel in later phases.
 radialaperturesbase=radial-raw.fits
 radialapertures=$tmpdir/$radialaperturesbase
+precfactor=$(astarithmetic 10 $precision pow --quiet)
 radialaperturesholed=$tmpdir/radial-raw-with-hole.fits
 echo "1 $xcenter $ycenter 7 $rmax 1 $positionangle $axisratio 1 1" \
      | astmkprof --background=$values --backhdu=1 --mforflatpix \
-                 --mode=img --clearcanvas --type=int16 $quiet \
+                 --mode=img --clearcanvas --type=float32 $quiet \
                  --circumwidth=1 --replace --output=$radialaperturesholed
 astarithmetic $radialaperturesholed set-i \
               i 0 ne 1 fill-holes set-good \
-              i good i 1 + where \
+              i good i 1 + where $precfactor x uint32\
               $quiet --output $radialapertures
 rm $radialaperturesholed
 
@@ -668,7 +696,17 @@ fi
 aperturesbase=apertures.fits
 apertures=$tmpdir/$aperturesbase
 if [ x"$undersample" != x ]; then
-    astarithmetic $aperturesraw $undersample / \
+
+    # Divide by the undersampling factor (multiplied by the precision
+    # factor: multiple of 10).
+    astarithmetic $aperturesraw $undersample $precfactor int16 x / \
+                  $quiet --output $apertures.fits
+
+    # The integer division above will re-create the 0-valued hole in the
+    # center! So we need to fill it like above.
+    astarithmetic $apertures.fits set-i \
+                  i 0 ne 1 fill-holes set-good \
+                  i good i 1 + where \
                   $quiet --output $apertures
 else
     cd $tmpdir; ln -fs $aperturesrawbase $aperturesbase; cd $curdir
@@ -740,40 +778,88 @@ astmkcatalog $apertures --hdu=1 --valuesfile=$values --valueshdu=1 --ids \
 
 
 
-# Prepare the final output
-# ------------------------
+# Final radii of each row
+# -----------------------
 #
-# The raw MakeCatalog output isn't clear for the users of this script (for
-# example the radius column is called 'OBJ_ID'!). Also, when oversampling
-# is requested, we need to divide the radii by the over-sampling factor.
-# In the same way, when undersampling (re-binning) is requested, we need to
-# multiple the radii by the undersample factor.
-#
-# But before anything, we need to set the options to print the other
-# columns untouched (we only want to change the first column).
-outraw=$tmpdir/out-raw.fits
-restcols=$(astfits $cat -h1 \
-               | awk '/^TFIELDS/{for(i=2;i<=$3;++i) printf "-c%d ", i}')
+# In the steps above many operations were done on the labels. It is now
+# necessary to revert them all and obtain the final radius column that will
+# go into the output.
+radraw=$tmpdir/radii.fits
 if [ x"$oversample" != x ]; then
-    asttable $cat -c'arith OBJ_ID float32 '$oversample' / 1 -' $restcols \
-             -o$outraw --colmetadata=ARITH_3,RADIUS,pix,"Radial distance"
+
+    asttable $cat -c'arith OBJ_ID float32 '$precfactor' / 1 - '$oversample' /' \
+             -o$radraw --colmetadata=1,RADIUS,pix,"Radial distance"
+
 elif [ x"$undersample" != x ]; then
-    asttable $cat -c'arith OBJ_ID float32 '$undersample' x 1 -' $restcols \
-             -o$outraw --colmetadata=ARITH_3,RADIUS,pix,"Radial distance"
+
+    # Under sampling corrects for the 100 multiplication factor before
+    # MakeCatalog.
+    asttable $cat -c'arith OBJ_ID float32 1 - '$undersample' x' \
+             -o$radraw
+
 else
-    asttable $cat -c'arith OBJ_ID float32 1 -' $restcols -o$outraw \
-             --colmetadata=1,RADIUS,pix,"Radial distance"
+
+    asttable $cat -c'arith OBJ_ID float32 '$precfactor' / 1 -' \
+             -o$radraw --colmetadata=1,RADIUS,pix,"Radial distance"
+
 fi
 
 
 
 
-# Due to a possible position angle and axis ratio, it is possible to get at
+
+# Prepare the final output columns
+# --------------------------------
+#
+# Add the radius column calculated above to the measured columns. If the
+# user has asked for it, build the output in the format of '--customtable'
+# in MakeProfiles. But before anything, we need to set the options to print
+# the other columns untouched (we only want to change the first column).
+outraw=$tmpdir/out-raw.fits
+restcols=$(astfits $cat -h1 \
+               | awk '/^TFIELDS/{for(i=2;i<=$3;++i) \
+                                  printf "--catcolumns=%d ", i}')
+if [ x"$radinterval" = x0 ]; then
+    checkcol=RADIUS
+    asttable $radraw --catcolumnfile=$cat $restcols --output=$outraw \
+             --colmetadata=1,RADIUS,pix,"Radial distance"
+else
+    # Since the larger interval value will be outside of the '--rmax' by
+    # default, we'll use the smaller interval value for the final check in
+    # the next step.
+    checkcol=RADIUS_MIN
+
+    # Build the radial intervals from the radii. Note that order important
+    # in the AWK commands below.
+    radintervalraw=$tmpdir/radii-interval.fits
+    asttable $radraw -c1 \
+        | awk 'NR==2 {print 0, ($1-prev)/2} \
+               NR>2  {print prev-(prev-pprev)/2, prev+($1-prev)/2}  \
+               {pprev=prev; prev=$1} \
+               END{print prev-(prev-pprev)/2, prev+(prev-pprev)/2}' \
+        | asttable -c'arith $1 float32','arith $2 float32' \
+                   --colmetadata=1,RADIUS_MIN,pix,"Minimum radius of this interval" \
+                   --colmetadata=2,RADIUS_MAX,pix,"Maximum radius of this interval" \
+                   -o$radintervalraw
+
+    # Add the rest of the catalog columns to the interval.
+    asttable $radintervalraw --catcolumnfile=$cat $restcols --output=$outraw
+    rm $radintervalraw
+fi
+
+
+
+
+
+# Correct possibly extra rows
+# ---------------------------
+#
+# Due to a possible position angle and axis ratio, it may happen that at
 # least one extra radial aperture (that is given to
 # MakeCatalog). Therefore, once the final radii are set (accounting for
 # over/under sampling), we should make sure that the final output doesn't
 # contain radii larger than what the user asked for.
-asttable $outraw --range=RADIUS,0,$rmax --output=$output
+asttable $outraw --range=$checkcol,0,$rmax --output=$output
 
 
 
