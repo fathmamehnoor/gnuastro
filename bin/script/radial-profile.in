@@ -56,7 +56,6 @@ zeropoint=""
 sigmaclip=""
 measuretmp=""
 oversample=""
-radinterval=0
 undersample=""
 positionangle=0
 zeroisnotblank=""
@@ -129,8 +128,6 @@ $scriptname options:
   -i, --instd=FLT/STR     Sky standard deviation per pixel, as a single
                           number or as the filename.
   -d, --stdhdu=STR        HDU/extension of the sky standard deviation image.
-  -I, --radinterval       Format output for the '--customtable' feature
-                          of MakeProfile.
 
  Operating mode:
   -?, --help              Print this help list.
@@ -275,8 +272,6 @@ do
         -d|--stdhdu)     stdhdu="$2";                           check_v "$1" "$stdhdu";  shift;shift;;
         -d=*|--stdhdu=*) stdhdu="${1#*=}";                      check_v "$1" "$stdhdu";  shift;;
         -d*)             stdhdu=$(echo "$1"  | sed -e's/-d//'); check_v "$1" "$stdhdu";  shift;;
-        -F|--radinterval)  radinterval=1; shift;;
-        -F*|--radinterval=*) on_off_option_error --radinterval -I;;
 
         # Non-operating options.
         -q|--quiet)             quiet="--quiet"; shift;;
@@ -819,33 +814,8 @@ outraw=$tmpdir/out-raw.fits
 restcols=$(astfits $cat -h1 \
                | awk '/^TFIELDS/{for(i=2;i<=$3;++i) \
                                   printf "--catcolumns=%d ", i}')
-if [ x"$radinterval" = x0 ]; then
-    checkcol=RADIUS
-    asttable $radraw --catcolumnfile=$cat $restcols --output=$outraw \
-             --colmetadata=1,RADIUS,pix,"Radial distance"
-else
-    # Since the larger interval value will be outside of the '--rmax' by
-    # default, we'll use the smaller interval value for the final check in
-    # the next step.
-    checkcol=RADIUS_MIN
-
-    # Build the radial intervals from the radii. Note that order important
-    # in the AWK commands below.
-    radintervalraw=$tmpdir/radii-interval.fits
-    asttable $radraw -c1 \
-        | awk 'NR==2 {print 0, ($1-prev)/2} \
-               NR>2  {print prev-(prev-pprev)/2, prev+($1-prev)/2}  \
-               {pprev=prev; prev=$1} \
-               END{print prev-(prev-pprev)/2, prev+(prev-pprev)/2}' \
-        | asttable -c'arith $1 float32','arith $2 float32' \
-                   --colmetadata=1,RADIUS_MIN,pix,"Minimum radius of this interval" \
-                   --colmetadata=2,RADIUS_MAX,pix,"Maximum radius of this interval" \
-                   -o$radintervalraw
-
-    # Add the rest of the catalog columns to the interval.
-    asttable $radintervalraw --catcolumnfile=$cat $restcols --output=$outraw
-    rm $radintervalraw
-fi
+asttable $radraw --catcolumnfile=$cat $restcols --output=$outraw \
+         --colmetadata=1,RADIUS,pix,"Radial distance"
 
 
 
@@ -859,7 +829,7 @@ fi
 # MakeCatalog). Therefore, once the final radii are set (accounting for
 # over/under sampling), we should make sure that the final output doesn't
 # contain radii larger than what the user asked for.
-asttable $outraw --range=$checkcol,0,$rmax --output=$output
+asttable $outraw --range=RADIUS,0,$rmax --output=$output
 
 
 

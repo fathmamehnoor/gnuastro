@@ -77,19 +77,22 @@ See the end of the file for license conditions.
    Statistics:
    --outliernumngb: see description of same option in NoiseChisel.
 
+   Table:
+   - New column arithmetic operator:
+     - sorted-to-interval: return two columns from a single (sorted) input,
+       containing the minimum and maximum values of an interval. The
+       intervals are defined such that the intervals of every row fully
+       cover the full range of values in the given column. This can be
+       useful in scenarios where you need to build the inputs of the
+       '--customtable' feature in MakeProfiles (to build a 2D image a
+       custom profile).
+
    astscript-radial-profile:
    --precision: sample the radial profile at precisions less than one
      pixel. This is useful when you need to sample the profile within the
      central few pixels more accurately than integer pixels. See the
      documentation of this option in the book for a complete explanation
      with examples.
-   --radinterval: output will contain two radius columns (showing the
-     radial interval of each measurement). Without this option, the output
-     only contains a single radius column (showing the central radius of
-     the measurement in each row). This greatly simplifies scenarios where
-     you want to build a 2D image of the profile, see the description of
-     this option in the book for a more complete description and an example
-     usage.
 
    Library:
    - GAL_ARITHMETIC_OP_SWAP: swap the top two operands.

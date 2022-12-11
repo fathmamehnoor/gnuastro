@@ -31,6 +31,7 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 #include <gnuastro/wcs.h>
 #include <gnuastro/type.h>
 #include <gnuastro/pointer.h>
+#include <gnuastro/statistics.h>
 
 #include <gnuastro-internal/checkset.h>
 #include <gnuastro-internal/arithmetic-set.h>
@@ -139,6 +140,7 @@ arithmetic_operator_name(int operator)
       case ARITHMETIC_TABLE_OP_DISTANCEFLAT: out="distance-flat"; break;
       case ARITHMETIC_TABLE_OP_DATETOMILLISEC: out="date-to-millisec"; break;
       case ARITHMETIC_TABLE_OP_DISTANCEONSPHERE: out="distance-on-sphere"; break;
+      case ARITHMETIC_TABLE_OP_SORTEDTOINTERVAL: out="sorted-to-interval"; break;
       default:
         error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to fix "
               "the problem. %d is not a recognized operator code", __func__,
@@ -203,6 +205,8 @@ arithmetic_set_operator(struct tableparams *p, char *string,
         { op=ARITHMETIC_TABLE_OP_DISTANCEFLAT; *num_operands=0; }
       else if( !strcmp(string, "distance-on-sphere"))
         { op=ARITHMETIC_TABLE_OP_DISTANCEONSPHERE; *num_operands=0; }
+      else if( !strcmp(string, "sorted-to-interval"))
+        { op=ARITHMETIC_TABLE_OP_SORTEDTOINTERVAL; *num_operands=0; }
       else
         { op=GAL_ARITHMETIC_OP_INVALID; *num_operands=GAL_BLANK_INT; }
     }
@@ -834,6 +838,75 @@ arithmetic_datetosec(struct tableparams *p, gal_data_t **stack,
 
 
 
+/* Convert the ISO date format to seconds since Unix time. */
+static void
+arithmetic_sortedtointerval(struct tableparams *p, gal_data_t **stack,
+                            int operator)
+{
+  int f32out;
+  size_t i, size;
+  double *in, *min, *max;
+  gal_data_t *min_d, *max_d;
+
+  /* Input dataset. */
+  gal_data_t *in_d=arithmetic_stack_pop(stack, operator, NULL);
+
+  /* Make sure the input is sorted and is numeric */
+  if(in_d->type==GAL_TYPE_STRING)
+    error(EXIT_FAILURE, 0, "the operand given to 'sortedtointerval' "
+          "should have a numeric data type");
+  if(gal_statistics_is_sorted(in_d, 1)==0)
+    error(EXIT_FAILURE, 0, "the operand given to 'sortedtointerval' "
+          "should be sorted");
+
+  /* Convert the input to double precision for internal processing. In the
+     end we'll convert the outputs to float32 unless the input was
+     originally float64. */
+  f32out = in_d->type!=GAL_TYPE_FLOAT64;
+  in_d=gal_data_copy_to_new_type_free(in_d, GAL_TYPE_FLOAT64);
+
+  /* Allocate the output columns (minimum and maximum of each interval). */
+  min_d=gal_data_alloc(NULL, GAL_TYPE_FLOAT64, 1, in_d->dsize, NULL, 0,
+                       in_d->minmapsize, in_d->quietmmap,
+                       NULL, NULL, NULL);
+  max_d=gal_data_alloc(NULL, GAL_TYPE_FLOAT64, 1, in_d->dsize, NULL, 0,
+                       in_d->minmapsize, in_d->quietmmap,
+                       NULL, NULL, NULL);
+
+  /* Fill the minimum and maximum intervals. Just note that the minimum
+     value of the first interval and maximum of the last element need
+     special attention (we'll extrapolate from the after/before elements to
+     preserve constant spacing in case that is the case). */
+  in=in_d->array;
+  size=in_d->size;
+  min=min_d->array;
+  max=max_d->array;
+  min[0]      = in[0]      - (in[1]      - in[0]     )/2;
+  max[0]      = in[0]      + (in[1]      - in[0]     )/2;
+  min[size-1] = in[size-1] - (in[size-1] - in[size-2])/2;
+  max[size-1] = in[size-1] + (in[size-1] - in[size-2])/2;
+  for(i=1;i<size-1;++i)
+    {
+      min[i] = max[i-1];
+      max[i] = in[i] + (in[i+1]-in[i])/2;
+    }
+
+  /* Convert the output to float32, unless the input was float64. */
+  if(f32out)
+    {
+      min_d=gal_data_copy_to_new_type_free(min_d, GAL_TYPE_FLOAT32);
+      max_d=gal_data_copy_to_new_type_free(max_d, GAL_TYPE_FLOAT32);
+    }
+
+  /* Clean up and put the resulting calculation back on the stack. */
+  max_d->next=min_d;
+  gal_data_free(in_d);
+  gal_list_data_add(stack, max_d);
+}
+
+
+
+
 
 
 
@@ -939,6 +1012,10 @@ arithmetic_operator_run(struct tableparams *p,
         case ARITHMETIC_TABLE_OP_DISTANCEFLAT:
         case ARITHMETIC_TABLE_OP_DISTANCEONSPHERE:
           arithmetic_distance(p, stack, token->operator);
+          break;
+
+        case ARITHMETIC_TABLE_OP_SORTEDTOINTERVAL:
+          arithmetic_sortedtointerval(p, stack, token->operator);
           break;
 
         case ARITHMETIC_TABLE_OP_SET:

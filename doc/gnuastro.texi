@@ -14303,6 +14303,39 @@ The returned value is not a floating point type because for large numbers, float
 
 Other than the units of the output, this operator behaves similarly to @code{date-to-sec}.
 See the description of that operator for an example.
+
+@item sorted-to-interval
+Given a single column (which must be already sorted and have a numeric data type), return two columns: the first returned column is the minimum and the second returned column is the maximum value of the interval of each row row.
+The maximum of each row is equal to the minimum of the previous row; thus creating a contiguous interval coverage of the input column's range in all rows.
+
+The minimum value of the first row and maximum of the last row will be smaller/larger than the respective row of the input (based on the distance to the next/previous element).
+This is done to ensure that if your input has a fixed interval length between all elements, the first and last intervals also have that fixed length.
+
+For example, with the command below, we'll use this operator on a hypothetical radial profile.
+Note how the intervals are contiguous even though the radius values are not equally distant (if the row with a radius of 2.5 didn't exist, the intervals would all be the same length).
+For another example of the usage of this operator, see the example in the description of @option{--customtable} in @ref{MakeProfiles profile settings}.
+
+@example
+$ cat radial-profile.txt
+# Column 1: RADIUS [pix,f32,] Distance to center in pixels.
+# Column 2: MEAN   [ADU,f32,] Mean value at that radius.
+0    100
+1    40
+2    30
+2.5  25
+3    20
+
+$ asttable radial-profile.txt --txtf32f=fixed --txtf32p=3 \
+           -c'arith RADIUS sorted-to-interval',MEAN
+-0.500        0.500         100.000
+0.500         1.500         40.000
+1.500         2.250         30.000
+2.250         2.750         25.000
+2.750         3.250         20.000
+@end example
+
+Such intervals can be useful in scenarios like generating the input to @option{--customtable} in MakeProfiles (see @ref{MakeProfiles profile settings}) from a radial profile (see @ref{Generate radial profile}).
+
 @end table
 
 @node Operation precedence in Table, Invoking asttable, Column arithmetic, Table
@@ -26578,34 +26611,58 @@ The interval's maximum radius.
 The value to be used for pixels within the given interval (including NaN/blank).
 @end table
 
-If you are using Gnuastro's radial profile script to build the profile, you can use its @option{--radinterval} option to make the properly formatted input for a custom table in MakeProfiles.
-For more, see the description of @option{--radinterval}, and its example usage in @ref{Invoking astscript-radial-profile}.
-
-For example, let's assume you have the radial profile below in a file called @file{radial.txt}, and that the first column is the @emph{larger} interval radius (in units of pixels) and the second column is the value in that interval:
-
-@example
-1    100
-2    90
-3    50
-4    10
-5    2
-6    0.1
-7    0.05
-@end example
-
-@noindent
-In this case, you can construct the table to give to @option{--customtable} with the command below (using Gnuastro's @ref{Column arithmetic}).
-
-@example
-asttable radial.txt -c'arith $1 1 -' -c1,2 -ocustom.fits
-@end example
-
-@noindent
-In case the intervals are different from 1 (for example, 0.5), change the @code{$1 1 -} to @code{$1 0.5 -}.
-On a side-note, Gnuastro has features to extract the radial profile of an object from the image, see @ref{Generate radial profile}.
+Gnuastro's column arithmetic in the Table program has the @code{sorted-to-interval} operator that will generate the first two columns from a single column (your radial profile).
+See the description of that operator in @ref{Column arithmetic} and the example below.
 
 By default, once a 2D image is constructed for the radial profile, it will be scaled such that its total magnitude corresponds to the value in the magnitude column (@option{--mcol}) of the main input catalog.
 If you want to disable the scaling and use the raw values in your custom profile (in other words: you want to ignore the magnitude column) you need to call @option{--mcolnocustprof} (see above).
+
+In the example below, we'll start with a certain radial profile, and use this option to build its 2D representation in an image (recall that you can build radial profiles with @ref{Generate radial profile}).
+But first, we will need to use the @code{sorted-to-interval} to build the necessary input format (see @ref{Column arithmetic}).
+
+@example
+$ cat radial.txt
+# Column 1: RADIUS [pix        ,f32,] Radial distance
+# Column 2: MEAN   [input-units,f32,] Mean of values.
+0.0       1.00000
+1.0       0.50184
+1.4       0.37121
+2.0       0.26414
+2.2       0.23427
+2.8       0.17868
+3.0       0.16627
+3.1       0.15567
+3.6       0.13132
+4.0       0.11404
+
+## Convert the radius in each row to an interval
+$ asttable radial.txt --output=interval.fits \
+           -c'arith RADIUS sorted-to-interval',MEAN
+
+## Inspect the table containing intervals
+$ asttable interval.fits -ffixed
+-0.500000     0.500000      1.000000
+0.500000      1.200000      0.501840
+1.200000      1.700000      0.371210
+1.700000      2.100000      0.264140
+2.100000      2.500000      0.234270
+2.500000      2.900000      0.178680
+2.900000      3.050000      0.166270
+3.050000      3.350000      0.155670
+3.350000      3.800000      0.131320
+3.800000      4.200000      0.114040
+
+## Build the 2D image of the profile from the interval.
+$ echo "1 7 7 8 10 2.5 0 1 1 2" \
+       | astmkprof --mergedsize=13,13 --oversample=1 \
+                   --customtable=interval.fits \
+                   --output=image.fits
+
+## View the created FITS image.
+$ astscript-fits-view image.fits --ds9scale=minmax
+@end example
+
+Recall that if you want your image pixels to have the same values as the @code{MEAN} column in your profile, you should run MakeProfiles with @option{--mcolnocustprof}.
 
 @item --customtablehdu INT/STR
 The HDU/extension in the FITS file given to @option{--customtable}.
@@ -28514,39 +28571,6 @@ You can disable the deletion of the temporary directory with the @option{--keept
 Do Not delete the temporary directory (see description of @option{--tmpdir} above).
 This option is useful for debugging.
 For example, to check that the profiles generated for obtaining the radial profile have the desired center, shape and orientation.
-
-@item -I
-@itemx --radinterval
-Output will contain the radial interval of each measurement (in two radius columns: minimum and maximum radii of each measurement/row).
-Without this option, only the central radius value is used (so the default output only has a single radius column).
-
-With this option, the output can be directly fed to the @option{--customtable} option of MakeProfiles (see @ref{MakeProfiles profile settings}).
-In this format, the radial interval of each row is needed, not just the central value.
-Therefore when this option is called, the radial profile script output will have two radius columns showing the minimum (inclusive) and maximum (exclusive) radii that the measurement was done on.
-
-In the example below, we are first measuring the radial profile of a hypothetical object (at RA,Dec of 1.234,6.789), while activating the @option{--radinterval} feature.
-The resulting radial profile is then given to MakeProfiles.
-Note that this is a minimal call to MakeProfiles just to show this feature, you can heavily customize MakeProfiles (for example build the profile over a background image, or have many rows with many different types of other profiles and etc.).
-For more on MakeProfiles see @ref{MakeProfiles}.
-
-@example
-$ astscript-radial-profile image.fits --center=1.234,6.789 \
-           --mode=wcs --rmax=10 --precision=1 --radinterval \
-           --measure=mean --output=rad.fits
-
-$ echo "1 50 50 8 20 0 0 1 1 1" \
-       | astmkprof --oversample=1 --mergedsize=99,99 \
-                   --customtable=rad.fits --mcolnocustprof \
-                   --output=prof2d.fits
-
-$ astscript-fits-view prof2d.fits
-@end example
-
-@cartouche
-@noindent
-@strong{Use a single measurement to feed to MakeProfiles:} The table that is given to the @option{--customtable} option must have three columns.
-Therefore if you plan to feed the output to MakeProfiles, only use a single measurement for the radial profile script.
-@end cartouche
 @end table
 
 
