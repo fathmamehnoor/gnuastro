@@ -29604,10 +29604,11 @@ With this option, you can have separate color bars under each image.
 @c Update the menu:                        C-u C-c C-u m
 @node Zero point estimation, PSF construction and subtraction, Viewing FITS file contents with DS9 or TOPCAT, Installed scripts
 @section Zero point estimation
+
 Flux and luminosity are congenital properties of astronomical objects.
 While brightness and magnitude of an object depends on the tool which object is detected.
 Depending on the instrument and tools, the brightness and magnitude of an object will change.
-Due to it, in observational astronomy data analysis, mostly brightness and magnitude are discussed.
+Due to this, in observational astronomy data analysis, mostly brightness and magnitude are discussed.
 The essential thing here is that the magnitude is the same as the brightness which is reported in logarithem unit.
 In order to magnitude of an objecets to be dimensionless, its brightness is divided by the reference brightness.
 The amount of the reference brigntness is considered to be one, therefore reference magnitude commonly known as zero point magnitude.
@@ -29619,8 +29620,9 @@ Moreover, zero point is essential to calibrate magnitude to standard magnitude.
 Formerly, Vega star's magnitude was used as zeropoint magnitude for obtaining the standard magnitude.
 But Vega star is not eternaly in the sky, and it can not be used as reference of zero point magnitude.
 These days, instead of Vega's magnitude, AB magnitude standard is used for calibration@footnote{@url{https://en.wikipedia.org/wiki/AB_magnitude}}.
-
 Gnuastro’s @command{astscript-zeropoint} script is created to obtain zero point of an image in a device, based on the image or catalog of another device that overlap with original image and their zero point are known.
+
+
 All the details of this script are explained in @ref{Photometric calibration of images by zero point}, @ref{Zero point based on the reference image} and @ref{Zero point based on the reference catalog}.
 
 
@@ -29632,13 +29634,12 @@ All the details of this script are explained in @ref{Photometric calibration of 
 @node Photometric calibration of images by zero point, Invoking astscript-zeropoint, Zero point estimation, Zero point estimation
 @subsection Photometric calibration of images by zero point
 
-As described in @ref{Brightness flux magnitude}, to convert astronomical data pixel values from counts to energy/time (physical units such as Janskys), we need to know the zero point of the image.
-This conversion is necessary to compare two images independent of used instruments for obseving them.
-Actually, the zero point is used to calibrate an astronomical image to the standard state.
+As described in @ref{Brightness flux magnitude}, to convert astronomical data pixel values from counts to energy/time (such as Janskys), we need to know the zero point of the image.
+This conversion is necessary to compare two images independently of the facility used to retrieve them and calibrate an astronomical image to a common standard.
 
-To find the zero point, it is common to use photometric systems with defined zero points such as some images or catalogs.
-For example, the SDSS data can be a good reference for finding zero point in optical and 2MASS data for near infra-red images.
-The general outline of the steps that we use to estimate the zero point in an image is given below:
+To find the zero point, it is common to use photometric systems, images or catalogs depending on the purpose.
+For example, the SDSS data can be a good reference for finding zero point in optical images, while 2MASS data is good for near infra-red images.
+The general steps that we use to estimate the zero point of an image are given below:
 
 @enumerate
 @item
@@ -29646,17 +29647,16 @@ Download Gaia catalog using Gnuastro’s Query program (see @ref{Query}) to dete
 @item
 Select of reference image or catalog and download it.
 @item
-Aperture photometry with MakeProfiles (see @ref{MakeProfiles}) and MakeCatalog (see @ref{MakeCatalog}); a complete tutorial is in @ref{Aperture photometry}.
-If an image is selected as a reference, aperture photometry should be performed for it in the same way.
+Perform Aperture photometry with MakeProfiles (see @ref{MakeProfiles}) and MakeCatalog (see @ref{MakeCatalog}); a complete tutorial can be found in @ref{Aperture photometry}.
+If the reference is an image, then we should perform aperture photometry also in that image.
 @item
 Match catalogs (see @ref{Match} and also a tutorial in @ref{Matching catalogs}) to obtain differences of magnitudes in two catalogs and estimate zero point value.
 @end enumerate
 
-Clearly, all of top steps are very long and somewhat complicated.
+Clearly, all of the previous steps are very long and time consuming.
 Fortunately, Gnuastro has an installed script, designed to find zero point in an image based on a reference image or catalog with a defined zero point.
 Here we have a tutorial on how to use @command{astscript-zeropoint}.
-This tutorial is divided into two parts to cover both using image or catalog as reference data.
-
+This tutorial is divided into two parts; a first one using an image as a reference and the second one using a reference catalog.
 
 @menu
 * Zero point based on the reference image::    Using SDSS images to find J-PLUS zero point
@@ -29669,7 +29669,7 @@ This tutorial is divided into two parts to cover both using image or catalog as 
 To understand how to use the @command{astscript-zeropoint}, we find the zero point for a single exposure image from the @url{https://www.j-plus.es,J-PLUS survey} based on an SDSS reference image @url{http://www.sdss.org/, Sloan Digital Sky Survey} with a zero point of 22.5 mag.
 
 First, let’s create a directory named @file{zp}, to keep things clean.
-Then with the commands below, you can download an image such as one used in @ref{Moire pattern and its correction} from the J-PLUS dataset in the r (SDSS) band and then crop the center part of the image to speed up the analysis in this tutorial.
+Then, with the commands below you can download the image  used in @ref{Moire pattern and its correction} from the J-PLUS dataset in the r- Sloan band and  crop the central part of the image to speed up the analysis.
 
 @example
 $ mkdir zp
@@ -29681,8 +29681,7 @@ $ astcrop zp/jplus.fits.fz --center=107.7263,40.1754 \
 
 Although we cropped the J-PLUS image, it is still very large in comparison with the SDSS image (the J-PLUS field of view is almost @mymath{1.5\times1.5} deg@mymath{^2}, while the field of view of SDSS in each filter is almost @mymath{0.3\times0.5} deg@mymath{^2}).
 So let's download two SDSS images (and then decompress them) in the region of the J-PLUS cropped image for having a more accurate result.
-Make sure that the filters you use are both same.
-Because we have different @emph{r} filters such as SDSS, Johnson.
+Make sure that the filters you use are the same since we have different @emph{r} filters (such as SDSS or Johnson).
 In this case we use the SDSS @emph{r} filter for both cases.
 
 @example
@@ -29695,24 +29694,25 @@ $ wget $sdssbase/301/6573/5/frame-r-006573-5-0174.fits.bz2 \
 $ bunzip2 zp/sdss2.fits.bz2
 @end example
 
-To have a feeling of the data, please, open all three images with @command{astscript-fits-view}, then set the “Frame” to “lock frame wcs” and compare the covered area.
+To have a feeling of the data, open all three images with @command{astscript-fits-view}, then set the “Frame” to “lock frame wcs” and compare the covered area.
 
 @example
 $ astscript-fits-view zp/jplus-crop.fits zp/sdss1.fits zp/sdss2.fits
 @end example
 
-Before continuing, due to the referenced image (SDSS) being a Sky-subtracted calibrated image, thus we should subtract the Sky value from the J-PLUS image to be comparable.
-To subtract the Sky value, we use the @code{INPUT-NO-SKY} extension of NoiseChisel’s output simply, here.
-You can see @ref{NoiseChisel} for more details.
+Before continuing, due to the fact that the referenced image (SDSS) is a Sky-subtracted and calibrated image, we should remove the Sky value also from the J-PLUS data in order to make a comparison.
+To subtract the Sky value, we use the @code{INPUT-NO-SKY} extension of NoiseChisel’s output.
+See @ref{NoiseChisel} for more details.
 
 @example
 $ astnoisechisel zp/jplus-crop.fits --output=zp/jplus-nc.fits
 @end example
 
-We are now ready to start finding zero point.
-Please, call the @command{astscript-zeropoint} with the @option{--help} to see option names and also see @ref{Invoking astscript-zeropoint} for more details.
-For the first time, let's use the script in a simple state.
-Keep only the essential options that are including the information of the input image and reference images and also determine an aperture radius, for example, 3 arcsec for start:
+We are ready to start finding the zero point.
+Let's call the @command{astscript-zeropoint} with the @option{--help} to see the mandatory and optional parameters and see @ref{Invoking astscript-zeropoint} for more details.
+At first, we use the script in the most basic state by
+keeping only the essential options. These include the information of the input image, the reference image, and the aperture radius for the photometry. Let's assume an initial aperture of 3 arcsecond to start.
+
 
 @example
 $ astscript-zeropoint --help
@@ -29722,8 +29722,8 @@ $ astscript-zeropoint zp/jplus-nc.fits --hdu=INPUT-NO-SKY \
                       --aperarcsec=3 --output=zp/jplus-zeropoint.fits
 @end example
 
-Please check the output file with Gnuastro's @command{astfits} program.
-You can see there are two extensions in this file.
+Check the output with Gnuastro's @command{astfits} program.
+You can see that there are two extensions in this file.
 
 @example
 $ astfits zp/jplus-zeropoint.fits
@@ -29762,23 +29762,25 @@ Number of rows: 321
 --------
 @end example
 
-As you see, in the first extension, there are zero point and the standard deviation of zero point (@code{ZPSTD}) for the selected aperture size.
-The second extension contains a table including the SDSS magnitudes and differences with J-PLUS magnitudes for estimating zero point.
-Now that we know about the script and its initial result, let’s continue by considering options to obtain a more accurate result.
+As you can see, in the first extension, there are the zero point and the standard deviation of zero point (@code{ZPSTD}) for the selected aperture size.
+The second extension instead, contains a table including the SDSS magnitudes and the differences with J-PLUS magnitudes for estimating the zero point.
+Now that we got more familiar with the script and its initial result, let’s continue by considering more options to obtain a more accurate estimate.
 
-One of the most important parameters of this script is the aperture size, @option{--aperarcsec}, for the aperture photometry of images and creating the catalogs.
-On the one hand, if the selected aperture radius is very small, part of the light of the star will be ignored in the magnitude estimation.
-On the other hand, with large aperture size, the light of neighboring stars affects the magnitude calculation.
-Logically we should select an aperture radius around 2 to 3 times the FWHM of the image.
-Practically, we compare the result for several aperture sizes and choose the best one based on the minimum @code{ZPSTD} parameter however, it should calculate in a proper range of magnitude that we will explain in continuing.
-For now, let's assume the values 2, 3, 4, 5, and 6 arcsec for this option.
 
-In parallel, the next important point is whether all of the bright or faint stars in the input image are comparable with reference stars.
+One of the most important parameters of this script is the aperture size, @option{--aperarcsec}, for the aperture photometry of images.
+On one hand, if the selected aperture radius is too small, part of the light of the star will be not taken into account in the magnitude estimation and it would be underestimated.
+On the other hand, with large aperture size, the light of neighboring stars can affect the magnitude calculation by artificially increasing it.
+We should select an aperture radius of 2 to 3 times the FWHM of the image.
+For now, let's assume the values 2, 3, 4, 5, and 6 arcsec for the aperture size parameter.
+What the code does is to compare the result for several aperture sizes and choose the best one based on the minimum @code{ZPSTD} parameter.
+However, it should be computed in a proper range of magnitude.
+As a matter of fact, the next important point is whether all of the bright or faint stars in the input image are comparable with reference stars.
 To better clarify, let’s check the result of matching the J-PLUS catalog with the SDSS reference catalog.
 Note that two catalogs created by aperture photometry from SDSS image are merged so that there are more stars to compare.
-If you like to access to the temporal files in the intermediate steps, you can use @option{--keeptmp} option to prevent from being removed of them.
+If you like to access the temporary files in the intermediate steps, you can use @option{--keeptmp} option, that otherwise are being removed.
 
 Using Gnuastro’s @command{astscript-fits-view}, you can visualize a table created from matching J-PLUS and SDSS catalogs in the second extension of the output file as a plot by @code{TOPCAT}.
+
 
 @example
 $ astscript-fits-view zp/jplus-zeropoint.fits --hdu=2
@@ -29786,19 +29788,21 @@ $ astscript-fits-view zp/jplus-zeropoint.fits --hdu=2
 
 After @code{TOPCAT} opens, you can select the ``Graphics'' menu and then ``Plain plot'' to see a plot that shows the difference of magnitudes of J-PLUS and SDSS stars versus SDSS magnitudes for a specific aperture radius which is 3 arcsec, here.
 
-Ideally, it is expected that differences in magnitudes be around a straight line with very small fluctuations.
-But in practice, as you can see in your plot, this behaviour is seen only for stars with magnitudes about 16 to 18 mag in reference SDSS catalog.
+After @code{TOPCAT} opens, you can select the ``Graphics'' menu and then ``Plain plot'' to see a plot that shows the difference of magnitudes of J-PLUS and SDSS stars versus SDSS magnitudes for a specific aperture radius which is 3 arcsec in this case.
 
-The brighter stars are probably saturated and thus they do have not the correct magnitude in the SDSS catalogs (for more details about saturated pixels and recognition of the saturated level of the image, please see @ref{Saturated pixels and Segment's clumps}).
+Ideally, one would expect that the differences in magnitudes are placed along a straight line with very small fluctuations.
+But in practice, as you can see in your plot, this behavior is seen only for stars with magnitudes between 16 to 18 mag in the SDSS catalog.
+
+The brighter stars are probably saturated and thus they do not have the correct magnitude in the SDSS catalogs (for more details about saturated pixels and recognition of the saturated level of the image, please see @ref{Saturated pixels and Segment's clumps}).
 You can check some of these stars visually by opening the images.
 
-On the other hand, it is natural there are no accurate magnitudes for the faint stars in the SDSS catalog, because the completeness limit of each image is limited and so such faint stars are not good references for estimating zero point.
+On the other hand, it is natural that there are no accurate magnitudes for the faint stars in the SDSS catalog, because the completeness limit of each image is limited and so such faint stars are not good references for estimating zero point.
 So, let's limit the range of used magnitudes from the SDSS catalog to calculate a more accurate zero point for the J-PLUS image.
 For that, there is the @option{--magnituderange} option in the @command{astscript-zeropoint}.
 
-Before continuing, for more understanding of the effect of subtracting the sky from the J-PLUS image, please, repeat the above commands only by changing the input file to ``jplus-crop.fits''.
+Before continuing, to further understand the effect of subtracting the sky from the J-PLUS image, repeat the above commands only by changing the input file to ``jplus-crop.fits''.
 Then use Gnuastro’s @command{astscript-fits-view} again to draw a plot by @code{TOPCAT} such as before.
-Clearly, you can see a bad result so that there is not any reasonable range of magnitude for finding the zero point.
+Clearly, you can see a bad result. This means that this is not a reasonable range of magnitude for finding the zero point.
 
 Let's re-run the script with this new option (@option{--magnituderange}) and more values for aperture size as pointed out.
 Also, use the useful @option{--keepzpap} option to keep the result of matching the catalogs made with selected apertures in the different extensions of the output file.
@@ -29811,10 +29815,10 @@ $ astscript-zeropoint zp/jplus-nc.fits --hdu=INPUT-NO-SKY \
                       --keepzpap --output=zp/jplus-zeropoint.fits
 @end example
 
-Now the output file is including 6 extensions.
-The first one shows zero point properties in  various apertures and all others are related to the different magnitudes at each aperture radius.
+Now the output file includes 6 extensions.
+The first one shows the zero point properties for different apertures and all the others are related to the different magnitudes at each aperture radius.
 
-Please plot all magnitude tables by @code{TOPCAT} and at the same time, see the @code{ZPSTD} of zero points for each aperture to estimate an accurate magnitude range.
+Plot all magnitude tables by @code{TOPCAT} and at the same time, see the @code{ZPSTD} of zero points for each aperture to estimate an accurate magnitude range.
 
 @example
 $ asttable zp/jplus-zeropoint.fits --colinfoinstdout
@@ -29830,11 +29834,11 @@ $ asttable zp/jplus-zeropoint.fits --colinfoinstdout
 @end example
 
 The minimum of @code{ZPSTD} can represent the best aperture radius for the selected range of magnitude.
-So the apertures with radii of 2 and 3 arcsec are better than others.
+So the apertures with radii of 2 and 3 arcseconds are better than others.
 Let's focus on the magnitude plots in these two apertures and determine a more accurate range of magnitude.
-It seems the range of 16.4 to 17.8 mag is more reliable.
+The more reliable option is the range between 16.4 and 17.8 mag.
 
-To see the final result for zero point, please, re-run the script with the new magnitude range.
+To see the final result for zero point, re-run the script with the new magnitude range.
 
 @example
 $ astscript-zeropoint zp/jplus-nc.fits --hdu=INPUT-NO-SKY \
@@ -29845,9 +29849,7 @@ $ astscript-zeropoint zp/jplus-nc.fits --hdu=INPUT-NO-SKY \
                       --output=zp/jplus-zeropoint.fits
 @end example
 
-Fortunately, the @command{astscript-zeropoint} script can estimate the best aperture (as @code{ZPAPER} keyword) and thus the best zero point (as @code{ZPVALUE} keyword) based on the minimum of @code{ZPSTD} automatically.
-Then set them along with magnitude range (as @code{MAGMIN} and @code{MAGMAX} keywords) in the header of the output file easily.
-Please see it by the command like below:
+Luckly, the @command{astscript-zeropoint} script can estimate automatically the best aperture (as @code{ZPAPER} keyword) and thus the best zero point (as @code{ZPVALUE} keyword) based on the minimum of @code{ZPSTD}. You can save them with the magnitude range (as @code{MAGMIN} and @code{MAGMAX} keywords) in the header of the output file with the command below:
 
 @example
 $ astfits zp/jplus-zeropoint.fits --hdu=1 --quiet \
