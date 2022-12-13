@@ -20119,9 +20119,9 @@ For example, if you want an output pixel scale that is just 1.5 times larger tha
 In the @code{MAX-FRAC} extension, you will see that the range of pixel values is now between 0.56 to 1.0 (recall that originally, this was between 0.25 and 1.0).
 This shows that the pixels are more similarly mixed and in fact, when you look at the actual warped image, you can hardly distinguish any Moir@'e pattern in the noise.
 
-@cindex Coadd
 @cindex Stacking
 @cindex Dithering
+@cindex Coaddition
 However, deep astronomical data are usually built by several exposures (images), not a single one.
 Each image is also taken by (slightly) shifting the telescope compared to the previous exposure.
 This shift is known as ``dithering''.
@@ -20351,6 +20351,20 @@ For such scenarios, Warp has the @option{--gridfile} option.
 When @option{--gridfile} is called, the options below that are used to define the output's WCS will be ignored (these options: @option{--center}, @option{--widthinpix}, @option{--cdelt}, @option{--ctype}).
 In this case, the output's WCS and pixel grid will exactly match the image given to @option{--gridfile} (including any rotation, pixel scale, or distortion or projection).
 
+@cartouche
+@noindent
+@cindex Stacking
+@cindex Coaddition
+@strong{Set @option{--cdelt} explicitly when you plan to stack many warped images:}
+To align some images and later stack them, it is necessary to be sure the pixel sizes of all the images are the same exactly.
+Most of the time the measured (during astrometry) pixel scale of the separate exposures, will be different in the second or third digit number after the decimal point.
+It is a normal/statistical error in measuring the astrometry.
+On a large image, these slight differences can cause different output sizes (of one or two pixels on a very large image).
+
+You can fix this by explicitly setting the pixel scale of each warped exposure with Warp's @option{--cdelt} option that is described below.
+For good strategies of setting the pixel scale, see @ref{Moire pattern and its correction}.
+@end cartouche
+
 Another problem that may arise when aligning images to new pixel grids is the aliasing or visible Moir@'e patterns on the output image.
 This artifact should be removed if you are stacking several exposures, especially with a dithering pattern.
 If not see @ref{Moire pattern and its correction} for ways to mitigate the visible patterns.
@@ -20358,7 +20372,9 @@ See the description of @option{--gridfile} below for more.
 
 @cartouche
 @noindent
-@strong{Known issue:} Warp's WCS-based aligning works best with @code{WCSLIB 7.12} (released in September 2022) and above, you might get a @code{wcss2p} error otherwise.
+@cindex WCSLIB
+@strong{Known issue:} Warp's WCS-based aligning works best with WCSLIB version 7.12 (released in September 2022) and above.
+If you have an older version of WCSLIB, you might get a @code{wcss2p} error otherwise.
 @end cartouche
 
 @table @option
