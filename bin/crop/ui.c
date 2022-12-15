@@ -505,7 +505,8 @@ ui_check_options_and_arguments(struct cropparams *p)
   else
     {
       p->cp.numthreads=1;
-      p->outnameisfile=gal_checkset_dir_0_file_1(&p->cp, p->cp.output);
+      p->outnameisfile=gal_checkset_dir_0_file_1(&p->cp, p->cp.output,
+                                                 p->inputs->v);
     }
 }
 

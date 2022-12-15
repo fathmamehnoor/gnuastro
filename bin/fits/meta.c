@@ -64,7 +64,7 @@ meta_initialize(struct fitsparams *p, gal_warp_wcsalign_t *wa)
 
   /* Check if we're allowed to delete the output image. If not, fail FAST
      before any CPU-intensive process. */
-  gal_checkset_writable_remove(cp->output, 0, cp->dontdelete);
+  gal_checkset_writable_remove(cp->output, inputname, 0, cp->dontdelete);
 
   /* Read the input image and its WCS, must free it when done. */
   input=gal_array_read_one_ch_to_type(inputname, hdu, NULL,

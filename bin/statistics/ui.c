@@ -1183,8 +1183,8 @@ ui_preparations(struct statisticsparams *p)
                                PROGRAM_NAME);
           else
             {
-              gal_checkset_writable_remove(tl->tilecheckname, 0,
-                                           cp->dontdelete);
+              gal_checkset_writable_remove(tl->tilecheckname, p->inputname,
+                                           0, cp->dontdelete);
               gal_table_write(check, NULL, NULL, cp->tableformat,
                               tl->tilecheckname, "TABLE", 0);
             }
@@ -1232,7 +1232,7 @@ ui_preparations(struct statisticsparams *p)
   p->cp.keepinputdir=keepinputdir;
 
   /* Make sure the output doesn't already exist. */
-  gal_checkset_writable_remove(p->cp.output, p->cp.keep,
+  gal_checkset_writable_remove(p->cp.output, p->inputname, p->cp.keep,
                                p->cp.dontdelete);
 
   /* Set the fit-estimate column, and prepare the weight based on the

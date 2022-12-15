@@ -483,7 +483,7 @@ crop(struct cropparams *p)
             error(EXIT_FAILURE, 0, "%s: asprintf allocation", __func__);
           gal_list_str_add(&comments, tmp, 0);
         }
-      gal_checkset_writable_remove(LOGFILENAME, 0, p->cp.dontdelete);
+      gal_checkset_writable_remove(LOGFILENAME, NULL, 0, p->cp.dontdelete);
       gal_table_write_log(p->log, PROGRAM_STRING, &p->rawtime, comments,
                           LOGFILENAME, p->cp.quiet);
       gal_list_str_free(comments, 1);

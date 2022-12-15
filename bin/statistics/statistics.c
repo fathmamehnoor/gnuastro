@@ -640,7 +640,7 @@ statistics_output_name(struct statisticsparams *p, char *suf, int *isfits)
   *isfits=strcmp(fix, "fits")==0;
 
   /* Make sure it doesn't already exist. */
-  gal_checkset_writable_remove(out, 0, p->cp.dontdelete);
+  gal_checkset_writable_remove(out, p->inputname, 0, p->cp.dontdelete);
 
   /* Clean up and return. */
   if(suffix) free(suffix);
@@ -677,7 +677,7 @@ write_output_table(struct statisticsparams *p, gal_data_t *table,
 
 
   /* Write the table. */
-  gal_checkset_writable_remove(output, 0, p->cp.dontdelete);
+  gal_checkset_writable_remove(output, p->inputname, 0, p->cp.dontdelete);
   gal_table_write(table, NULL, comments, p->cp.tableformat, output,
                   "TABLE", 0);
 

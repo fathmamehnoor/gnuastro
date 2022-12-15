@@ -1017,7 +1017,7 @@ ui_preparations_out_name(struct matchparams *p)
         }
 
       /* Make sure a file with this name doesn't exist. */
-      gal_checkset_writable_remove(p->logname, 0, p->cp.dontdelete);
+      gal_checkset_writable_remove(p->logname, NULL, 0, p->cp.dontdelete);
 
       /* The main output name needs to be available in p->out1name (for the
          final step when we want to write the input configurations as FITS
@@ -1039,7 +1039,8 @@ ui_preparations_out_name(struct matchparams *p)
               p->out1name = gal_checkset_automatic_output(&p->cp,
                                                           refname, suffix);
             }
-          gal_checkset_writable_remove(p->out1name, 0, p->cp.dontdelete);
+          gal_checkset_writable_remove(p->out1name, refname, 0,
+                                       p->cp.dontdelete);
         }
       else
         {
@@ -1089,8 +1090,10 @@ ui_preparations_out_name(struct matchparams *p)
             }
 
           /* Make sure no file with these names exists. */
-          gal_checkset_writable_remove(p->out1name, 0, p->cp.dontdelete);
-          gal_checkset_writable_remove(p->out2name, 0, p->cp.dontdelete);
+          gal_checkset_writable_remove(p->out1name, refname, 0,
+                                       p->cp.dontdelete);
+          gal_checkset_writable_remove(p->out2name, refname, 0,
+                                       p->cp.dontdelete);
         }
 
       /* If a log file is necessary, set its name here. */
@@ -1099,7 +1102,8 @@ ui_preparations_out_name(struct matchparams *p)
           p->logname = ( p->cp.tableformat==GAL_TABLE_FORMAT_TXT
                          ? PROGRAM_EXEC".txt"
                          : PROGRAM_EXEC".fits" );
-          gal_checkset_writable_remove(p->logname, 0, p->cp.dontdelete);
+          gal_checkset_writable_remove(p->logname, refname, 0,
+                                       p->cp.dontdelete);
         }
     }
 }

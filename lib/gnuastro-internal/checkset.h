@@ -124,10 +124,12 @@ int
 gal_checkset_writable_notexist(char *filename);
 
 void    /* keep==0 && dontdelete==0: file will be deleted if exists.*/
-gal_checkset_writable_remove(char *filename, int keep, int dontdelete);
+gal_checkset_writable_remove(char *filename, char *basename, int keep,
+                             int dontdelete);
 
 int
-gal_checkset_dir_0_file_1(struct gal_options_common_params *cp, char *name);
+gal_checkset_dir_0_file_1(struct gal_options_common_params *cp, char *name,
+                          char *basename);
 
 char *
 gal_checkset_automatic_output(struct gal_options_common_params *cp,

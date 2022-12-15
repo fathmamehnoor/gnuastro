@@ -569,6 +569,7 @@ if [ x"$catalog" != x ]; then
         if [ -f "$catalog_main" ]; then
             echo "External Catalog already exists "
         else
+
             # Select stars with magnitude between brighter to fainter.
             asttable $catalog \
                      --range=$field,$brightmag,$fainter --sort=$field \

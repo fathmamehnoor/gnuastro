@@ -178,6 +178,8 @@ See the end of the file for license conditions.
               has no rows. Reported by Elham Saremi.
   bug #63485: Oversampling in radial profile has incorrect center. Reported
               by Nafiseh Sedighi.
+  bug #63543: Programs delete input when it has same name as output.
+              Reported by Faezeh Bidjarchian.
 
 
 

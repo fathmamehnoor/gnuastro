@@ -405,7 +405,7 @@ onecrop_name(struct onecropparams *crp)
           error(EXIT_FAILURE, 0, "%s: asprintf allocation", __func__);
 
       /* Make sure the file doesn't exist. */
-      gal_checkset_writable_remove(crp->name, cp->keep, cp->dontdelete);
+      gal_checkset_writable_remove(crp->name, NULL, cp->keep, cp->dontdelete);
     }
   else
     {
@@ -413,14 +413,13 @@ onecrop_name(struct onecropparams *crp)
       if(p->outnameisfile)            /* An output file was specified. */
         {
           crp->name=cp->output;
-          gal_checkset_writable_remove(crp->name, cp->keep, cp->dontdelete);
+          gal_checkset_writable_remove(crp->name, p->imgs[crp->in_ind].name,
+                                       cp->keep, cp->dontdelete);
         }
       else          /* The output was a directory, use automatic output. */
-        {
         crp->name=gal_checkset_automatic_output(cp,
                                                 p->imgs[crp->in_ind].name,
                                                 p->suffix);
-        }
     }
 }
 

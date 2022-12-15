@@ -1541,7 +1541,18 @@ ui_preparations_both_names(struct mkcatalogparams *p)
     }
   else
     {
-      p->objectsout=gal_checkset_automatic_output(&p->cp, basename, suffix);
+      /* The output file is a FITS file (the 'p->cp.tableformat' has been
+         set before), so a single file output is enough. If no output name
+         has been given, then use automatic output. Otherwise, just check
+         if the given name is writable. */
+      if(p->cp.output)
+        {
+          gal_checkset_allocate_copy(p->cp.output, &p->objectsout);
+          gal_checkset_writable_remove(p->objectsout, p->objectsfile, 0,
+                                       p->cp.dontdelete);
+        }
+      else
+        p->objectsout=gal_checkset_automatic_output(&p->cp, basename, suffix);
       p->clumpsout=p->objectsout;
     }
 
@@ -1578,7 +1589,8 @@ ui_preparations_outnames(struct mkcatalogparams *p)
       if(p->clumps) ui_preparations_both_names(p);
       else
         {
-          gal_checkset_writable_remove(p->cp.output, 0, p->cp.dontdelete);
+          gal_checkset_writable_remove(p->cp.output, p->objectsfile, 0,
+                                       p->cp.dontdelete);
           gal_checkset_allocate_copy(p->cp.output, &p->objectsout);
         }
     }

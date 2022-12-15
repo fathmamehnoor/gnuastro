@@ -144,7 +144,7 @@ saveindividual(struct mkonthread *mkp)
     {
       if( asprintf(&filename, "%s%zu_%s", outdir, ibq->id, p->basename)<0 )
         error(EXIT_FAILURE, 0, "%s: asprintf allocation", __func__);
-      gal_checkset_writable_remove(filename, 0, p->cp.dontdelete);
+      gal_checkset_writable_remove(filename, NULL, 0, p->cp.dontdelete);
     }
 
 
@@ -872,7 +872,7 @@ mkprof(struct mkprofparams *p)
       if( asprintf(&tmp, "Zeropoint: %g", p->zeropoint)<0 )
         error(EXIT_FAILURE, 0, "%s: asprintf allocation", __func__);
       gal_list_str_add(&comments, tmp, 0);
-      gal_checkset_writable_remove(LOGFILENAME, 0, p->cp.dontdelete);
+      gal_checkset_writable_remove(LOGFILENAME, NULL, 0, p->cp.dontdelete);
       gal_table_write_log(p->log, PROGRAM_STRING, &p->rawtime, comments,
                           LOGFILENAME, p->cp.quiet);
       gal_list_str_free(comments, 1);

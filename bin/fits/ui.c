@@ -514,7 +514,8 @@ ui_read_check_mode_extension(struct fitsparams *p)
       else
         {
           if(p->cp.output)
-            gal_checkset_writable_remove(p->cp.output, 1, p->cp.dontdelete);
+            gal_checkset_writable_remove(p->cp.output, p->input->v, 1,
+                                         p->cp.dontdelete);
           else
             p->cp.output=gal_checkset_automatic_output(&p->cp, p->input->v,
                                                        "_ext.fits");

@@ -636,7 +636,7 @@ ui_check_options_and_arguments(struct mkprofparams *p)
 
 
   /* Set the necessary output names. */
-  d0f1=gal_checkset_dir_0_file_1(&p->cp, p->cp.output);
+  d0f1=gal_checkset_dir_0_file_1(&p->cp, p->cp.output, p->catname);
   if(d0f1)                        /* --output is a file name. */
     {
       p->mergedimgname=p->cp.output;
@@ -662,7 +662,7 @@ ui_check_options_and_arguments(struct mkprofparams *p)
   /* If a merged image is requested (or '--kernel' is called), then delete
      the final filename if it exists. */
   if(p->nomerged==0 && p->kernel)
-    gal_checkset_writable_remove(p->mergedimgname, p->cp.keep,
+    gal_checkset_writable_remove(p->mergedimgname, p->catname, p->cp.keep,
                                  p->cp.dontdelete);
 }
 

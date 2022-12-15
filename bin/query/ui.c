@@ -403,7 +403,7 @@ ui_read_check_only_options(struct queryparams *p)
   /* Make sure that the output name is in a writable location and that it
      doesn't exist. If it exists, and the user hasn't called
      '--dontdelete', then delete the existing file. */
-  gal_checkset_writable_remove(p->cp.output, p->cp.keep,
+  gal_checkset_writable_remove(p->cp.output, NULL, p->cp.keep,
                                p->cp.dontdelete);
 
   /* Set the suffix of the default download names for NED (since extinction
@@ -462,7 +462,7 @@ ui_read_check_only_options(struct queryparams *p)
          temporarily activating 'keepinputdir'. */
       keepinputdir=p->cp.keepinputdir;
       p->cp.keepinputdir=1;
-      gal_checkset_writable_remove(p->cp.output, 0, p->cp.dontdelete);
+      gal_checkset_writable_remove(p->cp.output, NULL, 0, p->cp.dontdelete);
       p->downloadname=gal_checkset_automatic_output(&p->cp, p->cp.output,
                                                     rdsuffix);
       p->cp.keepinputdir=keepinputdir;

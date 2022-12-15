@@ -1094,7 +1094,7 @@ arithmetic_tofile(struct arithmeticparams *p, char *token, int freeflag)
                            : OPERATOR_PREFIX_LENGTH_TOFILE     ];
 
   /* Make sure that if the file exists, it is deleted. */
-  gal_checkset_writable_remove(filename, p->cp.keep,
+  gal_checkset_writable_remove(filename, NULL, p->cp.keep,
                                p->cp.dontdelete);
 
   /* Save it to a file. */

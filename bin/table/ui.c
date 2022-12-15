@@ -1279,7 +1279,8 @@ ui_preparations(struct tableparams *p)
 
 
   /* Make sure the (possible) output name is writable. */
-  gal_checkset_writable_remove(p->cp.output, 0, p->cp.dontdelete);
+  gal_checkset_writable_remove(p->cp.output, p->filename, 0,
+                               p->cp.dontdelete);
 
 
   /* If random rows are desired, we need to define a GSL random number

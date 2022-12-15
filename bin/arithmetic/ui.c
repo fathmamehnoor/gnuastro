@@ -298,7 +298,8 @@ ui_check_options_and_arguments(struct arithmeticparams *p)
                   OPERATOR_PREFIX_LENGTH_TOFILEFREE)==0 )
         {
           filename=&token->v[ OPERATOR_PREFIX_LENGTH_TOFILE ];
-          gal_checkset_writable_remove(filename, cp->keep, cp->dontdelete);
+          gal_checkset_writable_remove(filename, basename, cp->keep,
+                                       cp->dontdelete);
         }
 
       /* This may be a simple filename. */
@@ -322,8 +323,7 @@ ui_check_options_and_arguments(struct arithmeticparams *p)
 
               /* If no output name is given, we need to extract the output
                  name from the inputs. */
-              if(cp->output==NULL && basename==NULL)
-                basename=token->v;
+              if(basename==NULL) basename=token->v;
             }
 
           /* This token is a number. Check if a negative dash was present
@@ -338,7 +338,8 @@ ui_check_options_and_arguments(struct arithmeticparams *p)
      'makenew' when the user doesn't set an output name explicity), use a
      default name. */
   if(cp->output)
-    gal_checkset_writable_remove(cp->output, cp->keep, cp->dontdelete);
+    gal_checkset_writable_remove(cp->output, basename, cp->keep,
+                                 cp->dontdelete);
   else
     {
       if(basename)
@@ -347,7 +348,7 @@ ui_check_options_and_arguments(struct arithmeticparams *p)
       else
         {
           gal_checkset_allocate_copy("arithmetic.fits", &cp->output);
-          gal_checkset_writable_remove(cp->output, cp->keep,
+          gal_checkset_writable_remove(cp->output, basename, cp->keep,
                                        cp->dontdelete);
         }
     }

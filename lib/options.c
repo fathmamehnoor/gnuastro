@@ -3043,7 +3043,7 @@ options_print_all(struct gal_options_common_params *cp, char *dirname,
         error(EXIT_FAILURE, 0, "%s: asprintf allocation", __func__);
 
       /* Remove the file if it already exists. */
-      gal_checkset_writable_remove(filename, 0, 0);
+      gal_checkset_writable_remove(filename, NULL, 0, 0);
 
       /* Open the file for writing */
       errno=0;

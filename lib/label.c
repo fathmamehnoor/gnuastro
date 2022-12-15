@@ -222,7 +222,7 @@ gal_label_watershed(gal_data_t *values, gal_data_t *indexs,
                                   GAL_TYPE_INVALID, 2, checkdsize,
                                   NULL, 0, 0, NULL, NULL, NULL);
   tile->block=values;
-  gal_checkset_writable_remove(filename, 0, 0);
+  gal_checkset_writable_remove(filename, NULL, 0, 0);
   crop=gal_data_copy(tile);
   gal_fits_img_write(crop, filename, NULL, PROGRAM_NAME);
   gal_data_free(crop);

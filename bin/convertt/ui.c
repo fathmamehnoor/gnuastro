@@ -418,7 +418,7 @@ ui_show_fonts(struct converttparams *p)
 
   /* Set the PDF and PS file names. */
   outpdf = gal_checkset_automatic_output(&p->cp, p->cp.output, "-fonts.pdf");
-  gal_checkset_writable_remove(outpdf, 0, p->cp.dontdelete);
+  gal_checkset_writable_remove(outpdf, p->cp.output, 0, p->cp.dontdelete);
   outps=gal_checkset_automatic_output(&p->cp, outpdf, ".ps");
 
   /* This command was taken from the 'ps2pdfwr' installed script that comes
@@ -1231,7 +1231,8 @@ ui_set_output(struct converttparams *p)
     }
 
   /* Check if the output already exists and remove it if allowed. */
-  gal_checkset_writable_remove(cp->output, 0, cp->dontdelete);
+  gal_checkset_writable_remove(cp->output, p->inputnames->v, 0,
+                               cp->dontdelete);
 }
 
 

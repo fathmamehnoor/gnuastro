@@ -647,7 +647,7 @@ keywords_wcs_convert(struct fitsparams *p)
         error(EXIT_FAILURE, 0, "%s: asprintf allocation", __func__);
       output=gal_checkset_automatic_output(&p->cp, p->input->v, suffix);
     }
-  gal_checkset_writable_remove(output, 0, p->cp.dontdelete);
+  gal_checkset_writable_remove(output, p->input->v, 0, p->cp.dontdelete);
 
   /* Write the output file. */
   if(data)
@@ -985,7 +985,8 @@ keywords_value(struct fitsparams *p)
     }
 
   /* Write the values. */
-  gal_checkset_writable_remove(p->cp.output, 0, p->cp.dontdelete);
+  gal_checkset_writable_remove(p->cp.output, p->input->v, 0,
+                               p->cp.dontdelete);
   gal_table_write(out, NULL, NULL, p->cp.tableformat,
                   p->cp.output, "KEY-VALUES", p->colinfoinstdout);
 

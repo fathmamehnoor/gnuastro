@@ -708,7 +708,8 @@ gal_checkset_writable_notexist(char *filename)
    won't be deleted, but the program will abort with an error, informing
    the user that the output can't be made. */
 void
-gal_checkset_writable_remove(char *filename, int keep, int dontdelete)
+gal_checkset_writable_remove(char *filename, char *basename, int keep,
+                             int dontdelete)
 {
   char *dir;
   FILE *tmpfile;
@@ -717,6 +718,16 @@ gal_checkset_writable_remove(char *filename, int keep, int dontdelete)
      cases, a NULL filename is interpretted to mean standard output. */
   if(filename==NULL)
     return;
+
+  /* If a base-name was given, then this name may be related to the input's
+     name. In that case, we should check if they are the same string. */
+  if(basename)
+    if( !strcmp(filename, basename) )
+      error(EXIT_FAILURE, 0, "the output filename name ('%s') is the same "
+            "as the input's file name! The output file is re-written if "
+            "it already exists. Therefore, when the input and output file "
+            "names are the same there is a problem! Please select a "
+            "different output name", filename);
 
   /* We want to make sure that we can open and write to this file. But
      the user might have asked to not delete the file, so the
@@ -774,7 +785,8 @@ gal_checkset_writable_remove(char *filename, int keep, int dontdelete)
    a directory) it will return 0. Finally, if it exists but cannot be
    deleted, report an error and abort. */
 int
-gal_checkset_dir_0_file_1(struct gal_options_common_params *cp, char *name)
+gal_checkset_dir_0_file_1(struct gal_options_common_params *cp, char *name,
+                          char *basename)
 {
   FILE *tmpfile;
   struct stat nameinfo;
@@ -813,7 +825,7 @@ gal_checkset_dir_0_file_1(struct gal_options_common_params *cp, char *name)
     return 0;
   else if (S_ISREG(nameinfo.st_mode))  /* It is a file, GOOD. */
     {
-      gal_checkset_writable_remove(name, cp->keep, cp->dontdelete);
+      gal_checkset_writable_remove(name, basename, cp->keep, cp->dontdelete);
       return 1;
     }
   else                                 /* Not a file or a dir, ABORT */
@@ -899,7 +911,7 @@ gal_checkset_automatic_output(struct gal_options_common_params *cp,
     }
 
   /* Remove the created filename if it already exits. */
-  gal_checkset_writable_remove(out, cp->keep, cp->dontdelete);
+  gal_checkset_writable_remove(out, inname, cp->keep, cp->dontdelete);
 
   /* Return the resulting filename. */
   return out;

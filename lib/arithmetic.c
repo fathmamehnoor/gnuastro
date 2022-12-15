@@ -2566,8 +2566,8 @@ arithmetic_box_around_ellipse(gal_data_t *d1, gal_data_t *d2,
       d1->size=0; return d1;
     }
 
-  /* Convert the two inputs into double. Note that if the user doesn't want
-     to free the inputs, we should make a copy of 'a_data' and 'b_data'
+  /* Convert the inputs into double. Note that if the user doesn't want to
+     free the inputs, we should make a copy of 'a_data' and 'b_data'
      because the output will also be written in them. */
   a_data=( ( d1->type==GAL_TYPE_FLOAT64
              || flags & GAL_ARITHMETIC_FLAG_FREE )
