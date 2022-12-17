@@ -879,6 +879,9 @@ arithmetic_interpolate(struct arithmeticparams *p, int operator, char *token)
     case ARITHMETIC_OP_INTERPOLATE_MAXNGB:
       interpop=GAL_INTERPOLATE_NEIGHBORS_FUNC_MAX;
       break;
+    case ARITHMETIC_OP_INTERPOLATE_MEANNGB:
+      interpop=GAL_INTERPOLATE_NEIGHBORS_FUNC_MEAN;
+      break;
     case ARITHMETIC_OP_INTERPOLATE_MEDIANNGB:
       interpop=GAL_INTERPOLATE_NEIGHBORS_FUNC_MEDIAN;
       break;
@@ -1328,6 +1331,8 @@ arithmetic_set_operator(char *string, size_t *num_operands, int *inlib)
         { op=ARITHMETIC_OP_INTERPOLATE_MINNGB;    *num_operands=0; }
       else if (!strcmp(string, "interpolate-maxngb"))
         { op=ARITHMETIC_OP_INTERPOLATE_MAXNGB;    *num_operands=0; }
+      else if (!strcmp(string, "interpolate-meanngb"))
+        { op=ARITHMETIC_OP_INTERPOLATE_MEANNGB;   *num_operands=0; }
       else if (!strcmp(string, "interpolate-medianngb"))
         { op=ARITHMETIC_OP_INTERPOLATE_MEDIANNGB; *num_operands=0; }
       else if (!strcmp(string, "interpolate-minofregion"))
@@ -1516,6 +1521,7 @@ arithmetic_operator_run(struct arithmeticparams *p, int operator,
 
         case ARITHMETIC_OP_INTERPOLATE_MINNGB:
         case ARITHMETIC_OP_INTERPOLATE_MAXNGB:
+        case ARITHMETIC_OP_INTERPOLATE_MEANNGB:
         case ARITHMETIC_OP_INTERPOLATE_MEDIANNGB:
           arithmetic_interpolate(p, operator, operator_string);
           break;

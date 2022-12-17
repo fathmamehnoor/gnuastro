@@ -17252,11 +17252,14 @@ When you want to interpolate blank regions and you want each blank region to hav
 Because the pixels used to interpolate various parts of the region differ.
 For such scenarios, you may use @code{interpolate-maxofregion} or @code{interpolate-inofregion} (described below).
 
+@item interpolate-meanngb
+Similar to @code{interpolate-medianngb}, but will fill the blank values of the dataset with the mean value of the requested number of nearest neighbors.
+
 @item interpolate-minngb
-Similar to @code{interpolate-medianngb}, but will fill the blank values of the dataset with the minimum value of the nearest neighbors.
+Similar to @code{interpolate-medianngb}, but will fill the blank values of the dataset with the minimum value of the requested number of nearest neighbors.
 
 @item interpolate-maxngb
-Similar to @code{interpolate-medianngb}, but will fill the blank values of the dataset with the maximum value of the nearest neighbors.
+Similar to @code{interpolate-medianngb}, but will fill the blank values of the dataset with the maximum value of the requested number of nearest neighbors.
 One useful implementation of this operator is to fill the saturated pixels of stars in images.
 
 @item interpolate-minofregion
@@ -37604,6 +37607,7 @@ A manhattan metric will always be an integer and is like steps (but is also much
 
 @deffn Macro GAL_INTERPOLATE_NEIGHBORS_FUNC_MIN
 @deffnx Macro GAL_INTERPOLATE_NEIGHBORS_FUNC_MAX
+@deffnx Macro GAL_INTERPOLATE_NEIGHBORS_FUNC_MEAN
 @deffnx Macro GAL_INTERPOLATE_NEIGHBORS_FUNC_MEDIAN
 @deffnx Macro GAL_INTERPOLATE_NEIGHBORS_FUNC_INVALID
 @cindex Saturated stars

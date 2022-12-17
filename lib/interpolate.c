@@ -284,6 +284,10 @@ interpolate_neighbors_on_thread(void *in_prm)
             case GAL_INTERPOLATE_NEIGHBORS_FUNC_MAX:
               value=gal_statistics_maximum(tnear); break;
               break;
+            case GAL_INTERPOLATE_NEIGHBORS_FUNC_MEAN:
+              value=gal_statistics_mean(tnear); /* Out can be a diff. type */
+              value=gal_data_copy_to_new_type_free(value, tnear->type);
+              break;
             case GAL_INTERPOLATE_NEIGHBORS_FUNC_MEDIAN:
               value=gal_statistics_median(tnear, 1); break;
             default:

@@ -25,6 +25,9 @@ See the end of the file for license conditions.
        SDSS). This was suggested by Giulia Golini.
      - nanomaggy-to-counts: convert nanomaggy to counts. This was suggested
        by Giulia Golini.
+   - New operators (only in the Arithmetic program):
+     - interpolate-meanngb: interpolate blank values with mean of the
+       requested number of nearest neighbors.
    - Alternative (shorter) names for existing operators, added after
      discussion with Samane Raji.
      - u8:  same as 'uint8'   (to convert to unsigned 8-bit integers).
