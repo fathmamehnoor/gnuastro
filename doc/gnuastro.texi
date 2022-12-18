@@ -2692,7 +2692,7 @@ But NoiseChisel's output is a multi-extension FITS file, therefore to better und
 
 In the FITS format, each extension contains a separate dataset (image in this case).
 You can get basic information about the extensions in a FITS file with Gnuastro's Fits program (see @ref{Fits}).
-To start with, let's run NoiseChisel without any options, then use Gnuastro's FITS program to inspect the number of extensions in this file.
+To start with, let's run NoiseChisel without any options, then use Gnuastro's Fits program to inspect the number of extensions in this file.
 
 @example
 $ astnoisechisel flat-ir/xdf-f160w.fits
@@ -8033,7 +8033,7 @@ $ su
                 xcolor pgfplots times rsfs ps2eps epspdf
 @end example
 
-To check that you have a working @LaTeX{} executable in your system, you can try this command (this just checks if @LaTeX{} exists, as described above, if you have a missing package, you can easily identify it from the output and install it with @command{tlmgr}.
+To check that you have a working @LaTeX{} executable in your system, you can try this command (this just checks if @LaTeX{} exists, as described above, if you have a missing package, you can easily identify it from the output and install it with @command{tlmgr}):
 
 @example
 $ latex --version
@@ -9157,7 +9157,7 @@ One application of this is already discussed in @ref{Configure and build in RAM}
 
 To facilitate this process of configuring and building in a separate directory, Gnuastro comes with the @file{developer-build} script.
 It is available in the top source directory and is @emph{not} installed.
-It will make a directory under a given top-level directory (given to @option{--top-build-dir}) and build Gnuastro in there directory.
+It will make a directory under a given top-level directory (given to @option{--top-build-dir}) and build Gnuastro there.
 It thus keeps the source completely separated from the built files.
 For easy access to the built files, it also makes a symbolic link to the built directory in the top source files called @file{build}.
 
@@ -9844,6 +9844,15 @@ When specifying the name, case is not important so @command{IMAGE}, @command{ima
 CFITSIO has many capabilities to help you find the extension you want, far beyond the simple extension number and name.
 See CFITSIO manual's ``HDU Location Specification'' section for a very complete explanation with several examples.
 A @code{#} is appended to the string you specify for the HDU@footnote{With the @code{#} character, CFITSIO will only read the desired HDU into your memory, not all the existing HDUs in the fits file.} and the result is put in square brackets and appended to the FITS file name before calling CFITSIO to read the contents of the HDU for all the programs in Gnuastro.
+
+@cartouche
+@noindent
+@strong{Default HDU is HDU number 1 (counting from 0):} by default, Gnuastro’s programs assume that their (main/first) input is in HDU number 1 (counting from zero).
+So if you don’t specify the HDU number, the program will read the input from this HDU.
+For programs that can take multiple FITS datasets as input (like @ref{Arithmetic}) this default HDU applies to the first input, you still need to call @option{--hdu} for the other inputs.
+Generally, all Gnuastro's programs write their outputs in HDU number 1 (HDU 0 is reserved for metadata like the configuration parameters that the program was run with).
+For more on this, see @ref{Fits}.
+@end cartouche
 
 @item -s STR
 @itemx --searchin=STR
@@ -12402,7 +12411,7 @@ The second integer may be negative (zero is not acceptable) or an integer larger
 A negative second integer means counting from the end.
 So @code{-1} is the last copy-able keyword (not including the @code{END} keyword).
 
-To see the header keywords of the input with a number before them, you can pipe the output of the FITS program (when it prints all the keywords in an extension) into the @command{cat} program like below:
+To see the header keywords of the input with a number before them, you can pipe the output of the Fits program (when it prints all the keywords in an extension) into the @command{cat} program like below:
 
 @example
 $ astfits input.fits -h1 | cat -n
@@ -12506,7 +12515,8 @@ For more on their difference and links for further reading about epochs in astro
 If the argument has a WCS distortion, the output (file given with the @option{--output} option) will have the distortion given to this option (for example, @code{SIP}, @code{TPV}).
 The output will be a new file (with a copy of the image, and the new WCS), so if it already exists, the file will be delete (unless you use the @code{--dontdelete} option, see @ref{Input output options}).
 
-With this option, the FITS program will read the minimal set of keywords from the input HDU and the HDU data, it will then write them into the file given to the @option{--output} option but with a newly created set of WCS-related keywords corresponding to the desired distortion standard.
+With this option, the Fits program will read the minimal set of keywords from the input HDU and the HDU data.
+It will then write them into the file given to the @option{--output} option but with a newly created set of WCS-related keywords corresponding to the desired distortion standard.
 
 If no @option{--output} file is specified, an automatically generated output name will be used which is composed of the input's name but with the @file{-DDD.fits} suffix, see @ref{Automatic output}.
 Where @file{DDD} is the value given to this option (desired output distortion).
@@ -17196,7 +17206,17 @@ Therefore, on the edge, less points will be used in calculating the mean.
 The final effect of mean filtering is to smooth the input image, it is essentially a convolution with a kernel that has identical values for all its pixels (is flat), see @ref{Convolution process}.
 
 Note that blank pixels will also be affected by this operator: if there are any non-blank elements in the box surrounding a blank pixel, in the filtered image, it will have the mean of the non-blank elements, therefore it will not be blank any more.
-If blank elements are important for your analysis, you can use the @code{isblank} with the @code{where} operator to set them back to blank after filtering.
+If blank elements are important for your analysis, you can use the @code{isblank} operator with the @code{where} operator to set them back to blank after filtering.
+
+For example in the command below, we are first filtering the image, then setting its original blank elements back to blank in the output of filtering (all within one Arithmetic command).
+Note how we are using the @code{set-} operator to give names to the temporary outputs of steps and simplify the code (see @ref{Operand storage in memory or a file}).
+
+@example
+$ astarithmetic image.fits -h1        set-in \
+                5 4 in filter-mean    set-filtered \
+                filtered in isblank nan where \
+                --output=out.fits
+@end example
 
 @item filter-median
 Apply @url{https://en.wikipedia.org/wiki/Median_filter, median filtering} on the input dataset.
@@ -31279,7 +31299,7 @@ The name of the file containing the allocated space is an allocated string that 
 
 Note that the kernel does not allow an infinite number of memory mappings to files.
 So it is not recommended to use this function with every allocation.
-The best-case scenario to use this function is for arrays that are very large and can fill up the RAM.(or : ... is for arrays that are large enough and can fill up the RAM.)
+The best-case scenario to use this function is for arrays that are very large and can fill up the RAM.
 Keep the smaller arrays in RAM, which is faster and can have a (theoretically) unlimited number of allocations.
 
 When you are done with the dataset and do not need it anymore, do not use @code{free} (the dataset is not in RAM).
