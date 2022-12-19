@@ -361,6 +361,17 @@ ui_read_check_only_options(struct tableparams *p)
               "'--txtf64format'. Recognized values are 'fixed' and "
               "'exp'", p->txtf64fmtstr);
     }
+
+  /* If the user wants easy-to-read text output (this should over-write the
+     existing values in the command-line or in configuration
+     files). Because default values exist in the configuration files. */
+  if(p->txteasy)
+    {
+      p->txtf32precision=3;
+      p->txtf64precision=6;
+      p->txtf32format=GAL_TABLE_DISPLAY_FMT_FIXED;
+      p->txtf64format=GAL_TABLE_DISPLAY_FMT_FIXED;
+    }
 }
 
 

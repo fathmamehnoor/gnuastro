@@ -42,7 +42,7 @@ enum program_args_groups
 /* Available letters for short options:
 
    a g j k l t v x y z
-   G J Q Y
+   G J Q
 */
 enum option_keys_enum
 {
@@ -67,6 +67,7 @@ enum option_keys_enum
   UI_KEY_CATROWFILE      = 'R',
   UI_KEY_CATROWHDU       = 'X',
   UI_KEY_COLMETADATA     = 'm',
+  UI_KEY_TXTEASY         = 'Y',
   UI_KEY_TXTF32FORMAT    = 'f',
   UI_KEY_TXTF64FORMAT    = 'A',
   UI_KEY_TXTF32PRECISION = 'p',

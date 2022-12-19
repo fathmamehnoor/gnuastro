@@ -122,6 +122,7 @@ struct tableparams
   gal_list_str_t  *catrowfile;  /* Filename to concat column wise.      */
   gal_list_str_t   *catrowhdu;  /* HDU/extension for the catcolumn.     */
   gal_data_t     *colmetadata;  /* Set column metadata.                 */
+  uint8_t             txteasy;  /* Easy/simple to ready txt output.     */
   char          *txtf32fmtstr;  /* Floating point formats (exp, flt).   */
   char          *txtf64fmtstr;  /* Floating point formats (exp, flt).   */
   int         txtf32precision;  /* Precision of float32 in text.        */

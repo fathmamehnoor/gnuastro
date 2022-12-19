@@ -195,6 +195,19 @@ struct argp_option program_options[] =
       gal_options_parse_name_and_strings
     },
     {
+      "txteasy",
+      UI_KEY_TXTEASY,
+      0,
+      0,
+      "Short for '-Afixed -B6 -ffixed -p3'.",
+      GAL_OPTIONS_GROUP_OUTPUT,
+      &p->txteasy,
+      GAL_OPTIONS_NO_ARG_TYPE,
+      GAL_OPTIONS_RANGE_0_OR_1,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET
+    },
+    {
       "txtf32format",
       UI_KEY_TXTF32FORMAT,
       "STR",

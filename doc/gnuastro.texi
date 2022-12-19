@@ -15031,6 +15031,13 @@ Since we only have an integer number of digits in a number, we'll round it to 16
 Furthermore, the precision is only defined to the right side of the decimal point.
 In exponential notation (default of @option{--txtf64format}), one decimal digit will be printed on the left of the decimal point.
 So the default value to this option is @mymath{16-1=15}.
+
+@item -Y
+@itemx --txteasy
+When output is a plain-text file or just gets printed on standard output (the terminal), all floating point columns are printed in fixed point notation (as in @code{123.456}) instead of the default exponential notation (as in @code{1.23456e+02}).
+For 32-bit floating points, this option will use a precision of 3 digits (see @option{--txtf32precision}) and for 64-bit floating points use a precision of 6 digits (see @option{--txtf64precision}).
+This can be useful for human readability, but be careful with some scenarios (for example @code{1.23e-120}, which will show only as @code{0.0}!).
+When this option is called any value given the following options is ignored: @option{--txtf32format}, @option{--txtf32precision}, @option{--txtf64format} and @option{--txtf64precision}.
 @end table
 
 
