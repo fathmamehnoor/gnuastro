@@ -15038,6 +15038,51 @@ When output is a plain-text file or just gets printed on standard output (the te
 For 32-bit floating points, this option will use a precision of 3 digits (see @option{--txtf32precision}) and for 64-bit floating points use a precision of 6 digits (see @option{--txtf64precision}).
 This can be useful for human readability, but be careful with some scenarios (for example @code{1.23e-120}, which will show only as @code{0.0}!).
 When this option is called any value given the following options is ignored: @option{--txtf32format}, @option{--txtf32precision}, @option{--txtf64format} and @option{--txtf64precision}.
+For example below you can see the output of table with and without this option:
+
+@example
+$ asttable table.fits --head=5 -O
+# Column 1: OBJNAME   [name  ,str23,   ] Name in HyperLeda.
+# Column 2: RAJ2000   [deg   ,f64  ,   ] Right Ascension.
+# Column 3: DEJ2000   [deg   ,f64  ,   ] Declination.
+# Column 4: RADIUS    [arcmin,f32  ,   ] Major axis radius.
+NGC0884  2.3736267000000e+00 5.7138753300000e+01  8.994357e+00
+NGC1629  4.4935191000000e+00 -7.1838322400000e+01 5.000000e-01
+NGC1673  4.7109672000000e+00 -6.9820892700000e+01 3.499210e-01
+NGC1842  5.1216920000000e+00 -6.7273195300000e+01 3.999171e-01
+
+$ asttable table.fits --head=5 -O -Y
+# Column 1: OBJNAME   [name  ,str23,   ] Name in HyperLeda.
+# Column 2: RAJ2000   [deg   ,f64  ,   ] Right Ascension.
+# Column 3: DEJ2000   [deg   ,f64  ,   ] Declination.
+# Column 4: RADIUS    [arcmin,f32  ,   ] Major axis radius.
+NGC0884  2.373627           57.138753          8.994
+NGC1629  4.493519           -71.838322         0.500
+NGC1673  4.710967           -69.820893         0.350
+NGC1842  5.121692           -67.273195         0.400
+@end example
+
+This is also useful when you want to make outputs of other programs more ``easy'' to read, for example:
+
+@example
+$ echo 123.45678 | asttable
+1.234567800000000e+02
+
+$ echo 123.45678 | asttable -Y
+123.456780
+@end example
+
+@cartouche
+@noindent
+@strong{Can result in loss of information}: be very careful with this option!
+It can loose precision or generally the full value if the value is not within a "good" range like this example.
+Such cases are the reason that this is not the default format of plain-text outputs.
+
+@example
+$ echo 123.4e-9 | asttable -Y
+0.000000
+@end example
+@end cartouche
 @end table
 
 
