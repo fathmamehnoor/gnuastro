@@ -29681,10 +29681,10 @@ $ astcrop zp/jplus.fits.fz --center=107.7263,40.1754 \
           --width=0.6 --output=zp/jplus-crop.fits
 @end example
 
-Although we cropped the J-PLUS image is still very large in comparison with the SDSS image (the J-PLUS field of view is almost @mymath{1.\5\times1.5} deg@mymath{^2}, while the field of view of the SDSS in each filter is almost @mymath{0.3\times0.5} deg@mymath{^2}).
-So, let's download two SDSS images (and then decompress them) in the region of the J-PLUS cropped image to have a more accurate result.
+Although we cropped the J-PLUS image, it is still very large in comparison with the SDSS image (the J-PLUS field of view is almost @mymath{1.5\times1.5} deg@mymath{^2}, while the field of view of SDSS in each filter is almost @mymath{0.3\times0.5} deg@mymath{^2}).
+Therefore, let's download two SDSS images (and then decompress them) in the region of the J-PLUS cropped image to have a more accurate result.
 Make sure that the filters you use are both the same.
-The reason is that we have different @emph[r] filters, such as SDSS and Johnson.
+Because we have different @emph{r} filters, such as the SDSS-r or Johnson-R filters.
 In this case, we use the SDSS @emph{r} filter for both cases.
 
 @example
@@ -29703,15 +29703,16 @@ To have a feeling of the data, open all three images with @command{astscript-fit
 $ astscript-fits-view zp/jplus-crop.fits zp/sdss1.fits zp/sdss2.fits
 @end example
 
-Before continuing, as the reference image (SDSS) is a Sky-subtracted calibrated image, thus we should subtract the Sky value from the J-PLUS image to be comparable.
-It is easy to subtract the Sky value using NoiseChisel's @code[INPUT-NO-SKY] extension.
+Before continuing, due to the fact that the referenced image (SDSS) is Sky-subtracted, therefore we should subtract the Sky value from the J-PLUS image, to be fairly comparable.
+In @code{INPUT-NO-SKY} extension of NoiseChisel the sky value is subtracted.
+Then, we can use the first extension of NoiseChisel.
 You can see @ref{NoiseChisel} for more details.
 
 @example
 $ astnoisechisel zp/jplus-crop.fits --output=zp/jplus-nc.fits
 @end example
 
-We are now ready to start finding the zero point.
+Now, We are ready to start finding the zero point.
 Please, call the @command{astscript-zeropoint} with the @option{--help} to see option names and also see @ref{Invoking astscript-zeropoint} for more details.
 For the first time, let's use the script in a simple state.
 Keep only the essential options that are including the information of the input image and reference images, and also determine an aperture radius, for example, 3 arcsec to start:
@@ -29784,10 +29785,11 @@ What the code does is to compare the result for several aperture sizes and choos
 However, it should be computed in a proper range of magnitude.
 As a matter of fact, the next important point is whether all of the bright or faint stars in the input image are comparable with reference stars.
 To better clarify, let’s check the result of matching the J-PLUS catalog with the SDSS reference catalog.
-Note that the two catalogs created by aperture photometry from the SDSS image are merged so that there are more stars to compare.
-If you like to access the temporal files in the intermediate steps, you can use @option{--keeptmp} option to prevent from being removed of them.
 
-Using Gnuastro’s @command{astscript-fits-view}, you can visualize a table created from matching J-PLUS and SDSS catalogs in the second extension of the output file as a plot by @code{TOPCAT}.
+Note that the two catalogs created by aperture photometry from the SDSS image are merged so that there are more stars to compare.
+If you like to access to the temporal files in the intermediate steps, you can use @option{--keeptmp} option to prevent from being removed of them.
+
+By using  Gnuastro’s @command{astfits} you can see the content of output, then you can extract the table with  @command{astfits}. Finally you can use your tool to plot the output, our recommendation is  @code{TOPCAT}.
 
 
 @example
@@ -29982,8 +29984,8 @@ The HDU/extension of the input image to use.
 
 @item -c STR
 @itemx --catalog=STR
-Reference catalog which based on it the zeropoint of the input image will be estimated.
-This catalog should be have coordinate(ra,dec) and magnitude of the stars.
+Reference catalog which based on it, the zeropoint of the input image will be estimated.
+This catalog should be have ra, dec and magnitude of the stars.
 
 @item -C STR/INT
 @itemx --cataloghdu=STR/INT
@@ -30030,18 +30032,18 @@ Keep zeropoint of each aperture in different extension.
 @item -t
 @itemx --tmpdir
 Directory to keep temporary files during the execution of the script.
-If the directory does not exist at run-time, this script will create it.
+If the directory does not exist at run$-$time, this script will create it.
 By default, upon completion of the script, this directory will be deleted.
 However, if you would like to keep the intermediate files, you can use the @option{--keeptmp} option.
 
 @item -k
 @itemx --keeptmp
-Do not remove the temporary directory (see description of @option{--keeptmp}).
+Its recommended to not remove the temporary directory (see description of @option{--keeptmp}).
 This option is useful for debugging and checking the outputs of internal steps.
 
 @item -o STR
 @itemx --output=STR
-The output name of the final file contain the best aperture and the zeropoint.
+The output contains the best aperture and the zeropoint.
 
 @end table
 
