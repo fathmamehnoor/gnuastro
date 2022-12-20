@@ -9262,12 +9262,13 @@ Activate the @option{--dist} (@option{-D}) option, then use secure copy (@comman
 For example, @command{--upload my-server:dir}, will copy the tarball in the @file{dir/src}, and the PDF manual in @file{dir/pdf} of @code{my-server} server.
 It will then make a symbolic link in the top server directory to the tarball that is called @file{gnuastro-latest.tar.lz}.
 
-@item -p
-@itemx --publish
-Short for @option{--autoreconf --clean --debug --check --upload STR}.
+@item -p STR
+@itemx --publish=STR
+Clean, bootstrap, build, check and upload the checked tarball and PDF of the book to the URL given as @code{STR}.
+This option is just a wrapper for @option{--autoreconf --clean --debug --check --upload STR}.
 @option{--debug} is added because it will greatly speed up the build.
-It will have no effect on the produced tarball.
-This is good when you have made a commit and are ready to publish it on your server (if nothing crashes).
+@option{--debug} will have no effect on the produced tarball (people who later download will be building with the default optimized, and non-debug mode).
+This option is good when you have made a commit and are ready to publish it on your server (if nothing crashes).
 Recall that if any of the previous steps fail the script aborts.
 
 @item -I
