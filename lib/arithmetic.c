@@ -2569,12 +2569,10 @@ arithmetic_box_around_ellipse(gal_data_t *d1, gal_data_t *d2,
   /* Convert the inputs into double. Note that if the user doesn't want to
      free the inputs, we should make a copy of 'a_data' and 'b_data'
      because the output will also be written in them. */
-  a_data=( ( d1->type==GAL_TYPE_FLOAT64
-             || flags & GAL_ARITHMETIC_FLAG_FREE )
+  a_data=( d1->type==GAL_TYPE_FLOAT64
            ? d1
            : gal_data_copy_to_new_type(d1, GAL_TYPE_FLOAT64) );
-  b_data=( ( d2->type==GAL_TYPE_FLOAT64
-             || flags & GAL_ARITHMETIC_FLAG_FREE )
+  b_data=( d2->type==GAL_TYPE_FLOAT64
            ? d2
            : gal_data_copy_to_new_type(d2, GAL_TYPE_FLOAT64) );
   pa_data=( d3->type==GAL_TYPE_FLOAT64

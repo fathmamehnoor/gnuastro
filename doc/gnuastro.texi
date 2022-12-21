@@ -18331,13 +18331,13 @@ The operators here describe certain functions that will be necessary when dealin
 @item box-around-ellipse
 Return the width (along horizontal) and height (along vertical) of a box that encompasses an ellipse with the same center point.
 The top-popped operand is assumed to be the position angle (angle from the horizontal axis) in @emph{degrees}.
-The second and third popped operands are the minor and major axis lengths respectively.
+The second and third popped operands are the minor and major radii of the ellipse respectively.
 This operator outputs two operands on the general stack.
 The first one is the width and the second (which will be the top one when this operator finishes) is the height.
 
 If the value to the second popped operand (minor axis) is larger than the third (major axis), a NaN value will be written for both the width and height of that element and a warning will be printed (the warning can be disabled with the @option{--quiet} option).
 
-As an example, if your ellipse has a major axis length of 10 units, a minor axis length of 4 units and a position angle of 20 degrees, you can estimate the bounding box with this command:
+As an example, if your ellipse has a major axis radius of 10 units, a minor axis radius of 4 units and a position angle of 20 degrees, you can estimate the bounding box with this command:
 
 @example
 $ echo "10 4 20" \
