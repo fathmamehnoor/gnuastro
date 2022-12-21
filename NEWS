@@ -20,6 +20,11 @@ See the end of the file for license conditions.
      - counter: similar to 'index', but integers start with 1.
      - indexonly: similar to 'index', but pops the top stack dataset.
      - counteronly: similar to 'counter', but pops the top stack dataset.
+     - constant: replace all elements of input image or column with the
+       given constant value (for example to set all pixels in an image to
+       NaN or zero), or to give identifiers to each source catalog when
+       adding rows from different catalogs, see the documentation for
+       complete examples.
      - counts-to-nanomaggy: convert counts to Nanomaggy (with fixed
        zeropoint of 22.5, used as the pixel units of many surveys like
        SDSS). This was suggested by Giulia Golini.

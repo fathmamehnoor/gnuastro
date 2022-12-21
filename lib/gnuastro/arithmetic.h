@@ -133,7 +133,6 @@ enum gal_arithmetic_operators
 
   GAL_ARITHMETIC_OP_E,            /* The base of natural logirithm. */
   GAL_ARITHMETIC_OP_PI,           /* Circle circumference by diameter. */
-
   GAL_ARITHMETIC_OP_C,            /* The speed of light. */
   GAL_ARITHMETIC_OP_G,            /* The gravitational constant. */
   GAL_ARITHMETIC_OP_H,            /* Plank's constant. */
@@ -211,6 +210,7 @@ enum gal_arithmetic_operators
 
   /* Meta operators */
   GAL_ARITHMETIC_OP_MAKENEW,      /* Build a new dataset, containing zeros.*/
+  GAL_ARITHMETIC_OP_CONSTANT,     /* Make a row with given constant. */
   GAL_ARITHMETIC_OP_SIZE,         /* Size of the dataset along an axis     */
   GAL_ARITHMETIC_OP_INDEX,        /* New with the index (counting from 0). */
   GAL_ARITHMETIC_OP_COUNTER,      /* New with the index (counting from 0). */

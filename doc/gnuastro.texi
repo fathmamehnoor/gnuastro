@@ -14830,6 +14830,14 @@ $ asttable a.fits --catrowfile=b.fits --catrowhdu=1 \
 @end example
 
 @cartouche
+@cindex Provenance
+@noindent
+@strong{Provenance of each row:} When merging rows from separate catalogs, it is important to keep track of the source catalog of each row (its provenance).
+To do this, you can use @option{--catrowfile} in combination with the @code{constant} operator and @ref{Column arithmetic}.
+For a working example of this scenario, see the example within the documentation of the @code{constant} operator in @ref{Building new dataset and stack management}.
+@end cartouche
+
+@cartouche
 @noindent
 @strong{How to avoid repetition when adding rows:} this option will simply add the rows of multiple tables into one, it does not check their contents!
 Therefore if you use this option on multiple catalogs that may have some shared physical objects in some of their rows, those rows/objects will be repeated in the final table.
@@ -18607,6 +18615,56 @@ To further extend the example, you can use any of the noise-making operators to 
 
 @example
 $ astarithmetic 100 200 2 makenew 5 mknoise-sigma
+@end example
+
+@item constant
+Return an operand that will have a constant value (first popped operand) in all its elements.
+The number of elements is read from the second popped operand.
+The second popped operand is only used for its number of elements, its numeric data type, or its values are fully ignored and it is later freed.
+
+@cindex Provenance
+Here is one useful scenario for this operator in tables: you want to merge the objects/rows of some catalogs together, but you first want to give each source catalog a label/counter that distinguishes between the source of each rows in the merged/final catalog (using @ref{Invoking asttable}).
+The steps below show the the usage of this.
+
+@example
+## Add label 1 to the RA, Dec, magnitude and magnitude error
+## rows of the first catalog.
+$ asttable cat-1.fits -cRA,DEC,MAG,MAG_ERR \
+       -c'arith $1 1 constant' --output=tab-1.fits
+
+## Similar to above, but for the second catalog, we don't
+## need metadata here (because '--catrowfile' takes the column
+## column meta data from its first input.
+$ asttable cat-2.fits -cRA,DEC,MAG,MAG_ERR \
+           -c'arith $1 2 constant' --output=tab-2.fits
+
+## Concatenate (merge/blend) the rows of the two tables into
+## one for the 5 columns, but also add a counter for each
+## object or row in the final catalog.
+$ asttable tab-1.fits --catrowfile=tab-2.fits \
+           -c'arith $1 counteronly' \
+           -cRA,DEC,MAG,MAG_ERR,5 --output=merged.fits \
+           --colmetadata=1,ID_MERGED,counter,"Merged ID." \
+           --colmetadata=6,SOURCE-CAT,counter,"Source ID."
+
+## Add keyword information on each input. It is very important
+## to preserve this within the merged catalog. If the tables
+## came from public databases (for example on VizieR), give
+## their public identifier as the value.
+$ astfits merged.fits --write=/,"Source catalogs" \
+          --write=CATSRC1,"I/355/gaiadr3","VizieR ID." \
+          --write=CATSRC2,"Jane Doe","Name of source."
+
+## Check the metadata in 'merged.fits' and clean the
+## temporary files.
+$ astfits merged.fits -h1
+@end example
+
+Like most operators, @code{constant} is not limited to tables, you can also apply it on images.
+In the example below, we'll use @code{constant} to set all the pixels of the input image to NaN (which is necessary in scenarios that you need to include in an image in an analysis, but you don't want its pixels to affect the processing):
+
+@example
+$ astarithmetic image.fits nan constant
 @end example
 
 @item swap
@@ -35272,6 +35330,10 @@ Create a new, zero-valued dataset with an unsigned 8-bit data type.
 The length along each dimension of the dataset should be given as a single list of @code{gal_data_t}s.
 The number of dimensions is derived from the number of nodes in the list and the length along each dimension is the single-valued element within that list.
 Just note that the list should be in the reverse of the desired dimensions.
+@end deffn
+
+@deffn  Macro GAL_ARITHMETIC_OP_MAKENEW
+Given a dataset and a constant,
 @end deffn
 
 @deffn Macro GAL_ARITHMETIC_OPSTR_LOADCOL_HDU

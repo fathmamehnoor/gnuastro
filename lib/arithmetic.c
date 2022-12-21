@@ -2624,7 +2624,7 @@ arithmetic_box_around_ellipse(gal_data_t *d1, gal_data_t *d2,
 
 
 static gal_data_t *
-arithmetic_constant(int operator)
+arithmetic_constants_standard(int operator)
 {
   size_t one=1;
 
@@ -2807,6 +2807,41 @@ arithmetic_index_counter(gal_data_t *input, int operator, int flags)
 
   /* Clean up and return. */
   if(flags & GAL_ARITHMETIC_FLAG_FREE) gal_data_free(input);
+  return out;
+}
+
+
+
+
+
+static gal_data_t *
+arithmetic_constant(gal_data_t *input, gal_data_t *constant, int operator,
+                    int flags)
+{
+  gal_data_t *out;
+  size_t i, tsize;
+
+  /* Sanity check. */
+  if(constant->size!=1)
+    error(EXIT_FAILURE, 0, "%s: the constant operand should only contain "
+          "a single element", __func__);
+
+  /* Allocate the necessary dataset. */
+  out = ( input->type==constant->type
+          ? input
+          : gal_data_alloc(NULL, constant->type, input->ndim, input->dsize,
+                           NULL, 0, input->minmapsize, input->quietmmap,
+                           NULL, NULL, NULL) );
+
+  /* Fill the output with the constant's value. */
+  tsize=gal_type_sizeof(out->type);
+  for(i=0;i<input->size;++i)
+    memcpy(gal_pointer_increment(out->array, i, out->type),
+           constant->array, tsize);
+
+  /* Clean up and return. */
+  if(out!=input && (flags & GAL_ARITHMETIC_FLAG_FREE))
+    gal_data_free(input);
   return out;
 }
 
@@ -3201,9 +3236,11 @@ gal_arithmetic_set_operator(char *string, size_t *num_operands)
   else if (!strcmp(string, "counteronly"))
     { op=GAL_ARITHMETIC_OP_COUNTERONLY;       *num_operands=1;  }
   else if (!strcmp(string, "makenew"))
-    { op=GAL_ARITHMETIC_OP_MAKENEW;           *num_operands=-1;  }
+    { op=GAL_ARITHMETIC_OP_MAKENEW;           *num_operands=-1; }
   else if (!strcmp(string, "size"))
     { op=GAL_ARITHMETIC_OP_SIZE;              *num_operands=2;  }
+  else if (!strcmp(string, "constant"))
+    { op=GAL_ARITHMETIC_OP_CONSTANT;          *num_operands=2;  }
 
   /* Operator not defined. */
   else
@@ -3346,6 +3383,7 @@ gal_arithmetic_operator_string(int operator)
 
     case GAL_ARITHMETIC_OP_SWAP:            return "swap";
     case GAL_ARITHMETIC_OP_INDEX:           return "index";
+    case GAL_ARITHMETIC_OP_CONSTANT:        return "constant";
     case GAL_ARITHMETIC_OP_COUNTER:         return "counter";
     case GAL_ARITHMETIC_OP_INDEXONLY:       return "indexonly";
     case GAL_ARITHMETIC_OP_COUNTERONLY:     return "counteronly";
@@ -3576,7 +3614,7 @@ gal_arithmetic(int operator, size_t numthreads, int flags, ...)
     case GAL_ARITHMETIC_OP_PI:
     case GAL_ARITHMETIC_OP_AVOGADRO:
     case GAL_ARITHMETIC_OP_FINESTRUCTURE:
-      out=arithmetic_constant(operator);
+      out=arithmetic_constants_standard(operator);
       break;
 
     /* Calculate the width and height of a box surrounding an ellipse with
@@ -3609,6 +3647,11 @@ gal_arithmetic(int operator, size_t numthreads, int flags, ...)
       d1 = va_arg(va, gal_data_t *);
       d2 = va_arg(va, gal_data_t *);
       d1->next=d2; d2->next=NULL;  out=d1;
+      break;
+    case GAL_ARITHMETIC_OP_CONSTANT:
+      d1 = va_arg(va, gal_data_t *);
+      d2 = va_arg(va, gal_data_t *);
+      out=arithmetic_constant(d1, d2, operator, flags);
       break;
 
     /* When the operator is not recognized. */
