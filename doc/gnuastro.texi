@@ -18632,9 +18632,7 @@ The steps below show the the usage of this.
 $ asttable cat-1.fits -cRA,DEC,MAG,MAG_ERR \
        -c'arith $1 1 constant' --output=tab-1.fits
 
-## Similar to above, but for the second catalog, we don't
-## need metadata here (because '--catrowfile' takes the column
-## column meta data from its first input.
+## Similar to above, but for the second catalog.
 $ asttable cat-2.fits -cRA,DEC,MAG,MAG_ERR \
            -c'arith $1 2 constant' --output=tab-2.fits
 
@@ -18657,6 +18655,7 @@ $ astfits merged.fits --write=/,"Source catalogs" \
 
 ## Check the metadata in 'merged.fits' and clean the
 ## temporary files.
+$ rm tab-1.fits tab-2.fits
 $ astfits merged.fits -h1
 @end example
 
