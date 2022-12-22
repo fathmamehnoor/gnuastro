@@ -245,7 +245,7 @@ To go to the sections or subsections, you have to click on the menu entries that
 Introduction
 
 * Quick start::                 A quick start to installation.
-* Gnuastro programs list::
+* Gnuastro programs list::      List of command-line programs.
 * Science and its tools::       Some philosophy and history.
 * Your rights::                 User rights.
 * Logo of Gnuastro::            Meaning behind Gnuastro's logo.
@@ -921,7 +921,7 @@ As discussed in @ref{Science and its tools} this is a founding principle of the 
 
 @menu
 * Quick start::                 A quick start to installation.
-* Gnuastro programs list::
+* Gnuastro programs list::      List of command-line programs.
 * Science and its tools::       Some philosophy and history.
 * Your rights::                 User rights.
 * Logo of Gnuastro::            Meaning behind Gnuastro's logo.
@@ -1003,6 +1003,10 @@ We therefore recommend to read (an run the commands in) the tutorials before sta
 
 @node Gnuastro programs list, Science and its tools, Quick start, Introduction
 @section Gnuastro programs list
+
+One of the most common ways to operate Gnuastro is through its command-line programs.
+For some tutorials on several real-world usage scenarios, see @ref{Tutorials}.
+The list here is just provided as a general summary for those who are new to Gnuastro.
 
 GNU Astronomy Utilities @value{VERSION}, contains the following programs.
 They are sorted in alphabetical order and a short description is provided for each program.
