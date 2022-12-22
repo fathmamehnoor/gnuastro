@@ -207,6 +207,7 @@ enum gal_arithmetic_operators
   GAL_ARITHMETIC_OP_TO_FLOAT64,   /* Convert to float64.                   */
 
   GAL_ARITHMETIC_OP_BOX_AROUND_ELLIPSE, /* Width/Height of box over ellipse*/
+  GAL_ARITHMETIC_OP_BOX_VERTICES_ON_SPHERE, /* Vert. from center and width*/
 
   /* Meta operators */
   GAL_ARITHMETIC_OP_MAKENEW,      /* Build a new dataset, containing zeros.*/

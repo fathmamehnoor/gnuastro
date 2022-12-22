@@ -1857,6 +1857,44 @@ gal_wcs_angular_distance_deg(double r1, double d1, double r2, double d2)
 
 
 
+/* Calculate the vertices of a box in the given center. The output should
+   have 8 allocated spaces ready to be written into:
+      out[0]=bottom-left-ra
+      out[1]=bottom-left-dec
+      out[2]=bottom-right-ra
+      out[3]=bottom-right-dec
+      out[4]=top-right-ra
+      out[5]=top-right-dec
+      out[6]=top-left-ra
+      out[7]=top-left-dec
+
+  The 'ra_delta' and 'dec_delta' should be the full length of the box along
+  the respective axis (not half of it!). */
+void
+gal_wcs_box_vertices_from_center(double ra_center, double dec_center,
+                                 double ra_delta,  double dec_delta,
+                                 double *out)
+{
+  double corr;
+
+  /* The bottom vertices, note that the positive right ascension is on
+     the left side. */
+  out[1] = out[3] = dec_center - dec_delta/2;
+  corr=1/(2*cos(out[1]*M_PI/180));
+  out[0] = ra_center + ra_delta*corr;
+  out[2] = ra_center - ra_delta*corr;
+
+  /* The top vertices. */
+  out[5] = out[7] = dec_center + dec_delta/2;
+  corr=1/(2*cos(out[5]*M_PI/180));
+  out[4] = ra_center + ra_delta*corr;
+  out[6] = ra_center - ra_delta*corr;
+}
+
+
+
+
+
 /* Return the pixel scale of the dataset in units of the WCS. */
 double *
 gal_wcs_pixel_scale(struct wcsprm *wcs)

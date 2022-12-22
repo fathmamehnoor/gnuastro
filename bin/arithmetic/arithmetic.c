@@ -1414,7 +1414,7 @@ arithmetic_operator_run(struct arithmeticparams *p, int operator,
   size_t i;
   unsigned int numop;
   int flags = GAL_ARITHMETIC_FLAGS_BASIC;
-  gal_data_t *d1=NULL, *d2=NULL, *d3=NULL;
+  gal_data_t *d1=NULL, *d2=NULL, *d3=NULL, *d4=NULL;
 
   /* Set the operating-mode flags if necessary. */
   if(p->cp.quiet) flags |= GAL_ARITHMETIC_FLAG_QUIET;
@@ -1443,6 +1443,13 @@ arithmetic_operator_run(struct arithmeticparams *p, int operator,
           break;
 
         case 3:
+          d3=operands_pop(p, operator_string);
+          d2=operands_pop(p, operator_string);
+          d1=operands_pop(p, operator_string);
+          break;
+
+        case 4:
+          d4=operands_pop(p, operator_string);
           d3=operands_pop(p, operator_string);
           d2=operands_pop(p, operator_string);
           d1=operands_pop(p, operator_string);
@@ -1486,7 +1493,7 @@ arithmetic_operator_run(struct arithmeticparams *p, int operator,
          when the operator doesn't need three operands, the extra
          arguments will be ignored. */
       operands_add(p, NULL, gal_arithmetic(operator, p->cp.numthreads,
-                                           flags, d1, d2, d3));
+                                           flags, d1, d2, d3, d4));
     }
 
   /* No need to call the arithmetic library, call the proper wrappers

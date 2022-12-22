@@ -30,6 +30,10 @@ See the end of the file for license conditions.
        SDSS). This was suggested by Giulia Golini.
      - nanomaggy-to-counts: convert nanomaggy to counts. This was suggested
        by Giulia Golini.
+     - box-vertices-on-sphere: calculate the RA,Dec of vertices of the four
+       vertices of a rectangle from its center and width along RA and
+       Dec. This takes into account the curved nature of the coordinate
+       system. Added after discussion with Martin Kuemmel.
    - New operators (only in the Arithmetic program):
      - interpolate-meanngb: interpolate blank values with mean of the
        requested number of nearest neighbors.
@@ -120,10 +124,14 @@ See the end of the file for license conditions.
    - GAL_ARITHMETIC_OP_COUNTERONLY: Similar to 'GAL_ARITHMETIC_OP_COUNTER'.
    - GAL_ARITHMETIC_OP_COUNTS_TO_NANOMAGGY: convert counts to nanomaggy.
    - GAL_ARITHMETIC_OP_NANOMAGGY_TO_COUNTS: convert nanomaggy to counts.
+   - GAL_ARITHMETIC_OP_BOX_VERTICES_ON_SPHERE: calculate the coordinates of
+     vertices of a rectable on a sphere from its center and width/height.
    - gal_units_counts_to_nanomaggy: Convert counts to nanomaggy.
    - gal_units_nanomaggy_to_counts: Convert nanomaggy to counts.
    - gal_data_alloc_empty: Allocate an empty dataset with a given number of
      dimensions.
+   - gal_wcs_box_vertices_from_center: calculate the coordinates of
+     vertices of a rectable on a sphere from its center and width/height.
 
 ** Removed features
 

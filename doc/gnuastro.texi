@@ -234,7 +234,6 @@ To go to the sections or subsections, you have to click on the menu entries that
 * Makefile extensions::         Use Gnuastro's features as GNU Make functions.
 * Library::                     Gnuastro's library of useful functions.
 * Developing::                  The development environment.
-* Gnuastro programs list::      List and short summary of Gnuastro.
 * Other useful software::       Installing other useful software.
 * GNU Free Doc License::        Full text of the GNU Free documentation license.
 * GNU General Public License::  Full text of the GNU General public license.
@@ -246,6 +245,7 @@ To go to the sections or subsections, you have to click on the menu entries that
 Introduction
 
 * Quick start::                 A quick start to installation.
+* Gnuastro programs list::
 * Science and its tools::       Some philosophy and history.
 * Your rights::                 User rights.
 * Logo of Gnuastro::            Meaning behind Gnuastro's logo.
@@ -521,7 +521,7 @@ Arithmetic operators
 * Bitwise operators::           Work on bits within one pixel.
 * Numerical type conversion operators::  Convert the numeric datatype of a dataset.
 * Random number generators::    Random numbers can be used to add noise for example.
-* Elliptical shape operators::  Operations that are focused on an ellipse.
+* Box shape operators::         Dealing with box shapes and coordinates of vertices.
 * Loading external columns::    Read a column from a table into the stack.
 * Size and position operators::  Extracting image size and pixel positions.
 * Building new dataset and stack management::  How to construct an empty dataset from scratch.
@@ -921,6 +921,7 @@ As discussed in @ref{Science and its tools} this is a founding principle of the 
 
 @menu
 * Quick start::                 A quick start to installation.
+* Gnuastro programs list::
 * Science and its tools::       Some philosophy and history.
 * Your rights::                 User rights.
 * Logo of Gnuastro::            Meaning behind Gnuastro's logo.
@@ -934,7 +935,7 @@ As discussed in @ref{Science and its tools} this is a founding principle of the 
 * Acknowledgments::             People who helped in the production.
 @end menu
 
-@node Quick start, Science and its tools, Introduction, Introduction
+@node Quick start, Gnuastro programs list, Introduction, Introduction
 @section Quick start
 
 @cindex Test
@@ -1000,7 +1001,7 @@ We therefore recommend to read (an run the commands in) the tutorials before sta
 
 
 
-@node Gnuastro programs list, Other useful software, Developing, Top
+@node Gnuastro programs list, Science and its tools, Quick start, Introduction
 @section Gnuastro programs list
 
 GNU Astronomy Utilities @value{VERSION}, contains the following programs.
@@ -1125,7 +1126,7 @@ Because of saturation and non-linearity, to get a good estimate of the extended 
 
 
 
-@node Science and its tools, Your rights, Quick start, Introduction
+@node Science and its tools, Your rights, Gnuastro programs list, Introduction
 @section Gnuastro manifesto: Science and its tools
 
 History of science indicates that there are always inevitably unseen faults, hidden assumptions, simplifications and approximations in all our theoretical models, data acquisition and analysis techniques.
@@ -16665,7 +16666,7 @@ Reading NaN as a floating point number in Gnuastro is not case-sensitive.
 * Bitwise operators::           Work on bits within one pixel.
 * Numerical type conversion operators::  Convert the numeric datatype of a dataset.
 * Random number generators::    Random numbers can be used to add noise for example.
-* Elliptical shape operators::  Operations that are focused on an ellipse.
+* Box shape operators::         Dealing with box shapes and coordinates of vertices.
 * Loading external columns::    Read a column from a table into the stack.
 * Size and position operators::  Extracting image size and pixel positions.
 * Building new dataset and stack management::  How to construct an empty dataset from scratch.
@@ -18036,7 +18037,7 @@ Convert the type of the popped operand to 64-bit (double precision) floating poi
 The internal conversion of C will be used.
 @end table
 
-@node Random number generators, Elliptical shape operators, Numerical type conversion operators, Arithmetic operators
+@node Random number generators, Box shape operators, Numerical type conversion operators, Arithmetic operators
 @subsubsection Random number generators
 
 When you simulate data (for example, see @ref{Sufi simulates a detection}), everything is ideal and there is no noise!
@@ -18322,10 +18323,10 @@ $ echo 1000 \
 These columns can easily be placed in the format for @ref{MakeProfiles} to be inserted into an image automatically.
 @end table
 
-@node Elliptical shape operators, Loading external columns, Random number generators, Arithmetic operators
-@subsubsection Elliptical shape operators
+@node Box shape operators, Loading external columns, Random number generators, Arithmetic operators
+@subsubsection Box shape operators
 
-The operators here describe certain functions that will be necessary when dealing with objects that have a certain elliptical shape.
+The operators here help you in defining or using coordinates that form a ``box'' (a rectangular region).
 
 @table @command
 @item box-around-ellipse
@@ -18368,9 +18369,83 @@ $ asttable catalog.fits \
                     set-height set-width \
                     width float32 height float32'
 @end example
+
+@item box-vertices-on-sphere
+@cindex Polygon
+@cindex Vertices on sphere (sky)
+Convert a box center and width to the coordinates of the vertices of the box on a left-hand spherical coordinate system.
+In a left-handed spherical coordinate system, the longitude increases towards the left while north is up (as in the RA and Dec direction of the equatorial coordinate system used in astronomy).
+This operator therefore takes four input operands (the RA and Dec of the box's center, as well as the width of the box in each direction).
+
+After it is complete, this operator places 8 operands on the stack which contain the RA and Dec of the four vertices of the box in the following anti-clockwise order:
+@enumerate
+@item
+Bottom-left vertice Logitude (RA)
+@item
+Bottom-left vertice Latitude (Dec)
+@item
+Bottom-right vertice Logitude (RA)
+@item
+Bottom-right vertice Latitude (Dec)
+@item
+Top-right vertice Logitude (RA)
+@item
+Top-right vertice Latitude (Dec)
+@item
+Top-left vertice Logitude (RA)
+@item
+Top-left vertice Latitude (Dec)
+@end enumerate
+
+For example, with the command below, we will retrieve the vertice coordinates of a rectangle around a point with RA=20 and Dec=0 (on the equator).
+The rectangle will have a 1 degree edge along the RA direction and a 2 degree edge along the declination.
+In this example, we are using the @option{-Afixed -B2} only for demonstration purposes here due to the round numbers!
+In general, it is best to write your outputs to a binary FITS table to preserve the full precision (see @ref{Printing floating point numbers}).
+
+@example
+$ echo "20 0 1 2" \
+       | asttable -Afixed -B2 \
+                  -c'arith $1 $2 $3 $4 box-vertices-on-sphere'
+20.50  -1.00  19.50  -1.00  19.50  1.00   20.50  1.00
+@end example
+
+We see that the bottom-left vertice is at (RA,Dec) of @mymath{(20.50,-1.0)} and the top-right vertice is at @mymath{(19.50,1.00)}.
+These could have easily been done by manually adding and subtracting!
+But you will see that the complextiy arises at higher/lower declinations.
+For example, with the command below, let's see how vertice coordinates of the same box, but after moving its center to (RA,Dec) of (20,85):
+
+@example
+$ echo "20 85 1 2" \
+       | asttable -Afixed -B2 \
+                  -c'arith $1 $2 $3 $4 box-vertices-on-sphere'
+24.78  84.00  15.22  84.00  12.83  86.00  27.17  86.00
+@end example
+
+Even though, we didn't change the central RA (20)  or the size of the box along the RA (1 degree), the RA of the bottom-left vertice is now at 24.78; almost 5 degrees away!
+This occurs because of the spherical coordinate system, we measure the longitude (e.g., RA) with the following way:
+@enumerate
+@item
+@cindex Meridian
+@cindex Great circle
+@cindex Circle (great)
+Draw a meridian that passes your point.
+The meridian is half of a @url{https://en.wikipedia.org/wiki/Great_circle, great-circle} (which has a diameter that is equal to the sphere's diameter) passes both poles.
+@item
+Find the intersection of that meridian with the equator.
+@item
+The distance of the intersection and the reference point (along the equator) defines the longitude angle.
+@end enumerate
+
+@cindex Small circle
+@cindex Circle (small)
+As you get more distant from the equator (declination becomes non-zero), any change along the RA (towards the east; 1 degree in the example above) will on longer be on a great circle, but along a ``@url{https://en.wikipedia.org/wiki/Circle_of_a_sphere, small circle}''.
+On a small circle that is defined by the fixed declination @mymath{\delta}, the distance of two points is closer than the distances of their projection on the equator (as described in the definition of longitude above).
+It is smaller by a factor of @mymath{\cos({\delta})}.
+
+Therefore, an angular change (let's call it @mymath{\Delta_{lon}}) along the small circle defined by the fixed declination of @mymath{\delta} corresponds to @mymath{\Delta_{lon}/\cos(\delta)} on the equator.
 @end table
 
-@node Loading external columns, Size and position operators, Elliptical shape operators, Arithmetic operators
+@node Loading external columns, Size and position operators, Box shape operators, Arithmetic operators
 @subsubsection Loading external columns
 
 In the Arithmetic program, you can always load new dataset by simply giving their name.
@@ -34953,6 +35028,32 @@ It will be use the @url{https://en.wikipedia.org/wiki/Haversine_formula, Haversi
 @dispmath{{\sin^2(d)\over 2}=\sin^2\left( {d_1-d_2\over 2} \right)+\cos(d_1)\cos(d_2)\sin^2\left( {r_1-r_2\over 2} \right)}
 @end deftypefun
 
+@deftypefun void gal_wcs_box_vertices_from_center (double @code{ra_center}, double @code{dec_center}, double @code{ra_delta},  double @code{dec_delta}, double @code{*out})
+Calculate the vertices of a rectangular box given the centeral RA and Dec and delta of each.
+The vertice coordinates are written in the space that @code{out} points to (assuming it has space for eight @code{double}s).
+
+Given the spherical nature of the coordinate system, the vertice lengths can't be calculated with a simple addition/subtraction.
+For the declination, a simple addition/subtraction is enough.
+Also, on the equator (where the RA is defined), a simple addition/subtraction along the RA is fine.
+However, at other declinations, the new RA after a shift needs special treatment, such that close to the poles, a shift of 1 degree can correspond to a new RA that is much more distant than the original RA.
+Assuming a point at Right Ascension (RA) and Declination of @mymath{\alpha} and @mymath{\delta}, a shift of @mymath{R} degrees along the positive RA direction corresponds to a right ascension of @mymath{\alpha+\frac{R}{\cos(\delta)}}.
+For more, see the description of @code{box-vertices-on-sphere} in @ref{Box shape operators}.
+
+The 8 coordinates of the 4 vertices of the box are written in the order below.
+Where ``bottom'' corresponds to a lower declination and ``top'' to higher declination, ``left'' corresponds to a larger RA and ``right'' corresponds to lower RA.
+
+@example
+out[0]: bottom-left  RA
+out[1]: bottom-left  Dec
+out[2]: bottom-right RA
+out[3]: bottom-right Dec
+out[4]: top-right    RA
+out[5]: top-right    Dec
+out[6]: top-left     RA
+out[7]: top-left     Dec
+@end example
+@end deftypefun
+
 @deftypefun {double *} gal_wcs_pixel_scale (struct wcsprm @code{*wcs})
 Return the pixel scale for each dimension of @code{wcs} in degrees.
 The output is an allocated array of double precision floating point type with one element for each dimension.
@@ -35322,6 +35423,12 @@ Return the width (along horizontal) and height (along vertical) of a box that en
 For more on the three input operands to this operator see the description of @code{box-around-ellipse}.
 This function returns two datasets as a @code{gal_data_t} linked list.
 The top element of the list is the height and its next element is the width.
+@end deffn
+
+@deffn Macro GAL_ARITHMETIC_OP_BOX_VERTICES_ON_SPHERE
+Return the vertices of a (possibly rectangluar) box on a sphere, given its center RA, Dec and the width of the box along the two dimensions.
+It will take the spherical nature of the coordinate system into account (for more, see the description of @code{gal_wcs_box_vertices_from_center} in @ref{World Coordinate System}).
+This function returns 8 datasets as a @code{gal_data_t} linked list in the following order: bottom-left RA, bottom-left Dec, bottom-right RA, bottom-right Dec, top-right RA, top-right Dec, top-left RA, top-left Dec.
 @end deffn
 
 @deffn  Macro GAL_ARITHMETIC_OP_MAKENEW
@@ -39564,7 +39671,7 @@ main(void)
 
 
 
-@node Developing, Gnuastro programs list, Library, Top
+@node Developing, Other useful software, Library, Top
 @chapter Developing
 
 The basic idea of GNU Astronomy Utilities is for an interested astronomer
@@ -41448,7 +41555,7 @@ This will enable you to start your branch (work) from the most recent commit and
 
 
 
-@node Other useful software, GNU Free Doc License, Gnuastro programs list, Top
+@node Other useful software, GNU Free Doc License, Developing, Top
 @appendix Other useful software
 
 In this appendix the installation of programs and libraries that are

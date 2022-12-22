@@ -37,6 +37,7 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 #include <gsl/gsl_const_mks.h>
 
 #include <gnuastro/box.h>
+#include <gnuastro/wcs.h>
 #include <gnuastro/list.h>
 #include <gnuastro/blank.h>
 #include <gnuastro/units.h>
@@ -2540,49 +2541,13 @@ arithmetic_counts_to_from_sb(int operator, int flags, gal_data_t *d1,
 
 
 static gal_data_t *
-arithmetic_box_around_ellipse(gal_data_t *d1, gal_data_t *d2,
-                              gal_data_t *d3, int operator, int flags)
+arithmetic_box_around_ellipse(gal_data_t *a_data, gal_data_t *b_data,
+                              gal_data_t *pa_data, int flags)
 {
   size_t i;
-  double *a, *b, *pa, out[2];
-  gal_data_t *a_data, *b_data, *pa_data;
+  double *a=a_data->array, *b=b_data->array, *pa=pa_data->array, out[2];
 
-  /* Basic sanity check. */
-  if( d1->size != d2->size || d1->size != d3->size )
-    error(EXIT_FAILURE, 0, "%s: the three operands to this "
-          "function don't have the same number of elements",
-          __func__);
-
-  /* The datasets may be empty. In this case the output should also be
-     empty (we can have tables and images with 0 rows or pixels!). */
-  if(    d1->size==0 || d1->array==NULL
-      || d2->size==0 || d2->array==NULL
-      || d3->size==0 || d3->array==NULL )
-    {
-      if(flags & GAL_ARITHMETIC_FLAG_FREE)
-        { gal_data_free(d2); gal_data_free(d3); }
-      if(d1->array) {free(d1->array); d1->array=NULL;}
-      if(d1->dsize) for(i=0;i<d1->ndim;++i) d1->dsize[i]=0;
-      d1->size=0; return d1;
-    }
-
-  /* Convert the inputs into double. Note that if the user doesn't want to
-     free the inputs, we should make a copy of 'a_data' and 'b_data'
-     because the output will also be written in them. */
-  a_data=( d1->type==GAL_TYPE_FLOAT64
-           ? d1
-           : gal_data_copy_to_new_type(d1, GAL_TYPE_FLOAT64) );
-  b_data=( d2->type==GAL_TYPE_FLOAT64
-           ? d2
-           : gal_data_copy_to_new_type(d2, GAL_TYPE_FLOAT64) );
-  pa_data=( d3->type==GAL_TYPE_FLOAT64
-            ? d3
-            : gal_data_copy_to_new_type(d3, GAL_TYPE_FLOAT64) );
-
-  /* Set the double pointers and do the calculation for each. */
-  a=a_data->array;
-  b=b_data->array;
-  pa=pa_data->array;
+  /* Loop over all the elements. */
   for(i=0;i<a_data->size;++i)
     {
       /* If the minor axis has a larger value, print a warning and set the
@@ -2603,18 +2568,153 @@ arithmetic_box_around_ellipse(gal_data_t *d1, gal_data_t *d2,
       b[i]=out[1];
     }
 
-  /* Clean up. */
-  gal_data_free(pa_data);
-  if(flags & GAL_ARITHMETIC_FLAG_FREE)
-    {
-      if(a_data !=d1) gal_data_free(d1);
-      if(b_data !=d2) gal_data_free(d2);
-      if(pa_data!=d3) gal_data_free(d3);
-    }
-
   /* Make the output as a list and return it. */
   b_data->next=a_data;
   return b_data;
+}
+
+
+
+
+
+/* Calculate the vertices of a box from its center and width. The longitude
+   coordinate/width is specified with a 'lon' and the latitude
+   coordinate/width is specified with a 'lat'. */
+static gal_data_t *
+arithmetic_box_vertices_on_sphere(gal_data_t *d1, gal_data_t *d2,
+                                  gal_data_t *d3, gal_data_t *d4,
+                                  int flags)
+{
+  size_t i;
+  double vertices[8];
+  double *clon=d1->array, *clat=d2->array;
+  double *dlon=d3->array, *dlat=d4->array;
+
+  /* Output datasets. */
+  double *blr, *bld, *brr, *brd, *tlr, *tld, *trr, *trd;
+  gal_data_t *blrd, *bldd, *brrd, *brdd, *tlrd, *tldd, *trrd, *trdd;
+
+  /* Allocate the extra output datasets (four of them will be the same as
+     the input (which will be over-written after usage) and set the array
+     pointers. */
+  blrd=d1; bldd=d2; brrd=d3; brdd=d4;
+  tlrd=gal_data_alloc(NULL, GAL_TYPE_FLOAT64, d1->ndim, d1->dsize, NULL,
+                      0, d1->minmapsize, d1->quietmmap, NULL, NULL, NULL);
+  tldd=gal_data_alloc(NULL, GAL_TYPE_FLOAT64, d1->ndim, d1->dsize, NULL,
+                      0, d1->minmapsize, d1->quietmmap, NULL, NULL, NULL);
+  trrd=gal_data_alloc(NULL, GAL_TYPE_FLOAT64, d1->ndim, d1->dsize, NULL,
+                      0, d1->minmapsize, d1->quietmmap, NULL, NULL, NULL);
+  trdd=gal_data_alloc(NULL, GAL_TYPE_FLOAT64, d1->ndim, d1->dsize, NULL,
+                      0, d1->minmapsize, d1->quietmmap, NULL, NULL, NULL);
+  blr=blrd->array; bld=bldd->array; brr=brrd->array; brd=brdd->array;
+  tlr=tlrd->array; tld=tldd->array; trr=trrd->array; trd=trdd->array;
+
+  /* Loop over the elements. */
+  for(i=0;i<d1->size;++i)
+    {
+      /* Compute the positions of the vertices. */
+      gal_wcs_box_vertices_from_center(clon[i], clat[i], dlon[i],
+                                       dlat[i], vertices);
+
+      /* Write the results into the the output arrays. */
+      blr[i]=vertices[0];     bld[i]=vertices[1];
+      brr[i]=vertices[2];     brd[i]=vertices[3];
+      tlr[i]=vertices[4];     tld[i]=vertices[5];
+      trr[i]=vertices[6];     trd[i]=vertices[7];
+    }
+
+  /* Create the output list, note that it has to in the inverse order of
+     the final output order. In the end, we want the order of the corners
+     to be bottom_left_ra -> bottom_left_dec -> bottom_right_ra ->
+     bottom_right_dec -> top_right_ra -> top_right_dec -> top_left_ra ->
+     top_left_dec. */
+  blrd->next=bldd;
+  bldd->next=brrd;
+  brrd->next=brdd;
+  brdd->next=trrd;
+  trrd->next=trdd;
+  trdd->next=tlrd;
+  tlrd->next=tldd;
+  gal_list_data_reverse(&blrd);
+  return blrd;
+}
+
+
+
+
+static gal_data_t *
+arithmetic_box(gal_data_t *d1, gal_data_t *d2, gal_data_t *d3,
+               gal_data_t *d4, int operator, int flags)
+{
+  size_t i;
+  gal_data_t *out=NULL;
+  gal_data_t *d1d=NULL, *d2d=NULL, *d3d=NULL, *d4d=NULL;
+
+  /* Basic sanity check. */
+  if( d1->size != d2->size || d1->size != d3->size
+      || (d4 && d1->size!=d4->size) )
+    error(EXIT_FAILURE, 0, "%s: the operands to this function "
+          "don't have the same number of elements", __func__);
+
+  /* The datasets may be empty. In this case the output should also be
+     empty (we can have tables and images with 0 rows or pixels!). */
+  if(    d1->size==0 || d1->array==NULL
+      || d2->size==0 || d2->array==NULL
+      || d3->size==0 || d3->array==NULL
+      || (d4 && (d4->size==0 || d4->array==NULL) ) )
+    {
+      if(flags & GAL_ARITHMETIC_FLAG_FREE)
+        { gal_data_free(d2); gal_data_free(d3); gal_data_free(d4); }
+      if(d1->array) {free(d1->array); d1->array=NULL;}
+      if(d1->dsize) for(i=0;i<d1->ndim;++i) d1->dsize[i]=0;
+      d1->size=0; return d1;
+    }
+
+ /* Convert the inputs into double. Note that if the user doesn't want to
+    free the inputs, we should make a copy of 'a_data' and 'b_data' because
+    the output will also be written in them. */
+  d1d=( d1->type==GAL_TYPE_FLOAT64
+        ? d1
+        : gal_data_copy_to_new_type(d1, GAL_TYPE_FLOAT64) );
+  d2d=( d2->type==GAL_TYPE_FLOAT64
+        ? d2
+        : gal_data_copy_to_new_type(d2, GAL_TYPE_FLOAT64) );
+  d3d=( d3->type==GAL_TYPE_FLOAT64
+        ? d3
+        : gal_data_copy_to_new_type(d3, GAL_TYPE_FLOAT64) );
+  if(d4)
+    d4d=( d4->type==GAL_TYPE_FLOAT64
+          ? d4
+          : gal_data_copy_to_new_type(d4, GAL_TYPE_FLOAT64) );
+
+  /* Call the appropriate function. */
+  switch(operator)
+    {
+    case GAL_ARITHMETIC_OP_BOX_AROUND_ELLIPSE:
+      out=arithmetic_box_around_ellipse(d1d, d2d, d3d, flags);
+      break;
+    case GAL_ARITHMETIC_OP_BOX_VERTICES_ON_SPHERE:
+      out=arithmetic_box_vertices_on_sphere(d1d, d2d, d3d, d4d, flags);
+      break;
+    default:
+      error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at '%s' to "
+            "fix the problem. The code '%d' is not a recognized "
+            "operator for this function", __func__, PACKAGE_BUGREPORT,
+            operator);
+    }
+
+  /* Clean up. */
+  if(flags & GAL_ARITHMETIC_FLAG_FREE)
+    {
+      if(d1d!=d1) gal_data_free(d1);
+      if(d2d!=d2) gal_data_free(d2);
+      if(d3d!=d3) gal_data_free(d3);
+    }
+  if(operator==GAL_ARITHMETIC_OP_BOX_AROUND_ELLIPSE)
+    { gal_data_free(d3d); gal_data_free(d4d); }
+
+  /* Return the output. */
+  return out;
 }
 
 
@@ -3221,6 +3321,8 @@ gal_arithmetic_set_operator(char *string, size_t *num_operands)
   /* Surrounding box. */
   else if (!strcmp(string, "box-around-ellipse"))
     { op=GAL_ARITHMETIC_OP_BOX_AROUND_ELLIPSE;*num_operands=3;  }
+  else if (!strcmp(string, "box-vertices-on-sphere"))
+    { op=GAL_ARITHMETIC_OP_BOX_VERTICES_ON_SPHERE; *num_operands=4; }
 
   /* Size and position operators. */
   else if (!strcmp(string, "swap"))
@@ -3378,6 +3480,7 @@ gal_arithmetic_operator_string(int operator)
     case GAL_ARITHMETIC_OP_FINESTRUCTURE:   return "fine-structure";
 
     case GAL_ARITHMETIC_OP_BOX_AROUND_ELLIPSE: return "box-around-ellipse";
+    case GAL_ARITHMETIC_OP_BOX_VERTICES_ON_SPHERE: return "vertices-on-sphere";
 
     case GAL_ARITHMETIC_OP_SWAP:            return "swap";
     case GAL_ARITHMETIC_OP_INDEX:           return "index";
@@ -3400,7 +3503,7 @@ gal_data_t *
 gal_arithmetic(int operator, size_t numthreads, int flags, ...)
 {
   va_list va;
-  gal_data_t *d1, *d2, *d3, *out=NULL;
+  gal_data_t *d1, *d2, *d3, *d4, *out=NULL;
 
   /* Prepare the variable arguments (starting after the flags argument). */
   va_start(va, flags);
@@ -3618,10 +3721,17 @@ gal_arithmetic(int operator, size_t numthreads, int flags, ...)
     /* Calculate the width and height of a box surrounding an ellipse with
        a certain major axis, minor axis and position angle. */
     case GAL_ARITHMETIC_OP_BOX_AROUND_ELLIPSE:
+    case GAL_ARITHMETIC_OP_BOX_VERTICES_ON_SPHERE:
       d1 = va_arg(va, gal_data_t *);
       d2 = va_arg(va, gal_data_t *);
       d3 = va_arg(va, gal_data_t *);
-      out=arithmetic_box_around_ellipse(d1, d2, d3, operator, flags);
+      if(operator==GAL_ARITHMETIC_OP_BOX_AROUND_ELLIPSE)
+        out=arithmetic_box(d1, d2, d3, NULL, operator, flags);
+      else
+        {
+          d4=va_arg(va, gal_data_t *);
+          out=arithmetic_box(d1, d2, d3, d4, operator, flags);
+        }
       break;
 
     /* Size and position operators. */

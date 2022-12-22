@@ -197,6 +197,11 @@ gal_wcs_to_cd(struct wcsprm *wcs);
 double
 gal_wcs_angular_distance_deg(double r1, double d1, double r2, double d2);
 
+void
+gal_wcs_box_vertices_from_center(double ra_center, double dec_center,
+                                 double ra_delta,  double dec_delta,
+                                 double *out);
+
 double *
 gal_wcs_pixel_scale(struct wcsprm *wcs);
 
