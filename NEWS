@@ -90,6 +90,9 @@ See the end of the file for license conditions.
    --outliernumngb: see description of same option in NoiseChisel.
 
    Table:
+   --information: also identifies vector columns (a column with more than
+     one value), by placing a '[N]' after the type. Where 'N' is the number
+     of elements within the vector.
    --txteasy: (or '-Y') when output is a plain-text file or just gets
      printed on standard output (terminal), all floating point columns are
      printed in fixed point notation (as in '123.456') instead of the

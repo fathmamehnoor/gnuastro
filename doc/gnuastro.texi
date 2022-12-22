@@ -14729,6 +14729,8 @@ If you want to preserve the sexagesimal contents of a column, you should store t
 @itemx --information
 Only print the column information in the specified table on the command-line and exit.
 Each column's information (number, name, units, data type, and comments) will be printed as a row on the command-line.
+If the column is a multi-value (vector) a @code{[N]} is printed after the type, where @code{N} is the number of elements within that vector.
+
 Note that the FITS standard only requires the data type (see @ref{Numeric data types}), and in plain text tables, no meta-data/information is mandatory.
 Gnuastro has its own convention in the comments of a plain text table to store and transfer this information as described in @ref{Gnuastro text table format}.
 
@@ -33453,30 +33455,24 @@ Convert the input identifier (one of the @code{GAL_TABLE_DISPLAY_FMT_FIXED}; for
 @end deftypefun
 
 @deftypefun {gal_data_t *} gal_table_info (char @code{*filename}, char @code{*hdu}, gal_list_str_t @code{*lines}, size_t @code{*numcols}, size_t @code{*numrows}, int @code{*tableformat})
-Store the information of each column of a table into an array of data
-structures with @code{numcols} datasets (one data structure for each
-column). The number of rows is stored in @code{numrows}. The format of the
-table (e.g., ASCII text file, or FITS binary or ASCII table) will be put in
-@code{tableformat} (macros defined above). If the @code{filename} is not a
-FITS file, then @code{hdu} will not be used (can be @code{NULL}).
 
-The input must be either a file (specified by @code{filename}) or a list of
-strings (@code{lines}). @code{lines} is a list of strings with each node
-representing one line (including the new-line character), see @ref{List of
-strings}. It will mostly be the output of @code{gal_txt_stdin_read}, which
-is used to read the program's input as separate lines from the standard
-input (see @ref{Text files}). Note that @code{filename} and @code{lines}
-are mutually exclusive and one of them must be @code{NULL}.
+Store the information of each column of a table into an array of data structures with @code{numcols} datasets (one data structure for each column).
+The number of rows is stored in @code{numrows}.
+The format of the table (e.g., ASCII text file, or FITS binary or ASCII table) will be put in @code{tableformat} (macros defined above).
+If the @code{filename} is not a FITS file, then @code{hdu} will not be used (can be @code{NULL}).
 
-In the output datasets, only the meta-data strings (column name, units and
-comments), will be allocated and set. This function is just for column
-information (meta-data), not column contents.
+The input must be either a file (specified by @code{filename}) or a list of strings (@code{lines}).
+@code{lines} is a list of strings with each node representing one line (including the new-line character), see @ref{List of strings}.
+It will mostly be the output of @code{gal_txt_stdin_read}, which is used to read the program's input as separate lines from the standard input (see @ref{Text files}).
+Note that @code{filename} and @code{lines} are mutually exclusive and one of them must be @code{NULL}.
+
+In the output datasets, only the meta-data strings (column name, units and comments), will be allocated and set.
+This function is just for column information (meta-data), not column contents.
 @end deftypefun
 
 @deftypefun void gal_table_print_info (gal_data_t @code{*allcols}, size_t @code{numcols}, size_t @code{numrows})
-This program will print the column information for all the columns (output
-of @code{gal_table_info}). The output is in the same format as this command
-with Gnuastro Table program (see @ref{Table}):
+Print the column information for all the columns (output of @code{gal_table_info}) to standard output.
+The output is in the same format as this command with Gnuastro Table program (see @ref{Invoking asttable}):
 @example
 $ asttable --info table.fits
 @end example

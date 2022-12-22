@@ -154,9 +154,9 @@ gal_table_info(char *filename, char *hdu, gal_list_str_t *lines,
 void
 gal_table_print_info(gal_data_t *allcols, size_t numcols, size_t numrows)
 {
-  size_t i;
-  int Nw=3, nw=4, uw=5, tw=4;   /* Initial width from label's width */
-  char *name, *unit, *comment;
+  size_t i, mms;
+  int Nw=3, nw=4, uw=5, tw=4, twt;/* Initial width from label's width */
+  char *typestr, *name, *unit, *comment;
 
   /* If there aren't any columns, there is no need to print anything. */
   if(numcols==0) return;
@@ -167,13 +167,23 @@ gal_table_print_info(gal_data_t *allcols, size_t numcols, size_t numrows)
   Nw=log10(numcols)+1;
   for(i=0;i<numcols;++i)
     {
+      /* Length of name and unit columns. */
       if(allcols[i].name && strlen(allcols[i].name)>nw)
         nw=strlen(allcols[i].name);
       if(allcols[i].unit && strlen(allcols[i].unit)>uw)
         uw=strlen(allcols[i].unit);
-      if(allcols[i].type
-         && strlen(gal_type_name(allcols[i].type, 1))>tw)
-        tw=strlen(gal_type_name(allcols[i].type, 1));
+
+      /* For the type, we need to account for vector columns. For strings,
+         their length is already accounted for there, so this doesn't
+         involve them. Recall that within 'gal_fits_tab_info', we put the
+         repeat counter into the 'minmapsize' element of the
+         'gal_data_t'. If the repeat of a numerical column is more than 1,
+         then we need to add a '[N]' after the type name later. */
+      mms=allcols[i].minmapsize;
+      twt=strlen(gal_type_name(allcols[i].type, 1));
+      if(allcols[i].type!=GAL_TYPE_STRING && mms>1)
+        twt += (int)(log10(mms))+1+2; /* 1 for the log, 2 for '[]'. */
+      if(allcols[i].type && twt>tw) tw=twt;
     }
 
   /* We want one column space between the columns for readability, not the
@@ -191,15 +201,31 @@ gal_table_print_info(gal_data_t *allcols, size_t numcols, size_t numrows)
   /* For each column, print the information, then free them. */
   for(i=0;i<numcols;++i)
     {
+      /* To help in reading. */
       name    = allcols[i].name;       /* Just defined for easier     */
       unit    = allcols[i].unit;       /* readability. The compiler   */
       comment = allcols[i].comment;    /* optimizer will remove them. */
+
+      /* Set the vector size (if relevant). */
+      mms=allcols[i].minmapsize;
+      if(allcols[i].type!=GAL_TYPE_STRING && mms>1)
+        {
+          if( asprintf(&typestr, "%s[%zu]",
+                       gal_type_name(allcols[i].type, 1), mms)<0 )
+            error(EXIT_FAILURE, 0, "%s: 'astprintf' allocation", __func__);
+        }
+      else
+        gal_checkset_allocate_copy(gal_type_name(allcols[i].type, 1),
+                                   &typestr);
+
+      /* Print the actual info. */
       printf("%-*zu%-*s%-*s%-*s%s\n", Nw, i+1,
              nw, name ? name : GAL_BLANK_STRING ,
              uw, unit ? unit : GAL_BLANK_STRING ,
              tw,
-             allcols[i].type ? gal_type_name(allcols[i].type, 1) : "--",
+             allcols[i].type ? typestr : "--",
              comment ? comment : GAL_BLANK_STRING);
+      free(typestr);
     }
 
   /* Print the number of rows. */
