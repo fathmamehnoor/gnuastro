@@ -88,12 +88,19 @@ gal_permutation_check(size_t *permutation, size_t size)
       permute:    OUT[ i       ]   =   IN[ perm[i] ]     i = 0 .. N-1
       inverse:    OUT[ perm[i] ]   =   IN[ i       ]     i = 0 .. N-1
 */
-void
-gal_permutation_apply(gal_data_t *input, size_t *permutation)
+static void
+permutation_apply_raw(gal_data_t *input, size_t *permutation,
+                      int onlydim0)
 {
   void *tmp;
-  size_t i, k, pk, width;
   uint8_t *array=input->array;
+  size_t i, k, pk, winc, width, size, increment;
+
+  /* If 'onlydim0' is given and the input has more than one dimension, we
+     need to permute less (only along the 0th dimension). */
+  if(onlydim0 && input->ndim>1)
+    { size=input->dsize[0]; increment=input->size/size; }
+  else { size=input->size; increment=1; }
 
   /* If permutation is NULL, then it is assumed that the data doesn't need
      to be re-ordered. */
@@ -101,10 +108,11 @@ gal_permutation_apply(gal_data_t *input, size_t *permutation)
     {
       /* Necessary initializations. */
       width=gal_type_sizeof(input->type);
-      tmp=gal_pointer_allocate(input->type, 1, 0, __func__, "tmp");
+      tmp=gal_pointer_allocate(input->type, increment, 0, __func__, "tmp");
 
       /* Do the permutation. */
-      for(i=0;i<input->size;++i)
+      winc=width*increment;
+      for(i=0;i<size;++i)
         {
           k=permutation[i];
 
@@ -115,16 +123,16 @@ gal_permutation_apply(gal_data_t *input, size_t *permutation)
               pk = permutation[k];
               if( pk != i )
                 {
-                  memcpy(tmp, &array[i*width], width);
+                  memcpy(tmp, &array[i*winc], winc);
 
                   while(pk!=i)
                     {
-                      memcpy(&array[k*width], &array[pk*width], width);
+                      memcpy(&array[k*winc], &array[pk*winc], winc);
                       k  = pk;
                       pk = permutation[k];
                     }
 
-                  memcpy(&array[k*width], tmp, width);
+                  memcpy(&array[k*winc], tmp, winc);
                 }
             }
         }
@@ -188,3 +196,15 @@ gal_permutation_apply_inverse(gal_data_t *input, size_t *permutation)
       free(ttmp);
     }
 }
+
+
+
+
+
+void
+gal_permutation_apply(gal_data_t *input, size_t *permutation)
+{ permutation_apply_raw(input, permutation, 0); }
+
+void
+gal_permutation_apply_onlydim0(gal_data_t *input, size_t *permutation)
+{ permutation_apply_raw(input, permutation, 1); }

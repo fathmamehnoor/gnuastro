@@ -57,6 +57,22 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 
 
 /*************************************************************
+ **************    Internal necessary functions   ************
+ *************************************************************/
+static void
+fits_tab_write_col(fitsfile *fptr, gal_data_t *col, int tableformat,
+                   size_t *colind, char *tform, char *filename);
+
+
+
+
+
+
+
+
+
+
+/*************************************************************
  **************        Reporting errors:       ***************
  *************************************************************/
 void
@@ -2149,8 +2165,8 @@ gal_fits_key_write_version(gal_fits_list_key_t **keylist, char *title,
 
 
 void
-gal_fits_key_write_version_in_ptr(gal_fits_list_key_t **keylist, char *title,
-                                  fitsfile *fptr)
+gal_fits_key_write_version_in_ptr(gal_fits_list_key_t **keylist,
+                                  char *title, fitsfile *fptr)
 {
   int status=0;
   char *gitdescribe;
@@ -2305,8 +2321,8 @@ gal_fits_with_keyvalue(gal_list_str_t *files, char *hdu, char *name,
               fits_read_key(fptr, TSTRING, name, &keyvalue, NULL,
                             &status);
 
-              /* If the value corresponds to any of the user's values for this
-                 keyword, add it to the list of output names. */
+              /* If the value corresponds to any of the user's values for
+                 this keyword, add it to the list of output names. */
               if(status==0)
                 for(v=values; v!=NULL; v=v->next)
                   {
@@ -2461,13 +2477,13 @@ gal_fits_img_info(fitsfile *fptr, int *type, size_t *ndim, size_t **dsize,
         {
         switch(i)
           {
-          case 4: if(unit) {str = key->array; *unit = *str; *str=NULL;} break;
-          case 3: if(name) {str = key->array; *name = *str; *str=NULL;} break;
-          case 2: bscale = *(double *)(key->array);                     break;
-          case 1: str = key->array; bzero_str = *str;                   break;
+          case 4: if(unit) {str=key->array; *unit=*str; *str=NULL;} break;
+          case 3: if(name) {str=key->array; *name=*str; *str=NULL;} break;
+          case 2: bscale = *(double *)(key->array);                 break;
+          case 1: str = key->array; bzero_str = *str;               break;
           default:
-            error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to "
-                  "fix the problem. For some reason, there are more "
+            error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s "
+                  "to fix the problem. For some reason, there are more "
                   "keywords requested ", __func__, PACKAGE_BUGREPORT);
           }
         }
@@ -2866,8 +2882,8 @@ gal_fits_img_write(gal_data_t *data, char *filename,
 
 void
 gal_fits_img_write_to_type(gal_data_t *data, char *filename,
-                           gal_fits_list_key_t *headers, char *program_string,
-                           int type)
+                           gal_fits_list_key_t *headers,
+                           char *program_string, int type)
 {
   /* If the input dataset is not the correct type, then convert it,
      otherwise, use the input data structure. */
@@ -2999,7 +3015,8 @@ gal_fits_tab_format(fitsfile *fitsptr)
         return GAL_TABLE_FORMAT_BFITS;
       else
         error(EXIT_FAILURE, 0, "%s: the 'XTENSION' keyword of this FITS "
-              "table ('%s') doesn't have a standard value", __func__, value);
+              "table ('%s') doesn't have a standard value", __func__,
+              value);
     }
   else
     {
@@ -3010,9 +3027,9 @@ gal_fits_tab_format(fitsfile *fitsptr)
         gal_fits_io_error(status, NULL);
     }
 
-  error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s so we can fix it. "
-        "Control should not have reached the end of this function", __func__,
-        PACKAGE_BUGREPORT);
+  error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s so we "
+        "can fix it. Control should not have reached the end of this "
+        "function", __func__, PACKAGE_BUGREPORT);
   return -1;
 }
 
@@ -3069,8 +3086,8 @@ set_display_format(char *tdisp, gal_data_t *data, char *filename, char *hdu,
 
     default:
       error(EXIT_FAILURE, 0, "%s (hdu: %s): Format character '%c' in the "
-            "value (%s) of the keyword %s not recognized in %s", filename, hdu,
-            tdisp[0], tdisp, keyname, __func__);
+            "value (%s) of the keyword %s not recognized in %s", filename,
+            hdu, tdisp[0], tdisp, keyname, __func__);
     }
 
   /* Parse the rest of the string to see if a width and precision are given
@@ -3082,8 +3099,9 @@ set_display_format(char *tdisp, gal_data_t *data, char *filename, char *hdu,
       data->disp_precision = strtol(&tailptr[1], &tailptr, 0);
       if(*tailptr!='\0')
         error(EXIT_FAILURE, 0, "%s (hdu: %s): The value '%s' of the "
-              "'%s' keyword could not recognized (it doesn't finish after "
-              "the precision) in %s", filename, hdu, tdisp, keyname, __func__);
+              "'%s' keyword could not recognized (it doesn't finish "
+              "after the precision) in %s", filename, hdu, tdisp,
+              keyname, __func__);
       break;
 
     case '\0':     /* No precision given, use a default value.     */
@@ -3094,8 +3112,8 @@ set_display_format(char *tdisp, gal_data_t *data, char *filename, char *hdu,
 
     default:
       error(EXIT_FAILURE, 0, "%s (hdu: %s): The value '%s' of the "
-            "'%s' keyword could not recognized (it doesn't have a '.', or "
-            "finish, after the width) in %s", filename, hdu, tdisp,
+            "'%s' keyword could not recognized (it doesn't have a '.', "
+            "or finish, after the width) in %s", filename, hdu, tdisp,
             keyname, __func__);
     }
 
@@ -3125,7 +3143,8 @@ fits_correct_bin_table_int_types(gal_data_t *allcols, int tfields,
 
       /* For a check
       printf("Column %zu initial type: %s (s: %d, z: %lld)\n", i+1,
-             gal_data_type_as_string(allcols[i].type, 1), tscal[i], tzero[i]);
+             gal_data_type_as_string(allcols[i].type, 1), tscal[i],
+             tzero[i]);
       */
 
       /* Correct the type based on the initial read type and the value to
@@ -3437,9 +3456,9 @@ gal_fits_tab_info(char *filename, char *hdu, size_t *numcols,
                 }
             }
           else
-            error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to "
-                  "fix the problem. Post-processing of keyword '%s' failed",
-                  __func__, PACKAGE_BUGREPORT, tmp_n->v);
+            error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s "
+                  "to fix the problem. Post-processing of keyword '%s' "
+                  "failed", __func__, PACKAGE_BUGREPORT, tmp_n->v);
 
           /* Increment the other two lists too. */
           tmp_v=tmp_v->next;
@@ -3451,6 +3470,11 @@ gal_fits_tab_info(char *filename, char *hdu, size_t *numcols,
       gal_list_str_free(later_name, 1);
       gal_list_str_free(later_value, 1);
     }
+
+
+  /* Set the 'next' pointer of each column. */
+  for(i=0;i<tfields;++i)
+    allcols[i].next = (i==tfields-1) ? NULL : &allcols[i+1];
 
 
   /* Correct integer types, then free the allocated arrays. */
@@ -3472,10 +3496,10 @@ gal_fits_tab_info(char *filename, char *hdu, size_t *numcols,
 /* Read CFITSIO un-readable (INF, -INF or NAN) floating point values in
    FITS ASCII tables. */
 static void
-fits_tab_read_ascii_float_special(char *filename, char *hdu, fitsfile *fptr,
-                                  gal_data_t *out, size_t colnum,
-                                  size_t numrows, size_t minmapsize,
-                                  int quietmmap)
+fits_tab_read_ascii_float_special(char *filename, char *hdu,
+                                  fitsfile *fptr, gal_data_t *out,
+                                  size_t colnum, size_t numrows,
+                                  size_t minmapsize, int quietmmap)
 {
   double tmp;
   char **strarr;
@@ -3500,8 +3524,8 @@ fits_tab_read_ascii_float_special(char *filename, char *hdu, fitsfile *fptr,
     }
 
   /* Read the column as a string. */
-  fits_read_col(fptr, TSTRING, colnum, 1, 1, out->size, NULL, strrows->array,
-                &anynul, &status);
+  fits_read_col(fptr, TSTRING, colnum, 1, 1, out->size, NULL,
+                strrows->array, &anynul, &status);
   gal_fits_io_error(status, NULL);
 
   /* Convert the strings to float. */
@@ -3549,13 +3573,15 @@ fits_tab_read_onecol(void *in_prm)
     = (struct fits_tab_read_onecol_params *)tprm->params;
 
   /* Subsequent definitions. */
+  uint8_t type;
   char **strarr;
   fitsfile *fptr;
   gal_data_t *col;
+  size_t dsize[2];
   gal_list_sizet_t *tmp;
   void *blank, *blankuse;
   int isfloat, hdutype, anynul=0, status=0;
-  size_t i, j, c, strw, indout, indin=GAL_BLANK_SIZE_T;
+  size_t i, j, c, ndim, strw, repeat, indout, indin=GAL_BLANK_SIZE_T;
 
   /* Open the FITS file */
   fptr=gal_fits_hdu_open_format(p->filename, p->hdu, 1);
@@ -3576,9 +3602,15 @@ fits_tab_read_onecol(void *in_prm)
         { if(c==indout) { indin=tmp->v; break; } ++c; }
 
       /* Allocate the necessary space for this column. */
-      col=gal_data_alloc(NULL, p->allcols[indin].type, 1,
-                         &p->numrows, NULL, 0, p->minmapsize,
-                         p->quietmmap, p->allcols[indin].name,
+      type=p->allcols[indin].type;
+      repeat=p->allcols[indin].minmapsize;
+      if(type!=GAL_TYPE_STRING && repeat>1)
+        { ndim=2; dsize[0]=p->numrows; dsize[1]=repeat; }
+      else
+        { ndim=1; dsize[0]=p->numrows; }
+      col=gal_data_alloc(NULL, type, ndim, dsize, NULL, 0,
+                         p->minmapsize, p->quietmmap,
+                         p->allcols[indin].name,
                          p->allcols[indin].unit,
                          p->allcols[indin].comment);
 
@@ -3759,7 +3791,8 @@ gal_fits_tab_read(char *filename, char *hdu, size_t numrows,
           /* Do the allocation. */
           gal_list_data_add_alloc(&out, NULL, allcols[ind->v].type, 1,
                                   &numrows, NULL, 0, minmapsize, quietmmap,
-                                  allcols[ind->v].name, allcols[ind->v].unit,
+                                  allcols[ind->v].name,
+                                  allcols[ind->v].unit,
                                   allcols[ind->v].comment);
 
           /* Correct the array and sizes. */
@@ -3830,17 +3863,18 @@ fits_string_fixed_alloc_size(gal_data_t *data)
 
 
 static void
-fits_table_prepare_arrays(gal_data_t *cols, size_t numcols, int tableformat,
-                          char ***outtform, char ***outttype,
-                          char ***outtunit)
+fits_table_prepare_arrays(gal_data_t *cols, size_t numcols,
+                          int tableformat, char ***outtform,
+                          char ***outttype, char ***outtunit)
 {
-  size_t i=0;
+  size_t i=0, j;
   gal_data_t *col;
   char fmt[2], lng[3];
   char *blank, **tform, **ttype, **tunit;
 
 
-  /* Allocate the arrays to keep the 'tform' values */
+  /* Allocate the arrays to keep the 'tform', 'ttype' and 'tunit'
+     keywords. */
   errno=0;
   tform=*outtform=malloc(numcols*sizeof *tform);
   if(tform==NULL)
@@ -3866,7 +3900,6 @@ fits_table_prepare_arrays(gal_data_t *cols, size_t numcols, int tableformat,
         error(EXIT_FAILURE, 0, "%s: asprintf allocation", __func__);
       if( asprintf(&tunit[i], "%s", col->unit ? col->unit : "")<0 )
         error(EXIT_FAILURE, 0, "%s: asprintf allocation", __func__);
-
 
       /* FITS's TFORM depends on the type of FITS table, so work
          differently. */
@@ -3907,23 +3940,24 @@ fits_table_prepare_arrays(gal_data_t *cols, size_t numcols, int tableformat,
               case GAL_TYPE_INT32:
               case GAL_TYPE_UINT64:
               case GAL_TYPE_INT64:
-                if( asprintf(&tform[i], "%c%d", fmt[0], col->disp_width)<0 )
-                  error(EXIT_FAILURE, 0, "%s: asprintf allocation", __func__);
+                if(asprintf(&tform[i], "%c%d", fmt[0], col->disp_width)<0)
+                  error(EXIT_FAILURE, 0, "%s: asprintf allocation",
+                        __func__);
                 break;
 
               case GAL_TYPE_FLOAT32:
               case GAL_TYPE_FLOAT64:
                 if( asprintf(&tform[i], "%c%d.%d", fmt[0], col->disp_width,
                              col->disp_precision)<0 )
-                  error(EXIT_FAILURE, 0, "%s: asprintf allocation", __func__);
+                  error(EXIT_FAILURE, 0, "%s: asprintf allocation",
+                        __func__);
                 break;
 
               default:
-                error(EXIT_FAILURE, 0, "%s: col->type code %d not recognized",
-                      __func__, col->type);
+                error(EXIT_FAILURE, 0, "%s: col->type code %d not "
+                      "recognized", __func__, col->type);
               }
           break;
-
 
         /* FITS binary table. */
         case GAL_TABLE_FORMAT_BFITS:
@@ -3939,8 +3973,24 @@ fits_table_prepare_arrays(gal_data_t *cols, size_t numcols, int tableformat,
             }
           else
             {
-              if( asprintf(&tform[i], "%c", fmt[0])<0 )
-                error(EXIT_FAILURE, 0, "%s: asprintf allocation", __func__);
+              /* For vector columns, we need to give the number of elements
+                 in the vector. */
+              switch(col->ndim)
+                {
+                case 1:
+                  if( asprintf(&tform[i], "%c", fmt[0])<0 )
+                    error(EXIT_FAILURE, 0, "%s: asprintf allocation",
+                          __func__);
+                  break;
+                case 2:
+                  if(asprintf(&tform[i], "%zu%c", col->dsize[1], fmt[0])<0)
+                    error(EXIT_FAILURE, 0, "%s: asprintf allocation",
+                          __func__);
+                  break;
+                default:
+                  error(EXIT_FAILURE, 0, "%s: only 1D or 2D data can "
+                        "be written as a binary table", __func__);
+                }
             }
           break;
 
@@ -3949,9 +3999,19 @@ fits_table_prepare_arrays(gal_data_t *cols, size_t numcols, int tableformat,
                 __func__, tableformat);
         }
 
-
-      /* Increment the column index. */
-      ++i;
+      /* Increment the column index and write the values into the vector
+         columns also. */
+      if(tableformat==GAL_TABLE_FORMAT_AFITS && col->ndim>1)
+        {
+          for(j=1;j<col->dsize[1];++j)
+            {
+              gal_checkset_allocate_copy(tform[i], &tform[i+j]);
+              gal_checkset_allocate_copy(tunit[i], &tunit[i+j]);
+              gal_checkset_allocate_copy(ttype[i], &ttype[i+j]);
+            }
+          i+=col->dsize[1];
+        }
+      else ++i;
     }
 }
 
@@ -4079,6 +4139,135 @@ fits_write_tnull_tcomm(fitsfile *fptr, gal_data_t *col, int tableformat,
 
 
 
+static size_t
+fits_tab_write_colvec_ascii(fitsfile *fptr, gal_data_t *vector,
+                            size_t colind, char *tform, char *filename)
+{
+  int status=0;
+  char *keyname;
+  static int warnasciivec=0;
+  gal_data_t *ext, *extracted;
+  gal_list_sizet_t *indexs=NULL;
+  size_t i, coli=GAL_BLANK_SIZE_T;
+
+  /* Print a warning about the modification that is necessary. */
+  if(warnasciivec==0)
+    {
+      error(EXIT_SUCCESS, 0, "WARNING: vector (multi-valued) columns "
+            "are not supported in the FITS ASCII format. Therefore, "
+            "vector column(s) will be broken into separate "
+            "single-valued columns in '%s'", filename);
+      warnasciivec=1;
+    }
+
+  /* Build the indexs list and reverse it (adding to a last-in-first-out
+     list will result in an inverse list). */
+  for(i=0;i<vector->dsize[1];++i) gal_list_sizet_add(&indexs, i);
+  gal_list_sizet_reverse(&indexs);
+
+  /* Call the table function to extract the desired components of the
+     vector column and clean up the indexs. */
+  extracted=gal_table_col_vector_extract(vector, indexs);
+  gal_list_sizet_free(indexs);
+
+  /* Write the extracted columns into the output. */
+  i=0;
+  for(ext=extracted; ext!=NULL; ext=ext->next)
+    {
+      /* Write the column. */
+      coli = colind + i++;
+      fits_tab_write_col(fptr, ext, GAL_TABLE_FORMAT_AFITS, &coli,
+                         tform, filename);
+
+      /* Set the keyword name. */
+      if( asprintf(&keyname, "TTYPE%zu", coli)<0 )
+        error(EXIT_FAILURE, 0, "%s: asprintf for 'keyname'", __func__);
+
+      /* Update the keyword with the name of the column (that was just
+         copied in 'fits_table_prepare_arrays' from the vector-column's
+         name, resulting in similar names). */
+      fits_update_key(fptr, TSTRING, keyname, ext->name, NULL, &status);
+      gal_fits_io_error(status, NULL);
+    }
+
+  /* Return the last column-index (which has been incremented in
+     'fits_tab_write_col'). */
+  return coli;
+}
+
+
+
+
+
+/* Write a single column into the FITS table. */
+static void
+fits_tab_write_col(fitsfile *fptr, gal_data_t *col, int tableformat,
+                   size_t *colind, char *tform, char *filename)
+{
+  int status=0;
+  char **strarr;
+  void *blank=NULL;
+
+  /* If this is a FITS ASCII table, and the column is vector, we need to
+     write it as separate single-value columns and write those, then we can
+     safely return (no more need to continue). */
+  if(tableformat==GAL_TABLE_FORMAT_AFITS && col->ndim>1)
+    {
+      *colind=fits_tab_write_colvec_ascii(fptr, col, *colind, tform,
+                                          filename);
+      return;
+    }
+
+  /* Write the blank value into the header and return a pointer to
+     it. Otherwise, */
+  fits_write_tnull_tcomm(fptr, col, tableformat, *colind+1, tform);
+
+  /* Set the blank pointer if its necessary. Note that strings don't need a
+     blank pointer in a FITS ASCII table. */
+  blank = ( gal_blank_present(col, 0)
+            ? fits_blank_for_tnull(col->type) : NULL );
+  if(tableformat==GAL_TABLE_FORMAT_AFITS && col->type==GAL_TYPE_STRING)
+    { if(blank) free(blank); blank=NULL; }
+
+  /* Manually remove the 'blank' pointer for standard FITS table numeric
+     types (types below). We are doing this because as of CFITSIO 3.48,
+     CFITSIO crashes for these types when we define our own blank values
+     within this pointer, and such values actually exist in the
+     column. This is the error message: "Null value for integer table
+     column is not defined (FTPCLU)". Generally, for these native FITS
+     table types 'blank' is redundant because our blank values are actually
+     within their numerical data range. */
+  switch(col->type)
+    {
+    case GAL_TYPE_UINT8:
+    case GAL_TYPE_INT16:
+    case GAL_TYPE_INT32:
+    case GAL_TYPE_INT64:
+      free(blank); blank=NULL;
+      break;
+    }
+
+  /* Write the full column into the table. */
+  fits_write_colnull(fptr, gal_fits_type_to_datatype(col->type),
+                     *colind+1, 1, 1, col->size, col->array, blank,
+                     &status);
+  gal_fits_io_error(status, NULL);
+
+  /* Clean up and Increment the column counter. */
+  if(blank)
+    {
+      if(col->type==GAL_TYPE_STRING) {strarr=blank; free(strarr[0]);}
+      free(blank);
+    }
+
+  /* Increment the 'colind' for the next column. */
+  *colind+=1;
+}
+
+
+
+
+
 /* Write the given columns (a linked list of 'gal_data_t') into a FITS
    table.*/
 void
@@ -4086,34 +4275,38 @@ gal_fits_tab_write(gal_data_t *cols, gal_list_str_t *comments,
                    int tableformat, char *filename, char *extname,
                    struct gal_fits_list_key_t **keylist)
 {
-  void *blank;
   fitsfile *fptr;
   gal_data_t *col;
-  size_t i, numrows=-1;
   gal_list_str_t *strt;
+  char **ttype, **tform, **tunit;
+  size_t i, numrows=-1, thisnrows;
   int tbltype, numcols=0, status=0;
-  char **ttype, **tform, **tunit, **strarr;
 
   /* Make sure all the input columns have the same number of elements */
   for(col=cols; col!=NULL; col=col->next)
     {
-      if(numrows==-1) numrows=col->size;
-      else if(col->size!=numrows)
-        error(EXIT_FAILURE, 0, "%s: the number of records/rows in the input "
-              "columns are not equal", __func__);
-      ++numcols;
-    }
+      thisnrows = col->dsize ? col->dsize[0] : 0;
+      if(numrows==-1) numrows=thisnrows;
+      else if(thisnrows!=numrows)
+        error(EXIT_FAILURE, 0, "%s: the number of records/rows in the "
+              "input columns are not equal! The first column "
+              "has %zu rows, while column %d has %zu rows",
+              __func__, numrows, numcols+1, thisnrows);
 
+      /* ASCII FITS tables don't accept vector columns, so some extra
+         columns need to be added. */
+      numcols += ( tableformat==GAL_TABLE_FORMAT_AFITS
+                   ? (col->ndim==1 ? 1 : col->dsize[1])
+                   : 1 );
+    }
 
   /* Open the FITS file for writing. */
   fptr=gal_fits_open_to_write(filename);
 
-
   /* Prepare necessary arrays and if integer type columns have blank
      values, write the TNULLn keywords into the FITS file. */
-  fits_table_prepare_arrays(cols, numcols, tableformat,
-                            &tform, &ttype, &tunit);
-
+  fits_table_prepare_arrays(cols, numcols, tableformat, &tform, &ttype,
+                            &tunit);
 
   /* Make the FITS file pointer. Note that tableformat was checked in
      'fits_table_prepare_arrays'. */
@@ -4122,54 +4315,11 @@ gal_fits_tab_write(gal_data_t *cols, gal_list_str_t *comments,
                   extname, &status);
   gal_fits_io_error(status, NULL);
 
-
   /* Write the columns into the file and also write the blank values into
      the header when necessary. */
   i=0;
-  for(col=cols; col!=NULL; col=col->next)
-    {
-      /* Write the blank value into the header and return a pointer to
-         it. Otherwise, */
-      fits_write_tnull_tcomm(fptr, col, tableformat, i+1, tform[i]);
-
-      /* Set the blank pointer if its necessary, note that strings don't
-         need a blank pointer in a FITS ASCII table. */
-      blank = ( gal_blank_present(col, 0)
-                ? fits_blank_for_tnull(col->type) : NULL );
-      if(tableformat==GAL_TABLE_FORMAT_AFITS && col->type==GAL_TYPE_STRING)
-        { if(blank) free(blank); blank=NULL; }
-
-      /* Manually remove the 'blank' pointer for standard FITS table
-         numeric types (types below). We are doing this because as of
-         CFITSIO 3.48, CFITSIO crashes for these types when we define our
-         own blank values within this pointer, and such values actually
-         exist in the column. This is the error message: "Null value for
-         integer table column is not defined (FTPCLU)". Generally, for
-         these native FITS table types 'blank' is redundant because our
-         blank values are actually within their numerical data range. */
-      switch(col->type)
-        {
-        case GAL_TYPE_UINT8:
-        case GAL_TYPE_INT16:
-        case GAL_TYPE_INT32:
-        case GAL_TYPE_INT64:
-          free(blank); blank=NULL;
-          break;
-        }
-
-      /* Write the full column into the table. */
-      fits_write_colnull(fptr, gal_fits_type_to_datatype(col->type),
-                         i+1, 1, 1, col->size, col->array, blank, &status);
-      gal_fits_io_error(status, NULL);
-
-      /* Clean up and Increment the column counter. */
-      if(blank)
-        {
-          if(col->type==GAL_TYPE_STRING) {strarr=blank; free(strarr[0]);}
-          free(blank); blank=NULL;
-        }
-      ++i;
-    }
+  for(col=cols; col!=NULL; col=col->next)/*'i' is increment in the func.*/
+    fits_tab_write_col(fptr, col, tableformat, &i, tform[i], filename);
 
   /* Write the requested keywords. */
   if(keylist)
@@ -4179,24 +4329,15 @@ gal_fits_tab_write(gal_data_t *cols, gal_list_str_t *comments,
   for(strt=comments; strt!=NULL; strt=strt->next)
     fits_write_comment(fptr, strt->v, &status);
 
-
   /* Write all the headers and the version information. */
   gal_fits_key_write_version_in_ptr(NULL, NULL, fptr);
-
 
   /* Clean up and close the FITS file. Note that each element in the
      'ttype' and 'tunit' arrays just points to the respective string in the
      column data structure, the space for each element of the array wasn't
      allocated.*/
-  for(i=0;i<numcols;++i)
-    {
-      free(tform[i]);
-      free(ttype[i]);
-      free(tunit[i]);
-    }
-  free(tform);
-  free(ttype);
-  free(tunit);
+  for(i=0;i<numcols;++i) {free(tform[i]); free(ttype[i]); free(tunit[i]);}
+  free(tform); free(ttype); free(tunit);
   fits_close_file(fptr, &status);
   gal_fits_io_error(status, NULL);
 }

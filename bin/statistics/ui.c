@@ -257,7 +257,8 @@ ui_add_to_single_value(struct argp_option *option, char *arg,
   else
     {
       /* Read the string of numbers. */
-      inputs=gal_options_parse_list_of_numbers(arg, filename, lineno);
+      inputs=gal_options_parse_list_of_numbers(arg, filename, lineno,
+                                               GAL_TYPE_FLOAT64);
       if(inputs->size==0)
         error(EXIT_FAILURE, 0, "'--%s' needs a value", option->name);
 
@@ -323,7 +324,8 @@ ui_read_quantile_range(struct argp_option *option, char *arg,
     }
 
   /* Parse the inputs. */
-  in=gal_options_parse_list_of_numbers(arg, filename, lineno);
+  in=gal_options_parse_list_of_numbers(arg, filename, lineno,
+                                       GAL_TYPE_FLOAT64);
 
   /* Check if there was only two numbers. */
   if(in->size!=1 && in->size!=2)
@@ -1206,7 +1208,7 @@ ui_preparations(struct statisticsparams *p)
       /* Only keep the elements we want. Note that if we have more than one
          column, we need to move the same rows in both (otherwise their
          widths won't be equal). */
-      if(p->input->next) gal_blank_remove_rows(p->input, NULL);
+      if(p->input->next) gal_blank_remove_rows(p->input, NULL, 0);
       else               gal_blank_remove(p->input);
 
       /* Make sure there actually are any (non-blank) elements left. */

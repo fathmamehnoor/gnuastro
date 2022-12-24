@@ -921,6 +921,43 @@ gal_list_f64_to_array(gal_list_f64_t *list, int reverse, size_t *num)
 
 
 
+/* Copy a list of float64 to a 1D dataset of the desired type. */
+gal_data_t *
+gal_list_f64_to_data(gal_list_f64_t *list, uint8_t type,
+                     size_t minmapsize, int quietmmap)
+{
+  double *d;
+  gal_data_t *out;
+  size_t num, one=1;
+
+  /* In if the list is empty, return a dataset with no elements. */
+  if(list==NULL)
+    {
+      /* It is not possible to allocate a dataset with a size of 0 along
+         any dimension (in C it's possible, but conceptually it isn't). So,
+         we'll allocate space for one element, then free it. */
+      out=gal_data_alloc(NULL, type, 1, &one, NULL, 0,
+                         minmapsize, quietmmap, NULL, NULL, NULL);
+      out->size=out->dsize[0]=0;
+      free(out->array);
+      out->array=NULL;
+      return out;
+    }
+
+  /* Convert the list to an array, put it into a dataset. */
+  d=gal_list_f64_to_array(list, 0, &num);
+  out=gal_data_alloc(d, GAL_TYPE_FLOAT64, 1, &num, NULL, 0, minmapsize,
+                     quietmmap, NULL, NULL, NULL);
+
+  /* Copy to desired type and return. */
+  out=gal_data_copy_to_new_type_free(out, type);
+  return out;
+}
+
+
+
+
+
 void
 gal_list_f64_free(gal_list_f64_t *list)
 {
@@ -1384,7 +1421,6 @@ gal_list_data_add(gal_data_t **list, gal_data_t *newnode)
     /* Its not a list, so just set it to 'toadd'. */
     toadd=newnode;
 
-
   /* Set the next element of toadd and update what list points to.*/
   toadd->next=*list;
   *list=newnode;
@@ -1439,6 +1475,39 @@ gal_list_data_pop(gal_data_t **list)
 
 
 
+/* Remove one node from the list. */
+void
+gal_list_data_remove(gal_data_t **list, gal_data_t *node)
+{
+  int found=0;
+  gal_data_t *tmp, *prev=*list;
+
+  /* If this is an empty list, just ignore it. */
+  if(*list==NULL || node==NULL) return;
+
+  /* If the requested node is first. */
+  if(node==*list) { found=1; *list=(*list)->next; }
+  else
+    {
+      /* Parse the list, while keeping track of the previous. */
+      for(tmp=(*list)->next;tmp!=NULL;tmp=tmp->next)
+        {
+          /* This is the desired node, remove it from the list. */
+          if(tmp==node) { found=1; prev->next=tmp->next; break; }
+
+          /* Set the current pointer to the "prev" of the next. */
+          prev=tmp;
+        }
+    }
+
+  /* If 'node' has been identified, fully detach it from the list. */
+  if(found) node->next=NULL;
+}
+
+
+
+
+
 /* From the input list of datasets, return the first one that has a name
    equal to the input string 'name'. */
 gal_data_t *
@@ -1453,6 +1522,54 @@ gal_list_data_select_by_name(gal_data_t *list, char *name)
 
   /* If control reaches here, no such name could be found. */
   return NULL;
+}
+
+
+
+
+
+/* Select a dataset from a list from its idenfier (name or counter in a
+   string). */
+gal_data_t *
+gal_list_data_select_by_id(gal_data_t *table, char *idstr, size_t *index)
+{
+  char *tailptr;
+  gal_data_t *tmp, *out=NULL;
+  size_t i, oind=GAL_BLANK_SIZE_T, colind;
+
+  /* If given string identifier ('idstr') is a number, then 'strtol' will
+     set 'tailptr' to '\0'. Otherwise, we will need to check the existing
+     column names in the table. */
+  colind=strtol(idstr, &tailptr, 10);
+  if(tailptr[0]=='\0') /* ID is a number. */
+    {
+      /* Parse the list and return the desired column. Note that the column
+         counter in the ID is assumed to be from 1, but the output "index"
+         should start from 0. If the requested counter is larger than the
+         input's number of columns, the output will automatically be NULL
+         (it has been initialized). */
+      i=0;
+      for(tmp=table;tmp!=NULL;tmp=tmp->next)
+        { ++i; if(i==colind) { oind=i-1; out=tmp; break;} }
+    }
+  else /* ID is string; parse the names in the table.*/
+    {
+      /* Parse the table and if the name exists, return it. */
+      colind=i=0;
+      for(tmp=table;tmp!=NULL;tmp=tmp->next)
+        {
+          ++i;
+          if( !strcmp(idstr, tmp->name) ) { oind=i-1; out=tmp; break; }
+        }
+    }
+
+  /* For a check.
+  printf("%s: %s is column index %zu\n", __func__, tmp->name, oind);
+  */
+
+  /* Fill the 'index' poiter (if it is not NULL!) and return 'out'. */
+  if(index) *index=oind;
+  return out;
 }
 
 

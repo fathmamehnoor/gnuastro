@@ -115,10 +115,13 @@ struct tableparams
   gal_data_t        *rowrange;  /* Output rows in row-counter range.    */
   size_t            rowrandom;  /* Number of rows to show randomly.     */
   uint8_t             envseed;  /* Use the environment for random seed. */
-  gal_list_str_t *catcolumnfile; /* Filename to concat column wise.     */
-  gal_list_str_t *catcolumnhdu;  /* HDU/extension for the catcolumn.    */
+  gal_list_str_t *catcolumnfile;/* Filename to concat column wise.      */
+  gal_list_str_t *catcolumnhdu; /* HDU/extension for the catcolumn.     */
   gal_list_str_t  *catcolumns;  /* List of columns to concatenate.      */
   uint8_t    catcolumnrawname;  /* Don't modify name of appended col.   */
+  gal_data_t      *fromvector;  /* Extract columns from a vector column.*/
+  uint8_t         keepvectfin;  /* Keep in.s --tovector & --fromvector. */
+  gal_list_str_t    *tovector;  /* Merge columns into a vector column.  */
   gal_list_str_t  *catrowfile;  /* Filename to concat column wise.      */
   gal_list_str_t   *catrowhdu;  /* HDU/extension for the catcolumn.     */
   gal_data_t     *colmetadata;  /* Set column metadata.                 */

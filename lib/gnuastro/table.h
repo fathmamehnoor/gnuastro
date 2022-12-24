@@ -60,8 +60,8 @@ __BEGIN_C_DECLS  /* From C++ preparations */
 #define GAL_TABLE_DEF_WIDTH_STR       6
 #define GAL_TABLE_DEF_WIDTH_INT       6
 #define GAL_TABLE_DEF_WIDTH_LINT      10
-#define GAL_TABLE_DEF_WIDTH_FLT       13
-#define GAL_TABLE_DEF_WIDTH_DBL       18
+#define GAL_TABLE_DEF_WIDTH_FLT       14
+#define GAL_TABLE_DEF_WIDTH_DBL       23
 
 #define GAL_TABLE_DEF_PRECISION_INT   0
 #define GAL_TABLE_DEF_PRECISION_FLT   6
@@ -181,7 +181,14 @@ gal_table_write_log(gal_data_t *logll, char *program_string,
 
 
 
+/************************************************************************/
+/***************            Column operation              ***************/
+/************************************************************************/
+gal_data_t *
+gal_table_col_vector_extract(gal_data_t *vector, gal_list_sizet_t *indexs);
 
+gal_data_t *
+gal_table_cols_to_vector(gal_data_t *list);
 
 __END_C_DECLS    /* From C++ preparations */
 

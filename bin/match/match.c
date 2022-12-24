@@ -224,23 +224,25 @@ static void
 match_arrange_in_new_col(struct matchparams *p, gal_data_t *in,
                          size_t *permutation, size_t nummatched)
 {
-  size_t c=0, i;
+  size_t c=0, i, n;
   size_t istart=p->notmatched ? nummatched : 0;
-  size_t iend=p->notmatched ? in->size : nummatched;
-  size_t outsize=p->notmatched ? in->size - nummatched : nummatched;
+  size_t iend=p->notmatched ? in->dsize[0] : nummatched;
+  size_t outrows=p->notmatched ? in->dsize[0] - nummatched : nummatched;
+
+  /* Set the number of values in this column (for vectors). */
+  n = in->ndim==1 ? 1 : in->dsize[1];
 
   /* Allocate the array. */
-  void *out=gal_pointer_allocate_ram_or_mmap(in->type, outsize, 0,
+  void *out=gal_pointer_allocate_ram_or_mmap(in->type, outrows*n, 0,
                                              p->cp.minmapsize,
                                              &in->mmapname, p->cp.quietmmap,
                                              __func__, "out");
 
   /* Copy the matched rows into the output array. */
   for(i=istart;i<iend;++i)
-    memcpy(gal_pointer_increment(out, c++, in->type),
-           gal_pointer_increment(in->array, permutation[i],
-                                 in->type),
-           gal_type_sizeof(in->type));
+    memcpy(gal_pointer_increment(out,       n*c++,            in->type),
+           gal_pointer_increment(in->array, n*permutation[i], in->type),
+           gal_type_sizeof(in->type) * n);
 
   /**********************************/
   /* Add a check so if the column is a string, we free the strings that
@@ -248,8 +250,9 @@ match_arrange_in_new_col(struct matchparams *p, gal_data_t *in,
   /**********************************/
 
   /* Free the existing array, and correct the sizes. */
-  in->size = in->dsize[0] = outsize;
   free(in->array);
+  in->dsize[0] = outrows;
+  in->size = in->dsize[0] * (in->ndim==1 ? 1 : in->dsize[1]);
   in->array=out;
 }
 
@@ -780,8 +783,8 @@ match_catalog(struct matchparams *p)
          tables. So if the log file is a FITS table, covert the two
          index columns to uint32. */
       tmp=gal_data_copy_to_new_type(mcols, GAL_TYPE_UINT32);
+      tmp->size=tmp->dsize[0]=nummatched;
       tmp->next=mcols->next;
-      tmp->size=nummatched;
       gal_data_free(mcols);
       mcols=tmp;
 
@@ -795,9 +798,9 @@ match_catalog(struct matchparams *p)
       /* Same for the second set of indexs. */
       tmp=gal_data_copy_to_new_type(mcols->next, GAL_TYPE_UINT32);
       uf = (u=tmp->array) + tmp->size; do (*u)++; while(++u<uf);
+      tmp->size=tmp->dsize[0]=nummatched;
       tmp->next=mcols->next->next;
       gal_data_free(mcols->next);
-      tmp->size=nummatched;
       mcols->next=tmp;
 
       /* Correct the comments. */
@@ -814,6 +817,10 @@ match_catalog(struct matchparams *p)
       /* Set the comment pointer to NULL: they weren't allocated. */
       mcols->comment=NULL;
       mcols->next->comment=NULL;
+
+      /* Inform the user that a log-file has been created. */
+      if(!p->cp.quiet)
+        fprintf(stdout, "  - Output (log): %s\n", p->logname);
     }
 
   /* Clean up. */

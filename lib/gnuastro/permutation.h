@@ -62,6 +62,9 @@ void
 gal_permutation_apply(gal_data_t *input, size_t *permutation);
 
 void
+gal_permutation_apply_onlydim0(gal_data_t *input, size_t *permutation);
+
+void
 gal_permutation_apply_inverse(gal_data_t *input, size_t *permutation);
 
 

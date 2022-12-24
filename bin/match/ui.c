@@ -752,6 +752,12 @@ ui_read_columns_to_double(struct matchparams *p, char *filename, char *hdu,
   tmp=tout;
   while(tmp!=NULL)
     {
+      /* If the coordinate column has more than one dimension (a vector
+         column), the abort with an error: */
+      if(tmp->ndim!=1)
+        error(EXIT_FAILURE, 0, "only single-valued columns can be given "
+              "to '--ccol1' or '--ccol2'");
+
       /* We need ot set the 'next' pointer  */
       ttmp=tmp->next;
       tmp->next=NULL;
@@ -993,6 +999,7 @@ ui_preparations_out_cols(struct matchparams *p)
 
 
 
+#define UI_OUT_SUFFNAME "-matched"
 static void
 ui_preparations_out_name(struct matchparams *p)
 {
@@ -1010,10 +1017,10 @@ ui_preparations_out_name(struct matchparams *p)
         {
           if(p->cp.tableformat==GAL_TABLE_FORMAT_TXT)
             p->logname=gal_checkset_automatic_output(&p->cp, refname,
-                                                     "_matched.txt");
+                                                     UI_OUT_SUFFNAME".txt");
           else
             p->logname=gal_checkset_automatic_output(&p->cp, refname,
-                                                     "_matched.fits");
+                                                     UI_OUT_SUFFNAME".fits");
         }
 
       /* Make sure a file with this name doesn't exist. */
@@ -1033,9 +1040,10 @@ ui_preparations_out_name(struct matchparams *p)
           else
             {
               suffix = ( p->kdtreemode==MATCH_KDTREE_BUILD
-                         ? "_kdtree.fits"
+                         ? "-kdtree.fits"
                          : ( p->cp.tableformat==GAL_TABLE_FORMAT_TXT
-                             ? "_matched.txt" : "_matched.fits") );
+                             ? UI_OUT_SUFFNAME".txt"
+                             : UI_OUT_SUFFNAME".fits") );
               p->out1name = gal_checkset_automatic_output(&p->cp,
                                                           refname, suffix);
             }
@@ -1064,10 +1072,12 @@ ui_preparations_out_name(struct matchparams *p)
                   p->cp.keepinputdir=1;
                   p->out1name=gal_checkset_automatic_output(&p->cp,
                                                             p->cp.output,
-                                                            "_matched_1.txt");
+                                                            UI_OUT_SUFFNAME
+                                                            "-1.txt");
                   p->out2name=gal_checkset_automatic_output(&p->cp,
                                                             p->cp.output,
-                                                            "_matched_2.txt");
+                                                            UI_OUT_SUFFNAME
+                                                            "-2.txt");
                   p->cp.keepinputdir=keepinputdir_orig;
                 }
             }
@@ -1076,15 +1086,18 @@ ui_preparations_out_name(struct matchparams *p)
               if(p->cp.tableformat==GAL_TABLE_FORMAT_TXT)
                 {
                   p->out1name=gal_checkset_automatic_output(&p->cp, refname,
-                                                            "_matched_1.txt");
+                                                            UI_OUT_SUFFNAME
+                                                            "-1.txt");
                   p->out2name=gal_checkset_automatic_output(&p->cp,
                                                             p->input2name,
-                                                            "_matched_2.txt");
+                                                            UI_OUT_SUFFNAME
+                                                            "-2.txt");
                 }
               else
                 {
                   p->out1name=gal_checkset_automatic_output(&p->cp, refname,
-                                                            "_matched.fits");
+                                                            UI_OUT_SUFFNAME
+                                                            ".fits");
                   gal_checkset_allocate_copy(p->out1name, &p->out2name);
                 }
             }
@@ -1098,13 +1111,9 @@ ui_preparations_out_name(struct matchparams *p)
 
       /* If a log file is necessary, set its name here. */
       if(p->cp.log)
-        {
-          p->logname = ( p->cp.tableformat==GAL_TABLE_FORMAT_TXT
-                         ? PROGRAM_EXEC".txt"
-                         : PROGRAM_EXEC".fits" );
-          gal_checkset_writable_remove(p->logname, refname, 0,
-                                       p->cp.dontdelete);
-        }
+        p->logname=gal_checkset_automatic_output(&p->cp, p->out1name,
+                                                 UI_OUT_SUFFNAME
+                                                 "-log.fits");
     }
 }
 

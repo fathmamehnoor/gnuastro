@@ -231,6 +231,10 @@ gal_list_f64_reverse(gal_list_f64_t **list);
 double *
 gal_list_f64_to_array(gal_list_f64_t *list, int reverse, size_t *num);
 
+gal_data_t *
+gal_list_f64_to_data(gal_list_f64_t *list, uint8_t type,
+                     size_t minmapsize, int quietmmap);
+
 void
 gal_list_f64_free(gal_list_f64_t *list);
 
@@ -343,8 +347,14 @@ gal_list_data_add_alloc(gal_data_t **list, void *array, uint8_t type,
 gal_data_t *
 gal_list_data_pop(gal_data_t **list);
 
+void
+gal_list_data_remove(gal_data_t **list, gal_data_t *node);
+
 gal_data_t *
 gal_list_data_select_by_name(gal_data_t *list, char *name);
+
+gal_data_t *
+gal_list_data_select_by_id(gal_data_t *table, char *idstr, size_t *index);
 
 void
 gal_list_data_reverse(gal_data_t **list);

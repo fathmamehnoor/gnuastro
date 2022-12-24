@@ -321,9 +321,9 @@ ui_read_check_only_options(struct tableparams *p)
         error(EXIT_FAILURE, 0, "the first value to '--rowrange' (%g) is "
               "larger than the second (%g). This option's values defines "
               "a row-counter interval, assuming the first value is the top "
-              "of the desired interval (smaller row counter) and the second "
-              "value is the bottom of the desired interval (larger row "
-              "counter)", darr[0], darr[1]);
+              "of the desired interval (smaller row counter) and the "
+              "second value is the bottom of the desired interval (larger "
+              "row counter)", darr[0], darr[1]);
     }
 
   /* If '--colmetadata' is given, make sure none of the given options have
@@ -1173,6 +1173,13 @@ ui_check_select_sort_after(struct tableparams *p, size_t nselect,
       if(p->sort && i==sortindout) p->sortcol=tmp;
       ++i;
     }
+
+
+  /* The column to sort by should not be a vector column. */
+  if(p->sortcol && p->sortcol->ndim!=1)
+    error(EXIT_FAILURE, 0, "the column given to '--sort' cannot be a "
+          "vector column. If you need this feature, please get in "
+          "touch with us at '%s' to add it", PACKAGE_BUGREPORT);
 
 
   /* Since we can have several selection columns, we'll treat them

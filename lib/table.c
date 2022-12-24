@@ -33,6 +33,7 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 #include <gnuastro/txt.h>
 #include <gnuastro/blank.h>
 #include <gnuastro/table.h>
+#include <gnuastro/pointer.h>
 
 #include <gnuastro-internal/timing.h>
 #include <gnuastro-internal/checkset.h>
@@ -95,38 +96,10 @@ gal_table_displayflt_to_str(uint8_t fmt)
 /* Store the information of each column in a table (either as a text file
    or as a FITS table) into an array of data structures with 'numcols'
    structures (one data structure for each column). The number of rows is
-   stored in 'numrows'. The type of the table (e.g., ascii text file, or
-   FITS binary or ASCII table) will be put in 'tableformat' (macros defined
-   in 'gnuastro/table.h'.
+   stored in 'numrows'.\
 
-   Note that other than the character strings (column name, units and
-   comments), nothing in the data structure(s) will be allocated by this
-   function for the actual data (e.g., the 'array' or 'dsize' elements).
-
-   Here are the gal_data_t structure elements that are used in 'allcols':
-
-            *restrict array -> Blank value (if present).
-                       type -> Type of column data.
-                       ndim -> Blank number of dimensions (1)
-                     *dsize -> Blank dimension lengths (1)
-                       size -> Blank total size (1)
-                  quietmmap -> ------------
-                  *mmapname -> ------------
-                 minmapsize -> Repeat (FITS Binary 'TFORM')
-                       nwcs -> ------------
-                       *wcs -> ------------
-                       flag -> 'GAL_TABLEINTERN_FLAG_*' macros.
-                     status -> ------------
-                      *name -> Column name.
-                      *unit -> Column unit.
-                   *comment -> Column comments.
-                   disp_fmt -> 'GAL_TABLE_DISPLAY_FMT' macros.
-                 disp_width -> To keep width of string columns.
-             disp_precision -> ------------
-                      *next -> ------------
-                     *block -> ------------
-
-*/
+   See the DESCRIPTION OF THIS FUNCTION IN THE BOOK FOR a detailed listing
+   of the output's elements. */
 gal_data_t *
 gal_table_info(char *filename, char *hdu, gal_list_str_t *lines,
                size_t *numcols, size_t *numrows, int *tableformat)
@@ -141,9 +114,9 @@ gal_table_info(char *filename, char *hdu, gal_list_str_t *lines,
     }
 
   /* Abort with an error if we get to this point. */
-  error(EXIT_FAILURE, 0, "%s: a bug! please contact us at %s so we can fix "
-        "the problem. Control must not have reached the end of this function",
-        __func__, PACKAGE_BUGREPORT);
+  error(EXIT_FAILURE, 0, "%s: a bug! please contact us at %s so we can "
+        "fix the problem. Control must not have reached the end of this "
+        "function", __func__, PACKAGE_BUGREPORT);
   return NULL;
 }
 
@@ -182,7 +155,7 @@ gal_table_print_info(gal_data_t *allcols, size_t numcols, size_t numrows)
       mms=allcols[i].minmapsize;
       twt=strlen(gal_type_name(allcols[i].type, 1));
       if(allcols[i].type!=GAL_TYPE_STRING && mms>1)
-        twt += (int)(log10(mms))+1+2; /* 1 for the log, 2 for '[]'. */
+        twt += (int)(log10(mms))+1+2; /* 1 for the log, 2 for '()'. */
       if(allcols[i].type && twt>tw) tw=twt;
     }
 
@@ -210,7 +183,7 @@ gal_table_print_info(gal_data_t *allcols, size_t numcols, size_t numrows)
       mms=allcols[i].minmapsize;
       if(allcols[i].type!=GAL_TYPE_STRING && mms>1)
         {
-          if( asprintf(&typestr, "%s[%zu]",
+          if( asprintf(&typestr, "%s(%zu)",
                        gal_type_name(allcols[i].type, 1), mms)<0 )
             error(EXIT_FAILURE, 0, "%s: 'astprintf' allocation", __func__);
         }
@@ -344,8 +317,8 @@ gal_table_list_of_indexs(gal_list_str_t *cols, gal_data_t *allcols,
             errno=0;
             regex=malloc(sizeof *regex);
             if(regex==NULL)
-              error(EXIT_FAILURE, errno, "%s: allocating %zu bytes for regex",
-                    __func__, sizeof *regex);
+              error(EXIT_FAILURE, errno, "%s: allocating %zu bytes for "
+                    "regex", __func__, sizeof *regex);
 
             /* First we have to "compile" the string into the regular
                expression, see the "POSIX Regular Expression Compilation"
@@ -585,8 +558,8 @@ gal_table_read(char *filename, char *hdu, gal_list_str_t *lines,
    comments field. Note that the 'comments' has to be already sorted in the
    proper order. */
 void
-gal_table_comments_add_intro(gal_list_str_t **comments, char *program_string,
-                             time_t *rawtime)
+gal_table_comments_add_intro(gal_list_str_t **comments,
+                             char *program_string, time_t *rawtime)
 {
   char gitdescribe[100], *tmp;
 
@@ -632,11 +605,12 @@ gal_table_write(gal_data_t *cols, struct gal_fits_list_key_t **keylist,
         gal_fits_tab_write(cols, comments, tableformat, filename, extname,
                            keylist);
       else
-        gal_txt_write(cols, keylist, comments, filename, colinfoinstdout);
+        gal_txt_write(cols, keylist, comments, filename,
+                      colinfoinstdout, 0);
     }
   else
     /* Write to standard output. */
-    gal_txt_write(cols, keylist, comments, filename, colinfoinstdout);
+    gal_txt_write(cols, keylist, comments, filename, colinfoinstdout, 0);
 }
 
 
@@ -665,4 +639,138 @@ gal_table_write_log(gal_data_t *logll, char *program_string,
       gal_timing_report(NULL, msg, 1);
       free(msg);
     }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/************************************************************************/
+/***************            Column operation              ***************/
+/************************************************************************/
+gal_data_t *
+gal_table_col_vector_extract(gal_data_t *vector, gal_list_sizet_t *indexs)
+{
+  uint8_t type;
+  gal_data_t *out=NULL;
+  size_t i, vw, vh, ind;
+  char *name, *basename;
+  gal_list_sizet_t *tind;
+
+  /* Basic sanity checks. */
+  if(vector==NULL) return NULL;
+  if(indexs==NULL) return NULL;
+  if(vector->ndim!=2)
+    error(EXIT_FAILURE, 0, "%s: the input 'vector' must have 2 "
+          "dimensions but has %zu dimensions", __func__, vector->ndim);
+  for(tind=indexs;tind!=NULL;tind=tind->next)
+    if(tind->v > vector->dsize[1])
+      error(EXIT_FAILURE, 0, "%s: the input vector has %zu elements but "
+            "you have asked for index %zu (counting from zero)", __func__,
+            vector->dsize[1], tind->v);
+
+  /* Allocate the output columns. */
+  type=vector->type;
+  vh=vector->dsize[0];
+  vw=vector->dsize[1];
+  for(tind=indexs;tind!=NULL;tind=tind->next)
+    {
+      /* If the vector has a name, add a counter after it. If it doesn't
+         have a name, just use 'VECTOR'. Because index couting starts from
+         0, but column counters in tables start with 1, we'll add one to
+         the index. */
+      ind=tind->v;
+      basename = vector->name ? vector->name : "VECTOR";
+      if( asprintf(&name, "%s-%zu", basename, ind+1)<0 )
+        error(EXIT_FAILURE, 0, "%s: asprintf alloc of 'name'",  __func__);
+
+      /* Allocate the output and fill it. */
+      gal_list_data_add_alloc(&out, NULL, type, 1, &vh, NULL, 1,
+                              vector->minmapsize, vector->quietmmap,
+                              name, vector->unit, vector->comment);
+      for(i=0;i<vh;++i)
+        memcpy(gal_pointer_increment(out->array,    i,        type),
+               gal_pointer_increment(vector->array, i*vw+ind, type),
+               gal_type_sizeof(type));
+
+      /* Clean up. */
+      free(name);
+    }
+
+  /* Reverse the list to be in the same order as the indexs, and return. */
+  gal_list_data_reverse(&out);
+  return out;
+}
+
+
+
+
+
+gal_data_t *
+gal_table_cols_to_vector(gal_data_t *list)
+{
+  gal_data_t *tmp, *out;
+  char *name, *unit=NULL, *inname=NULL;
+  size_t i, j, dsize[2], num=gal_list_data_number(list);
+
+  /* If the list is empty or just has a single column, return itself.*/
+  if(num<2) return list;
+
+  /* Go over the inputs na make sure they are all single dimensional and
+     have the same size. */
+  for(tmp=list;tmp!=NULL;tmp=tmp->next)
+    {
+      /* First, a sanity check. */
+      if(tmp->ndim!=1
+         || tmp->type!=list->type
+         || tmp->dsize[0]!=list->dsize[0])
+        error(EXIT_FAILURE, 0, "%s: inputs should all be single-valued "
+              "columns (one dimension) and have the same size and type",
+              __func__);
+
+      /* Find the first one with a name. */
+      if(tmp->unit && unit==NULL)   unit=tmp->unit;
+      if(tmp->name && inname==NULL) inname=tmp->name;
+    }
+
+  /* Set the name based on the input. */
+  if( asprintf(&name, "%s-VECTOR", inname?inname:"TO")<0 )
+    error(EXIT_FAILURE, 0, "%s: asprintf allocation", __func__);
+
+  /* Allocate the output dataset. */
+  dsize[1]=num;
+  dsize[0]=list->size;
+  out=gal_data_alloc(NULL, list->type, 2, dsize, NULL, 0, list->minmapsize,
+                     list->quietmmap, name, unit,
+                     "Vector by merging multiple columns.");
+
+  /* Fill the output dataset. */
+  j=0;
+  for(tmp=list;tmp!=NULL;tmp=tmp->next)
+    {
+      for(i=0;i<tmp->dsize[0];++i)
+        memcpy(gal_pointer_increment(out->array, i*num+j, out->type),
+               gal_pointer_increment(tmp->array, i,       out->type),
+               gal_type_sizeof(out->type));
+      ++j;
+    }
+
+  /* Clean up and return. */
+  free(name);
+  return out;
 }

@@ -232,9 +232,10 @@ gal_options_check_version(struct argp_option *option, char *arg,
         {
           /* Print an error message and abort.  */
           error_at_line(EXIT_FAILURE, 0, filename, lineno, "version "
-                        "mis-match: you are running GNU Astronomy Utilities "
-                        "(Gnuastro) version '%s'. However, the 'onlyversion' "
-                        "option is set to version '%s'.\n\n"
+                        "mis-match: you are running GNU Astronomy "
+                        "Utilities (Gnuastro) version '%s'. However, "
+                        "the 'onlyversion' option is set to version "
+                        "'%s'.\n\n"
                         "This was probably done for reproducibility. "
                         "Therefore, manually removing, or changing, the "
                         "option value might produce errors or unexpected "
@@ -246,12 +247,13 @@ gal_options_check_version(struct argp_option *option, char *arg,
                         "http://ftpmirror.gnu.org/gnuastro\n"
                         "    Alpha  (version format: X.Y.A-B):  "
                         "http://alpha.gnu.org/gnu/gnuastro\n\n"
-                        "Alternatively, you can clone Gnuastro, checkout the "
-                        "respective commit (from the version number), then "
-                        "bootstrap and build it. Please run the following "
-                        "command for more information:\n\n"
-                        "    $ info gnuastro \"Version controlled source\"\n",
-                        PACKAGE_VERSION, arg, arg);
+                        "Alternatively, you can clone Gnuastro, checkout "
+                        "the respective commit (from the version "
+                        "number), then bootstrap and build it. Please "
+                        "run the following command for more "
+                        "information:\n\n"
+                        "    $ info gnuastro \"Version controlled "
+                        "source\"\n", PACKAGE_VERSION, arg, arg);
 
           /* Just to avoid compiler warnings for unused variables. The program
              will never reach this point! */
@@ -518,8 +520,9 @@ gal_options_read_searchin(struct argp_option *option, char *arg,
       if((*(uint8_t *)(option->value)=gal_tableintern_string_to_searchin(arg))
          == GAL_TABLE_SEARCH_INVALID )
         error_at_line(EXIT_FAILURE, 0, filename, lineno, "'%s' (value to "
-                      "'%s' option) couldn't be recognized as a known table "
-                      "search-in field ('name', 'unit', or 'comment').\n\n"
+                      "'%s' option) couldn't be recognized as a known "
+                      "table search-in field ('name', 'unit', or "
+                      "'comment').\n\n"
                       "For more explanation, please run the following "
                       "command (press SPACE key to go down, and 'q' to "
                       "return to the command-line):\n\n"
@@ -548,9 +551,11 @@ gal_options_read_wcslinearmatrix(struct argp_option *option, char *arg,
       value=*(uint8_t *)(option->value);
       switch(value)
         {
-        case GAL_WCS_LINEAR_MATRIX_PC: gal_checkset_allocate_copy("pc", &str);
+        case GAL_WCS_LINEAR_MATRIX_PC: gal_checkset_allocate_copy("pc",
+                                                                  &str);
           break;
-        case GAL_WCS_LINEAR_MATRIX_CD: gal_checkset_allocate_copy("cd", &str);
+        case GAL_WCS_LINEAR_MATRIX_CD: gal_checkset_allocate_copy("cd",
+                                                                  &str);
           break;
         default:
           error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at '%s' "
@@ -594,7 +599,8 @@ gal_options_read_tableformat(struct argp_option *option, char *arg,
       /* Note that 'gal_data_type_as_string' returns a static string. But
          the output must be an allocated string so we can free it. */
       gal_checkset_allocate_copy(
-        gal_tableintern_format_as_string( *(uint8_t *)(option->value)), &str);
+        gal_tableintern_format_as_string( *(uint8_t *)(option->value)),
+        &str);
       return str;
     }
   else
@@ -606,8 +612,8 @@ gal_options_read_tableformat(struct argp_option *option, char *arg,
       if( (*(uint8_t *)(option->value)=gal_tableintern_string_to_format(arg) )
           ==GAL_TABLE_FORMAT_INVALID )
         error_at_line(EXIT_FAILURE, 0, filename, lineno, "'%s' (value to "
-                      "'%s' option) couldn't be recognized as a known table "
-                      "format field ('txt', 'fits-ascii', or "
+                      "'%s' option) couldn't be recognized as a known "
+                      "table format field ('txt', 'fits-ascii', or "
                       "'fits-binary').\n\n", arg, option->name);
 
       /* For no un-used variable warning. This function doesn't need the
@@ -698,7 +704,8 @@ gal_options_read_interpmetric(struct argp_option *option, char *arg,
 
       ':0.123,4.567'    which is part of    '1.2345,6.789:0.123,4.567' */
 static double
-gal_options_read_sexagesimal(size_t dim, char *str, char **tailptr)
+gal_options_read_sexagesimal(size_t dim, char *str, char **tailptr,
+                             int abort)
 {
   double out;
   char *c, *cc, *copy;
@@ -707,13 +714,16 @@ gal_options_read_sexagesimal(size_t dim, char *str, char **tailptr)
 
   /* A small sanity check. */
   if(dim>1)
-    error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at '%s', "
-          "to find the cause of the problem. The value of 'dim' at "
-          "this point should be 0 or 1, but it has a value of %zu",
-          __func__, PACKAGE_BUGREPORT, dim);
+    {
+      if(abort)
+        error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at '%s', "
+              "to find the cause of the problem. The value of 'dim' at "
+              "this point should be 0 or 1, but it has a value of %zu",
+              __func__, PACKAGE_BUGREPORT, dim);
+      else return NAN;
+    }
 
-  /* Parse the start of this string, until you find find exactly what it
-     is. */
+  /* Parse the start of this string, until you find exactly what it is. */
   c=str;
   while( *c!='\0' && ishd==0 && iscolon==0 )
     switch(*c++)
@@ -750,14 +760,22 @@ gal_options_read_sexagesimal(size_t dim, char *str, char **tailptr)
 
   /* Make sure the string could be identified properly */
   if( (isra==0 && isdec==0) || (ishd==0 && iscolon==0) )
-    error(EXIT_FAILURE, 0, "the first token in the string '%s' "
-          "couldn't be parsed as a sexagesimal string", str);
+    {
+      if(abort)
+        error(EXIT_FAILURE, 0, "the first token in the string '%s' "
+              "couldn't be parsed as a sexagesimal string", str);
+      else return NAN;
+    }
 
   /* Check if the hd-type is given for the proper dimension. */
   if( (isra && dim!=0) || (isdec && dim!=1) )
-    error(EXIT_FAILURE, 0, "the order of sexagesimal coordinates "
-          "is wrong! The first should be RA (with a format like "
-          "'__h__m__'), and the second should be Dec ('__d__m__')");
+    {
+      if(abort)
+        error(EXIT_FAILURE, 0, "the order of sexagesimal coordinates "
+              "is wrong! The first should be RA (with a format like "
+              "'__h__m__'), and the second should be Dec ('__d__m__')");
+      else return NAN;
+    }
 
   /* Depending on the mode, find the length of the full string into a new
      string to give to the unit conversion functions. Note that the
@@ -797,7 +815,7 @@ gal_options_read_sexagesimal(size_t dim, char *str, char **tailptr)
   *tailptr=str+stlen-1;
 
   /* Sanity check: */
-  if(isnan(out))
+  if(abort && isnan(out))
     error(EXIT_FAILURE, 0, "%s: '%s' couldn't be parsed as a "
           "sexagesimal representation of %s", __func__, copy,
           isra?"RA (right ascension)":"DEC (Declination)");
@@ -817,12 +835,13 @@ gal_options_read_sexagesimal(size_t dim, char *str, char **tailptr)
    given values in 'double' type. You can read the number from its 'size'
    element. */
 gal_data_t *
-gal_options_parse_list_of_numbers(char *string, char *filename, size_t lineno)
+gal_options_parse_list_of_numbers(char *string, char *filename,
+                                  size_t lineno, uint8_t type)
 {
-  size_t i, num=0;
+  size_t num=0;
   gal_data_t *out;
   char *c=string, *tailptr;
-  gal_list_f64_t *list=NULL, *tdll;
+  gal_list_f64_t *list=NULL;
   double numerator=NAN, denominator=NAN, tmp, ttmp;
 
   /* The nature of the arrays/numbers read here is very small, so since
@@ -886,7 +905,7 @@ gal_options_parse_list_of_numbers(char *string, char *filename, size_t lineno)
             {
               /* See if the user has given a sexagesimal value (that can't
                  be easily read with 'strtod'). */
-              ttmp=gal_options_read_sexagesimal(num%2, c, &tailptr);
+              ttmp=gal_options_read_sexagesimal(num%2, c, &tailptr, 0);
               if(isnan(ttmp))
                 {
                   /* This happens in cases like the values to Table's
@@ -894,9 +913,10 @@ gal_options_parse_list_of_numbers(char *string, char *filename, size_t lineno)
                      colon, but don't have a sexagesimal number. So we
                      shouldn't abort the program! */
                   if(tailptr[0]!=':')
-                    error_at_line(EXIT_FAILURE, 0, filename, lineno, "the "
-                                  "'%s' component of '%s' couldn't be parsed "
-                                  "as a usable number", c, string);
+                    error_at_line(EXIT_FAILURE, 0, filename, lineno,
+                                  "the '%s' component of '%s' couldn't "
+                                  "be parsed as a usable number", c,
+                                  string);
                 }
               else tmp=ttmp;
             }
@@ -907,8 +927,9 @@ gal_options_parse_list_of_numbers(char *string, char *filename, size_t lineno)
           else
             {
               if(isnan(denominator)) denominator=tmp;
-              else error_at_line(EXIT_FAILURE, 0, filename, lineno, "more "
-                                 "than two numbers in each element.");
+              else error_at_line(EXIT_FAILURE, 0, filename, lineno,
+                                 "more than two numbers in each "
+                                 "element.");
             }
 
           /* Set 'c' to tailptr. */
@@ -926,28 +947,9 @@ gal_options_parse_list_of_numbers(char *string, char *filename, size_t lineno)
                        ? numerator : numerator/denominator);
     }
 
-  /* Allocate the output data structure and fill it up. */
-  if(num)
-    {
-      i=num;
-      out=gal_data_alloc(NULL, GAL_TYPE_FLOAT64, 1, &num, NULL, 0,
-                         minmapsize, quietmmap, NULL, NULL, NULL);
-      for(tdll=list;tdll!=NULL;tdll=tdll->next)
-        ((double *)(out->array))[--i]=tdll->v;
-    }
-  else
-    {
-      /* It is not possible to allocate a dataset with a size of 0 along
-         any dimension (in C it's possible, but conceptually it isn't). So,
-         we'll allocate space for one element, then free it. */
-      i=1;
-      out=gal_data_alloc(NULL, GAL_TYPE_FLOAT64, 1, &i, NULL, 0,
-                         minmapsize, quietmmap, NULL, NULL, NULL);
-      out->size=out->dsize[0]=0;
-      free(out->array);
-      out->array=NULL;
-    }
-
+  /* Convert the list into the desired type. */
+  gal_list_f64_reverse(&list);
+  out=gal_list_f64_to_data(list, type, minmapsize, quietmmap);
 
   /* Clean up and return. */
   gal_list_f64_free(list);
@@ -1056,7 +1058,7 @@ gal_options_parse_csv_strings_raw(char *string, char *filename,
 {
   size_t i, num;
   gal_data_t *out;
-  char *c=string, *str=NULL;
+  char *c=string, *cc, *str=NULL;
   gal_list_str_t *list=NULL, *tstrll=NULL;
 
 
@@ -1074,13 +1076,30 @@ gal_options_parse_csv_strings_raw(char *string, char *filename,
         {
         /* Comma marks the transition to the next string. */
         case ',':
+
+          /* The whole can't start with a comma. */
           if(str==NULL)
-            error_at_line(EXIT_FAILURE, 0, filename, lineno, "a string "
-                          "must exist before the first ','. You have "
-                          "given: '%s'", string);
-          *c='\0';
-          gal_list_str_add(&list, str, 1);
-          str=NULL;  /* Mark that the next character is the start */
+            {
+              if(filename)
+                error_at_line(EXIT_FAILURE, 0, filename, lineno, "a "
+                              "string must exist before the first ','. "
+                              "You have given: '%s'", string);
+              else
+                error(EXIT_FAILURE, 0, "a string must exist before the "
+                      "first ','. You have given: '%s'", string);
+            }
+
+          /* If the previous character was a '\', this coma isn't a
+             delimiter, but is actually within the string. So shift all the
+             characters in the string one backward to remove the
+             backslah and ignore the comma as a delimiter. */
+          if(*(c-1)=='\\') for(cc=c-1;*cc!='\0';++cc) *cc=*(cc+1);
+          else
+            {
+              *c='\0';
+              gal_list_str_add(&list, str, 1);
+              str=NULL;  /* Mark that the next character is the start */
+            }
           break;
 
         /* If the character isn't a coma, it is either in the middle of a
@@ -1330,7 +1349,8 @@ gal_options_parse_sizes_reverse(struct argp_option *option, char *arg,
                       "given to '--%s'", option->name);
 
       /* Read the values. */
-      values=gal_options_parse_list_of_numbers(arg, filename, lineno);
+      values=gal_options_parse_list_of_numbers(arg, filename, lineno,
+                                               GAL_TYPE_FLOAT64);
 
       /* Check if the values are an integer. */
       v=values->array;
@@ -1417,7 +1437,8 @@ gal_options_parse_csv_float64(struct argp_option *option, char *arg,
                       "given to '--%s'", option->name);
 
       /* Read the values. */
-      values=gal_options_parse_list_of_numbers(arg, filename, lineno);
+      values=gal_options_parse_list_of_numbers(arg, filename, lineno,
+                                               GAL_TYPE_FLOAT64);
 
       /* Put the values into the option. */
       *(gal_data_t **)(option->value) = values;
@@ -1453,7 +1474,8 @@ gal_options_read_sigma_clip(struct argp_option *option, char *arg,
     }
 
   /* Caller wants to read the values into memory, so parse the inputs. */
-  in=gal_options_parse_list_of_numbers(arg, filename, lineno);
+  in=gal_options_parse_list_of_numbers(arg, filename, lineno,
+                                       GAL_TYPE_FLOAT64);
 
   /* Check if there was only two numbers. */
   if(in->size!=2)
@@ -1514,10 +1536,10 @@ gal_options_read_sigma_clip(struct argp_option *option, char *arg,
 static void *
 gal_options_parse_name_and_values(struct argp_option *option, char *arg,
                                   char *filename, size_t lineno, void *junk,
-                                  int str0_f641)
+                                  int str0_f641_sz2)
 {
-  size_t i, nc;
   double *darray=NULL;
+  size_t i, nc, *sizarr=NULL;
   gal_data_t *tmp, *existing, *dataset;
   char *c, *name, *values, **strarr=NULL;
   char *str, sstr[GAL_OPTIONS_STATIC_MEM_FOR_VALUES];
@@ -1527,8 +1549,17 @@ gal_options_parse_name_and_values(struct argp_option *option, char *arg,
     {
       /* Set the value pointer to 'existing'. */
       existing=*(gal_data_t **)(option->value);
-      if(str0_f641) darray = existing->array;
-      else          strarr = existing->array;
+      switch(str0_f641_sz2)
+        {
+        case 0: strarr = existing->array; break;
+        case 1: darray = existing->array; break;
+        case 2: sizarr = existing->array; break;
+        default:
+          error(EXIT_FAILURE, 0, "%s: a bug! please contact us at '%s' "
+                "to fix the problem. The code '%d' isn't acceptable for "
+                "'str0_f641_si2'", __func__, PACKAGE_BUGREPORT,
+                str0_f641_sz2);
+        }
 
       /* First write the name. */
       nc=0;
@@ -1543,8 +1574,12 @@ gal_options_parse_name_and_values(struct argp_option *option, char *arg,
                   "necessary characters in the statically allocated "
                   "string has become too close to %d", __func__,
                   PACKAGE_BUGREPORT, GAL_OPTIONS_STATIC_MEM_FOR_VALUES);
-          if(str0_f641) nc += sprintf(sstr+nc, "%g,", darray[i]);
-          else          nc += sprintf(sstr+nc, "%s,", strarr[i]);
+          switch(str0_f641_sz2)
+            {
+            case 0: nc += sprintf(sstr+nc, "%s,",  strarr[i]);
+            case 1: nc += sprintf(sstr+nc, "%g,",  darray[i]);
+            case 2: nc += sprintf(sstr+nc, "%zu,", sizarr[i]);
+            } /* No default necessary: valid value confirmed above. */
         }
 
       /* Finish the string. */
@@ -1573,11 +1608,28 @@ gal_options_parse_name_and_values(struct argp_option *option, char *arg,
       gal_checkset_allocate_copy(arg, &name);
 
       /* Read the values. */
-      dataset=( str0_f641
-                ? gal_options_parse_list_of_numbers(values, filename,
-                                                    lineno)
-                : gal_options_parse_list_of_strings(values, filename,
-                                                    lineno));
+      switch(str0_f641_sz2)
+        {
+        case 0:
+          dataset=gal_options_parse_list_of_strings(values, filename,
+                                                    lineno);
+          break;
+        case 1:
+          dataset=gal_options_parse_list_of_numbers(values, filename,
+                                                    lineno,
+                                                    GAL_TYPE_FLOAT64);
+          break;
+        case 2:
+          dataset=gal_options_parse_list_of_numbers(values, filename,
+                                                    lineno,
+                                                    GAL_TYPE_SIZE_T);
+          break;
+        default:
+          error(EXIT_FAILURE, 0, "%s: a bug! please contact us at '%s' "
+                "to fix the problem. The code '%d' isn't acceptable for "
+                "'str0_f641_si2'", __func__, PACKAGE_BUGREPORT,
+                str0_f641_sz2);
+        }
 
       /* If there actually was a string of numbers, add the dataset to the
          rest. */
@@ -1606,7 +1658,10 @@ gal_options_parse_name_and_values(struct argp_option *option, char *arg,
         error(EXIT_FAILURE, 0, "'--%s' requires a series of %s "
               "(separated by ',' or ':') following its first argument, "
               "please run with '--help' for more information",
-              option->name, str0_f641?"numbers":"strings");
+              option->name,
+              ( str0_f641_sz2
+                ? (str0_f641_sz2==1?"numbers":"integers")
+                : "strings" ));
 
       /* Our job is done, return NULL. */
       return NULL;
@@ -1619,7 +1674,8 @@ gal_options_parse_name_and_values(struct argp_option *option, char *arg,
 
 void *
 gal_options_parse_name_and_strings(struct argp_option *option, char *arg,
-                                   char *filename, size_t lineno, void *junk)
+                                   char *filename, size_t lineno,
+                                   void *junk)
 {
   return gal_options_parse_name_and_values(option, arg, filename, lineno,
                                            junk, 0);
@@ -1631,10 +1687,24 @@ gal_options_parse_name_and_strings(struct argp_option *option, char *arg,
 
 void *
 gal_options_parse_name_and_float64s(struct argp_option *option, char *arg,
-                                    char *filename, size_t lineno, void *junk)
+                                    char *filename, size_t lineno,
+                                    void *junk)
 {
   return gal_options_parse_name_and_values(option, arg, filename, lineno,
                                            junk, 1);
+}
+
+
+
+
+
+void *
+gal_options_parse_name_and_sizets(struct argp_option *option, char *arg,
+                                  char *filename, size_t lineno,
+                                  void *junk)
+{
+  return gal_options_parse_name_and_values(option, arg, filename, lineno,
+                                           junk, 2);
 }
 
 
@@ -1720,7 +1790,7 @@ gal_options_parse_colon_sep_csv_raw(char *instring, char *filename,
              'tailptr' is either ',' or '\0'. */
           sread=NAN;
           if(*tailptr!=',' && *tailptr!='\0')
-            sread=gal_options_read_sexagesimal(dim, pt, &tailptr);
+            sread=gal_options_read_sexagesimal(dim, pt, &tailptr, 0);
           if(!isnan(sread)) read=sread;
 
           /* Add the read coordinate to the list of coordinates. */

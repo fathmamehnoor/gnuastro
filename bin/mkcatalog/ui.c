@@ -287,7 +287,8 @@ ui_check_upperlimit(struct argp_option *option, char *arg,
       if(option->set) return NULL;
 
       /* Read the list of numbers as an array. */
-      raw=gal_options_parse_list_of_numbers(arg, filename, lineno);
+      raw=gal_options_parse_list_of_numbers(arg, filename, lineno,
+                                            GAL_TYPE_FLOAT64);
 
       /* Make sure there is at most only two numbers given. */
       if(raw->size>2)
@@ -295,16 +296,18 @@ ui_check_upperlimit(struct argp_option *option, char *arg,
                       "'--%s') contains %zu numbers, but only one or two "
                       "are acceptable.\n\n"
                       "With this option MakeCatalog will write all the "
-                      "positions and values of the random distribution for "
-                      "one particular labeled region into a table. The "
-                      "given value(s) is(are) the label identifier.\n\n"
+                      "positions and values of the random distribution "
+                      "for one particular labeled region into a table. "
+                      "The given value(s) is(are) the label "
+                      "identifier.\n\n"
                       "With one value the distribution for an object will "
-                      "be printed: the givne number will be interpretted as "
-                      "the requested object's label. With two values, the "
-                      "distribution for a specific clump will be written. "
-                      "The first will be interpretted as the clump's host "
-                      "object label and the second as the clump's label "
-                      "within the object", arg, option->name, raw->size);
+                      "be printed: the givne number will be interpretted "
+                      "as the requested object's label. With two values, "
+                      "the distribution for a specific clump will be "
+                      "written. The first will be interpretted as the "
+                      "clump's host object label and the second as the "
+                      "clump's label within the object", arg,
+                      option->name, raw->size);
 
       /* Make sure the given values are integers and that they are larger
          than zero. */

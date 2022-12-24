@@ -469,6 +469,7 @@ Invoking ConvertType
 Table
 
 * Printing floating point numbers::  Optimal storage of floating point types.
+* Vector columns::              How to keep more than one value in each column.
 * Column arithmetic::           How to do operations on table columns.
 * Operation precedence in Table::  Order of running options in Table.
 * Invoking asttable::           Options and arguments to Table.
@@ -11399,7 +11400,7 @@ The delimiters (or characters separating the columns) are white space characters
 The only further requirement is that all rows/lines must have the same number of columns.
 
 The columns do not have to be exactly under each other and the rows can be arbitrarily long with different lengths.
-For example, the following contents in a file would be interpreted as a table with 4 columns and 2 rows, with each element interpreted as a @code{double} type (see @ref{Numeric data types}).
+For example, the following contents in a file would be interpreted as a table with 4 columns and 2 rows, with each element interpreted as a 64-bit floating point type (see @ref{Numeric data types}).
 
 @example
 1     2.234948   128   39.8923e8
@@ -11409,14 +11410,14 @@ For example, the following contents in a file would be interpreted as a table wi
 However, the example above has no other information about the columns (it is just raw data, with no meta-data).
 To use this table, you have to remember what the numbers in each column represent.
 Also, when you want to select columns, you have to count their position within the table.
-This can become frustrating and prone to bad errors (getting the columns wrong) especially as the number of columns increase.
+This can become frustrating and prone to bad errors (getting the columns wrong in your scientific project!) especially as the number of columns increase.
 It is also bad for sending to a colleague, because they will find it hard to remember/use the columns properly.
 
 To solve these problems in Gnuastro's programs/libraries you are not limited to using the column's number, see @ref{Selecting table columns}.
 If the columns have names, units, or comments you can also select your columns based on searches/matches in these fields, for example, see @ref{Table}.
 Also, in this manner, you cannot guide the program reading the table on how to read the numbers.
 As an example, the first and third columns above can be read as integer types: the first column might be an ID and the third can be the number of pixels an object occupies in an image.
-So there is no need to read these to columns as a @code{double} type (which takes more memory, and is slower).
+So there is no need to read these to columns as a 64-bit floating point type (which takes more memory, and is slower).
 
 In the bare-minimum example above, you also cannot use strings of characters, for example, the names of filters, or some other identifier that includes non-numerical characters.
 In the absence of any information, only numbers can be read robustly.
@@ -11427,13 +11428,14 @@ To correct for these limitations, Gnuastro defines the following convention for 
 The format is primarily designed for ease of reading/writing by eye/fingers, but is also structured enough to be read by a program.
 
 When the first non-white character in a line is @key{#}, or there are no non-white characters in it, then the line will not be considered as a row of data in the table (this is a pretty standard convention in many programs, and higher level languages).
-In the former case, the line is interpreted as a @emph{comment}.
+In the first case (when the first character of the line is @key{#}), the line is interpreted as a @emph{comment}.
+
 If the comment line starts with `@code{# Column N:}', then it is assumed to contain information about column @code{N} (a number, counting from 1).
 Comment lines that do not start with this pattern are ignored and you can use them to include any further information you want to store with the table in the text file.
-A column information comment is assumed to have the following format:
+The most generic column information comment line has the following format:
 
 @example
-# Column N: NAME [UNIT, TYPE, BLANK] COMMENT
+# Column N: NAME [UNIT, TYPE(NUM), BLANK] COMMENT
 @end example
 
 @cindex NaN
@@ -11441,7 +11443,10 @@ A column information comment is assumed to have the following format:
 Any sequence of characters between `@key{:}' and `@key{[}' will be interpreted as the column name (so it can contain anything except the `@key{[}' character).
 Anything between the `@key{]}' and the end of the line is defined as a comment.
 Within the brackets, anything before the first `@key{,}' is the units (physical units, for example, km/s, or erg/s), anything before the second `@key{,}' is the short type identifier (see below, and @ref{Numeric data types}).
+
 If the type identifier is not recognized, the default 64-bit floating point type will be used.
+The type identifier can optionally be followed by an integer within parenthesis.
+If the parenthesis is present and the integer is larger than 1, the column is assumed to be a ``vector column'' (which can have multiple values, for more see @ref{Vector columns}).
 
 Finally (still within the brackets), any non-white characters after the second `@key{,}' are interpreted as the blank value for that column (see @ref{Blank pixels}).
 The blank value can either be in the same type as the column (for example, @code{-99} for a signed integer column), or any string (for example, @code{NaN} in that same column).
@@ -14159,12 +14164,13 @@ Finally, in @ref{Invoking asttable}, we give some examples and describe each opt
 
 @menu
 * Printing floating point numbers::  Optimal storage of floating point types.
+* Vector columns::              How to keep more than one value in each column.
 * Column arithmetic::           How to do operations on table columns.
 * Operation precedence in Table::  Order of running options in Table.
 * Invoking asttable::           Options and arguments to Table.
 @end menu
 
-@node Printing floating point numbers, Column arithmetic, Table, Table
+@node Printing floating point numbers, Vector columns, Table, Table
 @subsection Printing floating point numbers
 
 @cindex Floating point numbers
@@ -14229,7 +14235,183 @@ They are fully described in @ref{Invoking asttable}.
 To view the contents of the table on the command-line or to feed it to a program that doesn't recognize FITS tables, you can use the four options above for a custom base-10 conversion that will not cause any loss of data.
 @end cartouche
 
-@node Column arithmetic, Operation precedence in Table, Printing floating point numbers, Table
+@node Vector columns, Column arithmetic, Printing floating point numbers, Table
+@subsection Vector columns
+
+@cindex Vector columns
+@cindex Columns (Vector)
+@cindex Multi-value columns (vector)
+In its most common format, each column of a table only has a single value in each row.
+For example, we usually have one column for the magnitude, another column for the RA and yet another column for the Declination of a set of galaxies/stars (where each galaxy is represented by one row in the table).
+This common single-valued column format is sufficient in many scenarios.
+However, in some situations (like those below) it would help to have mutilple values for each row in each column, not just one.
+
+@itemize
+@item
+@cindex MUSE
+@cindex Spectrum
+@cindex Radial profile
+Conceptually: the various numbers are ``connected'' to each other.
+In other words, their order and position in relation to each other matters.
+Common examples in astronomy are the radial profiles of each galaxy in your catalog, or their spectrum.
+For example, each MUSE@footnote{@url{https://www.eso.org/sci/facilities/develop/instruments/muse.html}} spectra has 3681 points (with a sampling of of 1.25 Angstroms).
+
+Dealing with this many separate measurements as separate columns in your table is very annoying and prone to error: you don't want to forget moving some of them in an output table for further analysis, mistakenly change their order, or do some operation only on a sub-set of them.
+
+@item
+Technically: in the FITS standard, you can only store a maximum of 999 columns in a FITS table.
+Therfore, if you have more than 999 data points for each galaxy (like the MUSE spectra example above), it is impossible to store each point in one table as separate columns.
+@end itemize
+
+To address these problems, the FITS standard has defined the concept of ``vector'' columns in its Binary table format (ASCII FITS tables don't support vector columns, but Gnuastro's plain-text format does, as described here).
+Within each row of a single vector column, we can store any number of datapoints (like the MUSE spectra above or the full radial profile of each galaxy).
+All the values in a vector column have to have the same @ref{Numeric data types}, and the number of elements within each vector column is the same for all rows.
+
+By grouping conceptually similar data points (like a spectra) in one vector column, we can significantly reduce the number of columns and make it much more managable, without loosing any information!
+To demonstrate the vector column features of Gnuastro's Table program, let's start with a randomly generated small (5 rows and 3 columns) catalog.
+This will allows us to show the outputs of each step here, but you can apply the same concept to vectors with any number of colums.
+
+With the command below, we use @code{seq} to generate a single-column table that is piped to Gnuastro's Table program.
+Table then uses column arithmetic to generate three columns with random values from that base row (for more, see @ref{Column arithmetic}).
+Each column has with a larger noise sigma.
+Finally, we will add metadata to each column, giving each a different name (using names is always the best way to work with columns):
+
+@example
+$ seq 1 5 \
+      | asttable -c'arith $1 2  mknoise-sigma f32' \
+                 -c'arith $1 5  mknoise-sigma f32' \
+                 -c'arith $1 10 mknoise-sigma f32' \
+                 --colmetadata=1,abc,none,"First column." \
+                 --colmetadata=2,def,none,"Second column." \
+                 --colmetadata=3,ghi,none,"Third column." \
+                 --output=table.fits
+@end example
+
+With the command below, let's have a look at the table.
+When you run it, you will have a different random number generator seed, so the numbers will be slightly different.
+For making reproducible random numbers, see @ref{Generating random numbers}.
+The @option{-Y} option is used for more easily readable numbers (without it, floating point numbers are written in scientific notation, for more see @ref{Printing floating point numbers}) and with the @option{-O} we are asking Table to also print the metadata.
+For more on Table's options, see @ref{Invoking asttable} and for seeing how the short options can be merged, see @ref{Options}.
+
+@example
+$ asttable table.fits -YO
+# Column 1: abc [none,f32,] First column.
+# Column 2: def [none,f32,] Second column.
+# Column 3: ghi [none,f32,] Third column.
+-2.694         -9.130         +6.865
++3.166         +4.239         +18.386
++4.709         +0.561         +1.817
+-0.338         +4.927         -5.010
++7.291         +5.541         +3.311
+@end example
+
+We see that indeed, it has three columns, with our given names.
+Now, let's assume that you want to make a two-element vector column from the values in the @code{def} and @code{ghi} columns.
+To do that, you can use the @option{--tovector} option like below.
+As the name suggests, @option{--tovector} will merge the rows of the two columns into one vector column with multiple values in each row.
+
+@example
+$ asttable table.fits -YO --tovector=def,ghi
+# Column 1: abc        [none,f32   ,] First column.
+# Column 2: def-VECTOR [none,f32(2),] Vector by merging multiple cols.
+-2.694         -9.130         +6.865
++3.166         +4.239         +18.386
++4.709         +0.561         +1.817
+-0.338         +4.927         -5.010
++7.291         +5.541         +3.311
+@end example
+
+@cindex Tokens
+If you ignore the metadata, this doesn't seem to have changed anything!
+You see that each line of numbers still has three ``tokens'' (to distinguish them from ``columns'').
+But once you look at the metadata, you only see metadata for two columns, not three.
+If you look closely, the numeric data type of the newly added fourth column is `@code{f32(2)}' (look above, previously it was @code{f32}).
+The @code{(2)} shows that the second column contains two numbers/tokens not one.
+If your vector column consisted of 3681 numbers, this would be @code{f32(3681)}.
+Looking again at the metadata, we see that @option{--tovector} has also created a new name and comments for the new column.
+This is done all the time to avoid confusion with the old columns.
+
+Let's confirm that the newly added column is indeed a single column but with two values.
+To do this, with the command below, we'll write the output into a FITS table.
+In the same command, let's also give a more suitable name for the new merged/vector column).
+We can get a first confirmation by looking at the table's metadata in the second command below:
+
+@example
+$ asttable table.fits -YO --tovector=def,ghi --output=vec.fits \
+           --colmetadata=2,defghi,nounits,"New vector column"
+
+$ asttable vec.fits -i
+--------
+vec.fits (hdu: 1)
+-------    -----    ----        -------
+No.Name    Units    Type        Comment
+-------    -----    ----        -------
+1  abc     none     float32     First column.
+2  defghi  nounits  float32(2)  New vector column
+--------
+Number of rows: 5
+@end example
+
+@noindent
+A more robust confirmation would be to print the values in the newly added @code{defghi} column.
+As expected, asking for a single column with @option{--column} (or @option{-c}) will given us two numbers per row/line.
+
+@example
+$ asttable vec.fits -c defghi -YO
+# Column 1: defghi [nounits,f32(2),] New vector column
+-9.130         +6.865
++4.239         +18.386
++0.561         +1.817
++4.927         -5.010
++5.541         +3.311
+@end example
+
+If you want to keep the original single-valued columns that went into the vector column, you can use the @code{--keepvectfin} option (read it as ``KEEP VECtor To/From Inputs''):
+
+@example
+$ asttable table.fits -YO --tovector=def,ghi --keepvectfin \
+           --colmetadata=4,defghi,nounits,"New vector column"
+# Column 1: abc    [none   ,f32   ,] First column.
+# Column 2: def    [none   ,f32   ,] Second column.
+# Column 3: ghi    [none   ,f32   ,] Third column.
+# Column 4: defghi [nounits,f32(2),] New vector column
+-2.694         -9.130         +6.865         -9.130         +6.865
++3.166         +4.239         +18.386        +4.239         +18.386
++4.709         +0.561         +1.817         +0.561         +1.817
+-0.338         +4.927         -5.010         +4.927         -5.010
++7.291         +5.541         +3.311         +5.541         +3.311
+@end example
+
+Now that you know how to create vector columns, let's assume you have the inverse scenario: you want to extract one of the values of a vector column into a separate single-valued column.
+To do this, you can use the @option{--fromvector} option.
+The @option{--fromvector} option takes the name (or counter) of a vector column, followed by any number of integer counters.
+It will extract those elements into separate single-valued columns.
+For example, let's assume you want to extract the second element of the @code{defghi} column in the file you made before:
+
+@example
+$ asttable vec.fits --fromvector=defghi,2 -YO
+# Column 1: abc      [none   ,f32,] First column.
+# Column 2: defghi-2 [nounits,f32,] New vector column
+-2.694         +6.865
++3.166         +18.386
++4.709         +1.817
+-0.338         -5.010
++7.291         +3.311
+@end example
+
+@noindent
+Just like the case with @option{--tovector} above, if you want to keep the input vector column, use @option{--keepvectfin}.
+This feature is useful in scenarios where you want to select some rows based on a single element (or muliple) of the vector column.
+
+@cartouche
+@noindent
+@strong{Vector columns and FITS ASCII tables:} As mentioned above, the FITS standard only recognizes vector columns in its Binary table format (the default FITS table format in Gnuastro).
+You can use the @option{--tableformat=fits-ascii} option to write your tables in the FITS ASCII format (see @ref{Input output options}).
+In this case, if a vector column is present, it will be written as separate single-element columns to avoid loosing information (as if you run called @option{--fromvector} on all the elements of the vector column).
+A warning is printed if this occurs.
+@end cartouche
+
+@node Column arithmetic, Operation precedence in Table, Vector columns, Table
 @subsection Column arithmetic
 
 In many scenarios, you want to apply some kind of operation on the columns and save them in another table or feed them into another program.
@@ -14505,6 +14687,10 @@ The rest of the operations below are done on the rows, therefore you can merge t
 If any of the row-based operations below are requested in the same @code{asttable} command, they will also be applied to the rows of the added columns.
 However, the conditions to keep/reject rows can only be applied to the rows of the columns in main input table (not the columns that are added with these options).
 
+@item Extracting single-valued columns from vectors (@option{--fromvector})
+Once all the input columns are read into memory, if any of them are vectors, you can extract a single-valued column from the vector columns at this stage.
+For more on vector columns, see @ref{Vector columns}.
+
 @item Rows from other file(s) (@option{--catrowfile} and @option{--catrowhdu})
 With this feature, you can import rows from other tables (in other files, or other HDUs of the same FITS file).
 The same column selection of @option{--column} is applied to the tables given here.
@@ -14568,6 +14754,11 @@ These options limit/select rows based on their position within the table (not th
 @item Column arithmetic
 Once the final rows are selected in the requested order, column arithmetic is done (if requested).
 For more on column arithmetic, see @ref{Column arithmetic}.
+
+@item Creating vector columns (@option{--tovector})
+After column arithmetic, there is no other way to add new columns so the @option{--tovector} operator is applied at this stage.
+You can use it to merge multiple columns that are available in this stage to a single vector column.
+For more, see @ref{Vector columns}.
 
 @item Column metadata (@option{--colmetadata})
 Changing column metadata is necessary after column arithmetic or adding new columns from other tables (that were done above).
@@ -14822,6 +15013,24 @@ See @option{--catcolumnfile} for more.
 
 @item --catcolumnrawname
 Do Not modify the names of the concatenated (appended) columns, see description in @option{--catcolumnfile}.
+
+@item --fromvector=STR,INT[,INT[,INT]]
+Extract the given tokens/elements from the given vector column into separate single-valued columns.
+The input vector column can be identified by its name or counter, see @ref{Selecting table columns}.
+After the columns are extracted, the input vector is deleted by default.
+To preserve the input vector column, you can use @option{--keepvectfin} described below.
+For a complete usage scenario see @ref{Vector columns}.
+
+@item --tovector=STR/INT,STR/INT[,STR/INT]
+Move the given columns into a newly created vector column.
+The given columns can be identified by their name or counter, see @ref{Selecting table columns}.
+After the columns are copied, they are deleted by default.
+To preserve the inputs, you can use @option{--keepvectfin} described below.
+For a complete usage scenario see @ref{Vector columns}.
+
+@item -k
+@itemx --keepvectfin
+Do not delete the input column(s) when using @option{--fromvector} or @option{--tovector}.
 
 @item -R FITS/TXT
 @itemx --catrowfile=FITS/TXT
@@ -31846,9 +32055,11 @@ This check is highly recommended because it will avoid strange bugs in later ste
 Similar to @code{gal_blank_remove}, but also shrinks/re-allocates the dataset's allocated memory.
 @end deftypefun
 
-@deftypefun {gal_data_t *} gal_blank_remove_rows (gal_data_t @code{*columns}, gal_list_sizet_t @code{*column_indexs})
+@deftypefun {gal_data_t *} gal_blank_remove_rows (gal_data_t @code{*columns}, gal_list_sizet_t @code{*column_indexs}, int @code{onlydim0})
 Remove (in place) any row that has at least one blank value in any of the input columns and return a ``flag'' dataset (that should be freed later).
 The input @code{columns} is a list of @code{gal_data_t}s (see @ref{List of gal_data_t}).
+When @code{onlydim0!=0} the vector columns (with 2 dimensions) will not be checked for the presence of blank values.
+
 After this function, all the elements in @code{columns} will still have the same size as each other, but if any of the searched columns has blank elements, all their sizes will decrease together.
 
 The returned flag dataset has the same size as the original input dataset, with a type of @code{uint8_t}.
@@ -32919,14 +33130,9 @@ Free every node in @code{list}.
 @node List of double, List of void, List of float, Linked lists
 @subsubsection List of @code{double}
 
-Double precision floating point numbers can accurately store real number
-until 15.9 decimals and consume 8 bytes (64-bits) of memory, see
-@ref{Numeric data types}. This level of precision makes them very good for
-serious processing in the middle of a program's execution: in many cases,
-the propagation of errors will still be insignificant compared to actual
-observational errors in a data set. But since they consume 8 bytes and more
-CPU processing power, they are often not the best choice for storing and
-transferring of data.
+Double precision floating point numbers can accurately store real number until 15.9 decimals and consume 8 bytes (64-bits) of memory, see @ref{Numeric data types}.
+This level of precision makes them very good for serious processing in the middle of a program's execution: in many cases, the propagation of errors will still be insignificant compared to actual observational errors in a data set.
+But since they consume 8 bytes and more CPU processing power, they are often not the best choice for storing and transferring of data.
 
 @deftp {Type (C @code{struct})} gal_list_f64_t
 A single node in a list containing a 64-bit double precision @code{double}
@@ -32942,9 +33148,8 @@ typedef struct gal_list_f64_t
 
 
 @deftypefun void gal_list_f64_add (gal_list_f64_t @code{**list}, double @code{value})
-Add a new node (containing @code{value}) to the top of the @code{list} of
-@code{double}s and update @code{list}.  Here is one short example of
-initializing and adding elements to a string list:
+Add a new node (containing @code{value}) to the top of the @code{list} of @code{double}s and update @code{list}.
+Here is one short example of initializing and adding elements to a string list:
 
 @example
 gal_list_f64_t *dlist=NULL;
@@ -32955,10 +33160,9 @@ gal_list_f64_add(&dlist, 1.239378923931e-20);
 @end deftypefun
 
 @deftypefun {double} gal_list_f64_pop (gal_list_f64_t @code{**list})
-Pop the top element of @code{list} and return the value. This function will
-also change @code{list} to point to the next node in the list. If
-@code{*list==NULL}, then this function will return @code{GAL_BLANK_FLOAT64}
-(NaN, see @ref{Library blank values}).
+Pop the top element of @code{list} and return the value.
+This function will also change @code{list} to point to the next node in the list.
+If @code{*list==NULL}, then this function will return @code{GAL_BLANK_FLOAT64} (NaN, see @ref{Library blank values}).
 @end deftypefun
 
 @deftypefun size_t gal_list_f64_number (gal_list_f64_t @code{*list})
@@ -32970,13 +33174,12 @@ Return a pointer to the last node in @code{list}.
 @end deftypefun
 
 @deftypefun void gal_list_f64_print (gal_list_f64_t @code{*list})
-Print the values within each node of @code{*list} on the standard output in
-the same order that they are stored. Each floating point number is printed
-on one line. This function is mainly good for checking/debugging your
-program. For program outputs, it is best to make your own implementation with
-a better, more user-friendly format. For example, in the following code
-snippet. You can also modify it to print all values in one line, etc.,
-depending on the context of your program.
+Print the values within each node of @code{*list} on the standard output in the same order that they are stored.
+Each floating point number is printed on one line.
+This function is mainly good for checking/debugging your program.
+For program outputs, it is best to make your own implementation with a better, more user-friendly format.
+For example, in the following code snippet.
+You can also modify it to print all values in one line, etc., depending on the context of your program.
 
 @example
 size_t i;
@@ -32987,18 +33190,19 @@ for(tmp=list; tmp!=NULL; tmp=tmp->next)
 @end deftypefun
 
 @deftypefun void gal_list_f64_reverse (gal_list_f64_t @code{**list})
-Reverse the order of the list such that the top node in the list before
-calling this function becomes the bottom node after it.
+Reverse the order of the list such that the top node in the list before calling this function becomes the bottom node after it.
 @end deftypefun
 
 @deftypefun {double *} gal_list_f64_to_array (gal_list_f64_t @code{*list}, int @code{reverse}, size_t @code{*num})
-Dynamically allocate an array and fill it with the values in
-@code{list}. The function will return a pointer to the allocated array and
-put the number of elements in the array into the @code{num} pointer. If
-@code{reverse} has a non-zero value, the array will be filled in the
-inverse of the order of elements in @code{list}. This function can be
-useful after you have finished reading an initially unknown number of
-values and want to put them in an array for easy random access.
+Dynamically allocate an array and fill it with the values in @code{list}.
+The function will return a pointer to the allocated array and put the number of elements in the array into the @code{num} pointer.
+If @code{reverse} has a non-zero value, the array will be filled in the inverse of the order of elements in @code{list}.
+This function can be useful after you have finished reading an initially unknown number of values and want to put them in an array for easy random access.
+@end deftypefun
+
+@deftypefun {gal_data_t *} gal_list_f64_to_data (gal_list_f64_t @code{*list}, uint8_t @code{type}, size_t @code{minmapsize}, int @code{quietmmap})
+Write the values in the given @code{list} into a @code{gal_data_t} dataset of the requested @code{type}.
+The order of the values in the dataset will be the same as the order from the top of the list.
 @end deftypefun
 
 @deftypefun void gal_list_f64_free (gal_list_f64_t @code{*list})
@@ -33011,21 +33215,16 @@ Free every node in @code{list}.
 @node List of void, Ordered list of size_t, List of double, Linked lists
 @subsubsection List of @code{void *}
 
-In C, @code{void *} is the most generic pointer. Usually pointers are
-associated with the type of content they point to. For example, @code{int *}
-means a pointer to an integer. This ancillary information about the
-contents of the memory location is very useful for the compiler, catching
-bad errors and also documentation (it helps the reader see what the address
-in memory actually contains). However, @code{void *} is just a raw address
-(pointer), it contains no information on the contents it points to.
+In C, @code{void *} is the most generic pointer.
+Usually pointers are associated with the type of content they point to.
+For example, @code{int *} means a pointer to an integer.
+This ancillary information about the contents of the memory location is very useful for the compiler, catching bad errors and also documentation (it helps the reader see what the address in memory actually contains).
+However, @code{void *} is just a raw address (pointer), it contains no information on the contents it points to.
 
-These properties make the @code{void *} very useful when you want to treat
-the contents of an address in different ways. You can use the @code{void *}
-list defined in this section and its function on any kind of data: for
-example you can use it to keep a list of custom data structures that you
-have built for your own separate program. Each node in the list can keep
-anything and this gives you great versatility. But in using @code{void *},
-please beware that ``with great power comes great responsibility''.
+These properties make the @code{void *} very useful when you want to treat the contents of an address in different ways.
+You can use the @code{void *} list defined in this section and its function on any kind of data: for example you can use it to keep a list of custom data structures that you have built for your own separate program.
+Each node in the list can keep anything and this gives you great versatility.
+But in using @code{void *}, please beware that ``with great power comes great responsibility''.
 
 
 @deftp {Type (C @code{struct})} gal_list_void_t
@@ -33041,9 +33240,8 @@ typedef struct gal_list_void_t
 
 
 @deftypefun void gal_list_void_add (gal_list_void_t @code{**list}, void @code{*value})
-Add a new node (containing @code{value}) to the top of the @code{list} of
-@code{void *}s and update @code{list}.  Here is one short example of
-initializing and adding elements to a string list:
+Add a new node (containing @code{value}) to the top of the @code{list} of @code{void *}s and update @code{list}.
+Here is one short example of initializing and adding elements to a string list:
 
 @example
 gal_list_void_t *vlist=NULL;
@@ -33054,9 +33252,9 @@ gal_list_f64_add(&vlist, another_pointer);
 @end deftypefun
 
 @deftypefun {void *} gal_list_void_pop (gal_list_void_t @code{**list})
-Pop the top element of @code{list} and return the value. This function will
-also change @code{list} to point to the next node in the list. If
-@code{*list==NULL}, then this function will return @code{NULL}.
+Pop the top element of @code{list} and return the value.
+This function will also change @code{list} to point to the next node in the list.
+If @code{*list==NULL}, then this function will return @code{NULL}.
 @end deftypefun
 
 @deftypefun size_t gal_list_void_number (gal_list_void_t @code{*list})
@@ -33068,8 +33266,7 @@ Return a pointer to the last node in @code{list}.
 @end deftypefun
 
 @deftypefun void gal_list_void_reverse (gal_list_void_t @code{**list})
-Reverse the order of the list such that the top node in the list before
-calling this function becomes the bottom node after it.
+Reverse the order of the list such that the top node in the list before calling this function becomes the bottom node after it.
 @end deftypefun
 
 @deftypefun void gal_list_void_free (gal_list_void_t @code{*list})
@@ -33080,22 +33277,16 @@ Free every node in @code{list}.
 @node Ordered list of size_t, Doubly linked ordered list of size_t, List of void, Linked lists
 @subsubsection Ordered list of @code{size_t}
 
-Positions/sizes in a dataset are conventionally in the @code{size_t} type
-(see @ref{List of size_t}) and it sometimes occurs that you want to parse
-and read the values in a specific order. For example, you want to start from
-one pixel and add pixels to the list based on their distance to that
-pixel. So that ever time you pop an element from the list, you know it is
-the nearest that has not yet been studied. The @code{gal_list_osizet_t}
-type and its functions in this section are designed to facilitate such
-operations.
+Positions/sizes in a dataset are conventionally in the @code{size_t} type (see @ref{List of size_t}) and it sometimes occurs that you want to parse and read the values in a specific order.
+For example, you want to start from one pixel and add pixels to the list based on their distance to that pixel.
+So that ever time you pop an element from the list, you know it is the nearest that has not yet been studied.
+The @code{gal_list_osizet_t} type and its functions in this section are designed to facilitate such operations.
 
 @deftp {Type (C @code{struct})} gal_list_osizet_t
 @cindex @code{size_t}
-Each node in this singly-linked list contains a @code{size_t} value and a
-floating point value. The floating point value is used as a reference to
-add new nodes in a sorted manner. At any moment, the first popped node in
-this list will have the smallest @code{tosort} value, and subsequent nodes
-will have larger to values.
+Each node in this singly-linked list contains a @code{size_t} value and a floating point value.
+The floating point value is used as a reference to add new nodes in a sorted manner.
+At any moment, the first popped node in this list will have the smallest @code{tosort} value, and subsequent nodes will have larger to values.
 @end deftp
 @example
 typedef struct gal_list_osizet_t
@@ -33107,50 +33298,39 @@ typedef struct gal_list_osizet_t
 @end example
 
 @deftypefun void gal_list_osizet_add (gal_list_osizet_t @code{**list}, size_t @code{value}, float @code{tosort})
-Allocate space for a new node in @code{list}, and store @code{value} and
-@code{tosort} into it. The new node will not necessarily be at the ``top''
-of the list. If @code{*list!=NULL}, then the @code{tosort} values of
-existing nodes is inspected and the given node is placed in the list such
-that the top element (which is popped with @code{gal_list_osizet_pop}) has
-the smallest @code{tosort} value.
+Allocate space for a new node in @code{list}, and store @code{value} and @code{tosort} into it.
+The new node will not necessarily be at the ``top'' of the list.
+If @code{*list!=NULL}, then the @code{tosort} values of existing nodes is inspected and the given node is placed in the list such that the top element (which is popped with @code{gal_list_osizet_pop}) has the smallest @code{tosort} value.
 @end deftypefun
 
 @deftypefun size_t gal_list_osizet_pop (gal_list_osizet_t @code{**list}, float @code{*sortvalue})
-Pop a node from the top of @code{list}, return the node's @code{value} and
-put its sort value in the space that @code{sortvalue} points to. This
-function will also free the allocated space for the popped node and after
-this function, @code{list} will point to the next node (which has a larger
-@code{tosort} element).
+Pop a node from the top of @code{list}, return the node's @code{value} and put its sort value in the space that @code{sortvalue} points to.
+This function will also free the allocated space for the popped node and after this function, @code{list} will point to the next node (which has a larger @code{tosort} element).
 @end deftypefun
 
 @deftypefun void gal_list_osizet_to_sizet_free (gal_list_osizet_t @code{*in}, gal_list_sizet_t @code{**out})
-Convert the ordered list of @code{size_t}s into an ordinary @code{size_t}
-linked list. This can be useful when all the elements have been added and
-you just need to pop-out elements and do not care about the sorting values
-any more. After the conversion is done, this function will free the input
-list. Note that the @code{out} list does not have to be empty. If it already
-contains some nodes, the new nodes will be added on top of them.
+Convert the ordered list of @code{size_t}s into an ordinary @code{size_t} linked list.
+This can be useful when all the elements have been added and you just need to pop-out elements and do not care about the sorting values any more.
+After the conversion is done, this function will free the input list.
+Note that the @code{out} list does not have to be empty.
+If it already contains some nodes, the new nodes will be added on top of them.
 @end deftypefun
 
 
 @node Doubly linked ordered list of size_t, List of gal_data_t, Ordered list of size_t, Linked lists
 @subsubsection Doubly linked ordered list of @code{size_t}
 
-An ordered list of indices is required in many contexts, one example was
-discussed at the beginning of @ref{Ordered list of size_t}. But the list
-that was introduced there only has one point of entry: you can always only
-parse the list from smallest to largest. In this section, the doubly-linked
-@code{gal_list_dosizet_t} node is defined which will allow us to parse the
-values in ascending or descending order.
+An ordered list of indices is required in many contexts, one example was discussed at the beginning of @ref{Ordered list of size_t}.
+But the list that was introduced there only has one point of entry: you can always only parse the list from smallest to largest.
+In this section, the doubly-linked @code{gal_list_dosizet_t} node is defined which will allow us to parse the values in ascending or descending order.
 
 @deftp {Type (C @code{struct})} gal_list_dosizet_t
 @cindex @code{size_t}
 
-Doubly-linked, ordered @code{size_t} list node structure. Each node in this
-Doubly-linked list contains a @code{size_t} value and a floating point
-value. The floating point value is used as a reference to add new nodes in
-a sorted manner. In the functions here, this linked list can be pointed to
-by two pointers (largest and smallest) with the following format:
+Doubly-linked, ordered @code{size_t} list node structure.
+Each node in this Doubly-linked list contains a @code{size_t} value and a floating point value.
+The floating point value is used as a reference to add new nodes in a sorted manner.
+In the functions here, this linked list can be pointed to by two pointers (largest and smallest) with the following format:
 @example
             largest pointer
             |
@@ -33158,11 +33338,8 @@ by two pointers (largest and smallest) with the following format:
                                           |
                            smallest pointer
 @end example
-At any moment, the two pointers will point to the nodes containing the
-``largest'' and ``smallest'' values and the rest of the nodes will be
-sorted. This is useful when an unknown number of nodes are being added
-continuously and during the operations it is important to have the nodes in
-a sorted format.
+At any moment, the two pointers will point to the nodes containing the ``largest'' and ``smallest'' values and the rest of the nodes will be sorted.
+This is useful when an unknown number of nodes are being added continuously and during the operations it is important to have the nodes in a sorted format.
 
 @example
 typedef struct gal_list_dosizet_t
@@ -33176,28 +33353,22 @@ typedef struct gal_list_dosizet_t
 @end deftp
 
 @deftypefun void gal_list_dosizet_add (gal_list_dosizet_t @code{**largest}, gal_list_dosizet_t @code{**smallest}, size_t @code{value}, float @code{tosort})
-Allocate space for a new node in @code{list}, and store @code{value} and
-@code{tosort} into it. If the list is empty, both @code{largest} and
-@code{smallest} must be @code{NULL}.
+Allocate space for a new node in @code{list}, and store @code{value} and @code{tosort} into it.
+If the list is empty, both @code{largest} and @code{smallest} must be @code{NULL}.
 @end deftypefun
 
 @deftypefun size_t gal_list_dosizet_pop_smallest (gal_list_dosizet_t @code{**largest}, gal_list_dosizet_t @code{**smallest}, float @code{tosort})
-Pop the value with the smallest reference from the doubly linked list and
-store the reference into the space pointed to by @code{tosort}. Note that
-even though only the smallest pointer will be popped, when there was only
-one node in the list, the @code{largest} pointer also has to change, so we
-need both.
+Pop the value with the smallest reference from the doubly linked list and store the reference into the space pointed to by @code{tosort}.
+Note that even though only the smallest pointer will be popped, when there was only one node in the list, the @code{largest} pointer also has to change, so we need both.
 @end deftypefun
 
 @deftypefun void gal_list_dosizet_print (gal_list_dosizet_t @code{*largest}, gal_list_dosizet_t @code{*smallest})
-Print the largest and smallest values sequentially until the list is
-parsed.
+Print the largest and smallest values sequentially until the list is parsed.
 @end deftypefun
 
 
 @deftypefun void gal_list_dosizet_to_sizet (gal_list_dosizet_t @code{*in}, gal_list_sizet_t @code{**out})
-Convert the doubly linked, ordered @code{size_t} list into a singly-linked
-list of @code{size_t}.
+Convert the doubly linked, ordered @code{size_t} list into a singly-linked list of @code{size_t}.
 @end deftypefun
 
 @deftypefun void gal_list_dosizet_free (gal_list_dosizet_t @code{*largest})
@@ -33208,22 +33379,15 @@ Free the doubly linked, ordered @code{sizet_t} list.
 @node List of gal_data_t,  , Doubly linked ordered list of size_t, Linked lists
 @subsubsection List of @code{gal_data_t}
 
-Gnuastro's generic data container has a @code{next} element which enables
-it to be used as a singly-linked list (see @ref{Generic data
-container}). The ability to connect the different data containers offers
-great advantages. For example, each column in a table in an independent
-dataset: with its own name, units, numeric data type (see @ref{Numeric data
-types}). Another application is in Tessellating an input dataset into
-separate tiles or only studying particular regions, or tiles, of a larger
-dataset (see @ref{Tessellation} and @ref{Tessellation library}). Each
-independent tile over the dataset can be connected to the others as a
-linked list and thus any number of tiles can be represented with one
-variable.
+Gnuastro's generic data container has a @code{next} element which enables it to be used as a singly-linked list (see @ref{Generic data container}).
+The ability to connect the different data containers offers great advantages.
+For example, each column in a table in an independent dataset: with its own name, units, numeric data type (see @ref{Numeric data types}).
+Another application is in Tessellating an input dataset into separate tiles or only studying particular regions, or tiles, of a larger dataset (see @ref{Tessellation} and @ref{Tessellation library}).
+Each independent tile over the dataset can be connected to the others as a linked list and thus any number of tiles can be represented with one variable.
 
 @deftypefun void gal_list_data_add (gal_data_t @code{**list}, gal_data_t @code{*newnode})
-Add an already allocated dataset (@code{newnode}) to top of
-@code{list}. Note that if @code{newnode->next!=NULL} (@code{newnode} is
-itself a list), then @code{list} will be added to its end.
+Add an already allocated dataset (@code{newnode}) to top of @code{list}.
+Note that if @code{newnode->next!=NULL} (@code{newnode} is itself a list), then @code{list} will be added to its end.
 
 In this example multiple images are linked together as a list:
 @example
@@ -33238,38 +33402,49 @@ gal_list_data_add( &list, tmp );
 @end deftypefun
 
 @deftypefun void gal_list_data_add_alloc (gal_data_t @code{**list}, void @code{*array}, uint8_t @code{type}, size_t @code{ndim}, size_t @code{*dsize}, struct wcsprm @code{*wcs}, int @code{clear}, size_t @code{minmapsize}, int @code{quietmmap}, char @code{*name}, char @code{*unit}, char @code{*comment})
-Allocate a new dataset (with @code{gal_data_alloc} in @ref{Dataset
-allocation}) and put it as the first element of @code{list}. Note that if
-this is the first node to be added to the list, @code{list} must be
-@code{NULL}.
+Allocate a new dataset (with @code{gal_data_alloc} in @ref{Dataset allocation}) and put it as the first element of @code{list}.
+Note that if this is the first node to be added to the list, @code{list} must be @code{NULL}.
 @end deftypefun
 
 @deftypefun {gal_data_t *} gal_list_data_pop (gal_data_t @code{**list})
 Pop the top node from @code{list} and return it.
 @end deftypefun
 
+@deftypefun void gal_list_data_remove (gal_data_t @code{**list}, gal_data_t @code{*node})
+Remove @code{node} from the given @code{list}.
+After finding the given node, this function will just set @code{node->next=NULL} and correct the @code{next} node of its previous element to its next element (thus ``removing'' it from the list).
+If @code{node} doesn't exist in the list, this function won't make any change to list.
+@end deftypefun
+
 @deftypefun {gal_data_t *} gal_list_data_select_by_name (gal_data_t @code{*list}, char @code{*name})
 Select the dataset within the list, that has a @code{name} element that is identical (case-sensitive) to the given @code{name}.
+If not found, a @code{NULL} pointer will be returned.
+
+Note that this dataset will not be popped from the list, only a pointer to it will be returned and if you free it or change its @code{next} element, it may harm your original list.
+@end deftypefun
+
+@deftypefun {gal_data_t *} gal_list_data_select_by_id (gal_data_t @code{*table}, char @code{*idstr}, size_t @code{*index})
+Select the dataset within the list that can be identified with the string given to @code{idstr} (which can be a counter, starting from 1, or a name).
+If not found, a @code{NULL} pointer will be returned.
+
 Note that this dataset will not be popped from the list, only a pointer to it will be returned and if you free it or change its @code{next} element, it may harm your original list.
 @end deftypefun
 
 @deftypefun void gal_list_data_reverse (gal_data_t @code{**list})
-Reverse the order of the list such that the top node in the list before
-calling this function becomes the bottom node after it.
+Reverse the order of the list such that the top node in the list before calling this function becomes the bottom node after it.
 @end deftypefun
 
 @deftypefun {gal_data_t **} gal_list_data_to_array_ptr (gal_data_t @code{*list}, size_t @code{*num})
-Allocate and return an array of @code{gal_data_t *} pointers with the same
-number of elements as the nodes in @code{list}. The pointers will be put in
-the same order that the list is parsed. Hence the N-th element in the array
-will point to the same dataset that the N-th node in the list points to.
+Allocate and return an array of @code{gal_data_t *} pointers with the same number of elements as the nodes in @code{list}.
+The pointers will be put in the same order that the list is parsed.
+Hence the N-th element in the array will point to the same dataset that the N-th node in the list points to.
 @end deftypefun
 
 @deftypefun size_t gal_list_data_number (gal_data_t @code{*list})
 Return the number of nodes in @code{list}.
 @end deftypefun
 
-@deftypefun size_t gal_list_data_last (gal_data_t @code{*list})
+@deftypefun {gal_data_t *} gal_list_data_last (gal_data_t @code{*list})
 Return a pointer to the last node in @code{list}.
 @end deftypefun
 
@@ -33456,8 +33631,12 @@ Convert the input identifier (one of the @code{GAL_TABLE_DISPLAY_FMT_FIXED}; for
 
 @deftypefun {gal_data_t *} gal_table_info (char @code{*filename}, char @code{*hdu}, gal_list_str_t @code{*lines}, size_t @code{*numcols}, size_t @code{*numrows}, int @code{*tableformat})
 
-Store the information of each column of a table into an array of data structures with @code{numcols} datasets (one data structure for each column).
-The number of rows is stored in @code{numrows}.
+Store the information of each column of a table into an array of meta-data @code{gal_data_t}s.
+In a metadata @code{gal_data_t}, the size elements are zero (@code{ndim=size=0} and @code{dsize=NULL}) but other relevant elements are filled).
+See the end of this description for the exact components of each @code{gal_data_t} that are filled.
+
+The returned array of @code{gal_data_t}s has @code{numcols} datasets (one data structure for each column).
+The number of rows in each dataset is stored in @code{numrows} (in a table, all the columns have the same number of rows).
 The format of the table (e.g., ASCII text file, or FITS binary or ASCII table) will be put in @code{tableformat} (macros defined above).
 If the @code{filename} is not a FITS file, then @code{hdu} will not be used (can be @code{NULL}).
 
@@ -33466,8 +33645,31 @@ The input must be either a file (specified by @code{filename}) or a list of stri
 It will mostly be the output of @code{gal_txt_stdin_read}, which is used to read the program's input as separate lines from the standard input (see @ref{Text files}).
 Note that @code{filename} and @code{lines} are mutually exclusive and one of them must be @code{NULL}.
 
-In the output datasets, only the meta-data strings (column name, units and comments), will be allocated and set.
+In the output datasets, only the meta-data strings (column name, units and comments), will be allocated and set as shown below.
 This function is just for column information (meta-data), not column contents.
+
+@example
+*restrict array  ->  Blank value (if present, in col's own type).
+           type  ->  Type of column data.
+           ndim  ->  0
+         *dsize  ->  NULL
+           size  ->  0
+      quietmmap  ->  ------------
+      *mmapname  ->  ------------
+     minmapsize  ->  Repeat (length of vector; 1 if not vector).
+           nwcs  ->  ------------
+           *wcs  ->  ------------
+           flag  ->  'GAL_TABLEINTERN_FLAG_*' macros.
+         status  ->  ------------
+          *name  ->  Column name.
+          *unit  ->  Column unit.
+       *comment  ->  Column comments.
+       disp_fmt  ->  'GAL_TABLE_DISPLAY_FMT' macros.
+     disp_width  ->  Width of string columns.
+ disp_precision  ->  ------------
+          *next  ->  Pointer to next column's metadata
+         *block  ->  ------------
+@end example
 @end deftypefun
 
 @deftypefun void gal_table_print_info (gal_data_t @code{*allcols}, size_t @code{numcols}, size_t @code{numrows})
@@ -33511,75 +33713,67 @@ The number of columns that matched each input column will be stored in each elem
 @end deftypefun
 
 @deftypefun {gal_list_sizet_t *} gal_table_list_of_indexs (gal_list_str_t @code{*cols}, gal_data_t @code{*allcols}, size_t @code{numcols}, int @code{searchin}, int @code{ignorecase}, char @code{*filename}, char @code{*hdu}, size_t @code{*colmatch})
-Returns a list of indices (starting from 0) of the input columns that match
-the names/numbers given to @code{cols}. This is a low-level operation which
-is called by @code{gal_table_read} (described above), see there for more on
-each argument's description. @code{allcols} is the returned array of
-@code{gal_table_info}.
+Returns a list of indices (starting from 0) of the input columns that match the names/numbers given to @code{cols}.
+This is a low-level operation which is called by @code{gal_table_read} (described above), see there for more on each argument's description.
+@code{allcols} is the returned array of @code{gal_table_info}.
 @end deftypefun
 
 @cindex Git
 @deftypefun void gal_table_comments_add_intro (gal_list_str_t @code{**comments}, char @code{*program_string}, time_t @code{*rawtime})
-Add some basic information to the list of @code{comments}. This basic
-information includes the following information
+Add some basic information to the list of @code{comments}.
+This basic information includes the following information
 @itemize
 @item
-If the program is run in a Git version controlled directory, Git's
-description is printed (see description under @code{COMMIT} in @ref{Output
-FITS files}).
+If the program is run in a Git version controlled directory, Git's description is printed (see description under @code{COMMIT} in @ref{Output FITS files}).
 @item
-The calendar time that is stored in @code{rawtime} (@code{time_t} is C's
-calendar time format defined in @file{time.h}). You can calculate the time
-in this format with the following expressions:
+The calendar time that is stored in @code{rawtime} (@code{time_t} is C's calendar time format defined in @file{time.h}).
+You can calculate the time in this format with the following expressions:
 @example
 time_t rawtime;
 time(&rawtime);
 @end example
 @item
-The name of your program in @code{program_string}. If it is @code{NULL},
-this line is ignored.
+The name of your program in @code{program_string}.
+If it is @code{NULL}, this line is ignored.
 @end itemize
 @end deftypefun
 
 @deftypefun void gal_table_write (gal_data_t @code{*cols}, struct gal_fits_list_key_t @code{**keywords}, gal_list_str_t @code{*comments}, int @code{tableformat}, char @code{*filename}, char @code{*extname}, uint8_t @code{colinfoinstdout})
 
-Write @code{cols} (a list of datasets, see @ref{List of gal_data_t}) into a
-table stored in @code{filename}. The format of the table can be determined
-with @code{tableformat} that accepts the macros defined above. When
-@code{filename==NULL}, the column information will be printed on the
-standard output (command-line).
+Write @code{cols} (a list of datasets, see @ref{List of gal_data_t}) into a table stored in @code{filename}.
+The format of the table can be determined with @code{tableformat} that accepts the macros defined above.
+When @code{filename==NULL}, the column information will be printed on the standard output (command-line).
 
-If @code{comments!=NULL}, the list of comments (see @ref{List of strings})
-will also be printed into the output table. When the output table is a
-plain text file, every node of @code{comments} will be printed after a
-@code{#} (so it can be considered as a comment) and in FITS table they will
-follow a @code{COMMENT} keyword.
+If @code{comments!=NULL}, the list of comments (see @ref{List of strings}) will also be printed into the output table.
+When the output table is a plain text file, every node of @code{comments} will be printed after a @code{#} (so it can be considered as a comment) and in FITS table they will follow a @code{COMMENT} keyword.
 
-If a file named @code{filename} already exists, the operation depends on
-the type of output. When @code{filename} is a FITS file, the table will be
-added as a new extension after all existing extensions. If @code{filename}
-is a plain text file, this function will abort with an error.
+If a file named @code{filename} already exists, the operation depends on the type of output.
+When @code{filename} is a FITS file, the table will be added as a new extension after all existing extensions.
+If @code{filename} is a plain text file, this function will abort with an error.
 
-If @code{filename} is a FITS file, the table extension will have the name
-@code{extname}.
+If @code{filename} is a FITS file, the table extension will have the name @code{extname}.
 
-When @code{colinfoinstdout!=0} and @code{filename==NULL} (columns are
-printed in the standard output), the dataset metadata will also printed in
-the standard output. When printing to the standard output, the column
-information can be piped into another program for further processing and
-thus the meta-data (lines starting with a @code{#}) must be ignored. In
-such cases, you only print the column values by passing @code{0} to
-@code{colinfoinstdout}.
+When @code{colinfoinstdout!=0} and @code{filename==NULL} (columns are printed in the standard output), the dataset metadata will also printed in the standard output.
+When printing to the standard output, the column information can be piped into another program for further processing and thus the meta-data (lines starting with a @code{#}) must be ignored.
+In such cases, you only print the column values by passing @code{0} to @code{colinfoinstdout}.
 @end deftypefun
 
 @deftypefun void gal_table_write_log (gal_data_t @code{*logll}, char @code{*program_string}, time_t @code{*rawtime}, gal_list_str_t @code{*comments}, char @code{*filename}, int @code{quiet})
-Write the @code{logll} list of datasets into a table in @code{filename}
-(see @ref{List of gal_data_t}). This function is just a wrapper around
-@code{gal_table_comments_add_intro} and @code{gal_table_write} (see
-above). If @code{quiet} is non-zero, this function will print a message
-saying that the @code{filename} has been created.
+Write the @code{logll} list of datasets into a table in @code{filename} (see @ref{List of gal_data_t}).
+This function is just a wrapper around @code{gal_table_comments_add_intro} and @code{gal_table_write} (see above).
+If @code{quiet} is non-zero, this function will print a message saying that the @code{filename} has been created.
 @end deftypefun
 
+@deftypefun {gal_data_t *} gal_table_col_vector_extract (gal_data_t @code{*vector}, gal_list_sizet_t @code{*indexs})
+Given the ``vector'' column @code{vector} (which is assumed to be a 2D dataset), extract the tokens that are identified in the @code{indexs} list into a list of one dimensional datasets.
+For more on vector columns in tables, see @ref{Vector columns}.
+@end deftypefun
+
+@deftypefun {gal_data_t *} gal_table_cols_to_vector (gal_data_t @code{*list})
+Merge the one-dimensional datasets in the given list into one 2-dimensional dataset that can be treated as a vector column.
+All the input datasets have to have the same size and type.
+For more on vector columns in tables, see @ref{Vector columns}.
+@end deftypefun
 
 
 
@@ -34435,8 +34629,8 @@ We often need to read a text file several times: once to count how many columns 
 So it easier to keep it all in allocated memory and pass it on from the start for each round.
 @end deftypefun
 
-@deftypefun void gal_txt_write (gal_data_t @code{*cols}, struct gal_fits_list_key_t @code{**keylist}, gal_list_str_t @code{*comment}, char @code{*filename}, uint8_t @code{colinfoinstdout})
-Write @code{cols} in a plain text file @code{filename}.
+@deftypefun void gal_txt_write (gal_data_t @code{*cols}, struct gal_fits_list_key_t @code{**keylist}, gal_list_str_t @code{*comment}, char @code{*filename}, uint8_t @code{colinfoinstdout}, int @code{tab0_img1})
+Write @code{cols} in a plain text file @code{filename} (table when @code{tab0_img1==0} and image when @code{tab0_img1==1}).
 @code{cols} may have one or two dimensions which determines the output:
 
 @table @asis
@@ -36094,6 +36288,12 @@ Recall that this is the definition of permutation in this context:
 permute:    IN_ALL[ i       ]   =   IN_MEMORY[ perm[i] ]
 inverse:    IN_ALL[ perm[i] ]   =   IN_MEMORY[ i       ]
 @end example
+@end deftypefun
+
+@deftypefun void gal_permutation_apply_onlydim0 (gal_data_t @code{*input}, size_t @code{*permutation})
+Similar to @code{gal_permutation_apply}, but when the dataset is 2-dimensional, permute each row (dimension 1 in C) as one element.
+In other words, only permute along dimension 0.
+The @code{permutation} array should therefore only have @code{input->dsize[0]} elements.
 @end deftypefun
 
 @deftypefun void gal_tile_full_values_write (gal_data_t @code{*tilevalues}, struct gal_tile_two_layer_params @code{*tl}, int @code{withblank}, char @code{*filename}, gal_fits_list_key_t @code{*keys}, char @code{*program_string})

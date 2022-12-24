@@ -365,7 +365,8 @@ ui_parse_kernel(struct argp_option *option, char *arg,
               "astmkprof' command) for the meaning of the numbers");
 
       /* Read the parameters. */
-      kernel=gal_options_parse_list_of_numbers(arg, filename, lineno);
+      kernel=gal_options_parse_list_of_numbers(arg, filename, lineno,
+                                               GAL_TYPE_FLOAT64);
 
       /* Put the kernel dataset into the main program structure. */
       *(gal_data_t **)(option->value) = kernel;
@@ -1733,7 +1734,7 @@ ui_finalize_coordinates(struct mkprofparams *p)
          conversion) and print a warning for those rows. IMPORTANT: we
          don't want to update 'p->num' just yet since 'flag' has the size
          of the pre-blank-removal rows. */
-      flag=gal_blank_remove_rows(coords, NULL);
+      flag=gal_blank_remove_rows(coords, NULL, 0);
       if(p->cp.quiet==0)
         {
           fl=flag->array;

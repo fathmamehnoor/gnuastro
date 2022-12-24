@@ -138,7 +138,8 @@ void
 gal_blank_remove_realloc(gal_data_t *input);
 
 gal_data_t *
-gal_blank_remove_rows(gal_data_t *columns, gal_list_sizet_t *column_indexs);
+gal_blank_remove_rows(gal_data_t *columns, gal_list_sizet_t *column_indexs,
+                      int onlydim0);
 
 __END_C_DECLS    /* From C++ preparations */
 

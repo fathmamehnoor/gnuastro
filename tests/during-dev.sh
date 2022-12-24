@@ -71,7 +71,7 @@
 # space characters in them, quote the full value
 numjobs=8
 builddir=build
-outdir=
+outdir=~/tmp
 
 
 
@@ -82,10 +82,9 @@ outdir=
 # script, and once for the utility. In such cases it might be easier to
 # just add the argument/option to the final script that runs the utility
 # rather than these variables.
-utilname=
-arguments=
-options=
-
+utilname=table
+arguments=vec.fits
+options="-YO --transpose"
 
 
 # RUN THE PROCEDURES
@@ -196,6 +195,7 @@ if make -j$numjobs -C "$builddir"; then
 
     # Run the built utility with the given arguments and options.
     "$utility" $arguments $options $extraopts
+    #"$utility" table.fits
 
     # Clean up.
     rm -rf .gnuastro

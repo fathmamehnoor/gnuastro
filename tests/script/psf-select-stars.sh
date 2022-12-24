@@ -82,4 +82,4 @@ $check_with_program $execname $fits1name --hdu=1 \
                               --mindistdeg=0.05 \
                               --matchaperturedeg=0.5 \
                               --output=$prog.fits \
-                              --tmpdir=tmpdir-$prog
+                              --tmpdir=tmpdir-$prog --keeptmp

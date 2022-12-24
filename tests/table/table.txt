@@ -5,8 +5,8 @@
 #  - Blank values in all the columns.
 #  - Empty lines (not comment or data.
 #  - Column information comments are not in the same order as data.
-#  - A column (11, i.e., the last) with no information.
-#  - Columns with missing information
+#  - A column (12, i.e., the last) with no information.
+#  - A vector column.
 #  - Some blank values different from the internal blank values.
 
 # Column 10: DOUBLE      [no units, f64, 255]  Column with double values
@@ -22,6 +22,7 @@
 
 # Column 6:  UINT32 [,u32]
 
+# Column 11: VECTOR [no-units, f32(3)] Each row has three values
 
 # IMPORTANT NOTE FOR FITS ASCII tables: CFITSIO will give its error
 # 412 (data type conversion overflow) when the number cannot be
@@ -37,15 +38,15 @@
 # this notice are preserved.  This file is offered as-is, without any
 # warranty.
 
-1    -1    The vertical lines     3455  -3455  1  -1   9     1874.103872  8.391334343995    1
-2    -2    are only for easy      3466      -3466  2  -2   10    123.93373    893.3497e5        2
-3    -3    visual identification  3467 -3467  3  -3   12    -0.737648    nan               3
-4    -4    of the limits of this  3468  -3468  4  -4   800   78.983       8.2328438e8       4
-5    -5    |string column.     |  3469       -3469  5  -5   8923  -99       -7.32384e4        5
-6    -6    |characters beyond  |  20821  -20821  6  -6   9823  -99     nan               6
-7    -7    the last one will be   20822  -20822  7  -7   7232  9999   8.3343e-5         7
-8    -8    read as a number.     20823  -20823  8  -8   921   2.3     934892734.82      8
-9    -9    With@Some#!STRANGE@    60983  -25722  9  -9   8127  -99          3474924.489252    9
-10  -10    Characters%^&*()~           62182  -30100 10  -10  8287  7.3e-4       -3467.3432e5      10
-11  -12 no data                65500  -32700 11  -11  999    8.73E2       nan               11
-255 -12             -- Last Line :-) --    65501  -32701 12  -12  8282  892.23       8975.3653      12
+1    -1    The vertical lines     3455  -3455  1  -1   9     1874.103872  8.391334343995         +0.672147   +1.806462  -1.191592    1
+2    -2    are only for easy      3466      -3466  2  -2   10    123.93373    893.3497e5         +5.600531   +3.342579  +4.003947    2
+3    -3    visual identification  3467 -3467  3  -3   12    -0.737648    nan                     +8.286964   +1.593513  -11.908021   3
+4    -4    of the limits of this  3468  -3468  4  -4   800   78.983       8.2328438e8            +1.831690   -0.370989  +10.096006   4
+5    -5    |string column.     |  3469       -3469  5  -5   8923  -99       -7.32384e4           -16.008546  +7.949368  +2.401607    5
+6    -6    |characters beyond  |  20821  -20821  6  -6   9823  -99     nan                       +1.724322   +1.178122  -1.299836    6
+7    -7    the last one will be   20822  -20822  7  -7   7232  9999   8.3343e-5                  +2.044397   +2.859421  -2.17172     7
+8    -8    read as a number.     20823  -20823  8  -8   921   2.3     934892734.82               +9.722353   -5.720703  +4.191695    8
+9    -9    With@Some#!STRANGE@    60983  -25722  9  -9   8127  -99          3474924.489252       +2.304411   +6.798331  -1.780500    9
+10  -10    Characters%^&*()~           62182  -30100 10  -10  8287  7.3e-4       -3467.3432e5    +1.537032   -5.253743  +3.832875    10
+11  -12 no data                65500  -32700 11  -11  999    8.73E2       nan                    +9.388170   -2.710523  +2.262376    11
+255 -12             -- Last Line :-) --    65501  -32701 12  -12  8282  892.23       8975.3653   -10.782658  +2.881371  +0.951901    12

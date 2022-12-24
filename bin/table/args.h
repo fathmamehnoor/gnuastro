@@ -168,33 +168,6 @@ struct argp_option program_options[] =
       GAL_OPTIONS_NOT_SET
     },
     {
-      "catcolumnrawname",
-      UI_KEY_CATCOLUMNRAWNAME,
-      0,
-      0,
-      "Don't touch column names of --catcolumnfile.",
-      GAL_OPTIONS_GROUP_OUTPUT,
-      &p->catcolumnrawname,
-      GAL_OPTIONS_NO_ARG_TYPE,
-      GAL_OPTIONS_RANGE_0_OR_1,
-      GAL_OPTIONS_NOT_MANDATORY,
-      GAL_OPTIONS_NOT_SET
-    },
-    {
-      "colmetadata",
-      UI_KEY_COLMETADATA,
-      "STR,STR[,STR,STR]",
-      0,
-      "Update output metadata (name, unit, comments).",
-      GAL_OPTIONS_GROUP_OUTPUT,
-      &p->colmetadata,
-      GAL_TYPE_STRING,
-      GAL_OPTIONS_RANGE_ANY,
-      GAL_OPTIONS_NOT_MANDATORY,
-      GAL_OPTIONS_NOT_SET,
-      gal_options_parse_name_and_strings
-    },
-    {
       "txteasy",
       UI_KEY_TXTEASY,
       0,
@@ -256,6 +229,84 @@ struct argp_option program_options[] =
       &p->txtf64precision,
       GAL_TYPE_INT,
       GAL_OPTIONS_RANGE_GE_0,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET
+    },
+
+
+
+
+
+    /* Output columns. */
+    {
+      0, 0, 0, 0,
+      "Columns in output:",
+      UI_GROUP_OUTCOLS
+    },
+    {
+      "catcolumnrawname",
+      UI_KEY_CATCOLUMNRAWNAME,
+      0,
+      0,
+      "Don't touch column names of --catcolumnfile.",
+      UI_GROUP_OUTCOLS,
+      &p->catcolumnrawname,
+      GAL_OPTIONS_NO_ARG_TYPE,
+      GAL_OPTIONS_RANGE_0_OR_1,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET
+    },
+    {
+      "colmetadata",
+      UI_KEY_COLMETADATA,
+      "STR,STR[,STR,STR]",
+      0,
+      "Column metadata (name, unit, comments).",
+      UI_GROUP_OUTCOLS,
+      &p->colmetadata,
+      GAL_TYPE_STRING,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
+      gal_options_parse_name_and_strings
+    },
+    {
+      "tovector",
+      UI_KEY_TOVECTOR,
+      "STR,STR[,STR]",
+      0,
+      "Merge column(s) into a vector column.",
+      UI_GROUP_OUTCOLS,
+      &p->tovector,
+      GAL_TYPE_STRLL,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET
+    },
+    {
+      "fromvector",
+      UI_KEY_FROMVECTOR,
+      "STR,INT[,INT]",
+      0,
+      "Extract column(s) from a vector column.",
+      UI_GROUP_OUTCOLS,
+      &p->fromvector,
+      GAL_TYPE_STRING,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
+      gal_options_parse_name_and_sizets
+    },
+    {
+      "keepvectfin",
+      UI_KEY_KEEPVECTFIN,
+      0,
+      0,
+      "Keep inputs of '--tovector' & '--fromvector'.",
+      UI_GROUP_OUTCOLS,
+      &p->keepvectfin,
+      GAL_OPTIONS_NO_ARG_TYPE,
+      GAL_OPTIONS_RANGE_0_OR_1,
       GAL_OPTIONS_NOT_MANDATORY,
       GAL_OPTIONS_NOT_SET
     },

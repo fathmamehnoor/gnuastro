@@ -35,6 +35,7 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 #include <gnuastro/txt.h>
 #include <gnuastro/wcs.h>
 #include <gnuastro/fits.h>
+#include <gnuastro/list.h>
 #include <gnuastro/table.h>
 #include <gnuastro/qsort.h>
 #include <gnuastro/pointer.h>
@@ -52,12 +53,30 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 
 
 
+
+
 /**************************************************************/
 /********     Selecting and ordering of columns      **********/
 /**************************************************************/
 static void
+table_error_no_column(char *optionname, char *id)
+{
+  error(EXIT_FAILURE, 0, "no column could be found with the '%s' "
+        "identifier (given to '%s'). The value to this option can "
+        "either be a column name or counter (counting from 1). For "
+        "more on how to select columns in Gnuastro, please run the "
+        "command below (press 'q' to come back to the command-line):\n\n"
+        "    info gnuastro \"selecting table columns\"\n",
+        id, optionname);
+}
+
+
+
+
+
+static void
 table_apply_permutation(gal_data_t *table, size_t *permutation,
-                        size_t newsize, int inverse)
+                        size_t permsize, int inverse)
 {
   gal_data_t *tmp;
 
@@ -65,12 +84,24 @@ table_apply_permutation(gal_data_t *table, size_t *permutation,
     {
       /* Apply the permutation. */
       if(inverse)
-        gal_permutation_apply_inverse(tmp, permutation);
+        {
+          if(tmp->ndim==1)
+            gal_permutation_apply_inverse(tmp, permutation);
+          else
+            error(EXIT_FAILURE, 0, "%s: inverse permutation on "
+                  "vector columns is not yet supported. Please "
+                  "get in touch with us at '%s' to add this "
+                  "feature", __func__, PACKAGE_BUGREPORT);
+        }
       else
-        gal_permutation_apply(tmp, permutation);
+        {
+          if(tmp->ndim==1) gal_permutation_apply(tmp, permutation);
+          else    gal_permutation_apply_onlydim0(tmp, permutation);
+        }
 
       /* Correct the size. */
-      tmp->size=tmp->dsize[0]=newsize;
+      tmp->dsize[0]=permsize;
+      tmp->size = tmp->dsize[0] * (tmp->ndim==1 ? 1 : tmp->dsize[1]);
     }
 }
 
@@ -83,16 +114,18 @@ table_bring_to_top(gal_data_t *table, gal_data_t *rowids)
 {
   char **strarr;
   gal_data_t *col;
-  size_t i, *ids=rowids->array;
+  size_t i, n, *ids=rowids->array;
 
-  /* Make sure the rowids are sorted by increasing index. */
+  /* Make sure the rowids are sorted by increasing index.
   gal_statistics_sort_increasing(rowids);
+  */
 
   /* Go over each column and move the desired rows to the top. */
   for(col=table;col!=NULL;col=col->next)
     {
-      /* For easy operation if the column is a string. */
+      /* For easy operation if the column is a string or vector. */
       strarr = col->type==GAL_TYPE_STRING ? col->array : NULL;
+      n = col->ndim==1 ? 1 : col->dsize[1];
 
       /* Move the desired rows up to the top. */
       for(i=0;i<rowids->size;++i)
@@ -107,9 +140,11 @@ table_bring_to_top(gal_data_t *table, gal_data_t *rowids)
                 strarr[ ids[i] ]=NULL;
               }
             else
-              memcpy(gal_pointer_increment(col->array, i,      col->type),
-                     gal_pointer_increment(col->array, ids[i], col->type),
-                     gal_type_sizeof(col->type));
+              {
+                memcpy(gal_pointer_increment(col->array, i*n,     col->type),
+                       gal_pointer_increment(col->array, ids[i]*n,col->type),
+                       n * gal_type_sizeof(col->type));
+              }
           }
 
       /* For string arrays, free the pointers of the remaining rows. */
@@ -119,7 +154,8 @@ table_bring_to_top(gal_data_t *table, gal_data_t *rowids)
 
       /* Correct the size (this should be after freeing of the string
          pointers. */
-      col->size = col->dsize[0] = rowids->size;
+      col->dsize[0] = rowids->size;
+      col->size = col->dsize[0] * n;
     }
 
 }
@@ -337,8 +373,8 @@ table_selection_equal_or_notequal(struct tableparams *p, gal_data_t *col,
       else
         {
           /* Allocate the value dataset. */
-          value=gal_data_alloc(NULL, GAL_TYPE_FLOAT64, 1, &one, NULL, 0, -1, 1,
-                               NULL, NULL, NULL);
+          value=gal_data_alloc(NULL, GAL_TYPE_FLOAT64, 1, &one, NULL, 0,
+                               -1, 1, NULL, NULL, NULL);
           varr=value->array;
 
           /* Read the stored string as a float64. */
@@ -410,6 +446,15 @@ table_select_by_value(struct tableparams *p)
   /* Go over each selection criteria and remove the necessary elements. */
   for(tmp=p->selectcol;tmp!=NULL;tmp=tmp->next)
     {
+      /* Make sure the input isn't a vector column. */
+      if(tmp->col->ndim!=1)
+        error(EXIT_FAILURE, 0, "row selection by value (for example with "
+              "'--range', '--inpolygon', '--equal' or '--noblank') is "
+              "currently not available for vector columns. If you need "
+              "this feature, please get in touch with us at '%s' to add "
+              "it", PACKAGE_BUGREPORT);
+
+      /* Do the specific type of selection. */
       switch(tmp->type)
         {
         case SELECT_TYPE_RANGE:
@@ -433,7 +478,8 @@ table_select_by_value(struct tableparams *p)
           break;
 
         case SELECT_TYPE_NOBLANK:
-          addmask = gal_arithmetic(GAL_ARITHMETIC_OP_ISBLANK, 1, 0, tmp->col);
+          addmask = gal_arithmetic(GAL_ARITHMETIC_OP_ISBLANK, 1, 0,
+                                   tmp->col);
           break;
 
         default:
@@ -446,7 +492,8 @@ table_select_by_value(struct tableparams *p)
       /* Remove any blank elements (incase we are on a noblank column. */
       if(tmp->type!=SELECT_TYPE_NOBLANK && gal_blank_present(tmp->col, 1))
         {
-          blmask = gal_arithmetic(GAL_ARITHMETIC_OP_ISBLANK, 1, 0, tmp->col);
+          blmask = gal_arithmetic(GAL_ARITHMETIC_OP_ISBLANK, 1, 0,
+                                  tmp->col);
           addmask=gal_arithmetic(GAL_ARITHMETIC_OP_OR, 1, inplace,
                                  addmask, blmask);
           gal_data_free(blmask);
@@ -461,7 +508,7 @@ table_select_by_value(struct tableparams *p)
            float *f=ref->array;
            uint8_t *m=mask->array;
            uint8_t *u=addmask->array, *uf=u+addmask->size;
-           printf("\n\nInput column: %s\n", ref->name ? ref->name : "No Name");
+           printf("\n\nInput column: %s\n", ref->name?ref->name:"No Name");
            printf("Range: %g, %g\n", rarr[0], rarr[1]);
            printf("%-20s%-20s%-20s\n", "Value", "This mask",
            "Including previous");
@@ -515,14 +562,15 @@ static void
 table_sort(struct tableparams *p)
 {
   gal_data_t *perm;
-  size_t c=0, *s, *sf;
+  size_t c=0, *s, *sf, dsize0=p->table->dsize[0];
   int (*qsortfn)(const void *, const void *)=NULL;
 
   /* In case there are no columns to sort, skip this function. */
   if(p->table->size==0) return;
 
-  /* Allocate the permutation array and fill it. */
-  perm=gal_data_alloc(NULL, GAL_TYPE_SIZE_T, 1, p->table->dsize, NULL, 0,
+  /* Allocate the permutation array and fill it. Note that we need 'dsize0'
+     because the first column may be a vector column (which is 2D). */
+  perm=gal_data_alloc(NULL, GAL_TYPE_SIZE_T, 1, &dsize0, NULL, 0,
                       p->cp.minmapsize, p->cp.quietmmap, NULL, NULL, NULL);
   sf=(s=perm->array)+perm->size; do *s=c++; while(++s<sf);
 
@@ -617,8 +665,7 @@ table_random_rows(gal_data_t *table, gsl_rng *rng, size_t numrandom,
   size_t i, j, *ids, ind;
 
   /* Sanity check. */
-  if(numrandom>table->size)
-    return EXIT_FAILURE;
+  if(numrandom>table->size) return EXIT_FAILURE;
 
   /* Allocate space for the list of rows to use. */
   rowids=gal_data_alloc(NULL, GAL_TYPE_SIZE_T, 1, &numrandom, NULL, 0,
@@ -656,18 +703,25 @@ table_select_by_position(struct tableparams *p)
 {
   char **strarr;
   gal_data_t *col;
-  size_t i, start, end;
+  size_t i, start, end, nelem;
   double *darr = p->rowrange ? p->rowrange->array : NULL;
+
+  /* If the table is already empty, then don't bother continuing. */
+  if(p->table->array==NULL) return;
 
   /* If the head or tail values are given and are larger than the number of
      rows, just set them to the number of rows (print the all the final
      rows). This is how the 'head' and 'tail' programs of GNU Coreutils
-     operate. */
-  p->head = ( ((p->head!=GAL_BLANK_SIZE_T) && (p->head > p->table->size))
-              ? p->table->size
+     operate. Note that some columns may be vector (multi-value per
+     column), in this case, they will be 2D. So we should use 'dsize[0]'
+     for the generic way to find the number of rows. */
+  p->head = ( ( (p->head!=GAL_BLANK_SIZE_T)
+                && (p->head > p->table->dsize[0]) )
+              ? p->table->dsize[0]
               : p->head );
-  p->tail = ( ((p->tail!=GAL_BLANK_SIZE_T) && (p->tail > p->table->size))
-              ? p->table->size
+  p->tail = ( ( (p->tail!=GAL_BLANK_SIZE_T)
+                && (p->tail > p->table->dsize[0]) )
+              ? p->table->dsize[0]
               : p->tail );
 
   /* Random row selection (by position, not value). This step is
@@ -690,19 +744,24 @@ table_select_by_position(struct tableparams *p)
      rows until this point. */
   if(p->rowrange)
     {
-      if(darr[0]>=p->table->size)
+      if(darr[0]>=p->table->dsize[0])
         error(EXIT_FAILURE, 0, "the first value to '--rowrange' (%g) "
               "is larger than the number of rows (%zu)",
-              darr[0]+1, p->table->size);
-      else if( darr[1]>=p->table->size )
+              darr[0]+1, p->table->dsize[0]);
+      else if( darr[1]>=p->table->dsize[0] )
         error(EXIT_FAILURE, 0, "the second value to '--rowrange' (%g) "
               "is larger than the number of rows (%zu)",
-              darr[1]+1, p->table->size);
+              darr[1]+1, p->table->dsize[0]);
     }
 
   /* Go over all the columns and make the necessary corrections. */
-  for(col=p->table;col!=NULL;col=col->next)
+  for(col=p->table; col!=NULL; col=col->next)
     {
+      /* Set the increment (number of elements in this column). For vector
+         columns, this is the number of elements in each row, and for
+         normal columns, this is 1. */
+      nelem=col->size/col->dsize[0];
+
       /* FOR STRING: we'll need to free the individual strings that will
          not be used (outside the allocated array directly
          'gal_data_t'). We don't have to worry about the space for the
@@ -719,7 +778,7 @@ table_select_by_position(struct tableparams *p)
                  it starts from 0). */
               start = darr[0];
               end   = darr[1];
-              for(i=0;i<p->table->size;++i)
+              for(i=0;i<p->table->dsize[0];++i)
                 if(i<start || i>end) { free(strarr[i]); strarr[i]=NULL; }
             }
           else
@@ -728,8 +787,8 @@ table_select_by_position(struct tableparams *p)
                  space of each string. */
               start = p->head!=GAL_BLANK_SIZE_T ? p->head : 0;
               end   = ( p->head!=GAL_BLANK_SIZE_T
-                        ? p->table->size
-                        : p->table->size - p->tail );
+                        ? p->table->dsize[0]
+                        : p->table->dsize[0] - p->tail );
               for(i=start; i<end; ++i) { free(strarr[i]); strarr[i]=NULL; }
             }
         }
@@ -738,10 +797,11 @@ table_select_by_position(struct tableparams *p)
       if(p->rowrange)
         {
           /* Move the values up to the top and correct the size. */
-          col->size=darr[1]-darr[0]+1;
+          col->dsize[0]=darr[1]-darr[0]+1;
           memmove(col->array,
-                  gal_pointer_increment(col->array, darr[0], col->type),
-                  (darr[1]-darr[0]+1)*gal_type_sizeof(col->type));
+                  gal_pointer_increment(col->array, darr[0]*nelem,
+                                        col->type),
+                  (darr[1]-darr[0]+1)*nelem*gal_type_sizeof(col->type));
         }
       else
         {
@@ -750,16 +810,19 @@ table_select_by_position(struct tableparams *p)
              safe with overlap. */
           if(p->tail!=GAL_BLANK_SIZE_T)
             memmove(col->array,
-                    gal_pointer_increment(col->array, col->size - p->tail,
+                    gal_pointer_increment(col->array,
+                                          (col->dsize[0]-p->tail)*nelem,
                                           col->type),
-                    p->tail*gal_type_sizeof(col->type));
+                    p->tail*nelem*gal_type_sizeof(col->type));
 
-          /* In any case (head or tail), the new number of column elements
-             is the given value. */
-          col->size = col->dsize[0] = ( p->head!=GAL_BLANK_SIZE_T
-                                        ? p->head
-                                        : p->tail );
+          /* In any case (head or tail), the new number of rows, then
+             update the total number of elements (may be vector). */
+          col->dsize[0] = p->head!=GAL_BLANK_SIZE_T ? p->head : p->tail;
         }
+
+      /* The 'dsize[0]' component was set above, we should not update the
+         total size. */
+      col->size = col->dsize[0] * (col->ndim==1 ? 1 : col->dsize[1]);
     }
 }
 
@@ -844,6 +907,136 @@ table_catcolumn(struct tableparams *p)
 
 
 
+static void
+table_fromvector(struct tableparams *p)
+{
+  size_t i, *iarr;
+  gal_list_sizet_t *indexs=NULL;
+  gal_data_t *tmp, *vector=NULL, *ext;
+
+  /* Parse the values given to this option. */
+  for(tmp=p->fromvector;tmp!=NULL;tmp=tmp->next)
+    {
+      /* Extract the name and element counters. */
+      vector=gal_list_data_select_by_id(p->table, tmp->name, NULL);
+      if(vector==NULL) table_error_no_column("--fromvector", tmp->name);
+
+      /* Make sure the selected column is actually a vector. */
+      if(vector->ndim!=2)
+        error(EXIT_FAILURE, 0, "column '%s' (given to '--fromvector') "
+              "is not a vector", tmp->name);
+
+      /* Loop over the values and make sure they are within the range. */
+      iarr=tmp->array;
+      for(i=0;i<tmp->size;++i)
+        {
+          /* Check if it is reasonable. */
+          if(iarr[i]>vector->dsize[1])
+            error(EXIT_FAILURE, 0, "column '%s' (given to "
+                  "'--fromvector') only has a length of %zu, but you "
+                  "have asked for element %zu", tmp->name,
+                  vector->dsize[1], iarr[i]);
+
+          /* Make sure the user didn't give a value of 0. */
+          if(iarr[i]==0)
+            error(EXIT_FAILURE, 0, "integers given to '--fromvector' "
+                  "must be larger than 1, but you have given '0'");
+
+          /* Add it to the list of indexs. Note that the user has given a
+             "counter" (starting from 1), while we want an "index"
+             (counting from 0). */
+          gal_list_sizet_add(&indexs, iarr[i]-1);
+        }
+
+      /* Reverse the list of indexes to be the same as the requested. */
+      gal_list_sizet_reverse(&indexs);
+
+      /* Extract the columns and append them to the end of the table. */
+      ext=gal_table_col_vector_extract(vector, indexs);
+      gal_list_data_last(p->table)->next=ext;
+
+      /* Remove the vector column (if requested). */
+      if(p->keepvectfin==0)
+        {
+          gal_list_data_remove(&p->table, vector);
+          gal_data_free(vector);
+        }
+    }
+
+  /* Clean up. */
+  gal_list_sizet_free(indexs);
+}
+
+
+
+
+
+static void
+table_tovector(struct tableparams *p)
+{
+  size_t i;
+  char **strarr;
+  gal_list_str_t *tstr;
+  gal_data_t *ids, *col, *tcol, *list, *vector, **torm=NULL;
+
+  /* Loop over all the calls to this option. */
+  for(tstr=p->tovector;tstr!=NULL;tstr=tstr->next)
+    {
+      /* Extract the separate csv. */
+      ids=gal_options_parse_csv_strings_raw(tstr->v, NULL, 0);
+
+      /* Allocate an array of dataset pointers to keep the columns that
+         should be removed. */
+      if(p->keepvectfin==0)
+        {
+          errno=0;
+          torm=malloc(ids->size*sizeof *torm);
+          if(torm==NULL)
+            error(EXIT_FAILURE, errno, "%s: allocating %zu bytes",
+                  __func__, ids->size*sizeof *torm);
+        }
+
+      /* Parse the given values, and extract them from the table. */
+      list=NULL;
+      strarr=ids->array;
+      for(i=0;i<ids->size;++i)
+        {
+          /* Extract this column. */
+          tcol=gal_list_data_select_by_id(p->table, strarr[i], NULL);
+          if(tcol==NULL) table_error_no_column("--tovector", strarr[i]);
+
+          /* Keep a copy of the column and put it in the list of columns to
+             add. */
+          col=gal_data_copy(tcol); col->next=NULL;
+          gal_list_data_add(&list, col);
+
+          /* Keep the pointer to this column for removal (if necessary). */
+          if(p->keepvectfin==0) torm[i]=tcol;
+        }
+
+      /* Reverse the list to be in the same order as the input, and convert
+         it to a vector.*/
+      gal_list_data_reverse(&list);
+      vector=gal_table_cols_to_vector(list);
+      gal_list_data_free(list);
+
+      /* Add this vector column to the output. */
+      gal_list_data_last(p->table)->next=vector;
+
+      /* Free the input columns if the user wanted to. */
+      if(p->keepvectfin==0)
+        for(i=0;i<ids->size;++i)
+          gal_list_data_remove(&p->table, torm[i]);
+
+      /* Clean up. */
+      gal_data_free(ids);
+      if(torm) free(torm);
+    }
+}
+
+
+
+
 /* Find the HDU of the table to read. */
 static char *
 table_catrows_findhdu(char *filename, gal_list_str_t **hdull)
@@ -879,8 +1072,8 @@ table_catrows_prepare(struct tableparams *p)
   char *hdu=NULL;
   int tableformat;
   gal_data_t *ocol, *tmp;
-  size_t i, nrows=p->table->size;
   gal_list_str_t *filell, *hdull;
+  size_t i, dsize[2], nrows=p->table->size;
   size_t numcols, numrows, filledrows=p->table->size;
 
   /* Go over all the given tables and find the final number of rows. */
@@ -901,9 +1094,13 @@ table_catrows_prepare(struct tableparams *p)
      larger array, and free the temporary 'gal_data_t'. */
   for(tmp=p->table; tmp!=NULL; tmp=tmp->next)
     {
+      /* Set the final amount of allocated space for this column. */
+      dsize[0]=nrows;
+      if(tmp->ndim==2) dsize[1]=tmp->dsize[1];
+
       /* Allocate a temporary dataset (we just want its allocated space,
          not the actual 'gal_data_t' pointer)! */
-      ocol=gal_data_alloc(NULL, tmp->type, 1, &nrows, NULL,
+      ocol=gal_data_alloc(NULL, tmp->type, tmp->ndim, dsize, NULL,
                           0, p->cp.minmapsize, p->cp.quietmmap,
                           tmp->name, tmp->unit, tmp->comment);
 
@@ -945,6 +1142,7 @@ table_catrows_prepare(struct tableparams *p)
 static void
 table_catrows(struct tableparams *p)
 {
+  size_t increment;
   char *hdu=NULL, **strarr;
   gal_data_t *new, *ttmp, *tmp;
   gal_list_str_t *filell, *hdull;
@@ -1000,8 +1198,31 @@ table_catrows(struct tableparams *p)
                   gal_fits_name_save_as_string(filell->v, hdu), colcount,
                   gal_type_name(tmp->type, 1), gal_type_name(ttmp->type, 1));
 
+          /* Make sure the two columns have the same dimensions (vector or
+             single element). */
+          if(tmp->ndim!=ttmp->ndim)
+            error(EXIT_FAILURE, 0, "%s: column %zu is a %s column. "
+                  "However, in the final table (before adding rows) this "
+                  "column is a %s column",
+                  gal_fits_name_save_as_string(filell->v, hdu), colcount,
+                  tmp->ndim==1?"single-valued":"vector",
+                  ttmp->ndim==1?"single-valued":"vector");
+
+          /* If the column is vector, make sure it has the same number of
+             elements.*/
+          if(tmp->ndim==2 && tmp->dsize[1]!=ttmp->dsize[1])
+            error(EXIT_FAILURE, 0, "%s: vector column %zu has %zu elements "
+                  "However, in the final table (before adding rows) this "
+                  "vector column has %zu elements",
+                  gal_fits_name_save_as_string(filell->v, hdu), colcount,
+                  tmp->dsize[1], ttmp->dsize[1]);
+
+          /* Set the increment on the existing table (column may be
+             vector). */
+          increment = filledrows * ( tmp->ndim==1 ? 1 : tmp->dsize[1] );
+
           /* Add the new rows and incremenet the counter. */
-          memcpy(gal_pointer_increment(ttmp->array, filledrows, ttmp->type),
+          memcpy(gal_pointer_increment(ttmp->array, increment, ttmp->type),
                  tmp->array, tmp->size*gal_type_sizeof(tmp->type));
 
           /* If the column type is a string, we should set the input
@@ -1018,7 +1239,7 @@ table_catrows(struct tableparams *p)
         }
 
       /* Clean up the columns of the table and increment 'filledrows'. */
-      filledrows += new->size;
+      filledrows += new->dsize[0];
       gal_list_data_free(new);
     }
 }
@@ -1046,7 +1267,7 @@ table_colmetadata(struct tableparams *p)
           /* We have been given a string, so find the first column that has
              the same name. */
           for(col=p->table; col!=NULL; col=col->next)
-            if(!strcmp(col->name, meta->name)) break;
+            if(!strcasecmp(col->name, meta->name)) break;
         }
       /* The column specifier is a number. */
       else
@@ -1099,6 +1320,33 @@ table_colmetadata(struct tableparams *p)
 
 
 void
+table_noblankend_check_add(struct tableparams *p,
+                           gal_list_sizet_t **column_indexs, size_t colind)
+{
+  size_t i=0;
+  gal_data_t *tmp;
+  static int warningprinted=0;
+
+  /* Before adding, be sure that the column is not a vector column. */
+  for(tmp=p->table;tmp!=NULL;tmp=tmp->next)
+    if(i++==colind)
+      {
+        if( tmp->ndim==1 ) gal_list_sizet_add(column_indexs, colind);
+        else if(p->cp.quiet==0 && warningprinted==0)
+          {
+            warningprinted=1;
+            error(EXIT_SUCCESS, 0, "WARNING: vector columns will be "
+                  "ignored for the '--noblankend' option. To remove "
+                  "this warning, run with '--quiet' (or '-q')");
+          }
+      }
+}
+
+
+
+
+
+void
 table_noblankend(struct tableparams *p)
 {
   int found;
@@ -1115,7 +1363,7 @@ table_noblankend(struct tableparams *p)
       && !strcmp(p->noblankend->v,"_all") )
     {
       for(i=0;i<gal_list_data_number(p->table);++i)
-        gal_list_sizet_add(&column_indexs, i);
+        table_noblankend_check_add(p, &column_indexs, i);
     }
 
   /* Only certain columns should be checked, so find/add their index. */
@@ -1130,10 +1378,10 @@ table_noblankend(struct tableparams *p)
         found=0;
         for(tcol=p->table; tcol!=NULL; tcol=tcol->next)
           {
-            if( tcol->name && !strcmp(tcol->name, tmp->v) )
+            if( tcol->name && !strcasecmp(tcol->name, tmp->v) )
               {
                 found=1;
-                gal_list_sizet_add(&column_indexs, j);
+                table_noblankend_check_add(p, &column_indexs, j);
               }
             ++j;
           }
@@ -1153,8 +1401,8 @@ table_noblankend(struct tableparams *p)
             /* Make sure its not zero (the user counts from 1). */
             if(*index==0)
               error(EXIT_FAILURE, 0, "the column number (given to the "
-                    "'--noblankend' option) should start from 1, but you have "
-                    "given 0.");
+                    "'--noblankend' option) should start from 1, but you "
+                    "have given 0");
 
             /* Make sure that the index falls within the number (note that
                it still counts from 1).  */
@@ -1170,7 +1418,7 @@ table_noblankend(struct tableparams *p)
 
             /* Everything is fine, add the index to the list of columns to
                check. */
-            gal_list_sizet_add(&column_indexs, *index-1);
+            table_noblankend_check_add(p, &column_indexs, *index-1);
 
             /* Clean up. */
             free(index);
@@ -1182,9 +1430,16 @@ table_noblankend(struct tableparams *p)
       }
 
   /* Remove all blank rows from the output table, note that we don't need
-     the flags of the removed columns here. So we can just free it up. */
-  flag=gal_blank_remove_rows(p->table, column_indexs);
-  gal_data_free(flag);
+     the flags of the removed columns here. So we can just free it up.
+
+     Vector columns are currently ignored in '--noblankend', so if the user
+     only asks for no blanks in a vector column, in effect, no rows should
+     be removed. */
+  if(column_indexs)
+    {
+      flag=gal_blank_remove_rows(p->table, column_indexs, 1);
+      gal_data_free(flag);
+    }
 }
 
 
@@ -1239,6 +1494,9 @@ table(struct tableparams *p)
   /* Concatenate the columns of tables (if required). */
   if(p->catcolumnfile) table_catcolumn(p);
 
+  /* Extract columns from vector. */
+  if(p->fromvector) table_fromvector(p);
+
   /* Concatenate the rows of multiple tables (if required). */
   if(p->catrowfile) table_catrows(p);
 
@@ -1258,6 +1516,9 @@ table(struct tableparams *p)
   /* If any arithmetic operations are needed, do them. */
   if(p->outcols)
     arithmetic_operate(p);
+
+  /* Merge columns into a vector column. */
+  if(p->tovector) table_tovector(p);
 
   /* When column metadata should be updated. */
   if(p->colmetadata) table_colmetadata(p);

@@ -1137,7 +1137,7 @@ arithmetic_reverse_polish(struct tableparams *p,
           token->loadcol=NULL;
         }
 
-      /* Constant number: just put it ontop of the stack. */
+      /* Constant number: just put it on top of the stack. */
       else if(token->constant)
         {
           gal_list_data_add(&stack, token->constant);
@@ -1155,7 +1155,12 @@ arithmetic_reverse_polish(struct tableparams *p,
 
       /* A column from the table. */
       else if(token->index!=GAL_BLANK_SIZE_T)
-        gal_list_data_add(&stack, p->colarray[token->index]);
+        {
+          if(p->colarray[token->index]->ndim!=1)
+            error(EXIT_FAILURE, 0, "column arithmetic currently only works "
+                  "on single-valued columns, not vector columns");
+          gal_list_data_add(&stack, p->colarray[token->index]);
+        }
 
       /* Un-recognized situation. */
       else

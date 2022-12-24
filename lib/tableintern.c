@@ -373,8 +373,8 @@ gal_tableintern_col_print_info(gal_data_t *col, int tableformat,
           case GAL_TABLE_DISPLAY_FMT_FIXED:   fmt[0]='f'; break;
           case GAL_TABLE_DISPLAY_FMT_EXP:     fmt[0]='e'; break;
           case GAL_TABLE_DISPLAY_FMT_GENERAL: fmt[0]='g'; break;
-          default: /* '%f' is the most conservative in plain-text tables. */
-            fmt[0] = 'f'; break;
+          default:  /* '%e' is the most conservative in plain-text:  */
+            fmt[0] = 'e'; break;  /* it is independent of the power. */
           }
 
       /* Set the width and precision */

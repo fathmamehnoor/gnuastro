@@ -33,7 +33,8 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 /* Option groups particular to this program. */
 enum program_args_groups
 {
-  UI_GROUP_OUTROWS = GAL_OPTIONS_GROUP_AFTER_COMMON,
+  UI_GROUP_OUTCOLS = GAL_OPTIONS_GROUP_AFTER_COMMON,
+  UI_GROUP_OUTROWS,
 };
 
 
@@ -41,7 +42,7 @@ enum program_args_groups
 
 /* Available letters for short options:
 
-   a g j k l t v x y z
+   a g j l t v x y z
    G J Q
 */
 enum option_keys_enum
@@ -72,15 +73,18 @@ enum option_keys_enum
   UI_KEY_TXTF64FORMAT    = 'A',
   UI_KEY_TXTF32PRECISION = 'p',
   UI_KEY_TXTF64PRECISION = 'B',
+  UI_KEY_KEEPVECTFIN     = 'k',
 
   /* Only with long version (start with a value 1000, the rest will be set
      automatically). */
   UI_KEY_POLYGON         = 1000,
   UI_KEY_ENVSEED,
   UI_KEY_ROWRANGE,
+  UI_KEY_TOVECTOR,
   UI_KEY_ROWRANDOM,
   UI_KEY_INPOLYGON,
   UI_KEY_OUTPOLYGON,
+  UI_KEY_FROMVECTOR,
   UI_KEY_CATCOLUMNRAWNAME,
 };
 

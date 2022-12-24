@@ -240,7 +240,8 @@ ui_add_to_modular_warps_ll(struct argp_option *option, char *arg,
     error(EXIT_FAILURE, 0, "empty string given to '--%s'", option->name);
 
   /* Parse the (possible) arguments. */
-  new=gal_options_parse_list_of_numbers(arg, filename, lineno);
+  new=gal_options_parse_list_of_numbers(arg, filename, lineno,
+                                        GAL_TYPE_FLOAT64);
 
 
   /* If this was a matrix, then put it in the matrix element of the main
@@ -251,7 +252,8 @@ ui_add_to_modular_warps_ll(struct argp_option *option, char *arg,
       /* Some sanity checks. */
       if(p->matrix)
         error_at_line(EXIT_FAILURE, 0, filename, lineno, "only one matrix "
-                      "may be given, you can use multiple modular warpings");
+                      "may be given, you can use multiple modular "
+                      "warpings");
       if(new->size!=4 && new->size!=9)
         error_at_line(EXIT_FAILURE, 0, filename, lineno, "only a 4 or 9 "
                       "element 'matrix' is currently acceptable. '%s' has "
@@ -275,9 +277,9 @@ ui_add_to_modular_warps_ll(struct argp_option *option, char *arg,
       if(option->key==UI_KEY_ROTATE)
         {
           if(new->size!=1)
-            error_at_line(EXIT_FAILURE, 0, filename, lineno, "the 'rotate' "
-                      "option only takes one value (the angle of rotation). "
-                      "You have given: '%s'", arg);
+            error_at_line(EXIT_FAILURE, 0, filename, lineno, "the "
+                          "'rotate' option only takes one value (the "
+                          "angle of rotation). You have given: '%s'", arg);
         }
       else if (option->key==UI_KEY_FLIP)
         {

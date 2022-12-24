@@ -310,7 +310,8 @@ ui_parse_obsline(struct argp_option *option, char *arg,
       *c='\0';
 
       /* Read the parameters. */
-      obsline=gal_options_parse_list_of_numbers(arg, filename, lineno);
+      obsline=gal_options_parse_list_of_numbers(arg, filename, lineno,
+                                                GAL_TYPE_FLOAT64);
 
       /* Only one number must be given as second argument. */
       if(obsline==NULL || obsline->size!=1)
@@ -321,12 +322,13 @@ ui_parse_obsline(struct argp_option *option, char *arg,
       /* If a wavelength is given directly as a number (not a name), then
          put that number in a second element of the array. */
       dptr=&manualwl;
-      if( gal_type_from_string((void **)(&dptr), linename, GAL_TYPE_FLOAT64) )
+      if( gal_type_from_string((void **)(&dptr), linename,
+                               GAL_TYPE_FLOAT64) )
         { /* 'linename' isn't a number. */
           obsline->status=gal_speclines_line_code(linename);
           if(obsline->status==GAL_SPECLINES_INVALID)
-            error(EXIT_FAILURE, 0, "'%s' not recognized as a standard spectral "
-                  "line name", linename);
+            error(EXIT_FAILURE, 0, "'%s' not recognized as a standard "
+                  "spectral line name", linename);
         }
       else
         { /* 'linename' is a number. */

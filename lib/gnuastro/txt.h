@@ -55,7 +55,7 @@ __BEGIN_C_DECLS  /* From C++ preparations */
 
 /* Macros.*/
 #define GAL_TXT_DELIMITERS     " ,\t\f\v"
-#define GAL_TXT_MAX_FMT_LENGTH 20
+#define GAL_TXT_MAX_FMT_LENGTH 35
 
 
 
@@ -108,7 +108,7 @@ gal_txt_stdin_read(long timeout_microsec);
 void
 gal_txt_write(gal_data_t *input, struct gal_fits_list_key_t **keylist,
               gal_list_str_t *comment, char *filename,
-              uint8_t colinfoinstdout);
+              uint8_t colinfoinstdout, int tab0_img1);
 
 
 

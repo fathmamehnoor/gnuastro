@@ -338,7 +338,7 @@ convertt(struct converttparams *p)
     case OUT_FORMAT_TXT:
       gal_checkset_writable_remove(p->cp.output, p->inputnames->v, 0,
                                    p->cp.dontdelete);
-      gal_txt_write(p->chll, NULL, NULL, p->cp.output, 0);
+      gal_txt_write(p->chll, NULL, NULL, p->cp.output, 0, 1);
       break;
 
     /* JPEG: */
