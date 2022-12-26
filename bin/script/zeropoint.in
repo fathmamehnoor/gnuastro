@@ -37,6 +37,7 @@ export LC_NUMERIC=C
 
 # Default parameter's values
 hdu=1
+jobs=1
 quiet=""
 output=""
 tmpdir=""
@@ -95,6 +96,7 @@ $scriptname options:
   -H, --referencehdu=STR/INT   HDU/Extension name of number of the reference files.
   -a, --aperarcsec=FLT[,FLT]   Aperure arcseconds.
   -K, --keepzpap               Keep zeropoint of each aperture in different extension.
+  -j, --jobs=INT               Allow N jobs at once; infinite jobs with no arg.
 
  Output:
   -o, --output            Output with zeropoint estimation and best aperture.
@@ -270,30 +272,33 @@ do
        -M|--magnituderange)     magnituderange="$2";                          check_v "$1" "$magnituderange";  shift;shift;;
        -M=*|--magnituderange=*) magnituderange="${1#*=}";                     check_v "$1" "$magnituderange";  shift;;
        -M*)                     magnituderange=$(echo "$1" | sed -e's/-M//'); check_v "$1" "$magnituderange";  shift;;
-       -R|--reference)         reference="$2";                               check_v "$1" "$reference";  shift;shift;;
-       -R=*|--reference=*)     reference="${1#*=}";                          check_v "$1" "$reference";  shift;;
-       -R*)                    reference=$(echo "$1" | sed -e's/-R//');      check_v "$1" "$reference";  shift;;
-       -z|--referencezp)       referencezp="$2";                             check_v "$1" "$referencezp";  shift;shift;;
-       -z=*|--referencezp=*)   referencezp="${1#*=}";                        check_v "$1" "$referencezp";  shift;;
-       -z*)                    referencezp=$(echo "$1" | sed -e's/-z//');    check_v "$1" "$referencezp";  shift;;
-       -H|--referencehdu)      referencehdu="$2";                            check_v "$1" "$referencehdu";  shift;shift;;
-       -H=*|--referencehdu=*)  referencehdu="${1#*=}";                       check_v "$1" "$referencehdu";  shift;;
-       -H*)                    referencehdu=$(echo "$1" | sed -e's/-H//');   check_v "$1" "$referencehdu";  shift;;
-       -a|--aperarcsec)        aperarcsec="$2";                              check_v "$1" "$aperarcsec";  shift;shift;;
-       -a=*|--aperarcsec=*)    aperarcsec="${1#*=}";                         check_v "$1" "$aperarcsec";  shift;;
-       -a*)                    aperarcsec=$(echo "$1" | sed -e's/-a//');     check_v "$1" "$aperarcsec";  shift;;
+       -R|--reference)         reference="$2";                                check_v "$1" "$reference";  shift;shift;;
+       -R=*|--reference=*)     reference="${1#*=}";                           check_v "$1" "$reference";  shift;;
+       -R*)                    reference=$(echo "$1" | sed -e's/-R//');       check_v "$1" "$reference";  shift;;
+       -z|--referencezp)       referencezp="$2";                              check_v "$1" "$referencezp";  shift;shift;;
+       -z=*|--referencezp=*)   referencezp="${1#*=}";                         check_v "$1" "$referencezp";  shift;;
+       -z*)                    referencezp=$(echo "$1" | sed -e's/-z//');     check_v "$1" "$referencezp";  shift;;
+       -H|--referencehdu)      referencehdu="$2";                             check_v "$1" "$referencehdu";  shift;shift;;
+       -H=*|--referencehdu=*)  referencehdu="${1#*=}";                        check_v "$1" "$referencehdu";  shift;;
+       -H*)                    referencehdu=$(echo "$1" | sed -e's/-H//');    check_v "$1" "$referencehdu";  shift;;
+       -a|--aperarcsec)        aperarcsec="$2";                               check_v "$1" "$aperarcsec";  shift;shift;;
+       -a=*|--aperarcsec=*)    aperarcsec="${1#*=}";                          check_v "$1" "$aperarcsec";  shift;;
+       -a*)                    aperarcsec=$(echo "$1" | sed -e's/-a//');      check_v "$1" "$aperarcsec";  shift;;
+       -j|--jobs)              jobs="$2";                                     check_v "$1" "$jobs";  shift;shift;;
+       -j=*|--jobs=*)          jobs="${1#*=}";                                check_v "$1" "$jobs";  shift;;
+       -j*)                    jobs=$(echo "$1" | sed -e's/-j//');            check_v "$1" "$jobs";  shift;;
        -K|--keepzpap)          keepzpap=1; shift;;
        -K*|--keepzpap=*)       on_off_option_error --keepzpap -K;;
 
 # Output parameters
        -k|--keeptmp)           keeptmp=1; shift;;
        -k*|--keeptmp=*)        on_off_option_error --keeptmp -k;;
-       -t|--tmpdir)            tmpdir="$2";                                  check_v "$1" "$tmpdir";  shift;shift;;
-       -t=*|--tmpdir=*)        tmpdir="${1#*=}";                             check_v "$1" "$tmpdir";  shift;;
-       -t*)                    tmpdir=$(echo "$1" | sed -e's/-t//');         check_v "$1" "$tmpdir";  shift;;
-       -o|--output)            output="$2";                                  check_v "$1" "$output"; shift;shift;;
-       -o=*|--output=*)        output="${1#*=}";                             check_v "$1" "$output"; shift;;
-       -o*)                    output=$(echo "$1" | sed -e's/-o//');         check_v "$1" "$output"; shift;;
+       -t|--tmpdir)            tmpdir="$2";                                   check_v "$1" "$tmpdir";  shift;shift;;
+       -t=*|--tmpdir=*)        tmpdir="${1#*=}";                              check_v "$1" "$tmpdir";  shift;;
+       -t*)                    tmpdir=$(echo "$1" | sed -e's/-t//');          check_v "$1" "$tmpdir";  shift;;
+       -o|--output)            output="$2";                                   check_v "$1" "$output"; shift;shift;;
+       -o=*|--output=*)        output="${1#*=}";                              check_v "$1" "$output"; shift;;
+       -o*)                    output=$(echo "$1" | sed -e's/-o//');          check_v "$1" "$output"; shift;;
 
    # Non-operating options.
        -q|--quiet)             quiet=" -q"; shift;;
@@ -391,6 +396,76 @@ fi
 
 
 
+# Overlap check between input and reference images and catalog
+# ------------------------------------------------------------
+#
+# In this step, we have to check and be sure the input imge has overlap
+# with reference catalog or reference images or not. If they have overlap
+# everything is fine and script can contiue. But if they do not overlap
+# together the script will be stop and let the user know that the input
+# image does not overlap with reference catalog and imaged.
+#
+# If the user insert the catalog as reference, check it overlap with input
+# image or not.
+# Find minimum and maximum RA/Dec values of the input image.
+minraimg=$(astfits $inputs --hdu=$hdu --skycoverage \
+               | grep 'RA' | awk '{print $2}')
+maxraimg=$(astfits $inputs --hdu=$hdu --skycoverage \
+               | grep 'RA' | awk '{print $3}')
+mindecimg=$(astfits $inputs --hdu=$hdu --skycoverage \
+                | grep 'DEC' | awk '{print $2}')
+maxdecimg=$(astfits $inputs --hdu=$hdu --skycoverage \
+                | grep 'DEC' | awk '{print $3}')
+if [ x"$catalog" != x ]; then
+    # Find the overlap area between catalog and image.
+    skycoverage=$tmpdir/skycoverage.fits
+    asttable $catalog --inpolygon=$racolumn,$deccolumn \
+             --polygon="$minraimg,$mindecimg \
+                        : $minraimg,$maxdecimg \
+                        : $maxraimg,$mindecimg \
+                        : $maxraimg,$maxdecimg" \
+             --output=$skycoverage
+
+    # The number of stars in the overlaping area.
+    number=$(asttable $skycoverage | wc -l)
+
+    # If catalog overlap the image, select stars with magnitudes between
+    # the fainter and larger than bright values.
+    if [ "$number" = 0 ]; then
+
+        # Stop if the catalog doesn't overlap with the image.
+        echo "Image and catalog do not overlap."
+        echo "Please provide an image and a catalog that overlap together."
+        exit 1
+    fi
+elif [ x"$reference" != x ]; then
+    listimgs=$(echo $reference | sed 's|,| |g')
+    for img in $listimgs; do
+        minra=$(astfits $img -h0 --skycoverage -q \
+                    | awk 'FNR == 2 {print $1}')
+        maxra=$(astfits $img -h0 --skycoverage -q \
+                    | awk 'FNR == 2 {print $2}')
+        mindec=$(astfits $img -h0 --skycoverage -q \
+                     | awk 'FNR == 2 {print $3}')
+        maxdec=$(astfits $img -h0 --skycoverage -q \
+                     | awk 'FNR == 2 {print $4}')
+        condminra=$(echo $minraimg '<=' $minra | bc -l)
+        condmindec=$(echo $mindecimg '<=' $mindec | bc -l)
+        condmaxra=$(echo $maxraimg '>=' $maxra | bc -l)
+        condmaxdec=$(echo $maxdecimg '>=' $maxdec | bc -l)
+        if [ "$condminra" = "0" ] || [ "$condmindec" = "0" ] || [ "$condmaxra" = "0" ] || [ "$condmaxdec" = "0" ]; then
+            # Stop if the catalog doesn't overlap with the image.
+            echo "Input image and $listimgs do not overlap."
+            echo "Please provide an image and a reference image that overlap together."
+            exit 1
+        fi
+    done
+fi
+
+
+
+
+
 # Prepare a configuration file for running the make file
 #-------------------------------------------------------
 #
@@ -468,7 +543,7 @@ if [ x$installdir = x ]; then
 else
     mksrc=$installdir/zeropoint.mk
 fi
-make -f $mksrc tmpdir=$tmpdir
+make -f $mksrc tmpdir=$tmpdir --jobs=$jobs
 
 
 
