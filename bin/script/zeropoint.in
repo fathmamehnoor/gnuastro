@@ -396,8 +396,8 @@ fi
 
 
 
-# Overlap check between input and reference images and catalog
-# ------------------------------------------------------------
+# Overlap check between input and reference images
+# ------------------------------------------------------------------------
 #
 # In this step, we have to check and be sure the input imge has overlap
 # with reference catalog or reference images or not. If they have overlap
@@ -408,29 +408,27 @@ fi
 # If the user insert the catalog as reference, check it overlap with input
 # image or not.
 # Find minimum and maximum RA/Dec values of the input image.
-minraimg=$(astfits $inputs --hdu=$hdu --skycoverage \
-               | grep 'RA' | awk '{print $2}')
-maxraimg=$(astfits $inputs --hdu=$hdu --skycoverage \
-               | grep 'RA' | awk '{print $3}')
-mindecimg=$(astfits $inputs --hdu=$hdu --skycoverage \
-                | grep 'DEC' | awk '{print $2}')
-maxdecimg=$(astfits $inputs --hdu=$hdu --skycoverage \
-                | grep 'DEC' | awk '{print $3}')
+allradecinput=$(astfits $inputs --hdu=$hdu --skycoverage -q | awk 'NR==2')
+minrainput=$(echo $allradecinput  | awk '{print $1}')
+maxrainput=$(echo $allradecinput  | awk '{print $2}')
+mindecinput=$(echo $allradecinput | awk '{print $3}')
+maxdecinput=$(echo $allradecinput | awk '{print $4}')
 if [ x"$catalog" != x ]; then
+
     # Find the overlap area between catalog and image.
     skycoverage=$tmpdir/skycoverage.fits
     asttable $catalog --inpolygon=$racolumn,$deccolumn \
-             --polygon="$minraimg,$mindecimg \
-                        : $minraimg,$maxdecimg \
-                        : $maxraimg,$mindecimg \
-                        : $maxraimg,$maxdecimg" \
+             --polygon="$minrainput,$mindecinput \
+                        : $minrainput,$maxdecinput \
+                        : $maxrainput,$mindecinput \
+                        : $maxrainput,$maxdecinput" \
              --output=$skycoverage
 
     # The number of stars in the overlaping area.
     number=$(asttable $skycoverage | wc -l)
 
-    # If catalog overlap the image, select stars with magnitudes between
-    # the fainter and larger than bright values.
+    # If catalog overlap the image, the script will continue and obtain the
+    # zero point. While, if they do not overlap the script will stopped.
     if [ "$number" = 0 ]; then
 
         # Stop if the catalog doesn't overlap with the image.
@@ -439,24 +437,38 @@ if [ x"$catalog" != x ]; then
         exit 1
     fi
 elif [ x"$reference" != x ]; then
-    listimgs=$(echo $reference | sed 's|,| |g')
-    for img in $listimgs; do
-        minra=$(astfits $img -h0 --skycoverage -q \
-                    | awk 'FNR == 2 {print $1}')
-        maxra=$(astfits $img -h0 --skycoverage -q \
-                    | awk 'FNR == 2 {print $2}')
-        mindec=$(astfits $img -h0 --skycoverage -q \
-                     | awk 'FNR == 2 {print $3}')
-        maxdec=$(astfits $img -h0 --skycoverage -q \
-                     | awk 'FNR == 2 {print $4}')
-        condminra=$(echo $minraimg '<=' $minra | bc -l)
-        condmindec=$(echo $mindecimg '<=' $mindec | bc -l)
-        condmaxra=$(echo $maxraimg '>=' $maxra | bc -l)
-        condmaxdec=$(echo $maxdecimg '>=' $maxdec | bc -l)
-        if [ "$condminra" = "0" ] || [ "$condmindec" = "0" ] || [ "$condmaxra" = "0" ] || [ "$condmaxdec" = "0" ]; then
+
+    # Compute how many references images is used.
+    nums=$(echo $reference \
+              | awk 'BEGIN{FS=","}{for(i=1;i<=NF;++i) printf "%s ", i}')
+
+    for n in $nums; do
+
+        # Extract the reference images name and their hdu.
+        img=$(echo $reference | awk 'BEGIN{FS=","}{printf "%s", $'$n'}')
+        hduimg=$(echo $referencehdu | awk 'BEGIN{FS=","}{printf "%s", $'$n'}')
+
+        # Find the overlap area between catalog and image.
+        skycoverage=$tmpdir/skycoverage-$n.fits
+        astfits $img --hdu=$hduimg --skycoverage -q \
+            | awk 'NR==2 {printf "%f %f\n%f %f\n%f %f\n%f %f\n", $1,$3,$1,$4,$2,$3,$2,$4}' \
+            | asttable --polygon="$minrainput,$mindecinput \
+                                  : $minrainput,$maxdecinput \
+                                  : $maxrainput,$mindecinput \
+                                  : $maxrainput,$maxdecinput" \
+                       --output=$skycoverage
+
+        # The number of stars in the overlaping area.
+        number=$(asttable $skycoverage | wc -l)
+
+        # If reference image overlap with input image, the script will
+        # continue and obtain the zero point. While, if they do not overlap
+        # the script will stopped.
+        if [ "$number" = 0 ]; then
+
             # Stop if the catalog doesn't overlap with the image.
-            echo "Input image and $listimgs do not overlap."
-            echo "Please provide an image and a reference image that overlap together."
+            echo "Image and catalog do not overlap."
+            echo "Please provide an image that overlap with $input image."
             exit 1
         fi
     done
