@@ -3979,23 +3979,24 @@ fits_table_prepare_arrays(gal_data_t *cols, size_t numcols,
           else
             {
               /* For vector columns, we need to give the number of elements
-                 in the vector. */
-              switch(col->ndim)
+                 in the vector. Note that a vector column with dsize[1]==1
+                 is just a single-valued column and shouldn't be treated
+                 like a vector.*/
+              if( col->ndim==1 || (col->ndim==2 && col->dsize[1]==1) )
                 {
-                case 1:
                   if( asprintf(&tform[i], "%c", fmt[0])<0 )
                     error(EXIT_FAILURE, 0, "%s: asprintf allocation",
                           __func__);
-                  break;
-                case 2:
+                }
+              else if(col->ndim==2) /* Vector column */
+                {
                   if(asprintf(&tform[i], "%zu%c", col->dsize[1], fmt[0])<0)
                     error(EXIT_FAILURE, 0, "%s: asprintf allocation",
                           __func__);
-                  break;
-                default:
-                  error(EXIT_FAILURE, 0, "%s: only 1D or 2D data can "
-                        "be written as a binary table", __func__);
                 }
+              else
+                error(EXIT_FAILURE, 0, "%s: only 1D or 2D data can "
+                      "be written as a binary table", __func__);
             }
           break;
 
@@ -4215,8 +4216,10 @@ fits_tab_write_col(fitsfile *fptr, gal_data_t *col, int tableformat,
 
   /* If this is a FITS ASCII table, and the column is vector, we need to
      write it as separate single-value columns and write those, then we can
-     safely return (no more need to continue). */
-  if(tableformat==GAL_TABLE_FORMAT_AFITS && col->ndim>1)
+     safely return (no more need to continue). It may happen that a 2D
+     column has a second dimension of 1! In this case, it should be saved
+     as a normal 1D column. */
+  if(tableformat==GAL_TABLE_FORMAT_AFITS && col->ndim==2 && col->dsize[1]>1)
     {
       *colind=fits_tab_write_colvec_ascii(fptr, col, *colind, tform,
                                           filename);

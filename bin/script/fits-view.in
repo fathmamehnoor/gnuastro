@@ -404,11 +404,18 @@ else
             # Open DS9 based on the number of dimension.
             if [ "$ndim" = 2 ]; then
 
+                # If a HDU is specified, ignore other HDUs (recall that
+                # with '-mecube' we are viewing all the HDUs as a single
+                # cube.
+                if [ x"$hdu" = x ]; then mecube="-mecube";
+                else                     mecube="";
+                fi
+
                 # 2D multi-extension file: use the "Cube" window to
                 # flip/slide through the extensions.
                 execom="$ds9exec $ds9scaleopt \
                                  $ds9geoopt \
-                                 -mecube \
+                                 $mecube \
                                  $inwithhdu \
                                  -zoom to fit \
                                  -wcs degrees \
@@ -423,6 +430,11 @@ else
                                  $ds9extra"
             else
 
+                # If a HDU is given, don't use multi-frame.
+                if [ x"$hdu" = x ]; then mframe="-multiframe";
+                else                     mframe="";
+                fi
+
                 # 3D multi-extension file: The "Cube" window will slide
                 # between the slices of a single extension. To flip through
                 # the extensions (not the slices), press the top row
@@ -432,7 +444,7 @@ else
                 # the same slice).
                 execom="$ds9exec $ds9scaleopt \
                                  $ds9geoopt -wcs degrees \
-                                 -multiframe \
+                                 $mframe \
                                  $inwithhdu \
                                  -lock slice image \
                                  -lock frame image \

@@ -66,14 +66,15 @@ static char
 args_doc[] = "ASTRdata";
 
 const char
-doc[] = GAL_STRINGS_TOP_HELP_INFO PROGRAM_NAME" can be used to view the "
-  "information, select columns, or convert tables. The inputs and outputs "
-  "can be plain text (with white-space or comma as delimiters), FITS ascii, "
-  "or FITS binary tables. The output columns can either be selected by "
-  "number (counting from 1), name or using regular expressions. For regular "
-  "expressions, enclose the value to the '--column' ('-c') option in "
-  "slashes ('\\', as in '-c\\^mag\\'). To print the selected columns on the "
-  "command-line, don't specify an output file.\n"
+doc[] = GAL_STRINGS_TOP_HELP_INFO PROGRAM_NAME" can be used to view "
+  "the information, select columns, or convert tables. The inputs and "
+  "outputs can be plain text (with white-space or comma as delimiters), "
+  "FITS ascii, or FITS binary tables. The output columns can either be "
+  "selected by number (counting from 1), name or using regular "
+  "expressions. For regular expressions, enclose the value to the "
+  "'--column' ('-c') option in slashes ('\\', as in '-c\\^mag\\'). "
+  "To print the selected columns on the command-line, don't specify "
+  "an output file.\n"
   GAL_STRINGS_MORE_HELP_INFO
   /* After the list of options: */
   "\v"
@@ -516,9 +517,9 @@ ui_list_select_free(struct list_select *list, int freevalue)
 /**************************************************************/
 /***************      Packaged columns      *******************/
 /**************************************************************/
-/* Return the last outcols element. */
+/* Return the last 'colpack' element. */
 static struct column_pack *
-ui_outcols_last(struct column_pack *list)
+ui_colpack_last(struct column_pack *list)
 {
   if(list)
     {
@@ -535,7 +536,7 @@ ui_outcols_last(struct column_pack *list)
 /* Allocate a clean 'out_columns' structure and put it at the top of the
    list. */
 static struct column_pack *
-ui_outcols_add_new_to_end(struct column_pack **list)
+ui_colpack_add_new_to_end(struct column_pack **list)
 {
   struct column_pack *last, *node;
 
@@ -556,7 +557,7 @@ ui_outcols_add_new_to_end(struct column_pack **list)
      add this node. */
   if(*list)
     {
-      last=ui_outcols_last(*list);
+      last=ui_colpack_last(*list);
       last->next=node;
     }
   else
@@ -570,8 +571,8 @@ ui_outcols_add_new_to_end(struct column_pack **list)
 
 
 
-static void
-ui_outcols_free(struct column_pack *list)
+void
+ui_colpack_free(struct column_pack *list)
 {
   struct column_pack *tmp;
   while(list!=NULL)
@@ -661,118 +662,112 @@ static void
 ui_columns_prepare(struct tableparams *p, gal_list_str_t *lines)
 {
   int tableformat;
-  gal_data_t *strs;
-  char *c, **strarr;
   gal_data_t *colinfo=NULL;
   struct column_pack *node, *last;
   gal_list_str_t *tmp, *colstoread=NULL;
-  size_t i, totcalled=0, numcols, numrows;
+  size_t i, totcalled=0, numcols, numrows, numsimple;
+  char *str, countstr[11]; /* an un-signed 32-bit integer takes 10 chars */
 
-  /* Go over the whole original list (where each node may have more than
-     one value separated by a comma. */
+  /* Go over the list of requested columns from the main input. */
   for(tmp=p->columns;tmp!=NULL;tmp=tmp->next)
     {
-      /* Remove any possibly commented new-line where we have a backslash
-         followed by a new-line character (replace the two characters with
-         two single space characters). This can happen with the 'arith'
-         argument in a script, when it gets long (bug #58371). But to be
-         general in other cases too, we'll just correct it here. */
-      for(c=tmp->v;*c!='\0';++c)
-        if(*c=='\\' && *(c+1)=='\n') { *c=' '; *(++c)=' '; }
+      /* For easy reading. */
+      str=tmp->v;
 
-      /* Read the different comma-separated strings into an array (within a
-         'gal_data_t'). */
-      strs=gal_options_parse_csv_strings_raw(tmp->v, NULL, 0);
-      strarr=strs->array;
-
-      /* Go over all the given colum names/numbers. */
-      for(i=0;i<strs->size;++i)
+      /* If this is an arithmetic column.  */
+      if(!strncmp(str, ARITHMETIC_CALL, ARITHMETIC_CALL_LENGTH))
         {
-          /* See if this is an arithmetic column to be processed, or its
-             just a "simple" column (where  */
-          if(!strncmp(strarr[i], ARITHMETIC_CALL, ARITHMETIC_CALL_LENGTH))
+          /* Arithmetic operations may be done on columns from other files
+             (for example with '--catcolumnfile'). We therefore need to
+             check if the requested column is in the main input file or
+             not. If not, it should be set when column arithmetic
+             starts. To do this, we need to get the input's column
+             information. */
+          if(colinfo==NULL)
+            colinfo=gal_table_info(p->filename, p->cp.hdu, lines,
+                                   &numcols, &numrows, &tableformat);
+
+          /* If this is the first arithmetic operation and the user has
+             already asked for some columns, we'll need to put all
+             previously requested simply-printed columns into an 'colpack'
+             structure, then add this arithmetic operation's 'colpack'. */
+          if(p->colpack==NULL && colstoread)
             {
-              /* Arithmetic operations may be done on columns from other
-                 files (for example with '--catcolumnfile'). We therefore
-                 need to check if the requested column is in the main input
-                 file or not. If not, it should be set when column
-                 arithmetic starts. To do this, we need to get the input's
-                 column information. */
-              if(colinfo==NULL)
-                colinfo=gal_table_info(p->filename, p->cp.hdu, lines,
-                                       &numcols, &numrows, &tableformat);
-
-              /* If this is the first arithmetic operation and the user has
-                 already asked for some columns, we'll need to put all
-                 previously requested simply-printed columns into an
-                 'outcols' structure, then add this arithmetic operation's
-                 'outcols'. */
-              if(p->outcols==NULL && colstoread)
-                {
-                  /* Allocate an empty structure and set the necessary
-                     pointers. */
-                  node=ui_outcols_add_new_to_end(&p->outcols);
-                  node->start=0;
-                  node->numsimple=gal_list_str_number(colstoread);
-                  totcalled=node->numsimple;
-                }
-
-              /* Add a new column pack, then read all the tokens (while
-                 specifying which columns it needs). */
-              node=ui_outcols_add_new_to_end(&p->outcols);
-              arithmetic_init(p, &node->arith, &colstoread, &totcalled,
-                              strarr[i]+ARITHMETIC_CALL_LENGTH, colinfo,
-                              numcols);
-              free(strarr[i]);
+              /* Allocate an empty structure and set the necessary
+                 pointers. */
+              node=ui_colpack_add_new_to_end(&p->colpack);
+              node->start=0;
+              node->numsimple=gal_list_str_number(colstoread);
+              totcalled=node->numsimple;
             }
 
-          /* This is a simple column (no change in values). */
-          else
-            {
-              /* Add this column to the list of columns to read. */
-              gal_list_str_add(&colstoread, strarr[i], 0);
-
-              /* See if we have packaged the output columns. */
-              if(p->outcols)
-                {
-                  /* If the previous column package was an arithmetic
-                     operation, allocate a new node. */
-                  last=ui_outcols_last(p->outcols);
-                  if(last->arith)
-                    {
-                      node=ui_outcols_add_new_to_end(&p->outcols);
-                      node->start=totcalled;
-                      node->numsimple=1;
-                    }
-
-                  /* The previous package of columns are simple (we don't
-                     need to change their value), so we can just increment
-                     the number of columns there and don't need to allocate
-                     a new one. */
-                  else
-                    last->numsimple+=1;
-                }
-
-              /* Increment the total number of called columns. */
-              totcalled+=1;
-            }
-
-          /* The pointer allocated string is either being used (and later
-             freed) else, or has already been freed. So its necessary to
-             set it to NULL. */
-          strarr[i]=NULL;
+          /* Add a new column pack for this arithmetic operation, then read
+             all the tokens (while specifying which columns it needs). */
+          node=ui_colpack_add_new_to_end(&p->colpack);
+          arithmetic_init(p, &node->arith, &colstoread, &totcalled,
+                          str+ARITHMETIC_CALL_LENGTH, colinfo, numcols);
         }
 
-      /* Clean up. */
-      gal_data_free(strs);
+      /* This is a simple column (no change in values). */
+      else
+        {
+          /* If the value is '_all', then we should add all the input's
+             columns. Otherwise, just add this string. */
+          if( !strcmp(str, "_all") )
+            {
+              /* Load column information (it not already loaded). */
+              if(colinfo==NULL)
+                colinfo=gal_table_info(p->filename, p->cp.hdu, lines,
+                                       &numcols, &numrows,
+                                       &tableformat);
+
+              /* Add all the input column counters to the list of columns
+                 to read */
+              numsimple=gal_list_data_number(colinfo);
+              for(i=0;i<numsimple;++i)
+                {
+                  sprintf(countstr, "%u", (uint32_t)(i+1));
+                  gal_list_str_add(&colstoread, countstr, 1);
+                }
+            }
+          else
+            {
+              numsimple=1;
+              gal_list_str_add(&colstoread, str, 1);
+            }
+
+          /* See if we have packaged the output columns. */
+          if(p->colpack)
+            {
+              /* If the previous column package was an arithmetic
+                 operation, allocate a new node. */
+              last=ui_colpack_last(p->colpack);
+              if(last->arith)
+                {
+                  node=ui_colpack_add_new_to_end(&p->colpack);
+                  node->start=totcalled;
+                  node->numsimple=numsimple;
+                }
+
+              /* The previous package of columns are simple (we don't need
+                 to change their value), so we can just increment the
+                 number of columns there and don't need to allocate a new
+                 one. */
+              else
+                last->numsimple+=numsimple;
+            }
+
+          /* Increment the total number of called columns. */
+          totcalled+=1;
+        }
     }
 
   /* For a check
-  if(p->outcols)
+  if(p->colpack)
     {
       struct column_pack *tmp;
       struct arithmetic_token *atmp;
-      for(tmp=p->outcols;tmp!=NULL;tmp=tmp->next)
+      for(tmp=p->colpack;tmp!=NULL;tmp=tmp->next)
         if(tmp->arith)
           {
             printf("Arithmetic: \n");
@@ -920,8 +915,8 @@ ui_check_select_sort_before(struct tableparams *p, gal_list_str_t *lines,
   if(p->inpolygon)
     {
       strarr=p->inpolygon->array;
-      inpolytmp=gal_data_alloc(NULL, GAL_TYPE_UINT8, 1, &one, NULL, 1, -1, 1,
-                               strarr[0], NULL, NULL);
+      inpolytmp=gal_data_alloc(NULL, GAL_TYPE_UINT8, 1, &one, NULL, 1,
+                               -1, 1, strarr[0], NULL, NULL);
       inpolytmp->next=gal_data_alloc(NULL, GAL_TYPE_UINT8, 1, &one, NULL,
                                      1, -1, 1, strarr[1], NULL, NULL);
       select[SELECT_TYPE_INPOLYGON]=inpolytmp;
@@ -929,8 +924,8 @@ ui_check_select_sort_before(struct tableparams *p, gal_list_str_t *lines,
   if(p->outpolygon)
     {
       strarr=p->outpolygon->array;
-      outpolytmp=gal_data_alloc(NULL, GAL_TYPE_UINT8, 1, &one, NULL, 1, -1, 1,
-                               strarr[0], NULL, NULL);
+      outpolytmp=gal_data_alloc(NULL, GAL_TYPE_UINT8, 1, &one, NULL,
+                                1, -1, 1, strarr[0], NULL, NULL);
       outpolytmp->next=gal_data_alloc(NULL, GAL_TYPE_UINT8, 1, &one, NULL,
                                      1, -1, 1, strarr[1], NULL, NULL);
       select[SELECT_TYPE_OUTPOLYGON]=outpolytmp;
@@ -1107,7 +1102,8 @@ ui_check_select_sort_before(struct tableparams *p, gal_list_str_t *lines,
       for(k=0;k<SELECT_TYPE_NUMBER;++k)
         for(dtmp=select[k];dtmp!=NULL;dtmp=dtmp->next)
           {
-            if(*sortindout!=GAL_BLANK_SIZE_T && selectindout[i]==*sortindout)
+            if(  *sortindout!=GAL_BLANK_SIZE_T
+               && selectindout[i]==*sortindout)
               {
                 selecttypeout[i]=k;
                 selectindout[i]=*sortindout;
@@ -1262,12 +1258,13 @@ ui_preparations(struct tableparams *p)
      extra columns. */
   if(p->selection || p->sort)
     ui_check_select_sort_before(p, lines, &nselect, &origoutncols,
-                                &sortindout, &selectindout, &selecttypeout);
+                                &sortindout, &selectindout,
+                                &selecttypeout);
 
 
   /* If we have any arithmetic operations, we need to make sure how many
      columns match every given column name. */
-  p->colmatch = ( p->outcols
+  p->colmatch = ( p->colpack
                   ? gal_pointer_allocate(GAL_TYPE_SIZE_T,
                                          gal_list_str_number(p->columns),
                                          1, __func__, "p->colmatch")
@@ -1428,13 +1425,11 @@ ui_free_report(struct tableparams *p)
   /* Free the allocated arrays: */
   free(p->cp.hdu);
   free(p->cp.output);
-  ui_outcols_free(p->outcols);
   gal_list_data_free(p->table);
   if(p->wcshdu) free(p->wcshdu);
   gal_list_data_free(p->noblank);
   gal_list_str_free(p->columns, 1);
   if(p->colmatch) free(p->colmatch);
-  if(p->colarray) free(p->colarray);
   gal_list_data_free(p->colmetadata);
   gal_list_str_free(p->catcolumnhdu, 1);
   gal_list_str_free(p->catcolumnfile, 1);

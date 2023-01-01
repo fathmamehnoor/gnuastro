@@ -227,7 +227,7 @@ gal_list_str_extract(char *string)
 
 
 char *
-gal_list_str_cat(gal_list_str_t *list)
+gal_list_str_cat(gal_list_str_t *list, char delimiter)
 {
   size_t bsize=0;
   char *c, *o, *out;
@@ -242,7 +242,8 @@ gal_list_str_cat(gal_list_str_t *list)
     {
       /* Count the characters. If we have a SPACE, we need to add an extra
          count for the back slash.*/
-      c=tmp->v; do {++bsize; if(*c==' ') ++bsize;} while(*(++c)!='\0');
+      c=tmp->v;
+      do {++bsize; if(*c==delimiter) ++bsize;} while(*(++c)!='\0');
       ++bsize; /* For the extra space between characters */
     }
 
@@ -253,8 +254,8 @@ gal_list_str_cat(gal_list_str_t *list)
   for(tmp=list; tmp!=NULL; tmp=tmp->next)
     {
       c=tmp->v;
-      do {if(*c==' ') *o++='\\'; *o++=*c;} while(*(++c)!='\0');
-      *o++=' ';
+      do {if(*c==delimiter) *o++='\\'; *o++=*c;} while(*(++c)!='\0');
+      if(tmp->next) *o++=delimiter;
     }
   *o='\0';
 

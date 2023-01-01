@@ -42,7 +42,8 @@ struct argp_option program_options[] =
       GAL_TYPE_STRLL,
       GAL_OPTIONS_RANGE_ANY,
       GAL_OPTIONS_NOT_MANDATORY,
-      GAL_OPTIONS_NOT_SET
+      GAL_OPTIONS_NOT_SET,
+      gal_options_parse_csv_strings_append
     },
     {
       "wcsfile",
@@ -237,6 +238,30 @@ struct argp_option program_options[] =
 
 
 
+    /* Operation precendence */
+    {
+      0, 0, 0, 0,
+      "Precedence (default: column operations first)",
+      UI_GROUP_PRECEDENCE
+    },
+    {
+      "rowfirst",
+      UI_KEY_ROWFIRST,
+      0,
+      0,
+      "Apply row-based operations first.",
+      UI_GROUP_PRECEDENCE,
+      &p->rowfirst,
+      GAL_OPTIONS_NO_ARG_TYPE,
+      GAL_OPTIONS_RANGE_0_OR_1,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET
+    },
+
+
+
+
+
     /* Output columns. */
     {
       0, 0, 0, 0,
@@ -259,9 +284,9 @@ struct argp_option program_options[] =
     {
       "colmetadata",
       UI_KEY_COLMETADATA,
-      "STR,STR[,STR,STR]",
+      "ID,S,S,S",
       0,
-      "Column metadata (name, unit, comments).",
+      "Column metadata (S=STR: Name, Unit, Comments).",
       UI_GROUP_OUTCOLS,
       &p->colmetadata,
       GAL_TYPE_STRING,
@@ -310,7 +335,19 @@ struct argp_option program_options[] =
       GAL_OPTIONS_NOT_MANDATORY,
       GAL_OPTIONS_NOT_SET
     },
-
+    {
+      "transpose",
+      UI_KEY_TRANSPOSE,
+      0,
+      0,
+      "Transpose table (must only contain vector cols).",
+      UI_GROUP_OUTCOLS,
+      &p->transpose,
+      GAL_OPTIONS_NO_ARG_TYPE,
+      GAL_OPTIONS_RANGE_0_OR_1,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET
+    },
 
 
 

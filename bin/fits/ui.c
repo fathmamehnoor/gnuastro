@@ -308,7 +308,7 @@ ui_check_copykeys(struct fitsparams *p)
         {
           if(p->copykeysrange[0]==GAL_BLANK_LONG)
             {
-              p->copykeysname=gal_options_parse_csv_strings_raw(pt,
+              p->copykeysname=gal_options_parse_csv_strings_to_data(pt,
                                                                 NULL, 0);
               break;
             }

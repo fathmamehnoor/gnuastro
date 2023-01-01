@@ -44,6 +44,10 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 
 
 
+
+
+
+
 /* Both passes are going to need their starting pointers set, so we'll do
    that here. */
 void
@@ -51,16 +55,22 @@ parse_initialize(struct mkcatalog_passparams *pp)
 {
   struct mkcatalogparams *p=pp->p;
 
+  gal_data_t *vec;
   size_t i, ndim=p->objects->ndim;
   size_t *start_end=pp->start_end_inc;
 
   /* Initialize the number of clumps in this object. */
   pp->clumpsinobj=0;
 
-
   /* Initialize the intermediate values to zero. */
   memset(pp->oi, 0, OCOL_NUMCOLS * sizeof *pp->oi);
-
+  if(pp->vector)
+    for(i=0;i<VEC_NUM;++i)
+      {
+        vec=&(pp->vector[i]);
+        if(pp->vector[i].array)
+          memset(vec->array, 0, vec->size*gal_type_sizeof(vec->type));
+      }
 
   /* Set the shifts in every dimension to avoid round-off errors in large
      numbers for the non-linear calculations. We are using the first pixel
@@ -72,9 +82,9 @@ parse_initialize(struct mkcatalog_passparams *pp)
   if(pp->shift)
     {
       /* Get the coordinates of the tile's starting point. */
-      gal_dimension_index_to_coord( ( (float *)(pp->tile->array)
-                                      - (float *)(pp->tile->block->array) ),
-                                    ndim, p->objects->dsize, pp->shift);
+      gal_dimension_index_to_coord(( (float *)(pp->tile->array)
+                                     - (float *)(pp->tile->block->array) ),
+                                   ndim, p->objects->dsize, pp->shift);
 
       /* Change their counting to start from 1, not zero, since we will be
          using them as FITS coordinates. */
@@ -107,14 +117,14 @@ parse_initialize(struct mkcatalog_passparams *pp)
 
 
 static size_t *
-parse_spectrum_pepare(struct mkcatalog_passparams *pp, size_t *start_end_inc,
-                      int32_t **st_o, float **st_v, float **st_std)
+parse_vector_dim3_prepare(struct mkcatalog_passparams *pp,
+                          size_t *start_end_inc, int32_t **st_o,
+                          float **st_v, float **st_std)
 {
   size_t *tsize;
   gal_data_t *spectile;
   struct mkcatalogparams *p=pp->p;
-  size_t coord[3], minmax[6], numslices=p->objects->dsize[0];
-  gal_data_t *area, *sum, *esum, *proj, *eproj, *oarea, *osum, *oesum;
+  size_t coord[3], minmax[6];
 
   /* Get the coordinates of the spectral tile's starting element, then make
      the tile. */
@@ -122,10 +132,10 @@ parse_spectrum_pepare(struct mkcatalog_passparams *pp, size_t *start_end_inc,
                                                        pp->tile->array,
                                                        p->objects->type),
                                p->objects->ndim, p->objects->dsize, coord);
-  minmax[0]=0;                                   /* Changed to first slice.*/
+  minmax[0]=0;                             /* Changed to first slice.*/
   minmax[1]=coord[1];
   minmax[2]=coord[2];
-  minmax[3]=p->objects->dsize[0]-1;              /* Changed to last slice. */
+  minmax[3]=p->objects->dsize[0]-1;        /* Changed to last slice. */
   minmax[4]=coord[1]+pp->tile->dsize[1]-1;
   minmax[5]=coord[2]+pp->tile->dsize[2]-1;
   spectile=gal_tile_series_from_minmax(p->objects, minmax, 1);
@@ -140,54 +150,6 @@ parse_spectrum_pepare(struct mkcatalog_passparams *pp, size_t *start_end_inc,
                      : NULL )
                  : NULL );
 
-  /* Allocate the columns. */
-  area  = gal_data_alloc(NULL, GAL_TYPE_UINT32, 1, &numslices, NULL, 1,
-                         p->cp.minmapsize, p->cp.quietmmap, "AREA",
-                         "counter", "Area of object in a slice");
-  sum   = gal_data_alloc(NULL, GAL_TYPE_FLOAT64, 1, &numslices, NULL, 1,
-                         p->cp.minmapsize, p->cp.quietmmap, "SUM",
-                         p->values->unit, "Sum of values with this label.");
-  esum  = gal_data_alloc(NULL, GAL_TYPE_FLOAT64, 1, &numslices, NULL, 1,
-                         p->cp.minmapsize, p->cp.quietmmap, "SUM_ERR",
-                         p->values->unit, "Error in SUM column.");
-  proj  = gal_data_alloc(NULL, GAL_TYPE_FLOAT64, 1, &numslices, NULL, 1,
-                         p->cp.minmapsize, p->cp.quietmmap, "SUM_PROJECTED",
-                         p->values->unit, "Sum of full projected 2D area on "
-                         "a slice.");
-  eproj = gal_data_alloc(NULL, GAL_TYPE_FLOAT64, 1, &numslices, NULL, 1,
-                         p->cp.minmapsize, p->cp.quietmmap, "SUM_PROJECTED_ERR",
-                         p->values->unit, "Error in SUM_PROJECTED column.");
-  oarea = gal_data_alloc(NULL, GAL_TYPE_UINT32, 1, &numslices, NULL, 1,
-                         p->cp.minmapsize, p->cp.quietmmap, "AREA_OTHER",
-                         "counter", "Area covered by other labels in a slice.");
-  osum  = gal_data_alloc(NULL, GAL_TYPE_FLOAT64, 1, &numslices, NULL, 1,
-                         p->cp.minmapsize, p->cp.quietmmap, "SUM_OTHER",
-                         p->values->unit, "Sum of values in other labels on "
-                         "a slice.");
-  oesum = gal_data_alloc(NULL, GAL_TYPE_FLOAT64, 1, &numslices, NULL, 1,
-                         p->cp.minmapsize, p->cp.quietmmap, "SUM_OTHER_ERR",
-                         p->values->unit, "Error in SUM_OTHER column.");
-
-  /* Fill up the contents of the first element (note that the first
-     'gal_data_t' is actually in an array, so the skeleton is already
-     allocated, we just have to allocate its contents. */
-  gal_data_initialize(pp->spectrum, NULL, p->specsliceinfo->type, 1,
-                      &numslices, NULL, 0, p->cp.minmapsize,
-                      p->cp.quietmmap, NULL, NULL, NULL);
-  gal_data_copy_to_allocated(p->specsliceinfo, pp->spectrum);
-  pp->spectrum->next=gal_data_copy(p->specsliceinfo->next);
-
-
-  /* Add all the other columns in the final spectrum table. */
-  pp->spectrum->next->next                       = area;
-  area->next                                     = sum;
-  area->next->next                               = esum;
-  area->next->next->next                         = proj;
-  area->next->next->next->next                   = eproj;
-  area->next->next->next->next->next             = oarea;
-  area->next->next->next->next->next->next       = osum;
-  area->next->next->next->next->next->next->next = oesum;
-
   /* Clean up and return. */
   tsize=spectile->dsize;
   spectile->dsize=NULL;
@@ -199,134 +161,49 @@ parse_spectrum_pepare(struct mkcatalog_passparams *pp, size_t *start_end_inc,
 
 
 
-/* Since spectra will be a large table for many objects, it is very
-   important to not consume too much space in for columns that don't need
-   it. This function will check the integer columns and if they are smaller
-   than the maximum values of smaller types, */
 static void
-parse_spectrum_uint32_to_best_type(gal_data_t **input)
-{
-  gal_data_t *tmp=gal_statistics_maximum(*input);
-
-  /* If maximum is smaller than UINT8_MAX, convert it to uint8_t */
-  if( *(uint32_t *)(tmp->array) < UINT8_MAX )
-    *input = gal_data_copy_to_new_type_free(*input, GAL_TYPE_UINT8);
-
-  /* otherwise, if it is smaller than UINT16_MAX, convert it to uint16_t */
-  else if( *(uint32_t *)(tmp->array)      < UINT16_MAX )
-    *input = gal_data_copy_to_new_type_free(*input, GAL_TYPE_UINT16);
-
-  /* Clean up. */
-  gal_data_free(tmp);
-}
-
-
-
-
-
-static void
-parse_spectrum_end(struct mkcatalog_passparams *pp, gal_data_t *xybin)
-{
-  size_t i;
-  double *searr, *pearr, *osearr;
-  struct mkcatalogparams *p=pp->p;
-
-  /* The datasets and their pointers. */
-  gal_data_t *area  = pp->spectrum->next->next;
-  gal_data_t *sum   = area->next;
-  gal_data_t *esum  = area->next->next;
-  gal_data_t *proj  = area->next->next->next;
-  gal_data_t *eproj = area->next->next->next->next;
-  gal_data_t *oarea = area->next->next->next->next->next;
-  gal_data_t *osum  = area->next->next->next->next->next->next;
-  gal_data_t *oesum = area->next->next->next->next->next->next->next;
-
-  /* Apply corrections to the columns that need it. */
-  searr  = esum->array;
-  pearr  = eproj->array;
-  osearr = oesum->array;
-  for(i=0; i<p->objects->dsize[0]; ++i)
-    {
-      searr[i]  = sqrt( searr[i]  );
-      pearr[i]  = sqrt( pearr[i]  );
-      osearr[i] = sqrt( osearr[i] );
-    }
-
-  /* Convert the 'double' type columns to 'float'. The extra precision of
-     'double' was necessary when we were summing values in each slice. But
-     afterwards, it is not necessary at all (the measurement error is much
-     larger than a double-precision floating point number (15
-     decimals). But the extra space gained (double) is very useful in not
-     wasting too much memory and hard-disk space or online transfer time.*/
-  sum   = gal_data_copy_to_new_type_free(sum,   GAL_TYPE_FLOAT32);
-  esum  = gal_data_copy_to_new_type_free(esum,  GAL_TYPE_FLOAT32);
-  proj  = gal_data_copy_to_new_type_free(proj,  GAL_TYPE_FLOAT32);
-  eproj = gal_data_copy_to_new_type_free(eproj, GAL_TYPE_FLOAT32);
-  osum  = gal_data_copy_to_new_type_free(osum,  GAL_TYPE_FLOAT32);
-  oesum = gal_data_copy_to_new_type_free(oesum, GAL_TYPE_FLOAT32);
-
-  /* For the two area columns, find their maximum value and convert the
-     dataset to the smallest type that can hold them. */
-  parse_spectrum_uint32_to_best_type(&area);
-  parse_spectrum_uint32_to_best_type(&oarea);
-
-  /* List the datasets and write them into the pointer for this object
-     (exact copy of the statement in 'parse_spectrum_pepare'). */
-  pp->spectrum->next->next                       = area;
-  area->next                                     = sum;
-  area->next->next                               = esum;
-  area->next->next->next                         = proj;
-  area->next->next->next->next                   = eproj;
-  area->next->next->next->next->next             = oarea;
-  area->next->next->next->next->next->next       = osum;
-  area->next->next->next->next->next->next->next = oesum;
-}
-
-
-
-
-/* Each spectrum is a multi-column table (note that the slice counter and
-   wavelength are written in the end):
-
-     Column 3:  Number of object pixels.
-     Column 4:  Sum of object pixel values.
-     Column 5:  Error in Column 2.
-     Column 6:  Sum over all 2D projection over whole specturm.
-     Column 7:  Error in Column 4.
-     Column 8:  Area of other labels in this slice.
-     Column 9:  Flux by other objects in projected area.
-     Column 10: Error in Column 9.
- */
-static void
-parse_spectrum(struct mkcatalog_passparams *pp, gal_data_t *xybin)
+parse_vector_dim3(struct mkcatalog_passparams *pp, gal_data_t *xybin)
 {
   struct mkcatalogparams *p=pp->p;
 
-  gal_data_t *area;
-  float *st_v, *st_std;
-  uint32_t *narr, *oarr;
-  size_t nproj=0, *tsize, start_end_inc[2];
+  double var;
+  int needsvar;
+  gal_data_t *vector=pp->vector;
+  float *std=p->std?p->std->array:NULL;
+  size_t c[3], *dsize=p->objects->dsize;
+  size_t sind=0, pind=0, num_increment=1;
   uint8_t *xybinarr = xybin ? xybin->array : NULL;
-  int32_t *O, *OO, *st_o, *objarr=p->objects->array;
-  size_t tid, *dsize=p->objects->dsize, num_increment=1;
-  double var, *sarr, *searr, *parr, *pearr, *osarr, *osearr;
-  size_t increment=0, pind=0, sind=0, ndim=p->objects->ndim, c[3];
-  float st, sval, *V=NULL, *ST=NULL, *std=p->std?p->std->array:NULL;
+  float st, sval, *st_v, *st_std, *V=NULL, *ST=NULL;
+  int32_t *st_o, *O, *OO, *objarr=p->objects->array;
+  size_t tid, *tsize, increment=0, start_end_inc[2], ndim=p->objects->ndim;
 
-  /* Prepare the columns to write in. */
-  tsize  = parse_spectrum_pepare(pp, start_end_inc, &st_o, &st_v, &st_std);
-  area   = pp->spectrum->next->next;
-  narr   = area->array;
-  sarr   = area->next->array;
-  searr  = area->next->next->array;
-  parr   = area->next->next->next->array;
-  pearr  = area->next->next->next->next->array;
-  oarr   = area->next->next->next->next->next->array;
-  osarr  = area->next->next->next->next->next->next->array;
-  osearr = area->next->next->next->next->next->next->next->array;
+  /* Pointers to necessary temporary arrays (they will be NULL if they are
+     not necessary for the user). */
+  double  *suminslice         = vector[ VEC_SUMINSLICE         ].array;
+  double  *sumvarinslice      = vector[ VEC_SUMVARINSLICE      ].array;
+  double  *sumprojinslice     = vector[ VEC_SUMPROJINSLICE     ].array;
+  double  *sumprojvarinslice  = vector[ VEC_SUMPROJVARINSLICE  ].array;
+  double  *sumotherinslice    = vector[ VEC_SUMOTHERINSLICE    ].array;
+  double  *sumothervarinslice = vector[ VEC_SUMOTHERVARINSLICE ].array;
+  int32_t *numinslice         = vector[ VEC_NUMINSLICE         ].array;
+  int32_t *numallinslice      = vector[ VEC_NUMALLINSLICE      ].array;
+  int32_t *numprojinslice     = vector[ VEC_NUMPROJINSLICE     ].array;
+  int32_t *numotherinslice    = vector[ VEC_NUMOTHERINSLICE    ].array;
+  int32_t *numallotherinslice = vector[ VEC_NUMALLOTHERINSLICE ].array;
 
-  /* If tile-id isn't necessary, set 'tid' to a blank value. */
-  tid = (p->std && p->std->size>1 && st_std == NULL) ? 0 : GAL_BLANK_SIZE_T;
+  /* Prepare the parsing information. Also, if tile-id isn't necessary, set
+     'tid' to a blank value to cause a crash with a mistake. */
+  tsize=parse_vector_dim3_prepare(pp, start_end_inc, &st_o, &st_v, &st_std);
+  tid = (p->std && p->std->size>1 && st_std == NULL)?0:GAL_BLANK_SIZE_T;
+
+  /* Check if we need the variance. */
+  needsvar = ( sumvarinslice || sumprojvarinslice || sumothervarinslice
+               ? 1 : 0 );
+  if(needsvar && p->std==NULL)
+    error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at '%s' to fix "
+          "the problem. The requested column requires a variance "
+          "estimation, but the input standard deviation image is NULL",
+          __func__, PACKAGE_BUGREPORT);
 
   /* Parse each contiguous patch of memory covered by this object. */
   while( start_end_inc[0] + increment <= start_end_inc[1] )
@@ -337,21 +214,27 @@ parse_spectrum(struct mkcatalog_passparams *pp, gal_data_t *xybin)
       if( p->std && st_std ) ST = st_std + increment;
       OO = ( O = st_o + increment ) + pp->tile->dsize[ndim-1];
 
-      /* Parse the tile. */
+      /* Parse the "tile" for this label. */
       do
         {
-          /* Only continue if this voxel is useful: it isn't NaN, or its
-             covered by the projected area or object's label. */
-          if( !isnan(*V) && (xybin && xybinarr[pind]==2) )
+          /* Counters that don't depend on value. */
+          if(numallinslice) ++numallinslice[sind];
+          if(*O!=pp->object && numallotherinslice)
+            ++numallotherinslice[sind];
+
+          /* Only continue if this voxel is on a label and is useful (it
+             isn't NaN). */
+          if( !isnan(*V) )
             {
-              /* Get the error in measuing this pixel's flux. */
-              if(p->std)
+              /* Variance of this voxel (if necessary) */
+              if(needsvar)
                 {
                   /* If the standard deviation is given on a tile
                      structure, estimate the tile ID. */
                   if(tid != GAL_BLANK_SIZE_T)
                     {
-                      gal_dimension_index_to_coord(O-objarr, ndim, dsize, c);
+                      gal_dimension_index_to_coord(O-objarr, ndim, dsize,
+                                                   c);
                       tid=gal_tile_full_id_from_coord(&p->cp.tl, c);
                     }
 
@@ -364,34 +247,35 @@ parse_spectrum(struct mkcatalog_passparams *pp, gal_data_t *xybin)
                 }
               else var = NAN;
 
-
-              /* Projected spectra: see if we have a value of '2' in the
-                 'xybin' array (showing that there is atleast one non-blank
-                 element there over the whole spectrum.  */
-              ++nproj;
-              parr [ sind ] += *V;
-              pearr[ sind ] += var;
-
-              /* Calculate the number of labeled/detected pixels that
-                 don't belong to this object. */
-              if(*O>0)
+              /* Only on this label. */
+              if(*O==pp->object) /* We are on this object. */
                 {
-                  if(*O==pp->object)
+                  if(numinslice)  ++numinslice[sind];
+                  if(suminslice)    suminslice[sind]    += *V;
+                  if(sumvarinslice) sumvarinslice[sind] += var;
+                }
+
+              /* Projected measurements: see if we have a value of '2' in
+                 the 'xybin' array (showing that there is atleast one
+                 non-blank element there over the whole spectrum.  */
+              if(xybin && xybinarr[pind]==2)
+                {
+                  /* Raw measurements over the projection. */
+                  if(numprojinslice)  ++numprojinslice[sind];
+                  if(sumprojinslice)    sumprojinslice[sind]    += *V;
+                  if(sumprojvarinslice) sumprojvarinslice[sind] += var;
+
+                  /* Other labels over this projection. */
+                  if(*O!=pp->object)
                     {
-                      ++narr[ sind ];
-                      sarr  [ sind ] += *V;
-                      searr [ sind ] += var;
-                    }
-                  else
-                    {
-                      ++oarr [ sind ];
-                      osarr  [ sind ] += *V;
-                      osearr [ sind ] += var;
+                      if(numotherinslice) ++numotherinslice[sind];
+                      if(sumotherinslice)   sumotherinslice[sind]   += *V;
+                      if(sumothervarinslice)sumothervarinslice[sind]+=var;
                     }
                 }
             }
 
-          /* Increment the pointers. */
+          /* Values used, increment the pointrs for next voxel. */
           if( xybin            ) ++pind;
           if( p->values        ) ++V;
           if( p->std && st_std ) ++ST;
@@ -402,31 +286,31 @@ parse_spectrum(struct mkcatalog_passparams *pp, gal_data_t *xybin)
       increment += ( gal_tile_block_increment(p->objects, tsize,
                                               num_increment++, NULL) );
 
-      /* Increment the slice number, 'sind', and reset the projection (2D)
-         index 'pind' if we have just finished parsing a slice. */
+      /* If we have reached the end of one slice, increment the slice index
+         ('sind'), and reset the projection (2D) index 'pind' if we have
+         just finished parsing a slice. Also, set all the sum values
+         that didn't have any measurement to NAN. */
       if( (num_increment-1)%pp->tile->dsize[1]==0 )
         {
           /* If there was no measurement, set NaN for the values and their
              errors (zero is meaningful). */
-          if( nproj      ==0 ) parr[sind]  = pearr[sind]  = NAN;
-          if( narr[sind] ==0 ) sarr[sind]  = searr[sind]  = NAN;
-          if( oarr[sind] ==0 ) osarr[sind] = osearr[sind] = NAN;
+          if(numinslice && numinslice[sind]==0)
+            suminslice[sind]=NAN;
+          if(numprojinslice && numprojinslice[sind]==0)
+            sumprojinslice[sind]=NAN;
+          if(numotherinslice && numotherinslice[sind]==0)
+            sumotherinslice[sind]=NAN;
 
-          nproj=pind=0;
+          /* Set the projection-index to zero (since it counts on each
+             slice), and increment the slice-index. */
+          pind=0;
           ++sind;
         }
     }
 
-  /* Finalize the spectrum generation and clean up. */
-  parse_spectrum_end(pp, xybin);
+  /* Clean up and return. */
   free(tsize);
-
-  /* For a check.
-  gal_table_write(pp->spectrum, NULL, NULL, GAL_TABLE_FORMAT_BFITS,
-                  "spectrum.fits", "SPECTRUM", 0);
-  */
 }
-
 
 
 
@@ -462,21 +346,21 @@ parse_objects(struct mkcatalog_passparams *pp)
   /* If any coordinate columns are requested. */
   size_t *c = (
                /* Coordinate-related columns. */
-               ( oif[    OCOL_GX    ]
-                 || oif[ OCOL_GY    ]
-                 || oif[ OCOL_GZ    ]
-                 || oif[ OCOL_VX    ]
-                 || oif[ OCOL_VY    ]
-                 || oif[ OCOL_VZ    ]
-                 || oif[ OCOL_C_GX  ]
-                 || oif[ OCOL_C_GY  ]
-                 || oif[ OCOL_C_GZ  ]
-                 || oif[ OCOL_MINVX ]
-                 || oif[ OCOL_MAXVX ]
-                 || oif[ OCOL_MINVY ]
-                 || oif[ OCOL_MAXVY ]
-                 || oif[ OCOL_MINVZ ]
-                 || oif[ OCOL_MAXVZ ]
+               ( oif[    OCOL_GX      ]
+                 || oif[ OCOL_GY      ]
+                 || oif[ OCOL_GZ      ]
+                 || oif[ OCOL_VX      ]
+                 || oif[ OCOL_VY      ]
+                 || oif[ OCOL_VZ      ]
+                 || oif[ OCOL_C_GX    ]
+                 || oif[ OCOL_C_GY    ]
+                 || oif[ OCOL_C_GZ    ]
+                 || oif[ OCOL_MINVX   ]
+                 || oif[ OCOL_MAXVX   ]
+                 || oif[ OCOL_MINVY   ]
+                 || oif[ OCOL_MAXVY   ]
+                 || oif[ OCOL_MINVZ   ]
+                 || oif[ OCOL_MAXVZ   ]
                  || oif[ OCOL_MINVNUM ]
                  || oif[ OCOL_MAXVNUM ]
                  || sc
@@ -484,14 +368,21 @@ parse_objects(struct mkcatalog_passparams *pp)
                     the coordinate to find which tile a pixel belongs
                     to. */
                  || tid==GAL_BLANK_SIZE_T )
-               ? gal_pointer_allocate(GAL_TYPE_SIZE_T, ndim, 0, __func__, "c")
+               ? gal_pointer_allocate(GAL_TYPE_SIZE_T, ndim, 0, __func__,
+                                      "c")
                : NULL );
 
-  /* If an XY projection area is necessary, we'll need to allocate an array
-     to keep the projected space. */
-  if( p->spectrum
-      || oif[ OCOL_NUMALLXY ]
-      || oif[ OCOL_NUMXY    ] )
+  /* If any of the projection measurements are necessary, we need to
+     allocate an array to keep the projected space. */
+  if(    oif[ OCOL_NUMALLXY           ]
+      || oif[ OCOL_NUMXY              ]
+      || oif[ OCOL_SUMPROJINSLICE     ]
+      || oif[ OCOL_NUMPROJINSLICE     ]
+      || oif[ OCOL_SUMPROJVARINSLICE  ]
+      || oif[ OCOL_NUMOTHERINSLICE    ]
+      || oif[ OCOL_SUMOTHERINSLICE    ]
+      || oif[ OCOL_SUMOTHERVARINSLICE ]
+      || oif[ OCOL_NUMALLOTHERINSLICE ] )
     {
       xybin=gal_data_alloc(NULL, GAL_TYPE_UINT8, 2, &tsize[1], NULL,
                            1, p->cp.minmapsize, p->cp.quietmmap,
@@ -520,7 +411,7 @@ parse_objects(struct mkcatalog_passparams *pp)
               /* INTERNAL: Get the number of clumps in this object: it is
                  the largest clump ID over each object. */
               if( p->clumps && *C>0 )
-                pp->clumpsinobj = *C > pp->clumpsinobj ? *C : pp->clumpsinobj;
+                pp->clumpsinobj = *C > pp->clumpsinobj?*C:pp->clumpsinobj;
 
 
               /* Add to the area of this object. */
@@ -546,9 +437,9 @@ parse_objects(struct mkcatalog_passparams *pp)
                   if(pp->shift)
                     {
                       /* Calculate the shifted coordinates for second order
-                         calculations. The coordinate is incremented because
-                         from now on, the positions are in the FITS standard
-                         (starting from one).  */
+                         calculations. The coordinate is incremented
+                         because from now on, the positions are in the FITS
+                         standard (starting from one).  */
                       for(d=0;d<ndim;++d) sc[d] = c[d] + 1 - pp->shift[d];
 
                       /* Include the shifted values, note that the second
@@ -562,9 +453,9 @@ parse_objects(struct mkcatalog_passparams *pp)
                   if(p->clumps && *C>0)
                     {
                       if(oif[ OCOL_C_NUMALL ]) oi[ OCOL_C_NUMALL ]++;
-                      if(oif[ OCOL_C_GX ]) oi[ OCOL_C_GX ] += c[ ndim-1 ]+1;
-                      if(oif[ OCOL_C_GY ]) oi[ OCOL_C_GY ] += c[ ndim-2 ]+1;
-                      if(oif[ OCOL_C_GZ ]) oi[ OCOL_C_GZ ] += c[ ndim-3 ]+1;
+                      if(oif[ OCOL_C_GX ]) oi[ OCOL_C_GX ] += c[ndim-1]+1;
+                      if(oif[ OCOL_C_GY ]) oi[ OCOL_C_GY ] += c[ndim-2]+1;
+                      if(oif[ OCOL_C_GZ ]) oi[ OCOL_C_GZ ] += c[ndim-3]+1;
                     }
                 }
 
@@ -602,16 +493,16 @@ parse_objects(struct mkcatalog_passparams *pp)
                         {
                           minima_v = *V;
                           oi[ OCOL_MINVNUM ]=1;
-                          if(oif[OCOL_MINVX]) oi[ OCOL_MINVX ] = c[ ndim-1 ]+1;
-                          if(oif[OCOL_MINVY]) oi[ OCOL_MINVY ] = c[ ndim-2 ]+1;
-                          if(oif[OCOL_MINVZ]) oi[ OCOL_MINVZ ] = c[ ndim-3 ]+1;
+                          if(oif[OCOL_MINVX])oi[OCOL_MINVX]=c[ndim-1]+1;
+                          if(oif[OCOL_MINVY])oi[OCOL_MINVY]=c[ndim-2]+1;
+                          if(oif[OCOL_MINVZ])oi[OCOL_MINVZ]=c[ndim-3]+1;
                         }
                       else
                         {
                           oi[ OCOL_MINVNUM ]++;
-                          if(oif[OCOL_MINVX]) oi[ OCOL_MINVX ] += c[ ndim-1 ]+1;
-                          if(oif[OCOL_MINVY]) oi[ OCOL_MINVY ] += c[ ndim-2 ]+1;
-                          if(oif[OCOL_MINVZ]) oi[ OCOL_MINVZ ] += c[ ndim-3 ]+1;
+                          if(oif[OCOL_MINVX])oi[OCOL_MINVX]+=c[ndim-1]+1;
+                          if(oif[OCOL_MINVY])oi[OCOL_MINVY]+=c[ndim-2]+1;
+                          if(oif[OCOL_MINVZ])oi[OCOL_MINVZ]+=c[ndim-3]+1;
                         }
                     }
                   if( oif[ OCOL_MAXVNUM ] && *V>=maxima_v )
@@ -620,16 +511,16 @@ parse_objects(struct mkcatalog_passparams *pp)
                         {
                           maxima_v = *V;
                           oi[ OCOL_MAXVNUM ]=1;
-                          if(oif[OCOL_MAXVX]) oi[ OCOL_MAXVX ] = c[ ndim-1 ]+1;
-                          if(oif[OCOL_MAXVY]) oi[ OCOL_MAXVY ] = c[ ndim-2 ]+1;
-                          if(oif[OCOL_MAXVZ]) oi[ OCOL_MAXVZ ] = c[ ndim-3 ]+1;
+                          if(oif[OCOL_MAXVX])oi[OCOL_MAXVX]=c[ndim-1]+1;
+                          if(oif[OCOL_MAXVY])oi[OCOL_MAXVY]=c[ndim-2]+1;
+                          if(oif[OCOL_MAXVZ])oi[OCOL_MAXVZ]=c[ndim-3]+1;
                         }
                       else
                         {
                           oi[ OCOL_MAXVNUM ]++;
-                          if(oif[OCOL_MAXVX]) oi[ OCOL_MAXVX ] += c[ ndim-1 ]+1;
-                          if(oif[OCOL_MAXVY]) oi[ OCOL_MAXVY ] += c[ ndim-2 ]+1;
-                          if(oif[OCOL_MAXVZ]) oi[ OCOL_MAXVZ ] += c[ ndim-3 ]+1;
+                          if(oif[OCOL_MAXVX])oi[OCOL_MAXVX]+=c[ndim-1]+1;
+                          if(oif[OCOL_MAXVY])oi[OCOL_MAXVY]+=c[ndim-2]+1;
+                          if(oif[OCOL_MAXVZ])oi[OCOL_MAXVZ]+=c[ndim-3]+1;
                         }
                     }
 
@@ -639,9 +530,9 @@ parse_objects(struct mkcatalog_passparams *pp)
                     {
                       if(oif[ OCOL_NUMWHT ]) oi[ OCOL_NUMWHT ]++;
                       if(oif[ OCOL_SUMWHT ]) oi[ OCOL_SUMWHT ] += *V;
-                      if(oif[ OCOL_VX ]) oi[ OCOL_VX ] += *V*(c[ ndim-1 ]+1);
-                      if(oif[ OCOL_VY ]) oi[ OCOL_VY ] += *V*(c[ ndim-2 ]+1);
-                      if(oif[ OCOL_VZ ]) oi[ OCOL_VZ ] += *V*(c[ ndim-3 ]+1);
+                      if(oif[ OCOL_VX ]) oi[ OCOL_VX ] += *V*(c[ndim-1]+1);
+                      if(oif[ OCOL_VY ]) oi[ OCOL_VY ] += *V*(c[ndim-2]+1);
+                      if(oif[ OCOL_VZ ]) oi[ OCOL_VZ ] += *V*(c[ndim-3]+1);
                       if(pp->shift)
                         {
                           oi[ OCOL_VXX    ] += *V * sc[1] * sc[1];
@@ -651,7 +542,7 @@ parse_objects(struct mkcatalog_passparams *pp)
                       if(p->clumps && *C>0)
                         {
                           if(oif[ OCOL_C_NUMWHT ]) oi[ OCOL_C_NUMWHT ]++;
-                          if(oif[ OCOL_C_SUMWHT ]) oi[ OCOL_C_SUMWHT ] += *V;
+                          if(oif[ OCOL_C_SUMWHT ]) oi[ OCOL_C_SUMWHT ]+=*V;
                           if(oif[ OCOL_C_VX ])
                             oi[   OCOL_C_VX ] += *V * (c[ ndim-1 ]+1);
                           if(oif[ OCOL_C_VY ])
@@ -667,10 +558,10 @@ parse_objects(struct mkcatalog_passparams *pp)
               if(p->sky && oif[ OCOL_SUMSKY ])
                 {
                   skyval = ( pp->st_sky
-                             ? (isnan(*SK)?0:*SK)               /* Full array  */
+                             ? (isnan(*SK)?0:*SK)        /* Full array  */
                              : ( p->sky->size>1
-                                 ? (isnan(sky[tid])?0:sky[tid]) /* Tile        */
-                                 : sky[0] ) );                  /* Single value*/
+                                 ? (isnan(sky[tid])?0:sky[tid]) /* Tile */
+                                 : sky[0] ) );           /* Single value*/
                   if(!isnan(skyval))
                     {
                       oi[ OCOL_NUMSKY  ]++;
@@ -682,8 +573,9 @@ parse_objects(struct mkcatalog_passparams *pp)
               /* Sky standard deviation based measurements.*/
               if(p->std)
                 {
-                  /* Calculate the variance and save it in the output if necessary. */
-                  sval = pp->st_std ? *ST : (p->std->size>1?std[tid]:std[0]);
+                  /* Calculate the variance and save it in the output if
+                     necessary. */
+                  sval=pp->st_std ? *ST : (p->std->size>1?std[tid]:std[0]);
                   var = p->variance ? sval : sval*sval;
                   if(oif[ OCOL_SUMVAR ] && (!isnan(var)))
                     {
@@ -746,17 +638,26 @@ parse_objects(struct mkcatalog_passparams *pp)
       while(++u<uf);
 
       /* For a check on the projected 2D areas.
-      if(xybin && pp->object==2)
+      if(xybin && pp->object==1)
         {
           gal_fits_img_write(xybin, "xybin.fits", NULL, NULL);
-          exit(0);
+          printf("Created 'xybin.fits'\n"); exit(0);
         }
       */
     }
 
   /* Generate the Spectrum. */
-  if(p->spectrum)
-    parse_spectrum(pp, xybin);
+  if(    oif[ OCOL_SUMINSLICE         ]
+      || oif[ OCOL_NUMINSLICE         ]
+      || oif[ OCOL_NUMALLINSLICE      ]
+      || oif[ OCOL_SUMVARINSLICE      ]
+      || oif[ OCOL_SUMPROJINSLICE     ]
+      || oif[ OCOL_NUMOTHERINSLICE    ]
+      || oif[ OCOL_SUMOTHERINSLICE    ]
+      || oif[ OCOL_SUMPROJVARINSLICE  ]
+      || oif[ OCOL_SUMOTHERVARINSLICE ]
+      || oif[ OCOL_NUMALLOTHERINSLICE ])
+    parse_vector_dim3(pp, xybin);
 
   /* Clean up. */
   if(c)     free(c);
@@ -841,8 +742,8 @@ parse_clumps(struct mkcatalog_passparams *pp)
 
   /* Coordinate shift. */
   size_t *sc = ( pp->shift
-                 ? gal_pointer_allocate(GAL_TYPE_SIZE_T, ndim, 0, __func__,
-                                        "sc")
+                 ? gal_pointer_allocate(GAL_TYPE_SIZE_T, ndim, 0,
+                                        __func__, "sc")
                  : NULL );
 
   /* If any coordinate columns are requested. */
@@ -868,8 +769,8 @@ parse_clumps(struct mkcatalog_passparams *pp)
                   || cif[ CCOL_MAXVNUM ]
                   || sc
                   || tid==GAL_BLANK_SIZE_T )
-                ? gal_pointer_allocate(GAL_TYPE_SIZE_T, ndim, 0, __func__,
-                                       "c")
+                ? gal_pointer_allocate(GAL_TYPE_SIZE_T, ndim, 0,
+                                       __func__, "c")
                 : NULL );
 
   /* Preparations for neighbor parsing. */
@@ -940,7 +841,8 @@ parse_clumps(struct mkcatalog_passparams *pp)
                   if(c)
                     {
                       /* Get "C" the coordinates of this point. */
-                      gal_dimension_index_to_coord(O-objects, ndim, dsize, c);
+                      gal_dimension_index_to_coord(O-objects, ndim,
+                                                   dsize, c);
 
                       /* Position extrema measurements. */
                       if(cif[ CCOL_MINX ])
@@ -969,7 +871,7 @@ parse_clumps(struct mkcatalog_passparams *pp)
                         {
                           /* Shifted coordinates for second order moments,
                              see explanations in the first pass.*/
-                          for(d=0;d<ndim;++d) sc[d] = c[d] + 1 - pp->shift[d];
+                          for(d=0;d<ndim;++d) sc[d] = c[d]+1-pp->shift[d];
 
                           /* Raw second-order measurements. */
                           ci[ CCOL_GXX ] += sc[1] * sc[1];
@@ -1000,16 +902,22 @@ parse_clumps(struct mkcatalog_passparams *pp)
                             {
                               minima_v[cind] = *V;
                               ci[ CCOL_MINVNUM ]=1;
-                              if(cif[CCOL_MINVX]) ci[ CCOL_MINVX ] = c[ ndim-1 ]+1;
-                              if(cif[CCOL_MINVY]) ci[ CCOL_MINVY ] = c[ ndim-2 ]+1;
-                              if(cif[CCOL_MINVZ]) ci[ CCOL_MINVZ ] = c[ ndim-3 ]+1;
+                              if(cif[CCOL_MINVX])
+                                ci[ CCOL_MINVX ] = c[ ndim-1 ]+1;
+                              if(cif[CCOL_MINVY])
+                                ci[ CCOL_MINVY ] = c[ ndim-2 ]+1;
+                              if(cif[CCOL_MINVZ])
+                                ci[ CCOL_MINVZ ] = c[ ndim-3 ]+1;
                             }
                           else
                             {
                               ci[ CCOL_MINVNUM ]++;
-                              if(cif[CCOL_MINVX]) ci[ CCOL_MINVX ] += c[ ndim-1 ]+1;
-                              if(cif[CCOL_MINVY]) ci[ CCOL_MINVY ] += c[ ndim-2 ]+1;
-                              if(cif[CCOL_MINVZ]) ci[ CCOL_MINVZ ] += c[ ndim-3 ]+1;
+                              if(cif[CCOL_MINVX])
+                                ci[  CCOL_MINVX ] += c[ ndim-1 ]+1;
+                              if(cif[CCOL_MINVY])
+                                ci[  CCOL_MINVY ] += c[ ndim-2 ]+1;
+                              if(cif[CCOL_MINVZ])
+                                ci[  CCOL_MINVZ ] += c[ ndim-3 ]+1;
                             }
                         }
                       if( cif[ CCOL_MAXVNUM ] && *V>=maxima_v[cind] )
@@ -1018,16 +926,22 @@ parse_clumps(struct mkcatalog_passparams *pp)
                             {
                               maxima_v[cind] = *V;
                               ci[ CCOL_MAXVNUM ]=1;
-                              if(cif[CCOL_MAXVX]) ci[ CCOL_MAXVX ] = c[ ndim-1 ]+1;
-                              if(cif[CCOL_MAXVY]) ci[ CCOL_MAXVY ] = c[ ndim-2 ]+1;
-                              if(cif[CCOL_MAXVZ]) ci[ CCOL_MAXVZ ] = c[ ndim-3 ]+1;
+                              if(cif[CCOL_MAXVX])
+                                ci[  CCOL_MAXVX ] = c[ ndim-1 ]+1;
+                              if(cif[CCOL_MAXVY])
+                                ci[  CCOL_MAXVY ] = c[ ndim-2 ]+1;
+                              if(cif[CCOL_MAXVZ])
+                                ci[  CCOL_MAXVZ ] = c[ ndim-3 ]+1;
                             }
                           else
                             {
                               ci[ CCOL_MAXVNUM ]++;
-                              if(cif[CCOL_MAXVX]) ci[ CCOL_MAXVX ] += c[ ndim-1 ]+1;
-                              if(cif[CCOL_MAXVY]) ci[ CCOL_MAXVY ] += c[ ndim-2 ]+1;
-                              if(cif[CCOL_MAXVZ]) ci[ CCOL_MAXVZ ] += c[ ndim-3 ]+1;
+                              if(cif[CCOL_MAXVX])
+                                ci[  CCOL_MAXVX ] += c[ ndim-1 ]+1;
+                              if(cif[CCOL_MAXVY])
+                                ci[  CCOL_MAXVY ] += c[ ndim-2 ]+1;
+                              if(cif[CCOL_MAXVZ])
+                                ci[  CCOL_MAXVZ ] += c[ ndim-3 ]+1;
                             }
                         }
 
@@ -1302,22 +1216,22 @@ parse_area_of_frac_sum(struct mkcatalog_passparams *pp, gal_data_t *values,
       if(flag[ o1c0 ? OCOL_MAXIMUM : CCOL_MAXIMUM ])
         outarr[ o1c0 ? OCOL_MAXIMUM : CCOL_MAXIMUM ] = max;
 
-      /* The number of pixels within half the maximum. */
+      /* Number of pixels within half the maximum. */
       if(flag[ o1c0 ? OCOL_HALFMAXNUM : CCOL_HALFMAXNUM ])
         outarr[ o1c0 ? OCOL_HALFMAXNUM : CCOL_HALFMAXNUM ]
           = parse_frac_find(sorted_d, max, 0.5f, 0);
 
-      /* The number of pixels within the first requested fraction of maximum */
+      /* Number of pixels within the first requested fraction of maximum */
       if(flag[ o1c0 ? OCOL_FRACMAX1NUM : CCOL_FRACMAX1NUM ])
         outarr[ o1c0 ? OCOL_FRACMAX1NUM : CCOL_FRACMAX1NUM ]
           = parse_frac_find(sorted_d, max, fracmax[0], 0);
 
-      /* The number of pixels within the first requested fraction of maximum */
+      /* Number of pixels within the first requested fraction of maximum */
       if(flag[ o1c0 ? OCOL_FRACMAX2NUM : CCOL_FRACMAX2NUM ])
         outarr[ o1c0 ? OCOL_FRACMAX2NUM : CCOL_FRACMAX2NUM ]
           = parse_frac_find(sorted_d, max, fracmax[1], 0);
 
-      /* The sum of the pixels within the given fraction of the maximum. */
+      /* Sum of the pixels within the given fraction of the maximum. */
       if( flag[ o1c0 ? OCOL_HALFMAXSUM : CCOL_HALFMAXSUM ] )
         outarr[ o1c0 ? OCOL_HALFMAXSUM : CCOL_HALFMAXSUM ]
           = parse_frac_sum(sorted_d, max, 0.5f, 0);
@@ -1361,32 +1275,32 @@ parse_order_based(struct mkcatalog_passparams *pp)
      can just write NaN values for the necessary columns. */
   if(tmpsize==0)
     {
-      if(p->oiflag[ OCOL_MEDIAN        ]) pp->oi[ OCOL_MEDIAN       ] = NAN;
-      if(p->oiflag[ OCOL_MAXIMUM       ]) pp->oi[ OCOL_MAXIMUM      ] = NAN;
-      if(p->oiflag[ OCOL_HALFMAXSUM    ]) pp->oi[ OCOL_HALFMAXSUM   ] = NAN;
-      if(p->oiflag[ OCOL_HALFMAXNUM    ]) pp->oi[ OCOL_HALFMAXNUM   ] = 0;
-      if(p->oiflag[ OCOL_HALFSUMNUM    ]) pp->oi[ OCOL_HALFSUMNUM   ] = 0;
-      if(p->oiflag[ OCOL_FRACMAX1NUM   ]) pp->oi[ OCOL_FRACMAX1NUM  ] = 0;
-      if(p->oiflag[ OCOL_FRACMAX2NUM   ]) pp->oi[ OCOL_FRACMAX2NUM  ] = 0;
-      if(p->oiflag[ OCOL_SIGCLIPNUM    ]) pp->oi[ OCOL_SIGCLIPNUM   ] = 0;
-      if(p->oiflag[ OCOL_SIGCLIPSTD    ]) pp->oi[ OCOL_SIGCLIPSTD   ] = 0;
-      if(p->oiflag[ OCOL_SIGCLIPMEAN   ]) pp->oi[ OCOL_SIGCLIPMEAN  ] = NAN;
-      if(p->oiflag[ OCOL_SIGCLIPMEDIAN ]) pp->oi[ OCOL_SIGCLIPMEDIAN] = NAN;
+      if(p->oiflag[OCOL_MEDIAN       ]) pp->oi[ OCOL_MEDIAN       ] = NAN;
+      if(p->oiflag[OCOL_MAXIMUM      ]) pp->oi[ OCOL_MAXIMUM      ] = NAN;
+      if(p->oiflag[OCOL_HALFMAXSUM   ]) pp->oi[ OCOL_HALFMAXSUM   ] = NAN;
+      if(p->oiflag[OCOL_HALFMAXNUM   ]) pp->oi[ OCOL_HALFMAXNUM   ] = 0;
+      if(p->oiflag[OCOL_HALFSUMNUM   ]) pp->oi[ OCOL_HALFSUMNUM   ] = 0;
+      if(p->oiflag[OCOL_FRACMAX1NUM  ]) pp->oi[ OCOL_FRACMAX1NUM  ] = 0;
+      if(p->oiflag[OCOL_FRACMAX2NUM  ]) pp->oi[ OCOL_FRACMAX2NUM  ] = 0;
+      if(p->oiflag[OCOL_SIGCLIPNUM   ]) pp->oi[ OCOL_SIGCLIPNUM   ] = 0;
+      if(p->oiflag[OCOL_SIGCLIPSTD   ]) pp->oi[ OCOL_SIGCLIPSTD   ] = 0;
+      if(p->oiflag[OCOL_SIGCLIPMEAN  ]) pp->oi[ OCOL_SIGCLIPMEAN  ] = NAN;
+      if(p->oiflag[OCOL_SIGCLIPMEDIAN]) pp->oi[ OCOL_SIGCLIPMEDIAN] = NAN;
       if(p->clumps)
         for(i=0;i<pp->clumpsinobj;++i)
           {
             ci=&pp->ci[ i * CCOL_NUMCOLS ];
-            if(p->ciflag[ CCOL_MEDIAN        ]) ci[ CCOL_MEDIAN      ] = NAN;
-            if(p->ciflag[ CCOL_MAXIMUM       ]) ci[ CCOL_MAXIMUM     ] = NAN;
-            if(p->ciflag[ CCOL_HALFMAXSUM    ]) ci[ CCOL_HALFMAXSUM  ] = NAN;
-            if(p->ciflag[ CCOL_HALFMAXNUM    ]) ci[ CCOL_HALFMAXNUM  ] = 0;
-            if(p->ciflag[ CCOL_HALFSUMNUM    ]) ci[ CCOL_HALFSUMNUM  ] = 0;
-            if(p->ciflag[ CCOL_FRACMAX1NUM   ]) ci[ CCOL_FRACMAX1NUM ] = 0;
-            if(p->ciflag[ CCOL_FRACMAX2NUM   ]) ci[ CCOL_FRACMAX2NUM ] = 0;
-            if(p->ciflag[ CCOL_SIGCLIPNUM    ]) ci[ CCOL_SIGCLIPNUM  ] = 0;
-            if(p->ciflag[ CCOL_SIGCLIPSTD    ]) ci[ CCOL_SIGCLIPSTD  ] = 0;
-            if(p->ciflag[ CCOL_SIGCLIPMEAN   ]) ci[ CCOL_SIGCLIPMEAN ] = NAN;
-            if(p->ciflag[ CCOL_SIGCLIPMEDIAN ]) ci[ CCOL_SIGCLIPMEDIAN] = NAN;
+            if(p->ciflag[CCOL_MEDIAN     ])   ci[ CCOL_MEDIAN      ] = NAN;
+            if(p->ciflag[CCOL_MAXIMUM    ])   ci[ CCOL_MAXIMUM     ] = NAN;
+            if(p->ciflag[CCOL_HALFMAXSUM ])   ci[ CCOL_HALFMAXSUM  ] = NAN;
+            if(p->ciflag[CCOL_HALFMAXNUM ])   ci[ CCOL_HALFMAXNUM  ] = 0;
+            if(p->ciflag[CCOL_HALFSUMNUM ])   ci[ CCOL_HALFSUMNUM  ] = 0;
+            if(p->ciflag[CCOL_FRACMAX1NUM])   ci[ CCOL_FRACMAX1NUM ] = 0;
+            if(p->ciflag[CCOL_FRACMAX2NUM])   ci[ CCOL_FRACMAX2NUM ] = 0;
+            if(p->ciflag[CCOL_SIGCLIPNUM ])   ci[ CCOL_SIGCLIPNUM  ] = 0;
+            if(p->ciflag[CCOL_SIGCLIPSTD ])   ci[ CCOL_SIGCLIPSTD  ] = 0;
+            if(p->ciflag[CCOL_SIGCLIPMEAN])   ci[ CCOL_SIGCLIPMEAN ] = NAN;
+            if(p->ciflag[CCOL_SIGCLIPMEDIAN]) ci[ CCOL_SIGCLIPMEDIAN]=NAN;
           }
       return;
     }
@@ -1404,8 +1318,8 @@ parse_order_based(struct mkcatalog_passparams *pp)
       errno=0;
       clumpsvals=malloc(pp->clumpsinobj * sizeof *clumpsvals);
       if(clumpsvals==NULL)
-        error(EXIT_FAILURE, errno, "%s: couldn't allocate 'clumpsvals' for "
-              "%zu clumps", __func__, pp->clumpsinobj);
+        error(EXIT_FAILURE, errno, "%s: couldn't allocate 'clumpsvals' "
+              "for %zu clumps", __func__, pp->clumpsinobj);
 
       /* Allocate the array necessary to keep the values of each clump. */
       ccounter=gal_pointer_allocate(GAL_TYPE_SIZE_T, pp->clumpsinobj, 1,
@@ -1469,7 +1383,8 @@ parse_order_based(struct mkcatalog_passparams *pp)
   /* Calculate the necessary values for the objects. */
   if(p->oiflag[ OCOL_MEDIAN ])
     {
-      result=gal_data_copy_to_new_type_free(gal_statistics_median(objvals, 1),
+      result=gal_data_copy_to_new_type_free(gal_statistics_median(objvals,
+                                                                  1),
                                             GAL_TYPE_FLOAT64);
       pp->oi[OCOL_MEDIAN]=*((double *)(result->array));
       gal_data_free(result);
@@ -1524,9 +1439,11 @@ parse_order_based(struct mkcatalog_passparams *pp)
               if(clumpsvals[i])
                 {
                   result=gal_statistics_median(clumpsvals[i], 1);
-                  result=gal_data_copy_to_new_type_free(result, GAL_TYPE_FLOAT64);
+                  result=gal_data_copy_to_new_type_free(result,
+                                                        GAL_TYPE_FLOAT64);
                   ci[ CCOL_MEDIAN ] = ( *((double *)(result->array))
-                                        - (ci[ CCOL_RIV_SUM ]/ci[ CCOL_RIV_NUM ]) );
+                                        - (   ci[ CCOL_RIV_SUM ]
+                                            / ci[ CCOL_RIV_NUM ]) );
                   gal_data_free(result);
                 }
               else ci[ CCOL_MEDIAN ] = NAN;
@@ -1540,28 +1457,36 @@ parse_order_based(struct mkcatalog_passparams *pp)
             {
               if(clumpsvals[i])
                 {
-                  result=gal_statistics_sigma_clip(clumpsvals[i], p->sigmaclip[0],
+                  result=gal_statistics_sigma_clip(clumpsvals[i],
+                                                   p->sigmaclip[0],
                                                    p->sigmaclip[1], 1, 1);
                   sigcliparr=result->array;
                   if(p->ciflag[ CCOL_SIGCLIPNUM ])
                     ci[CCOL_SIGCLIPNUM]=sigcliparr[0];
                   if(p->ciflag[ CCOL_SIGCLIPSTD ])
                     ci[CCOL_SIGCLIPSTD]=( sigcliparr[3]
-                                          - (ci[ CCOL_RIV_SUM ]/ci[ CCOL_RIV_NUM ]));
+                                          - (   ci[ CCOL_RIV_SUM ]
+                                              / ci[ CCOL_RIV_NUM ]));
                   if(p->ciflag[ CCOL_SIGCLIPMEAN ])
                     ci[CCOL_SIGCLIPMEAN]=( sigcliparr[2]
-                                           - (ci[ CCOL_RIV_SUM ]/ci[ CCOL_RIV_NUM ]));
+                                           - (   ci[ CCOL_RIV_SUM ]
+                                               / ci[ CCOL_RIV_NUM ]));
                   if(p->ciflag[ CCOL_SIGCLIPMEDIAN ])
                     ci[CCOL_SIGCLIPMEDIAN]=( sigcliparr[1]
-                                             - (ci[ CCOL_RIV_SUM ]/ci[ CCOL_RIV_NUM ]));
+                                             - (   ci[ CCOL_RIV_SUM ]
+                                                 / ci[ CCOL_RIV_NUM ]));
                   gal_data_free(result);
                 }
               else
                 {
-                  if(p->ciflag[ CCOL_SIGCLIPNUM    ]) ci[ CCOL_SIGCLIPNUM  ]=NAN;
-                  if(p->ciflag[ CCOL_SIGCLIPSTD    ]) ci[ CCOL_SIGCLIPSTD  ]=NAN;
-                  if(p->ciflag[ CCOL_SIGCLIPMEAN   ]) ci[ CCOL_SIGCLIPMEAN ]=NAN;
-                  if(p->ciflag[ CCOL_SIGCLIPMEDIAN ]) ci[CCOL_SIGCLIPMEDIAN]=NAN;
+                  if(p->ciflag[ CCOL_SIGCLIPNUM    ])
+                    ci[ CCOL_SIGCLIPNUM  ]=NAN;
+                  if(p->ciflag[ CCOL_SIGCLIPSTD    ])
+                    ci[ CCOL_SIGCLIPSTD  ]=NAN;
+                  if(p->ciflag[ CCOL_SIGCLIPMEAN   ])
+                    ci[ CCOL_SIGCLIPMEAN ]=NAN;
+                  if(p->ciflag[ CCOL_SIGCLIPMEDIAN ])
+                    ci[CCOL_SIGCLIPMEDIAN]=NAN;
                 }
             }
 
@@ -1579,14 +1504,14 @@ parse_order_based(struct mkcatalog_passparams *pp)
                 parse_area_of_frac_sum(pp, clumpsvals[i], ci, 0);
               else
                 {
-                  if( p->ciflag[ CCOL_MAXIMUM     ]) ci[ CCOL_MAXIMUM     ]=NAN;
-                  if( p->ciflag[ CCOL_HALFMAXNUM  ]) ci[ CCOL_HALFMAXNUM  ]=NAN;
-                  if( p->ciflag[ CCOL_HALFMAXSUM  ]) ci[ CCOL_HALFMAXSUM  ]=NAN;
-                  if( p->ciflag[ CCOL_HALFSUMNUM  ]) ci[ CCOL_HALFSUMNUM  ]=NAN;
-                  if( p->ciflag[ CCOL_FRACMAX1NUM ]) ci[ CCOL_FRACMAX1NUM ]=NAN;
-                  if( p->ciflag[ CCOL_FRACMAX1SUM ]) ci[ CCOL_FRACMAX1SUM ]=NAN;
-                  if( p->ciflag[ CCOL_FRACMAX2NUM ]) ci[ CCOL_FRACMAX2NUM ]=NAN;
-                  if( p->ciflag[ CCOL_FRACMAX2SUM ]) ci[ CCOL_FRACMAX2SUM ]=NAN;
+                  if(p->ciflag[CCOL_MAXIMUM    ]) ci[CCOL_MAXIMUM    ]=NAN;
+                  if(p->ciflag[CCOL_HALFMAXNUM ]) ci[CCOL_HALFMAXNUM ]=NAN;
+                  if(p->ciflag[CCOL_HALFMAXSUM ]) ci[CCOL_HALFMAXSUM ]=NAN;
+                  if(p->ciflag[CCOL_HALFSUMNUM ]) ci[CCOL_HALFSUMNUM ]=NAN;
+                  if(p->ciflag[CCOL_FRACMAX1NUM]) ci[CCOL_FRACMAX1NUM]=NAN;
+                  if(p->ciflag[CCOL_FRACMAX1SUM]) ci[CCOL_FRACMAX1SUM]=NAN;
+                  if(p->ciflag[CCOL_FRACMAX2NUM]) ci[CCOL_FRACMAX2NUM]=NAN;
+                  if(p->ciflag[CCOL_FRACMAX2SUM]) ci[CCOL_FRACMAX2SUM]=NAN;
                 }
             }
 

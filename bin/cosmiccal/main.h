@@ -59,6 +59,7 @@ struct cosmiccalparams
   double            oradiation; /* Current radiation density.           */
   uint8_t            listlines; /* List the known spectral lines.       */
   uint8_t         listlinesatz; /* List the known spectral lines.       */
+  char *              lineunit; /* Unit of numbers for lines.           */
 
   /* Outputs. */
   gal_list_i32_t     *specific; /* Codes for single row calculations.   */
@@ -66,6 +67,8 @@ struct cosmiccalparams
 
   /* Internal: */
   time_t               rawtime; /* Starting time of the program.        */
+  double        lineunitmultip; /* Multiple for using line units.       */
+  uint8_t           haslineatz; /* A flag for sanity checks.            */
 };
 
 #endif

@@ -23,6 +23,11 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 #ifndef MKCATALOG_H
 #define MKCATALOG_H
 
+
+
+
+
+/* Main structure for parsing individual objects. */
 struct mkcatalog_passparams
 {
   struct mkcatalogparams *p;    /* Main MakeCatalog paramers.           */
@@ -41,7 +46,7 @@ struct mkcatalog_passparams
   gsl_rng              *rng;    /* Random number generator.             */
   size_t    clumpstartindex;    /* Clump starting row in final catalog. */
   gal_data_t       *up_vals;    /* Container for upper-limit values.    */
-  gal_data_t      *spectrum;    /* Spectrum of each object.             */
+  gal_data_t        *vector;    /* Array of datasets for raw vectors.   */
 };
 
 void

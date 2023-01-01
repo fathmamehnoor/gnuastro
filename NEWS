@@ -21,6 +21,11 @@ See the end of the file for license conditions.
      Raul Infante-Sainz, Samane Raji, Zahra Sharbaf, Zohreh Ghaffari.
 
    Book:
+   - New tutorial on detection and spectrum extraction from 3D data has
+     been added in the "Tutorials" chapter. It uses a MUSE cube and
+     demonstrates how to subtract the continuum, run NoiseChisel, Segment
+     and MakeCatalog for obtaining spectra and creating pseudo narrow-band
+     images of emission-lines.
    - New "Shell tips" sub-section added (under the "Command-line" section
      of the "Common program behavior" chapter). This sub-section contains
      useful shell tips and tricks that can be useful when using Gnuastro's
@@ -72,6 +77,15 @@ See the end of the file for license conditions.
      - f32: same as 'float32' (to convert to 32-bit floating point).
      - f64: same as 'float64' (to convert to 64-bit floating point).
 
+   CosmicCalculator:
+   - Spectral line database has been increased to 235 spectral lines in the
+     UV and optical (previously only had 41 lines!) from:
+     http://astronomy.nmsu.edu/drewski/tableofemissionlines.html
+     To see the full list, run 'astcosmiccal --listlines'.
+   --lineunit: allows you to specify the units of the displayed spectral
+     line wavelengths. Currently, it take four units: 'm', 'micron', 'nm'
+     and 'angstrom'. We can add any other unit easily, just let us know.
+
    Crop:
    --append: if the output file already exists, append the cropped image
      HDU to the already existing HDUs of the file. Without this option, any
@@ -98,6 +112,20 @@ See the end of the file for license conditions.
      arcsec^2) of the sigma-clipped standard deviation of the values. This
      can be used to find the reliable surface brightness of a radial
      profile for example.
+   --sum-in-slice: [3D in; vector out] Sum of values in each slice.
+   --sum-err-in-slice: [3D in; vector out] Error in '--suminslice'.
+   --area-in-slice: [3D input; vector out] Number of labeled in each slice.
+   --sum-proj-in-slice: [3D input; vector out] Sum of projected area
+     in each slice.
+   --area-proj-in-slice: [3D in; vector out] Number of voxels that are used
+     in '--sum-proj-in-slice'.
+   --sum-proj-err-in-slice: [3D in; vector out] Error of '--sum-proj-in-slice'.
+   --area-other-in-slice: [3D in; vector out] Area of other label in
+     projected area on each slice.
+   --sum-other-in-slice: [3D in; vector out] Sum of other label in
+     projected area on each slice.
+   --sum-other-err-in-slice: [3D in; vector out] Area in
+     '--sum-other-in-slice'.
 
    NoiseChisel:
    --outliernumngb: the number of neighboring tiles to reject those that
@@ -118,7 +146,7 @@ See the end of the file for license conditions.
    Table:
    - Vector columns with multiple values per column are now supported. The
      following features have been added to help working on vector columns:
-     --Book: a new "Vector columns" section has been added under the Table
+     - Book: a new "Vector columns" section has been added under the Table
        program which descibes the core concepts and usage examples of the
        options below.
      --information: also identifies vector columns (a column with more than
@@ -130,6 +158,10 @@ See the end of the file for license conditions.
        separate single-valued columns.
      --keepvectfin: do not delete the input columns to '--tovector' and
        '--fromvector'.
+   --rowfirst: do row-based operations before column-based operations (by
+     default column-based operations are done first).
+   --transpose: column-based operator to transpose vector columns into a
+     new table that has the inverse number of rows and columns.
    --txteasy: (or '-Y') when output is a plain-text file or just gets
      printed on standard output (terminal), all floating point columns are
      printed in fixed point notation (as in '123.456') instead of the
@@ -139,7 +171,6 @@ See the end of the file for license conditions.
      readability, but be careful with some scenarios (for example
      '1.23e-120', which will show only as '0.0'!). For more, see the
      changes in Table in this version.
-
    - New column arithmetic operator:
      - sorted-to-interval: return two columns from a single (sorted) input,
        containing the minimum and maximum values of an interval. The
@@ -221,6 +252,12 @@ See the end of the file for license conditions.
     pyGnuastro from source, most future users of pyGnuastro will be
     installing pre-built binaries it through services like PyPI, so they
     won't be needing it either.
+
+  CosmicCalculator:
+  - Given the major increase of the spectral line database, the old line
+    names have been changed to accommodate the full database. For example
+    'H-alpha' has replaced 'halpha'. Please run 'astcosmiccal --listlines'
+    to see the new names for the previous lines.
 
   MakeCatalog:
   - "Sum" used instead of "brightness"
@@ -334,6 +371,9 @@ See the end of the file for license conditions.
     changed '--sum' in MakeCatalog (above) for more.
 
   Table:
+  - Given the newly added vector columns, the precedence on operations has
+    been updated. Please read the "Operation precedence in Table" section
+    of the book.
   - To avoid potential loss of information in floating point columns, when
     printing the columns to standard output (in the terminal) or saving in
     a plain-text file, the default floating point formats are now printed
@@ -356,6 +396,8 @@ See the end of the file for license conditions.
   Library:
   - gal_blank_remove_rows: new 'onlydim0' argument to ignore vector columns
     when checking for blanks.
+  - gal_list_str_cat: new 'delimiter' argument to specify the character for
+    printing between the separate string nodes in the single output string.
   - gal_txt_write: new 'tab0_img1' argument. Until now, this function would
     distinguish between images and tables using the dimensions of the
     input. But with the addition of vector columns in tables (that have 2

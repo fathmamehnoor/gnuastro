@@ -86,10 +86,13 @@ outdir=
 # TEST ASTSCRIPTs: if the problem is in the compiled programs used within
 # the script, you have to add a line under the line below
 #    'if [ -f "$utility" ]; then rm "$utility"; fi'
-# that will delete that particualr program.
+# that will delete that particular program.
 utilname=
 arguments=
 options=
+
+
+
 
 
 # RUN THE PROCEDURES

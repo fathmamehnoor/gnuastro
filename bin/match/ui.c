@@ -628,14 +628,15 @@ ui_set_columns_sanity_check_read_aperture(struct matchparams *p)
   if(p->coord || p->kdtreemode==MATCH_KDTREE_BUILD)
     {
       if(p->ccol1==NULL)
-        error(EXIT_FAILURE, 0, "no value given to '--ccol1' (necessary with "
-              "'--coord')");
+        error(EXIT_FAILURE, 0, "no value given to '--ccol1' (necessary "
+              "with '--coord')");
     }
   else
     {
       if(p->ccol1==NULL || p->ccol2==NULL)
-        error(EXIT_FAILURE, 0, "both '--ccol1' and '--ccol2' must be given. "
-              "They specify the columns containing the coordinates to match");
+        error(EXIT_FAILURE, 0, "both '--ccol1' and '--ccol2' must be "
+              "given. They specify the columns containing the "
+              "coordinates to match");
     }
 
   /* Make sure the same number of columns is given to both. Note that a
@@ -661,8 +662,8 @@ ui_set_columns_sanity_check_read_aperture(struct matchparams *p)
       {
       case 1:
         if(p->aperture->size>1)
-          error(EXIT_FAILURE, 0, "%zu values given to '--aperture'. In a 1D "
-                "match, this option can only take one value",
+          error(EXIT_FAILURE, 0, "%zu values given to '--aperture'. In "
+                "a 1D match, this option can only take one value",
                 p->aperture->size);
         break;
 

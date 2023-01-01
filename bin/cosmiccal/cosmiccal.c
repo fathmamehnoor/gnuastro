@@ -203,19 +203,20 @@ cosmiccal(struct cosmiccalparams *p)
               break;
 
             case UI_KEY_ARCSECTANDIST:
-              printf("%f", ( gal_cosmology_angular_distance(p->redshift, p->H0,
-                                                             p->olambda,
-                                                             p->omatter,
-                                                             p->oradiation)
-                              * 1000 * M_PI / 3600 / 180 ) );
+              printf("%f", ( gal_cosmology_angular_distance(p->redshift,
+                                                            p->H0,
+                                                            p->olambda,
+                                                            p->omatter,
+                                                            p->oradiation)
+                             * 1000 * M_PI / 3600 / 180 ) );
               break;
 
             case UI_KEY_LUMINOSITYDIST:
               printf("%f", gal_cosmology_luminosity_distance(p->redshift,
-                                                              p->H0,
-                                                              p->olambda,
-                                                              p->omatter,
-                                                              p->oradiation));
+                                                             p->H0,
+                                                             p->olambda,
+                                                             p->omatter,
+                                                             p->oradiation));
               break;
 
             case UI_KEY_DISTANCEMODULUS:
@@ -240,8 +241,8 @@ cosmiccal(struct cosmiccalparams *p)
             case UI_KEY_LOOKBACKTIME:
               curage=gal_cosmology_age(0.0f, p->H0, p->olambda, p->omatter,
                                        p->oradiation);
-              zage=gal_cosmology_age(p->redshift, p->H0, p->olambda, p->omatter,
-                                     p->oradiation);
+              zage=gal_cosmology_age(p->redshift, p->H0, p->olambda,
+                                     p->omatter, p->oradiation);
               printf("%f", curage-zage);
               break;
 
@@ -264,7 +265,8 @@ cosmiccal(struct cosmiccalparams *p)
               break;
 
             case UI_KEY_LINEATZ:
-              printf("%g", gal_list_f64_pop(&p->specific_arg)*(1+p->redshift));
+              printf("%g", ( gal_list_f64_pop(&p->specific_arg)
+                             * (1+p->redshift) * p->lineunitmultip) );
               break;
 
             default:
@@ -274,7 +276,8 @@ cosmiccal(struct cosmiccalparams *p)
                     PACKAGE_BUGREPORT, tmp->v);
             }
 
-          /* Only add a space-character if there are more results to print. */
+          /* Only add a space-character if there are more results to
+             print. */
           if(tmp->next) printf(" ");
         }
 

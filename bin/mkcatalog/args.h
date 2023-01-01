@@ -259,19 +259,6 @@ struct argp_option program_options[] =
       GAL_OPTIONS_NOT_SET
     },
     {
-      "spectrum",
-      UI_KEY_SPECTRUM,
-      0,
-      0,
-      "Object spectrum for cube (3D) datasets.",
-      GAL_OPTIONS_GROUP_OUTPUT,
-      &p->spectrum,
-      GAL_OPTIONS_NO_ARG_TYPE,
-      GAL_OPTIONS_RANGE_0_OR_1,
-      GAL_OPTIONS_NOT_MANDATORY,
-      GAL_OPTIONS_NOT_SET
-    },
-    {
       "inbetweenints",
       UI_KEY_INBETWEENINTS,
       0,
@@ -1995,6 +1982,143 @@ struct argp_option program_options[] =
       0,
       "Geometric (ignoring values, only lab) pos. angle.",
       UI_GROUP_COLUMNS_ELLIPTICAL,
+      0,
+      GAL_TYPE_INVALID,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
+      ui_column_codes_ll
+    },
+
+
+
+
+
+    /* Multi-valued measurements. */
+    {
+      0, 0, 0, 0,
+      "Vector (multi-valued) measurements",
+      UI_GROUP_COLUMNS_VECTOR
+    },
+    {
+      "sum-in-slice",
+      UI_KEY_SUMINSLICE,
+      0,
+      0,
+      "[3D input] Sum of values in each slice.",
+      UI_GROUP_COLUMNS_VECTOR,
+      0,
+      GAL_TYPE_INVALID,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
+      ui_column_codes_ll
+    },
+    {
+      "sum-err-in-slice",
+      UI_KEY_SUMERRINSLICE,
+      0,
+      0,
+      "[3D input] Error in '--sum-in-slice'.",
+      UI_GROUP_COLUMNS_VECTOR,
+      0,
+      GAL_TYPE_INVALID,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
+      ui_column_codes_ll
+    },
+    {
+      "area-in-slice",
+      UI_KEY_AREAINSLICE,
+      0,
+      0,
+      "[3D input] Number of labeled in each slice.",
+      UI_GROUP_COLUMNS_VECTOR,
+      0,
+      GAL_TYPE_INVALID,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
+      ui_column_codes_ll
+    },
+    {
+      "sum-proj-in-slice",
+      UI_KEY_SUMPROJINSLICE,
+      0,
+      0,
+      "[3D input] Sum of projected area in each slice.",
+      UI_GROUP_COLUMNS_VECTOR,
+      0,
+      GAL_TYPE_INVALID,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
+      ui_column_codes_ll
+    },
+    {
+      "area-proj-in-slice",
+      UI_KEY_AREAPROJINSLICE,
+      0,
+      0,
+      "[3D input] Num. voxels in '--sum-proj-in-slice'.",
+      UI_GROUP_COLUMNS_VECTOR,
+      0,
+      GAL_TYPE_INVALID,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
+      ui_column_codes_ll
+    },
+    {
+      "sum-proj-err-in-slice",
+      UI_KEY_SUMPROJERRINSLICE,
+      0,
+      0,
+      "[3D input] Error of '--sum-proj-in-slice'.",
+      UI_GROUP_COLUMNS_VECTOR,
+      0,
+      GAL_TYPE_INVALID,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
+      ui_column_codes_ll
+    },
+    {
+      "area-other-in-slice",
+      UI_KEY_AREAOTHERINSLICE,
+      0,
+      0,
+      "[3D input] Area of other lab. in projected area.",
+      UI_GROUP_COLUMNS_VECTOR,
+      0,
+      GAL_TYPE_INVALID,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
+      ui_column_codes_ll
+    },
+    {
+      "sum-other-in-slice",
+      UI_KEY_SUMOTHERINSLICE,
+      0,
+      0,
+      "[3D input] Sum of other lab. in projected area.",
+      UI_GROUP_COLUMNS_VECTOR,
+      0,
+      GAL_TYPE_INVALID,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
+      ui_column_codes_ll
+    },
+    {
+      "sum-other-err-in-slice",
+      UI_KEY_SUMOTHERERRINSLICE,
+      0,
+      0,
+      "[3D input] Area in '--sum-other-in-slice'.",
+      UI_GROUP_COLUMNS_VECTOR,
       0,
       GAL_TYPE_INVALID,
       GAL_OPTIONS_RANGE_ANY,

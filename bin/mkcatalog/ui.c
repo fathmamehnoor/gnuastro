@@ -227,14 +227,13 @@ ui_column_codes_ll(struct argp_option *option, char *arg,
       if( arg[0]=='0' && arg[1]=='\0' ) return NULL;
       else if ( !(arg[0]=='1' && arg[1]=='\0')  )
         error_at_line(EXIT_FAILURE, 0, filename, lineno, "'%s' is not a "
-                      "valid value to the '%s' option: ('%s').\n\n'%s' is "
-                      "an on/off option specifying if you want this column "
-                      "in the output catalog, it doesn't take any "
-                      "arguments. In a configuration file, it can only take "
-                      "a value of '0' (to be ignored) or '1'", arg,
+                      "valid value to the '%s' option: ('%s').\n\n'%s' "
+                      "is an on/off option specifying if you want this "
+                      "column in the output catalog, it doesn't take any "
+                      "arguments. In a configuration file, it can only "
+                      "take a value of '0' (to be ignored) or '1'", arg,
                       option->name, option->doc, option->name);
     }
-
 
   /* The user wants this column, so add it to the list. Note that the 'ids'
      column means three columns. */
@@ -318,8 +317,8 @@ ui_check_upperlimit(struct argp_option *option, char *arg,
             error_at_line(EXIT_FAILURE, 0, filename, lineno, "%g (value "
                           "number %zu given to '--%s') is not an "
                           "integer. The value(s) to this option are "
-                          "object/clump labels/identifiers, so they must be "
-                          "integers", d[i], i+1, option->name);
+                          "object/clump labels/identifiers, so they must "
+                          "be integers", d[i], i+1, option->name);
           if( d[i]<=0 )
             error_at_line(EXIT_FAILURE, 0, filename, lineno, "%g (value "
                           "number %zu given to '--%s') is not positive. "
@@ -378,10 +377,10 @@ ui_read_check_only_options(struct mkcatalogparams *p)
     error(EXIT_FAILURE, 0, "no clumps catalog is requested, hence "
           "'--checkuplim' is only available for objects (one value "
           "must be given to it).\n\n"
-          "To ask for a clumps catalog, please append '--clumpscat' to the "
-          "command calling MakeCatalog.\n\n"
-          "If you want the upperlimit check table for an object, only give "
-          "one value (the object's label) to '--checkuplim'.");
+          "To ask for a clumps catalog, please append '--clumpscat' to "
+          "the command calling MakeCatalog.\n\n"
+          "If you want the upperlimit check table for an object, only "
+          "give one value (the object's label) to '--checkuplim'.");
 
   /* See if '--skyin' is a filename or a value. When the string is ONLY a
      number (and nothing else), 'tailptr' will point to the end of the
@@ -392,8 +391,8 @@ ui_read_check_only_options(struct mkcatalogparams *p)
       if(*tailptr=='\0')
         {
           /* Allocate the data structure. */
-          p->sky=gal_data_alloc(NULL, GAL_TYPE_FLOAT32, 1, &one, NULL, 0, -1,
-                                1, NULL, NULL, NULL);
+          p->sky=gal_data_alloc(NULL, GAL_TYPE_FLOAT32, 1, &one, NULL,
+                                0, -1, 1, NULL, NULL, NULL);
 
           /* Write the value inside it. */
           *((float *)(p->sky->array))=tmp;
@@ -407,8 +406,8 @@ ui_read_check_only_options(struct mkcatalogparams *p)
       if(*tailptr=='\0')
         {
           /* Allocate the data structure. */
-          p->std=gal_data_alloc(NULL, GAL_TYPE_FLOAT32, 1, &one, NULL, 0, -1,
-                                1, NULL, NULL, NULL);
+          p->std=gal_data_alloc(NULL, GAL_TYPE_FLOAT32, 1, &one, NULL,
+                                0, -1, 1, NULL, NULL, NULL);
 
           /* Write the value inside it. */
           *((float *)(p->std->array))=tmp;
@@ -459,10 +458,11 @@ ui_check_options_and_arguments(struct mkcatalogparams *p)
   if(p->objectsfile)
     {
       if( gal_fits_file_recognized(p->objectsfile) && p->cp.hdu==NULL )
-        error(EXIT_FAILURE, 0, "no HDU specified. When the input is a FITS "
-              "file, a HDU must also be specified, you can use the '--hdu' "
-              "('-h') option and give it the HDU number (starting from "
-              "zero), extension name, or anything acceptable by CFITSIO");
+        error(EXIT_FAILURE, 0, "no HDU specified. When the input is a "
+              "FITS file, a HDU must also be specified, you can use the "
+              "'--hdu' ('-h') option and give it the HDU number (starting "
+              "from zero), extension name, or anything acceptable by "
+              "CFITSIO");
 
     }
   else
@@ -500,13 +500,13 @@ ui_set_filenames(struct mkcatalogparams *p)
 
   p->usedvaluesfile = p->valuesfile ? p->valuesfile : p->objectsfile;
 
-  p->usedskyfile    = ( p->skyfile
-                       ? p->skyfile
-                       : ( p->valuesfile ? p->valuesfile : p->objectsfile ) );
+  p->usedskyfile = ( p->skyfile
+                     ? p->skyfile
+                     : (p->valuesfile ? p->valuesfile : p->objectsfile) );
 
-  p->usedstdfile    = ( p->stdfile
-                       ? p->stdfile
-                       : ( p->valuesfile ? p->valuesfile : p->objectsfile ) );
+  p->usedstdfile = ( p->stdfile
+                     ? p->stdfile
+                     : (p->valuesfile ? p->valuesfile : p->objectsfile) );
 }
 
 
@@ -560,10 +560,11 @@ ui_wcs_info(struct mkcatalogparams *p)
       for(i=0;i<p->objects->ndim;++i)
         {
           /* CTYPE might contain '-' characters, we just want the first
-             non-dash characters. The loop will either stop either at the end
-             or where there is a dash. So we can just replace it with an
-             end-of-string character. */
-          gal_checkset_allocate_copy(p->objects->wcs->ctype[i], &p->ctype[i]);
+             non-dash characters. The loop will either stop either at the
+             end or where there is a dash. So we can just replace it with
+             an end-of-string character. */
+          gal_checkset_allocate_copy(p->objects->wcs->ctype[i],
+                                     &p->ctype[i]);
           c=p->ctype[i]; while(*c!='\0' && *c!='-') ++c;
           *c='\0';
         }
@@ -584,7 +585,8 @@ ui_num_clumps(struct mkcatalogparams *p)
   gal_list_i32_t *tmp, **labsinobj;
   int32_t *o=p->objects->array, *of=o+p->objects->size, *c=p->clumps->array;
 
-  /* Allocate array of lists to keep the unique labels within each object. */
+  /* Allocate array of lists to keep the unique labels within each
+     object. */
   errno=0;
   labsinobj=calloc(p->numobjects+1, sizeof *labsinobj);
   if(labsinobj==NULL)
@@ -600,7 +602,8 @@ ui_num_clumps(struct mkcatalogparams *p)
         {
           /* See if the label has already been found. */
           olab = p->outlabsinv ? p->outlabsinv[*o] : *o;
-          for(tmp=labsinobj[olab];tmp!=NULL;tmp=tmp->next) if(tmp->v==*c) break;
+          for(tmp=labsinobj[olab];tmp!=NULL;tmp=tmp->next)
+            if(tmp->v==*c) break;
 
           /* When it wasn't found, 'tmp==NULL'. */
           if(tmp==NULL)
@@ -835,6 +838,7 @@ ui_one_tile_per_object_correct_numobjects(struct mkcatalogparams *p)
 static void
 ui_read_labels(struct mkcatalogparams *p)
 {
+  gal_list_i32_t *colcode;
   gal_data_t *tmp, *keys=gal_data_array_calloc(2);
 
   /* Read it into memory. */
@@ -859,11 +863,24 @@ ui_read_labels(struct mkcatalogparams *p)
           p->cp.hdu, p->objects->ndim);
 
 
-  /* Make sure the '--spectrum' option is not given on a 2D image.  */
-  if(p->spectrum && p->objects->ndim!=3)
-    error(EXIT_FAILURE, 0, "%s (hdu %s) has %zu dimensions, but '--spectrum' "
-          "is currently only defined on 3D datasets", p->objectsfile,
-          p->cp.hdu, p->objects->ndim);
+  /* If a column needs a 3D input, do the check here.  */
+  for(colcode=p->columnids; colcode!=NULL; colcode=colcode->next)
+    switch(colcode->v)
+      {
+      case UI_KEY_SUMINSLICE:         case UI_KEY_SUMERRINSLICE:
+      case UI_KEY_AREAINSLICE:        case UI_KEY_SUMPROJINSLICE:
+      case UI_KEY_AREAPROJINSLICE:    case UI_KEY_SUMPROJERRINSLICE:
+      case UI_KEY_AREAOTHERINSLICE:   case UI_KEY_SUMOTHERINSLICE:
+      case UI_KEY_SUMOTHERERRINSLICE:
+        if(p->objects->ndim!=3)
+          error(EXIT_FAILURE, 0, "%s (hdu %s) has %zu dimensions, but "
+                "at least one requested column requires a 3D input "
+                "(for example those ending with 'inslice', they are "
+                "clearly marked with '[3D input]' in the output of "
+                "'%s --help')", p->objectsfile, p->cp.hdu,
+                p->objects->ndim, PROGRAM_EXEC);
+        break;
+      }
 
 
   /* See if the total number of objects is given in the header keywords. */
@@ -874,7 +891,7 @@ ui_read_labels(struct mkcatalogparams *p)
   if(keys[0].status) /* status!=0: the key couldn't be read by CFITSIO. */
     {
       tmp=gal_statistics_maximum(p->objects);
-      p->numobjects=*((int32_t *)(tmp->array)); /*numobjects is in int32_t.*/
+      p->numobjects=*((int32_t *)(tmp->array)); /*numobjects is int32_t.*/
       gal_data_free(tmp);
     }
 
@@ -883,8 +900,8 @@ ui_read_labels(struct mkcatalogparams *p)
      error (it is pointless to build a catalog). */
   if(p->numobjects==0)
     error(EXIT_FAILURE, 0, "no object labels (non-zero pixels) in "
-          "%s (hdu %s). To make a catalog, labeled regions must be defined",
-          p->objectsfile, p->cp.hdu);
+          "%s (hdu %s). To make a catalog, labeled regions must be "
+          "defined", p->objectsfile, p->cp.hdu);
 
 
   /* See if the labels image has blank pixels and set the flags
@@ -911,8 +928,8 @@ ui_read_labels(struct mkcatalogparams *p)
               "give a specific HDU using its number (counting from zero) "
               "or name. If the dataset is in another file, please use "
               "'--clumpsfile' to give the filename. If you don't want any "
-              "clumps catalog output, remove the '--clumpscat' option from "
-              "the command-line or give it a value of zero in a "
+              "clumps catalog output, remove the '--clumpscat' option "
+              "from the command-line or give it a value of zero in a "
               "configuration file", p->usedclumpsfile);
 
       /* Read the clumps image. */
@@ -955,11 +972,11 @@ ui_read_labels(struct mkcatalogparams *p)
             error(EXIT_FAILURE, 0, "%s (hdu: %s): the 'NUMCLUMPS' header "
                   "keyword has a value of zero, but there are positive "
                   "pixels in the array, showing that there are clumps in "
-                  "image. This is a wrong usage of the 'NUMCLUMPS' keyword."
-                  "It must contain the total number of clumps (irrespective "
-                  "of how many objects there are). Please correct this issue "
-                  "and run MakeCatalog again", p->usedclumpsfile,
-                  p->clumpshdu);
+                  "image. This is a wrong usage of the 'NUMCLUMPS' "
+                  "keyword. It must contain the total number of clumps "
+                  "(irrespective of how many objects there are). Please "
+                  "correct this issue and run MakeCatalog again",
+                  p->usedclumpsfile, p->clumpshdu);
 
           /* Since there are no clumps, we won't bother creating a clumps
              catalog and from this step onward, we'll act as if no clumps
@@ -997,7 +1014,6 @@ ui_necessary_inputs(struct mkcatalogparams *p, int *values, int *sky,
   /* Set necessary inputs based on options. */
   if(p->forcereadstd) *std=1;
   if(p->upperlimit) *values=1;
-  if(p->spectrum) *values=*std=1;
 
   /* Go over all the object columns. Note that the objects and clumps (if
      the '--clumpcat' option is given) inputs are mandatory and it is not
@@ -1066,6 +1082,17 @@ ui_necessary_inputs(struct mkcatalogparams *p, int *values, int *sky,
         case OCOL_C_GZ:               /* Only clump labels. */     break;
         case OCOL_C_SUMWHT:           *values        = 1;          break;
         case OCOL_C_NUMWHT:           *values        = 1;          break;
+        case OCOL_SUMINSLICE:         *values        = 1;          break;
+        case OCOL_NUMINSLICE:         *values        = 1;          break;
+        case OCOL_NUMALLINSLICE:      /* Only object labels. */    break;
+        case OCOL_SUMVARINSLICE:      *values = *std = 1;          break;
+        case OCOL_SUMPROJINSLICE:     *values        = 1;          break;
+        case OCOL_NUMPROJINSLICE:     *values        = 1;          break;
+        case OCOL_NUMOTHERINSLICE:    *values        = 1;          break;
+        case OCOL_SUMOTHERINSLICE:    *values        = 1;          break;
+        case OCOL_SUMPROJVARINSLICE:  *values = *std = 1;          break;
+        case OCOL_SUMOTHERVARINSLICE: *values = *std = 1;          break;
+        case OCOL_NUMALLOTHERINSLICE: /* Only object labels. */    break;
         default:
           error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to "
                 "fix the problem. The code %zu is not a recognized "
@@ -1267,7 +1294,8 @@ ui_preparations_read_inputs(struct mkcatalogparams *p)
               "give the filename", p->usedvaluesfile);
 
       /* Read the values dataset. */
-      p->values=gal_array_read_one_ch_to_type(p->usedvaluesfile, p->valueshdu,
+      p->values=gal_array_read_one_ch_to_type(p->usedvaluesfile,
+                                              p->valueshdu,
                                               NULL, GAL_TYPE_FLOAT32,
                                               p->cp.minmapsize,
                                               p->cp.quietmmap);
@@ -1291,12 +1319,16 @@ ui_preparations_read_inputs(struct mkcatalogparams *p)
         {
           for(column=p->objectcols; column!=NULL; column=column->next)
             if( !strcmp(column->unit, MKCATALOG_NO_UNIT) )
-              { free(column->unit);
-                gal_checkset_allocate_copy(p->values->unit, &column->unit); }
+              {
+                free(column->unit);
+                gal_checkset_allocate_copy(p->values->unit, &column->unit);
+              }
           for(column=p->clumpcols; column!=NULL; column=column->next)
             if( !strcmp(column->unit, MKCATALOG_NO_UNIT) )
-              { free(column->unit);
-                gal_checkset_allocate_copy(p->values->unit, &column->unit); }
+              {
+                free(column->unit);
+                gal_checkset_allocate_copy(p->values->unit, &column->unit);
+              }
         }
     }
 
@@ -1313,10 +1345,10 @@ ui_preparations_read_inputs(struct mkcatalogparams *p)
             error(EXIT_FAILURE, 0, "%s: no HDU/extension provided for the "
                   "SKY dataset. Atleast one column needs this dataset, or "
                   "you have asked to subtract the Sky from the values.\n\n"
-                  "Please use the '--skyhdu' option to give a specific HDU "
-                  "using its number (counting from zero) or name. If the "
-                  "dataset is in another file, please use '--skyin' to "
-                  "give the filename", p->usedskyfile);
+                  "Please use the '--skyhdu' option to give a specific "
+                  "HDU using its number (counting from zero) or name. If "
+                  "the dataset is in another file, please use '--skyin' "
+                  "to give the filename", p->usedskyfile);
 
           /* Read the Sky dataset. */
           p->sky=gal_array_read_one_ch_to_type(p->usedskyfile, p->skyhdu,
@@ -1353,7 +1385,8 @@ ui_preparations_read_inputs(struct mkcatalogparams *p)
       /* Read the Sky standard deviation image into memory. */
       p->std=gal_array_read_one_ch_to_type(p->usedstdfile, p->stdhdu,
                                            NULL, GAL_TYPE_FLOAT32,
-                                           p->cp.minmapsize, p->cp.quietmmap);
+                                           p->cp.minmapsize,
+                                           p->cp.quietmmap);
       p->std->ndim=gal_dimension_remove_extra(p->std->ndim,
                                               p->std->dsize, NULL);
 
@@ -1396,17 +1429,17 @@ ui_preparations_read_inputs(struct mkcatalogparams *p)
 
           /* Check its size. */
           if( gal_dimension_is_different(p->objects, p->upmask) )
-            error(EXIT_FAILURE, 0, "'%s' (hdu: %s) and '%s' (hdu: %s) have a"
-                  "different dimension/size", p->upmaskfile, p->upmaskhdu,
-                  p->objectsfile, p->cp.hdu);
+            error(EXIT_FAILURE, 0, "'%s' (hdu: %s) and '%s' (hdu: %s) "
+                  "have a different dimension/size", p->upmaskfile,
+                  p->upmaskhdu, p->objectsfile, p->cp.hdu);
 
           /* If it isn't an integer type, report an error. */
           if( p->upmask->type==GAL_TYPE_FLOAT32
               || p->upmask->type==GAL_TYPE_FLOAT64 )
             error(EXIT_FAILURE, 0, "%s (hdu: %s) has a %s numerical data "
-                  "type. Only integer type inputs are acceptable as a mask."
-                  "If the values are indeed integers, only placed in a "
-                  "floating point container, you can use Gnuastro's "
+                  "type. Only integer type inputs are acceptable as a "
+                  "mask. If the values are indeed integers, only placed "
+                  "in a floating point container, you can use Gnuastro's "
                   "Arithmetic program to conver the numeric data type",
                   p->upmaskfile, p->upmaskhdu,
                   gal_type_name(p->upmask->type, 1));
@@ -1444,9 +1477,9 @@ ui_preparations_read_keywords(struct mkcatalogparams *p)
           /* Read the keywords from the standard deviation image. */
           keys=gal_data_array_calloc(2);
           keys[0].next=&keys[1];
-          keys[0].name="MINSTD";              keys[1].name="MEDSTD";
-          keys[0].type=GAL_TYPE_FLOAT32;      keys[1].type=GAL_TYPE_FLOAT32;
-          keys[0].array=&minstd;              keys[1].array=&p->medstd;
+          keys[0].name="MINSTD";          keys[1].name="MEDSTD";
+          keys[0].type=GAL_TYPE_FLOAT32;  keys[1].type=GAL_TYPE_FLOAT32;
+          keys[0].array=&minstd;          keys[1].array=&p->medstd;
           gal_fits_key_read(p->usedstdfile, p->stdhdu, keys, 0, 0);
 
           /* If the two keywords couldn't be read. We don't want to slow
@@ -1539,8 +1572,10 @@ ui_preparations_both_names(struct mkcatalogparams *p)
      file. */
   if(p->cp.tableformat==GAL_TABLE_FORMAT_TXT)
     {
-      p->objectsout=gal_checkset_automatic_output(&p->cp, basename, "_o.txt");
-      p->clumpsout=gal_checkset_automatic_output(&p->cp, basename, "_c.txt");
+      p->objectsout=gal_checkset_automatic_output(&p->cp, basename,
+                                                  "_o.txt");
+      p->clumpsout=gal_checkset_automatic_output(&p->cp, basename,
+                                                 "_c.txt");
     }
   else
     {
@@ -1555,7 +1590,8 @@ ui_preparations_both_names(struct mkcatalogparams *p)
                                        p->cp.dontdelete);
         }
       else
-        p->objectsout=gal_checkset_automatic_output(&p->cp, basename, suffix);
+        p->objectsout=gal_checkset_automatic_output(&p->cp, basename,
+                                                    suffix);
       p->clumpsout=p->objectsout;
     }
 
@@ -1607,7 +1643,8 @@ ui_preparations_outnames(struct mkcatalogparams *p)
         {
           suffix = ( p->cp.tableformat==GAL_TABLE_FORMAT_TXT
                      ? "_cat.txt" : "_cat.fits" );
-          p->objectsout=gal_checkset_automatic_output(&p->cp, p->objectsfile,
+          p->objectsout=gal_checkset_automatic_output(&p->cp,
+                                                      p->objectsfile,
                                                       suffix);
         }
     }
@@ -1643,91 +1680,6 @@ ui_preparations_outnames(struct mkcatalogparams *p)
 
 
 
-/* When a spectrum is requested, the slice information (slice number and
-   slice WCS) is common to all different spectra. So instead of calculating
-   it every time, we'll just make it once here, then copy it for every
-   object.
-
-   The Slice information is going to be written in every spectrum. So we
-   don't want it to take too much space. Therefore, only when the number of
-   slices is less than 65535 (2^16-1), will we actually use a 32-bit
-   integer type for the slice number column.
-*/
-static void
-ui_preparations_spectrum_wcs(struct mkcatalogparams *p)
-{
-  double *xarr, *yarr, *zarr;
-  gal_data_t *x, *y, *z, *coords;
-  size_t i, numslices=p->objects->dsize[0];
-  size_t slicenumtype=numslices>=65535 ? GAL_TYPE_UINT32 : GAL_TYPE_UINT16;
-
-  /* A small sanity check. */
-  if(p->objects->ndim!=3)
-    error(EXIT_FAILURE, 0, "%s (hdu %s) is a %zuD dataset, but '--spectrum' "
-          "is currently only defined on 3D datasets", p->objectsfile,
-          p->cp.hdu, p->objects->ndim);
-
-  /* Allocate space for the slice number as well as the X and Y positions
-     for WCS conversion. Note that the 'z' axis is going to be converted to
-     WCS later, so we'll just give it the basic information now.*/
-  x=gal_data_alloc(NULL, GAL_TYPE_FLOAT64, 1, &numslices, NULL, 0,
-                   p->cp.minmapsize, p->cp.quietmmap, NULL, NULL, NULL);
-  y=gal_data_alloc(NULL, GAL_TYPE_FLOAT64, 1, &numslices, NULL, 0,
-                   p->cp.minmapsize, p->cp.quietmmap, NULL, NULL, NULL);
-  z=gal_data_alloc(NULL, GAL_TYPE_FLOAT64, 1, &numslices, NULL, 0,
-                   p->cp.minmapsize, p->cp.quietmmap, p->ctype[2],
-                   p->objects->wcs->cunit[2], "Slice WCS coordinates.");
-
-  /* Write values into the 3 coordinates. */
-  xarr=x->array; yarr=y->array; zarr=z->array;
-  for(i=0;i<numslices;++i) { zarr[i]=i+1; xarr[i]=yarr[i]=1; }
-
-
-  /* Convert the coordinates to WCS. We are doing this inplace to avoid too
-     much memory/speed consumption. */
-  coords=x;
-  coords->next=y;
-  coords->next->next=z;
-  gal_wcs_img_to_world(coords, p->objects->wcs, 1);
-
-  /* For a check.
-  for(i=0;i<numslices;++i)
-    printf("%g, %g, %g\n", xarr[i], yarr[i], zarr[i]);
-  exit(0);
-  */
-
-  /* Allocate the slice counter array (we are doing it again because we
-     want it to be in integer type now). */
-  p->specsliceinfo=gal_data_alloc(NULL, slicenumtype, 1, &numslices, NULL, 0,
-                                  p->cp.minmapsize, p->cp.quietmmap, "SLICE",
-                                  "counter",
-                                  "Slice number in cube (counting from 1).");
-  if(p->specsliceinfo->type==GAL_TYPE_UINT16)
-    for(i=0;i<numslices;++i) ((uint16_t *)(p->specsliceinfo->array))[i]=i+1;
-  else
-    for(i=0;i<numslices;++i) ((uint32_t *)(p->specsliceinfo->array))[i]=i+1;
-
-  /* Set the slice WCS column information. Note that 'z' is now the WCS
-     coordinate value of the third dimension, and to avoid wasting extra
-     space (this column is repeated one very object's spectrum), we'll
-     convert it to a 32-bit floating point dataset. */
-  p->specsliceinfo->next=gal_data_copy_to_new_type(z, GAL_TYPE_FLOAT32);
-
-  /* For a final check.
-  gal_table_write(p->specsliceinfo, NULL, NULL, GAL_TABLE_FORMAT_BFITS,
-                  "specsliceinfo.fits", "test-debug", 0);
-  */
-
-  /* Clean up. */
-  gal_data_free(x);
-  gal_data_free(y);
-  gal_data_free(z);
-}
-
-
-
-
-
 /* Sanity checks and preparations for the upper-limit magnitude. */
 static void
 ui_preparations_upperlimit(struct mkcatalogparams *p)
@@ -1740,8 +1692,8 @@ ui_preparations_upperlimit(struct mkcatalogparams *p)
     {
       for(i=0;p->uprange[i]!=-1;++i) ++c;
       if(c!=p->objects->ndim)
-        error(EXIT_FAILURE, 0, "%zu values given to '--uprange', but input "
-              "has %zu dimensions", c, p->objects->ndim);
+        error(EXIT_FAILURE, 0, "%zu values given to '--uprange', but "
+              "input has %zu dimensions", c, p->objects->ndim);
     }
 
   /* Check the number of random samples. */
@@ -1786,7 +1738,7 @@ void
 ui_preparations(struct mkcatalogparams *p)
 {
   /* If no columns are requested, then inform the user. */
-  if(p->columnids==NULL && p->spectrum==0)
+  if(p->columnids==NULL)
     error(EXIT_FAILURE, 0, "no measurements requested! Please run again "
           "with '--help' for the possible list of measurements");
 
@@ -1814,14 +1766,6 @@ ui_preparations(struct mkcatalogparams *p)
 
   /* Set the output filename(s). */
   ui_preparations_outnames(p);
-
-
-  /* If a spectrum is requested, generate the two WCS columns. */
-  if(p->spectrum)
-    {
-      ui_preparations_spectrum_wcs(p);
-      p->spectra=gal_data_array_calloc(p->numobjects);
-    }
 
 
   /* Allocate the reference random number generator and seed values. It
@@ -1875,7 +1819,8 @@ ui_preparations(struct mkcatalogparams *p)
 /**************************************************************/
 
 void
-ui_read_check_inputs_setup(int argc, char *argv[], struct mkcatalogparams *p)
+ui_read_check_inputs_setup(int argc, char *argv[],
+                           struct mkcatalogparams *p)
 {
   char *tmp;
   struct gal_options_common_params *cp=&p->cp;
@@ -1960,7 +1905,8 @@ ui_read_check_inputs_setup(int argc, char *argv[], struct mkcatalogparams *p)
           else
             printf("  - Sky: %s (hdu: %s)\n", p->usedskyfile, p->skyhdu);
           if(p->subtractsky)
-            printf("    - Sky has been subtracted from values internally.\n");
+            printf("    - Sky has been subtracted from values "
+                   "internally.\n");
         }
 
       if(p->std)
@@ -2010,7 +1956,7 @@ ui_read_check_inputs_setup(int argc, char *argv[], struct mkcatalogparams *p)
 void
 ui_free_report(struct mkcatalogparams *p, struct timeval *t1)
 {
-  size_t d, i;
+  size_t d;
 
   /* The temporary arrays for WCS coordinates. */
   if(p->wcs_vo ) gal_list_data_free(p->wcs_vo);
@@ -2059,26 +2005,9 @@ ui_free_report(struct mkcatalogparams *p, struct timeval *t1)
   if(p->outlabs) free(p->outlabs);
   gal_list_data_free(p->clumpcols);
   gal_list_data_free(p->objectcols);
-  gal_list_data_free(p->specsliceinfo);
   if(p->outlabsinv) free(p->outlabsinv);
   if(p->upcheckout) free(p->upcheckout);
   gal_data_array_free(p->tiles, p->numobjects, 0);
-
-  /* Clean up the spectra. */
-  if(p->spectra)
-    {
-      /* Note that each element of the array is the first node in a list of
-         datasets. So we can't free the first one with
-         'gal_list_data_free', we'll delete all the nodes after it in the
-         loop. */
-      for(i=0;i<p->numobjects;++i)
-        {
-          gal_list_data_free( p->spectra[i].next );
-          p->spectra[i].next=NULL;
-          gal_data_free_contents(&p->spectra[i]);
-        }
-      gal_data_array_free(p->spectra, p->numobjects, 0);
-    }
 
   /* If the Sky or its STD image were given in tiles, then we defined a
      tile structure to deal with them. The initialization of the tile

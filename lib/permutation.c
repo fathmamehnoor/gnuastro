@@ -23,6 +23,8 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 #include <config.h>
 
 #include <stdio.h>
+#include <errno.h>
+#include <error.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -208,3 +210,118 @@ gal_permutation_apply(gal_data_t *input, size_t *permutation)
 void
 gal_permutation_apply_onlydim0(gal_data_t *input, size_t *permutation)
 { permutation_apply_raw(input, permutation, 1); }
+
+
+
+
+
+/* Transpose square (2d) input. */
+static void
+permutation_transpose_2d_square(gal_data_t *input)
+{
+  void *a, *b, *swap;
+  size_t width=input->dsize[0];
+  size_t i, j, nbytes=gal_type_sizeof(input->type);
+
+  /* Allocate the SWAP space, we are just allocating an 64-bit integer for
+     its storage. */
+  swap=gal_pointer_allocate(GAL_TYPE_UINT64, 1, 0, __func__, "swap");
+
+  /* Go over the elements. */
+  for(i=0;i<width;++i)
+    for(j=i+1;j<width;++j)
+      {
+        /* For easy reading. */
+        a=gal_pointer_increment(input->array, i*width+j, input->type);
+        b=gal_pointer_increment(input->array, j*width+i, input->type);
+
+        /* Copy the "to" value into the swap, then copy the "from" value
+           into "to" and finally copy swap into "from". */
+        memcpy(swap, a,    nbytes);
+        memcpy(a,    b,    nbytes);
+        memcpy(b,    swap, nbytes);
+      }
+
+  /* Clean up. */
+  free(swap);
+}
+
+
+
+
+
+/* Transpose square (2d) input. */
+static void
+permutation_transpose_2d_rectangle(gal_data_t *input)
+{
+  void *a, *b;
+  size_t i, j, nbytes;
+  gal_data_t *out=NULL;
+  size_t *id=input->dsize, od[2]={id[1], id[0]};
+
+  /* Moving values in memory is only necessary when the 0-th dimension has
+     more than one element. */
+  if(input->dsize[0]>1)
+    {
+      /* Allocate the output array. */
+      out=gal_data_alloc(NULL, input->type, 2, od, NULL, 0,
+                         input->minmapsize, input->quietmmap,
+                         NULL, NULL, NULL);
+
+      /* Go over the elements and put them in the proper place of the
+         output. */
+      nbytes=gal_type_sizeof(input->type);
+      for(i=0;i<id[0];++i)
+        for(j=0;j<id[1];++j)
+          {
+            /* For easy reading. */
+            a=gal_pointer_increment(input->array, i*id[1]+j, input->type);
+            b=gal_pointer_increment(out->array,   j*od[1]+i, input->type);
+
+            /* Copy the input ('a' pointer) to output ('b') pointer. */
+            memcpy(b, a, nbytes);
+          }
+
+      /* Free the original input pointer and replace it with the output
+         array, then free the output. */
+      free(input->array);
+      input->array=out->array;
+      out->array=NULL;
+      gal_data_free(out);
+    }
+
+  /* Update the dimesions */
+  input->dsize[0]=od[0];
+  input->dsize[1]=od[1];
+}
+
+
+
+
+
+/* Transpose a 2D dataset. */
+void
+gal_permutation_transpose_2d(gal_data_t *input)
+{
+  uint8_t type;
+  size_t nbytes;
+
+  /* Sanity checks, see the comment below. */
+  type=input->type;
+  nbytes=gal_type_sizeof(type);
+  if(nbytes>8)
+    error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at '%s' to "
+          "find the cause and fix this problem. This function currently "
+          "assumes the largest possible type size is 8 bytes, but the "
+          "requested '%s' type needs %zu bytes", __func__,
+          PACKAGE_BUGREPORT, gal_type_name(type, 1), nbytes);
+  if(input->ndim!=2)
+    error(EXIT_FAILURE, 0, "%s: only 2D inputs are supported", __func__);
+
+  /* A square array can be transposed much more easier and faster than a
+     non-square array. */
+  if(input->dsize[0]==input->dsize[1])
+    permutation_transpose_2d_square(input);
+  else
+    permutation_transpose_2d_rectangle(input);
+}

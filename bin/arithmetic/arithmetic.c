@@ -384,18 +384,16 @@ wrapper_for_filter(struct arithmeticparams *p, char *token, int operator)
      pop the necessary number of operands. */
   nparams = ndim + (issigclip ? 2 : 0 );
   for(i=0;i<nparams;++i)
-    gal_list_data_add(&params_list, operands_pop(p, token));
-
-
-  /* Make sure the parameters only have single values. */
-  i=0;
-  for(tmp=params_list; tmp!=NULL; tmp=tmp->next)
     {
-      ++i;
-      if(tmp->size!=1)
+      /* Add this to the list of parameters. */
+      gal_list_data_add(&params_list, operands_pop(p, token));
+
+      /* Make sure it only has a single element. */
+      if(params_list->size!=1)
         error(EXIT_FAILURE, 0, "the parameters given to the filtering "
-              "operators can only be numbers. Value number %zu has %zu "
-              "elements, so its an array", i, tmp->size);
+              "operators can only be numbers. Operand number %zu after "
+              "the main input has %zu elements, so its an array", i,
+              params_list->size);
     }
 
 
@@ -416,10 +414,23 @@ wrapper_for_filter(struct arithmeticparams *p, char *token, int operator)
       gal_data_free(tmp);
     }
 
+  /* If the input only has one element, it is most probably and error (the
+     user has confused the parameters with the input dataset). So report a
+     warning filtering makes no sense, so don't waste time, just add the
+     input onto the stack. */
+  if(afp.input->size==1)
+    {
+      /* Inform the user that this is suspicious. */
+      if(p->cp.quiet==0)
+        error(EXIT_SUCCESS, 0, "WARNING: the first popped operand to the "
+              "filtering operators has a single element! This is most "
+              "probably a typo in the order of operands! Recall that the "
+              "filtering operators need the main input image/cube as the "
+              "first popped operand");
 
-  /* If the input only has one element, filtering makes no sense, so don't
-     waste time, just add the input onto the stack. */
-  if(afp.input->size==1) afp.out=afp.input;
+      /* Set the input as the output. */
+      afp.out=afp.input;
+    }
   else
     {
       /* Allocate an array for the size of the filter and fill it in. The
@@ -451,8 +462,8 @@ wrapper_for_filter(struct arithmeticparams *p, char *token, int operator)
           /* If the width is larger than the input's size, change the width
              to the input's size. */
           if( fsize[i] > afp.input->dsize[i] )
-            error(EXIT_FAILURE, 0, "%s: the filter size along dimension %zu "
-                  "(%zu) is greater than the input's length in that "
+            error(EXIT_FAILURE, 0, "%s: the filter size along dimension "
+                  "%zu (%zu) is greater than the input's length in that "
                   "dimension (%zu)", __func__, i, fsize[i],
                   afp.input->dsize[i]);
 
@@ -494,8 +505,8 @@ wrapper_for_filter(struct arithmeticparams *p, char *token, int operator)
           break;
 
         default:
-          error(EXIT_FAILURE, 0, "%s: a bug! please contact us at %s to fix "
-                "the problem. The 'operator' code %d is not recognized",
+          error(EXIT_FAILURE, 0, "%s: a bug! please contact us at %s to "
+                "fix the problem. The 'operator' code %d is not recognized",
                 PACKAGE_BUGREPORT, __func__, operator);
         }
 
@@ -520,8 +531,8 @@ wrapper_for_filter(struct arithmeticparams *p, char *token, int operator)
 
   /* Clean up and add the output on top of the stack. */
   gal_data_free(zero);
-  gal_data_free(afp.input);
   gal_list_data_free(params_list);
+  if(afp.input!=afp.out) gal_data_free(afp.input); /* Single-element. */
 }
 
 

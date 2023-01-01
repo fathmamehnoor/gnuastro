@@ -132,6 +132,17 @@ enum objectcols
     OCOL_C_GZ,           /* Geometric center of clumps in object Z.   */
     OCOL_C_SUMWHT,       /* Sum of positive image pixels for wht.     */
     OCOL_C_NUMWHT,       /* Num of positive image pixels for wht.     */
+    OCOL_NUMINSLICE,     /* Number of used values in slice.           */
+    OCOL_SUMINSLICE,     /* Sum of values in each slice of label.     */
+    OCOL_NUMALLINSLICE,  /* Number of labeled pixels in slice.        */
+    OCOL_SUMVARINSLICE,  /* Sum of variance (including values).       */
+    OCOL_SUMPROJINSLICE, /* Sum of projected area on each slice.      */
+    OCOL_NUMPROJINSLICE, /* Sum of projected area on each slice.      */
+    OCOL_SUMPROJVARINSLICE,/* Error in sum of projected area.         */
+    OCOL_NUMOTHERINSLICE,/* Area of other labels in projected area.   */
+    OCOL_SUMOTHERINSLICE,/* Sum of other objects in projected area.   */
+    OCOL_SUMOTHERVARINSLICE,/* Variance in sum of other in proj. area.*/
+    OCOL_NUMALLOTHERINSLICE,/* Area of other labels in projected area.*/
 
     OCOL_NUMCOLS,        /* SHOULD BE LAST: total number of columns.  */
   };
@@ -206,6 +217,27 @@ enum clumpcols
 
 
 
+/* IDs for vector columns, which need a separate allocation. The names
+   should be the same as the 'OCOL_', just the prefix differs. */
+enum vector_cols
+  {
+    VEC_NUMINSLICE,
+    VEC_SUMINSLICE,
+    VEC_NUMALLINSLICE,
+    VEC_SUMVARINSLICE,
+    VEC_SUMPROJINSLICE,
+    VEC_NUMPROJINSLICE,
+    VEC_SUMPROJVARINSLICE,
+    VEC_NUMOTHERINSLICE,
+    VEC_SUMOTHERINSLICE,
+    VEC_SUMOTHERVARINSLICE,
+    VEC_NUMALLOTHERINSLICE,
+
+    VEC_NUM,
+  };
+
+
+
 
 
 /* Main program parameters structure */
@@ -232,7 +264,6 @@ struct mkcatalogparams
   uint8_t         subtractsky;  /* ==1: subtract the Sky from values.   */
   float           sfmagnsigma;  /* Surface brightness multiple of sigma.*/
   float             sfmagarea;  /* Surface brightness area (arcsec^2).  */
-  uint8_t            spectrum;  /* Object spectrum for 3D datasets.     */
   uint8_t       inbetweenints;  /* Keep rows (integer ids) with no labs.*/
   double         sigmaclip[2];  /* Sigma clip column settings.          */
 
@@ -244,7 +275,6 @@ struct mkcatalogparams
   double       upsigmaclip[2];  /* Sigma clip to measure upper limit.   */
   float              upnsigma;  /* Multiple of sigma to define up-lim.  */
   int32_t       checkuplim[2];  /* Object & clump ID to check dist.     */
-
   gal_data_t         *fracmax;  /* Fractions to use in --fracsumarea.   */
   float     spatialresolution;  /* Error in area (used in SB error).    */
 
@@ -259,7 +289,7 @@ struct mkcatalogparams
   gal_data_t          *upmask;  /* Upper limit magnitude mask.          */
   float                medstd;  /* Median standard deviation value.     */
   float               cpscorr;  /* Counts-per-second correction.        */
-  int32_t            *outlabs;  /* Labels in output catalog (when necessary) */
+  int32_t            *outlabs;  /* Labels in output cat (when necessary)*/
   int32_t         *outlabsinv;  /* Inverse of the 'outlabs' array.      */
   size_t           numobjects;  /* Number of object labels in image.    */
   float               clumpsn;  /* Clump S/N threshold.                 */
@@ -282,8 +312,6 @@ struct mkcatalogparams
   uint8_t      uprangewarning;  /* A warning must be printed.           */
   size_t         *hostobjid_c;  /* To sort the clumps table by Obj.ID.  */
   size_t         *numclumps_c;  /* To sort the clumps table by Obj.ID.  */
-  gal_data_t   *specsliceinfo;  /* Slice information for spectra.       */
-  gal_data_t         *spectra;  /* Array of datasets containing spectra.*/
   double        pixelarcsecsq;  /* Area of input's pixels in arcsec^2.  */
 
   char        *usedvaluesfile;  /* Ptr to final name used for values.   */

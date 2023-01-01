@@ -84,7 +84,7 @@ gal_list_str_t *
 gal_list_str_extract(char *string);
 
 char *
-gal_list_str_cat(gal_list_str_t *list);
+gal_list_str_cat(gal_list_str_t *list, char delimiter);
 
 
 

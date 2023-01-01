@@ -76,7 +76,7 @@ struct arithmetic_token
   struct arithmetic_token *next;  /* Pointer to next token.               */
 };
 
-/*  */
+/* For arithmetic operations. */
 struct column_pack
 {
   size_t                    start; /* Starting ind. in requested columns. */
@@ -100,6 +100,7 @@ struct tableparams
   gal_list_str_t     *columns;  /* List of given columns.               */
   uint8_t         information;  /* ==1: only print FITS information.    */
   uint8_t     colinfoinstdout;  /* ==1: print column metadata in CL.    */
+  uint8_t            rowfirst;  /* Do row-based operations first.       */
   gal_data_t           *range;  /* Range to limit output.               */
   gal_data_t       *inpolygon;  /* Columns to check if inside polygon.  */
   gal_data_t      *outpolygon;  /* Columns to check if outside polygon. */
@@ -122,6 +123,7 @@ struct tableparams
   gal_data_t      *fromvector;  /* Extract columns from a vector column.*/
   uint8_t         keepvectfin;  /* Keep in.s --tovector & --fromvector. */
   gal_list_str_t    *tovector;  /* Merge columns into a vector column.  */
+  uint8_t           transpose;  /* Transpose vector columns.            */
   gal_list_str_t  *catrowfile;  /* Filename to concat column wise.      */
   gal_list_str_t   *catrowhdu;  /* HDU/extension for the catcolumn.     */
   gal_data_t     *colmetadata;  /* Set column metadata.                 */
@@ -132,7 +134,7 @@ struct tableparams
   int         txtf64precision;  /* Precision of float32 in text.        */
 
   /* Internal. */
-  struct column_pack *outcols;  /* Output column packages.              */
+  struct column_pack *colpack;  /* Output column packages.              */
   gal_data_t         *noblank;  /* Remove rows that have blank.         */
   gal_data_t           *table;  /* Linked list of output table columns. */
   struct wcsprm          *wcs;  /* WCS structure for conversion.        */

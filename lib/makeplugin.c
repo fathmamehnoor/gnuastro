@@ -126,7 +126,7 @@ makeplugin_text_contains_base(char **argv, int has1_not0)
   /* Write the list into one string, but first reverse it so it has the
      same order as the input. */
   gal_list_str_reverse(&outlist);
-  out=gal_list_str_cat(outlist);
+  out=gal_list_str_cat(outlist, ' ');
 
   /* Clean up and return. */
   gal_list_str_free(strings, 1);
@@ -243,7 +243,7 @@ makeplugin_fits_with_keyvalue(const char *caller, unsigned int argc,
   outlist=gal_fits_with_keyvalue(files, hdu, name, values);
 
   /* Write the output string */
-  out=gal_list_str_cat(outlist);
+  out=gal_list_str_cat(outlist, ' ');
 
   /* Clean up and return. */
   gal_list_str_free(files, 1);
@@ -279,7 +279,7 @@ makeplugin_fits_unique_keyvalues(const char *caller, unsigned int argc,
   outlist=gal_fits_unique_keyvalues(files, hdu, name);
 
   /* Write the output value. */
-  out=gal_list_str_cat(outlist);
+  out=gal_list_str_cat(outlist, ' ');
 
   /* Clean up and return. */
   gal_list_str_free(files, 1);

@@ -346,7 +346,7 @@ struct argp_option program_options[] =
       UI_KEY_LISTLINES,
       0,
       0,
-      "List known lines and rest frame wavelength.",
+      "List pre-defined lines at rest frame.",
       UI_GROUP_SPECTRAL_LINES,
       &p->listlines,
       GAL_OPTIONS_NO_ARG_TYPE,
@@ -359,13 +359,26 @@ struct argp_option program_options[] =
       UI_KEY_LISTLINESATZ,
       0,
       0,
-      "List known spectral lines at given redshift.",
+      "List pre-defined lines at the given redshift.",
       UI_GROUP_SPECTRAL_LINES,
       &p->listlinesatz,
       GAL_OPTIONS_NO_ARG_TYPE,
       GAL_OPTIONS_RANGE_0_OR_1,
       GAL_OPTIONS_NOT_MANDATORY,
       GAL_OPTIONS_NOT_SET
+    },
+    {
+      "lineunit",
+      UI_KEY_LINEUNIT,
+      "STR",
+      0,
+      "Unit ('angstrom', 'nm', 'microm' or 'm').",
+      UI_GROUP_SPECTRAL_LINES,
+      &p->lineunit,
+      GAL_TYPE_STRING,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
     },
     {
       "lineatz",
@@ -381,8 +394,6 @@ struct argp_option program_options[] =
       GAL_OPTIONS_NOT_SET,
       ui_add_to_single_value,
     },
-
-
 
     {0}
   };

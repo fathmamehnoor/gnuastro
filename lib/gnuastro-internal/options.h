@@ -301,9 +301,18 @@ gal_data_t *
 gal_options_parse_list_of_numbers(char *string, char *filename,
                                   size_t lineno, uint8_t type);
 
+gal_list_str_t *
+gal_options_parse_csv_strings_to_list(char *string, char *filename,
+                                      size_t lineno);
+
 gal_data_t *
-gal_options_parse_csv_strings_raw(char *string, char *filename,
-                                  size_t lineno);
+gal_options_parse_csv_strings_to_data(char *string, char *filename,
+                                      size_t lineno);
+
+void *
+gal_options_parse_csv_strings_append(struct argp_option *option, char *arg,
+                                     char *filename, size_t lineno,
+                                     void *junk);
 
 void *
 gal_options_parse_csv_strings(struct argp_option *option, char *arg,

@@ -1854,9 +1854,10 @@ txt_write_metadata(FILE *fp, gal_data_t *datall, char **fmts,
       if( (tmp=fmts[ i*FMTS_COLS+1 ]) )      /* If it isn't NULL. */
         {
           twt=strlen(tmp);
-          if(tab0_img1==0 && data->ndim==2)        /* +1 for 0 to 10. */
-            twt+=(int)(log10(data->dsize[1]))+1+2; /* +2 for the '()'.*/
-          tw = twt > tw ? twt : tw;
+          /* A 2D col with second dim of 1 is just a normal 1D col. */
+          if(tab0_img1==0 && data->ndim==2 && data->dsize[1]>1)
+            twt+=(int)(log10(data->dsize[1]))+1+2; /* +1 for 0 to 10. */
+          tw = twt > tw ? twt : tw;                /* +2 for the '()'.*/
         }
 
       /* Go onto the next data element. */
@@ -1887,8 +1888,9 @@ txt_write_metadata(FILE *fp, gal_data_t *datall, char **fmts,
       for(j=1;j<nlen;++j)
         if(!isdigit(nstr[j])) nstr[j] = isdigit(nstr[j-1]) ? ':' : ' ';
 
-      /* For the type, we need to account for vector clumns. */
-      if(tab0_img1==0 && data->ndim==2)
+      /* For the type, we need to account for vector clumns. Note that a 2D
+         col with second dim of 1 is just a normal 1D col. */
+      if(tab0_img1==0 && data->ndim==2 && data->dsize[1]>1)
         { if( asprintf(&tstr, "%s(%zu)", fmts[i*FMTS_COLS+1],
                        data->dsize[1])<0 )
             error(EXIT_FAILURE, 0, "%s: asprintf allocation", __func__); }

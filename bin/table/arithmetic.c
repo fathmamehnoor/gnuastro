@@ -37,6 +37,8 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 #include <gnuastro-internal/arithmetic-set.h>
 
 #include "main.h"
+
+#include "ui.h"
 #include "arithmetic.h"
 
 
@@ -375,7 +377,7 @@ arithmetic_indexs_final(struct tableparams *p)
   p->colarray=gal_list_data_to_array_ptr(p->table, &p->numcolarray);
 
   /* go over each package of columns. */
-  for(tmp=p->outcols;tmp!=NULL;tmp=tmp->next)
+  for(tmp=p->colpack;tmp!=NULL;tmp=tmp->next)
     {
       /* If we are on an arithmetic operation. */
       if(tmp->arith)
@@ -1240,7 +1242,7 @@ arithmetic_operate(struct tableparams *p)
   p->table=NULL;
 
   /* Go over each package of columns. */
-  for(outpack=p->outcols; outpack!=NULL; outpack=outpack->next)
+  for(outpack=p->colpack; outpack!=NULL; outpack=outpack->next)
     {
       if(outpack->arith)
         arithmetic_reverse_polish(p, outpack);
@@ -1255,4 +1257,10 @@ arithmetic_operate(struct tableparams *p)
      column contents have either been moved into the new table, or have
      already been freed. */
   gal_list_data_reverse(&p->table);
+
+  /* Clean up. */
+  ui_colpack_free(p->colpack);
+  if(p->colarray) free(p->colarray);
+  p->colarray=NULL;
+  p->colpack=NULL;
 }

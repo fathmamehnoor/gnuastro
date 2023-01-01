@@ -430,11 +430,11 @@ static void
 table_select_by_value(struct tableparams *p)
 {
   gal_data_t *rowids;
+  size_t i, *s, ngood=0;
   struct list_select *tmp;
   uint8_t *u, *uf, *ustart;
-  size_t i, *s, ngood=0;
   int inplace=GAL_ARITHMETIC_FLAG_INPLACE;
-  gal_data_t *mask, *blmask, *addmask=NULL;
+  gal_data_t *mask, *col, *blmask, *addmask=NULL;
 
   /* It may happen that the input table is empty! In such cases, just
      return and don't bother with this step. */
@@ -442,19 +442,33 @@ table_select_by_value(struct tableparams *p)
     return;
 
   /* Allocate datasets for the necessary numbers and write them in. */
-  mask=gal_data_alloc(NULL, GAL_TYPE_UINT8, 1, p->table->dsize, NULL, 1,
-                      p->cp.minmapsize, p->cp.quietmmap, NULL, NULL, NULL);
+  mask=gal_data_alloc(NULL, GAL_TYPE_UINT8, 1, &p->table->dsize[0],
+                      NULL, 1, p->cp.minmapsize, p->cp.quietmmap,
+                      NULL, NULL, NULL);
 
   /* Go over each selection criteria and remove the necessary elements. */
   for(tmp=p->selectcol;tmp!=NULL;tmp=tmp->next)
     {
-      /* Make sure the input isn't a vector column. */
+      /* Make sure the selection column isn't a vector column. */
       if(tmp->col->ndim!=1)
         error(EXIT_FAILURE, 0, "row selection by value (for example with "
               "'--range', '--inpolygon', '--equal' or '--noblank') is "
               "currently not available for vector columns. If you need "
               "this feature, please get in touch with us at '%s' to add "
               "it", PACKAGE_BUGREPORT);
+
+      /* Make sure all the to-be-used table columns at this point have the
+         same number of rows as the selection column (can be different when
+         transposing). */
+      for(col=p->table;col!=NULL;col=col->next)
+        if(tmp->col->dsize[0]!=col->dsize[0])
+          error(EXIT_FAILURE, 0, "the number of rows in the column given "
+                "for selection by value (for example '--range' or '--equal') "
+                "is not the same as the number of rows in the table when "
+                "they are applied. This may happen due to operators like "
+                "'--transpose'. In such cases, you probably want row-based "
+                "operators to have precedence over column-based operators. "
+                "If this is your case, please call '--rowfirst'");
 
       /* Do the specific type of selection. */
       switch(tmp->type)
@@ -912,6 +926,42 @@ table_catcolumn(struct tableparams *p)
 
 
 static void
+table_transpose(struct tableparams *p)
+{
+  gal_data_t *tmp;
+  size_t refwidth=p->table->dsize[1];
+
+  /* Temporary error. */
+  if(p->colpack)
+    error(EXIT_FAILURE, 0, "'--transpose' is currently not supported "
+          "with Column Arithmetic. Please pipe the transposed table "
+          "into a new 'asttable' command for doing column arithmetic "
+          "on the new columns");
+
+  /* Basic sanity checks and counting of final output columns. */
+  for(tmp=p->table; tmp!=NULL; tmp=tmp->next)
+    {
+      /* Inputs should be vectors. */
+      if(tmp->ndim!=2)
+        error(EXIT_FAILURE, 0, "only vector columns should be present "
+              "in the table when using '--transpose'");
+      if(tmp->dsize[1] != refwidth)
+        error(EXIT_FAILURE, 0, "all vector columns given to '--transpose' "
+              "should have the same length (number of tokens/elements)");
+
+      /* Apply the transposition. */
+      gal_permutation_transpose_2d(tmp);
+
+      /* Remove extra dimensions if necessary. */
+      if(tmp->dsize[1]==1) tmp->ndim=1;
+    }
+}
+
+
+
+
+
+static void
 table_fromvector(struct tableparams *p)
 {
   size_t i, *iarr;
@@ -925,12 +975,17 @@ table_fromvector(struct tableparams *p)
       vector=gal_list_data_select_by_id(p->table, tmp->name, NULL);
       if(vector==NULL) table_error_no_column("--fromvector", tmp->name);
 
+      /* If we don't need this vector column any more, remove it from the
+         table. */
+      if(p->keepvectfin==0) gal_list_data_remove(&p->table, vector);
+
       /* Make sure the selected column is actually a vector. */
       if(vector->ndim!=2)
         error(EXIT_FAILURE, 0, "column '%s' (given to '--fromvector') "
               "is not a vector", tmp->name);
 
       /* Loop over the values and make sure they are within the range. */
+      indexs=NULL;
       iarr=tmp->array;
       for(i=0;i<tmp->size;++i)
         {
@@ -959,16 +1014,10 @@ table_fromvector(struct tableparams *p)
       ext=gal_table_col_vector_extract(vector, indexs);
       gal_list_data_last(p->table)->next=ext;
 
-      /* Remove the vector column (if requested). */
-      if(p->keepvectfin==0)
-        {
-          gal_list_data_remove(&p->table, vector);
-          gal_data_free(vector);
-        }
+      /* Clean up (remove the vector column, if requested). */
+      gal_list_sizet_free(indexs);
+      if(p->keepvectfin==0) gal_data_free(vector);
     }
-
-  /* Clean up. */
-  gal_list_sizet_free(indexs);
 }
 
 
@@ -987,7 +1036,7 @@ table_tovector(struct tableparams *p)
   for(tstr=p->tovector;tstr!=NULL;tstr=tstr->next)
     {
       /* Extract the separate csv. */
-      ids=gal_options_parse_csv_strings_raw(tstr->v, NULL, 0);
+      ids=gal_options_parse_csv_strings_to_data(tstr->v, NULL, 0);
 
       /* Allocate an array of dataset pointers to keep the columns that
          should be removed. */
@@ -1493,7 +1542,7 @@ table_txt_formats(struct tableparams *p)
 /***************       Top function         *******************/
 /**************************************************************/
 void
-table(struct tableparams *p)
+table_column(struct tableparams *p)
 {
   /* Concatenate the columns of tables (if required). */
   if(p->catcolumnfile) table_catcolumn(p);
@@ -1501,6 +1550,20 @@ table(struct tableparams *p)
   /* Extract columns from vector. */
   if(p->fromvector) table_fromvector(p);
 
+  /* Merge columns into a vector column. */
+  if(p->tovector) table_tovector(p);
+
+  /* If any arithmetic operations are needed, do them. */
+  if(p->colpack) arithmetic_operate(p);
+}
+
+
+
+
+
+void
+table_row(struct tableparams *p)
+{
   /* Concatenate the rows of multiple tables (if required). */
   if(p->catrowfile) table_catrows(p);
 
@@ -1511,23 +1574,29 @@ table(struct tableparams *p)
   if(p->sort) table_sort(p);
 
   /* If the output number of rows is limited, apply them. */
-  if( p->rowrange
+  if(    p->rowrange
       || p->rowrandom
       || p->head!=GAL_BLANK_SIZE_T
       || p->tail!=GAL_BLANK_SIZE_T )
     table_select_by_position(p);
 
-  /* If any arithmetic operations are needed, do them. */
-  if(p->outcols)
-    arithmetic_operate(p);
+  /* Transpose the input table. */
+  if(p->transpose) table_transpose(p);
+}
 
-  /* Merge columns into a vector column. */
-  if(p->tovector) table_tovector(p);
 
-  /* When column metadata should be updated. */
+
+
+
+void
+table(struct tableparams *p)
+{
+  /* Do the requested operations. */
+  if(p->rowfirst) { table_row(p);    table_column(p); }
+  else            { table_column(p); table_row(p);    }
+
+  /* Last steps (independent of '--rowfirst'). */
   if(p->colmetadata) table_colmetadata(p);
-
-  /* When any columns with blanks should be removed. */
   if(p->noblankend) table_noblankend(p);
 
   /* Write the output or a warning/error (it can become NULL!) */

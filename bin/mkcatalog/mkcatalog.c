@@ -89,6 +89,106 @@ mkcatalog_clump_starting_index(struct mkcatalog_passparams *pp)
 
 
 
+/* Vector allocation (short name is used since it is repeated a lot). */
+static void
+mkcatalog_vec_alloc(struct mkcatalog_passparams *pp, size_t onum,
+                    size_t vnum, uint8_t type)
+{
+  if( pp->p->oiflag[ onum ] )
+    gal_data_initialize(&pp->vector[vnum], 0, type, 1,
+                        &(pp->p->objects->dsize[0]), NULL, 1,
+                        pp->p->cp.minmapsize, pp->p->cp.quietmmap,
+                        NULL, NULL, NULL);
+}
+
+
+
+
+
+/* Allocate all the necessary space. */
+static void
+mkcatalog_single_object_init(struct mkcatalogparams *p,
+                             struct mkcatalog_passparams *pp)
+{
+  uint8_t *oif=p->oiflag;
+  size_t ndim=p->objects->ndim;
+  uint8_t i32=GAL_TYPE_INT32, f64=GAL_TYPE_FLOAT64; /* For short lines.*/
+
+  /* Initialize the mkcatalog_passparams elements. */
+  pp->p               = p;
+  pp->clumpstartindex = 0;
+  pp->rng             = p->rng ? gsl_rng_clone(p->rng) : NULL;
+  pp->oi              = gal_pointer_allocate(GAL_TYPE_FLOAT64,
+                                             OCOL_NUMCOLS, 0, __func__,
+                                             "pp->oi");
+
+  /* If we have second order measurements, allocate the array keeping the
+     temporary shift values for each object of this thread. Note that the
+     clumps catalog (if requested), will have the same measurements, so its
+     just enough to check the objects. */
+  pp->shift = ( (    oif[ OCOL_GXX ]
+                  || oif[ OCOL_GYY ]
+                  || oif[ OCOL_GXY ]
+                  || oif[ OCOL_VXX ]
+                  || oif[ OCOL_VYY ]
+                  || oif[ OCOL_VXY ] )
+                ? gal_pointer_allocate(GAL_TYPE_SIZE_T, ndim, 0, __func__,
+                                       "pp->shift")
+                : NULL );
+
+  /* If we have upper-limit mode, then allocate the container to keep the
+     values to calculate the standard deviation. */
+  if(p->upperlimit)
+    {
+      /* Allocate the space to keep the upper-limit values. */
+      pp->up_vals = gal_data_alloc(NULL, GAL_TYPE_FLOAT32, 1, &p->upnum,
+                                  NULL, 0, p->cp.minmapsize,
+                                  p->cp.quietmmap, NULL, NULL, NULL);
+
+      /* Set the blank checked flag to 1. By definition, this dataset won't
+         have any blank values. Also 'flag' is initialized to '0'. So we
+         just have to set the checked flag ('GAL_DATA_FLAG_BLANK_CH') to
+         one to inform later steps that there are no blank values. */
+      pp->up_vals->flag |= GAL_DATA_FLAG_BLANK_CH;
+    }
+  else
+    pp->up_vals=NULL;
+
+  /* If any vector measurements are necessary, do the necessary
+     allocations: first the general array, to keep all that are necessary,
+     then the individual ones. */
+  pp->vector = ( (    oif[ OCOL_NUMINSLICE         ]
+                   || oif[ OCOL_SUMINSLICE         ]
+                   || oif[ OCOL_NUMALLINSLICE      ]
+                   || oif[ OCOL_SUMVARINSLICE      ]
+                   || oif[ OCOL_SUMPROJINSLICE     ]
+                   || oif[ OCOL_NUMPROJINSLICE     ]
+                   || oif[ OCOL_SUMPROJVARINSLICE  ]
+                   || oif[ OCOL_NUMOTHERINSLICE    ]
+                   || oif[ OCOL_SUMOTHERINSLICE    ]
+                   || oif[ OCOL_SUMOTHERVARINSLICE ]
+                   || oif[ OCOL_NUMALLOTHERINSLICE ] )
+                 ? gal_data_array_calloc(VEC_NUM)
+                 : NULL );
+  mkcatalog_vec_alloc(pp, OCOL_NUMINSLICE,      VEC_NUMINSLICE,     i32);
+  mkcatalog_vec_alloc(pp, OCOL_NUMALLINSLICE,   VEC_NUMALLINSLICE,  i32);
+  mkcatalog_vec_alloc(pp, OCOL_NUMPROJINSLICE,  VEC_NUMPROJINSLICE, i32);
+  mkcatalog_vec_alloc(pp, OCOL_NUMOTHERINSLICE, VEC_NUMOTHERINSLICE,i32);
+  mkcatalog_vec_alloc(pp, OCOL_SUMINSLICE,      VEC_SUMINSLICE,     f64);
+  mkcatalog_vec_alloc(pp, OCOL_SUMVARINSLICE,   VEC_SUMVARINSLICE,  f64);
+  mkcatalog_vec_alloc(pp, OCOL_SUMPROJINSLICE,  VEC_SUMPROJINSLICE, f64);
+  mkcatalog_vec_alloc(pp, OCOL_SUMOTHERINSLICE, VEC_SUMOTHERINSLICE,f64);
+  mkcatalog_vec_alloc(pp, OCOL_SUMOTHERVARINSLICE, VEC_SUMOTHERVARINSLICE,
+                      f64);
+  mkcatalog_vec_alloc(pp, OCOL_NUMALLOTHERINSLICE, VEC_NUMALLOTHERINSLICE,
+                      i32);
+  mkcatalog_vec_alloc(pp, OCOL_SUMPROJVARINSLICE, VEC_SUMPROJVARINSLICE,
+                      f64);
+}
+
+
+
+
 
 /* Each thread will call this function once. It will go over all the
    objects that are assigned to it. */
@@ -97,51 +197,12 @@ mkcatalog_single_object(void *in_prm)
 {
   struct gal_threads_params *tprm=(struct gal_threads_params *)in_prm;
   struct mkcatalogparams *p=(struct mkcatalogparams *)(tprm->params);
-  size_t ndim=p->objects->ndim;
 
   size_t i;
-  uint8_t *oif=p->oiflag;
   struct mkcatalog_passparams pp;
 
-
-  /* Initialize the mkcatalog_passparams elements. */
-  pp.p               = p;
-  pp.clumpstartindex = 0;
-  pp.rng             = p->rng ? gsl_rng_clone(p->rng) : NULL;
-  pp.oi              = gal_pointer_allocate(GAL_TYPE_FLOAT64, OCOL_NUMCOLS,
-                                            0, __func__, "pp.oi");
-
-  /* If we have second order measurements, allocate the array keeping the
-     temporary shift values for each object of this thread. Note that the
-     clumps catalog (if requested), will have the same measurements, so its
-     just enough to check the objects. */
-  pp.shift = ( ( oif[    OCOL_GXX ]
-                 || oif[ OCOL_GYY ]
-                 || oif[ OCOL_GXY ]
-                 || oif[ OCOL_VXX ]
-                 || oif[ OCOL_VYY ]
-                 || oif[ OCOL_VXY ] )
-               ? gal_pointer_allocate(GAL_TYPE_SIZE_T, ndim, 0, __func__,
-                                       "pp.shift")
-               : NULL );
-
-  /* If we have upper-limit mode, then allocate the container to keep the
-     values to calculate the standard deviation. */
-  if(p->upperlimit)
-    {
-      /* Allocate the space to keep the upper-limit values. */
-      pp.up_vals = gal_data_alloc(NULL, GAL_TYPE_FLOAT32, 1, &p->upnum,
-                                  NULL, 0, p->cp.minmapsize, p->cp.quietmmap,
-                                  NULL, NULL, NULL);
-
-      /* Set the blank checked flag to 1. By definition, this dataset won't
-         have any blank values. Also 'flag' is initialized to '0'. So we
-         just have to set the checked flag ('GAL_DATA_FLAG_BLANK_CH') to
-         one to inform later steps that there are no blank values. */
-      pp.up_vals->flag |= GAL_DATA_FLAG_BLANK_CH;
-    }
-  else
-    pp.up_vals=NULL;
+  /* Initialize and allocate all the necessary values. */
+  mkcatalog_single_object_init(p, &pp);
 
   /* Fill the desired columns for all the objects given to this thread. */
   for(i=0; tprm->indexs[i]!=GAL_BLANK_SIZE_T; ++i)
@@ -153,7 +214,6 @@ mkcatalog_single_object(void *in_prm)
                       ? p->outlabs[ tprm->indexs[i] ]
                       : tprm->indexs[i] + 1 );
       pp.tile     = &p->tiles[   tprm->indexs[i] ];
-      pp.spectrum = &p->spectra[ tprm->indexs[i] ];
 
       /* Initialize the parameters for this object/tile. */
       parse_initialize(&pp);
@@ -181,16 +241,16 @@ mkcatalog_single_object(void *in_prm)
 
       /* If an order-based calculation is requested, another pass is
          necessary. */
-      if( p->oiflag[ OCOL_MEDIAN ]
-          || p->oiflag[ OCOL_MAXIMUM ]
-          || p->oiflag[ OCOL_HALFMAXSUM ]
-          || p->oiflag[ OCOL_HALFMAXNUM ]
-          || p->oiflag[ OCOL_HALFSUMNUM ]
-          || p->oiflag[ OCOL_SIGCLIPNUM ]
-          || p->oiflag[ OCOL_SIGCLIPSTD ]
-          || p->oiflag[ OCOL_SIGCLIPMEAN ]
-          || p->oiflag[ OCOL_FRACMAX1NUM ]
-          || p->oiflag[ OCOL_FRACMAX2NUM ]
+      if(    p->oiflag[ OCOL_MEDIAN        ]
+          || p->oiflag[ OCOL_MAXIMUM       ]
+          || p->oiflag[ OCOL_HALFMAXSUM    ]
+          || p->oiflag[ OCOL_HALFMAXNUM    ]
+          || p->oiflag[ OCOL_HALFSUMNUM    ]
+          || p->oiflag[ OCOL_SIGCLIPNUM    ]
+          || p->oiflag[ OCOL_SIGCLIPSTD    ]
+          || p->oiflag[ OCOL_SIGCLIPMEAN   ]
+          || p->oiflag[ OCOL_FRACMAX1NUM   ]
+          || p->oiflag[ OCOL_FRACMAX2NUM   ]
           || p->oiflag[ OCOL_SIGCLIPMEDIAN ])
         parse_order_based(&pp);
 
@@ -209,6 +269,7 @@ mkcatalog_single_object(void *in_prm)
   free(pp.shift);
   gal_data_free(pp.up_vals);
   if(pp.rng) gsl_rng_free(pp.rng);
+  gal_data_array_free(pp.vector, VEC_NUM, 1);
 
   /* Wait until all the threads finish and return. */
   if(tprm->b) pthread_barrier_wait(tprm->b);
@@ -394,8 +455,8 @@ mkcatalog_outputs_keys_infiles(struct mkcatalogparams *p,
       if(p->sky->size==1)
         mkcatalog_outputs_keys_numeric(keylist, p->sky->array,
                                        p->sky->type, "INSKYVAL",
-                                       "Value of Sky used (a single number).",
-                                       NULL);
+                                       "Value of Sky used (a single "
+                                       "number).", NULL);
       else
         {
           gal_fits_key_write_filename("INSKY", p->usedskyfile, keylist, 0,
@@ -488,7 +549,8 @@ mkcatalog_outputs_keys(struct mkcatalogparams *p, int o0c1)
                                    "mag");
 
   /* Add the title for the keywords. */
-  gal_fits_key_list_title_add_end(&keylist, "Surface brightness limit (SBL)", 0);
+  gal_fits_key_list_title_add_end(&keylist, "Surface brightness limit "
+                                  "(SBL)", 0);
 
   /* Print surface brightness limit. */
   if( !isnan(p->medstd) && !isnan(p->sfmagnsigma) )
@@ -496,12 +558,12 @@ mkcatalog_outputs_keys(struct mkcatalogparams *p, int o0c1)
       /* Used noise value (per pixel) and multiple of sigma. */
       mkcatalog_outputs_keys_numeric(&keylist, &p->medstd,
                                      GAL_TYPE_FLOAT32, "SBLSTD",
-                                     "Pixel STD for surface brightness limit.",
-                                     NULL);
+                                     "Pixel STD for surface brightness "
+                                     "limit.", NULL);
       mkcatalog_outputs_keys_numeric(&keylist, &p->sfmagnsigma,
                                      GAL_TYPE_FLOAT32, "SBLNSIG",
-                                     "Sigma multiple for surface brightness "
-                                     "limit.", NULL);
+                                     "Sigma multiple for surface "
+                                     "brightness limit.", NULL);
 
       /* Only print magnitudes if a zeropoint is given. */
       if( !isnan(p->zeropoint) )
@@ -511,8 +573,8 @@ mkcatalog_outputs_keys(struct mkcatalogparams *p, int o0c1)
                                          p->zeropoint);
           mkcatalog_outputs_keys_numeric(&keylist, &fvalue,
                                          GAL_TYPE_FLOAT32, "SBLMAGPX",
-                                         "Surface brightness limit per pixel.",
-                                         "mag/pix");
+                                         "Surface brightness limit per "
+                                         "pixel.", "mag/pix");
 
           /* Only print the SBL in fixed area if a WCS is present and a
              pixel area could be deduced. */
@@ -532,7 +594,8 @@ mkcatalog_outputs_keys(struct mkcatalogparams *p, int o0c1)
                                              p->zeropoint);
               mkcatalog_outputs_keys_numeric(&keylist, &fvalue,
                                              GAL_TYPE_FLOAT32, "SBLMAG",
-                                             "Surf. bright. limit in SBLAREA.",
+                                             "Surf. bright. limit in "
+                                             "SBLAREA.",
                                              "mag/arcsec^2");
             }
           else
@@ -646,8 +709,6 @@ sort_clumps_by_objid(struct mkcatalogparams *p)
 static void
 mkcatalog_write_outputs(struct mkcatalogparams *p)
 {
-  size_t i, scounter;
-  char str[200], *fname;
   gal_fits_list_key_t *keylist;
   gal_list_str_t *comments=NULL;
   int outisfits=gal_fits_name_is_fits(p->objectsout);
@@ -684,46 +745,6 @@ mkcatalog_write_outputs(struct mkcatalogparams *p)
         }
     }
 
-  /* Spectra. */
-  if(p->spectra)
-    {
-      /* Inform the user (Writing many FITS extensions can take
-         long). */
-      if(p->objectcols && outisfits)
-        printf("  - Catalog(s) complete, writing spectra.\n");
-
-      /* Start counting and writing the files. Note that due to some
-         conditions (for example in debugging), a 'p->spectra[i]' may not
-         actually contain any data. So we'll also count the number of
-         spectra that are written. */
-      scounter=0;
-      for(i=0;i<p->numobjects;++i)
-        if(p->spectra[i].ndim>0)
-          {
-            /* Increment the written spectra-counter. */
-            ++scounter;
-
-            /* Write the spectra based on the requested format. */
-            if(outisfits)
-              {
-                /* Write the table. */
-                sprintf(str, "SPECTRUM_%zu", i+1);
-                gal_table_write(&p->spectra[i], NULL, NULL,
-                                GAL_TABLE_FORMAT_BFITS,
-                                p->objectsout, str, 0);
-              }
-            else
-              {
-                sprintf(str, "-spec-%zu.txt", i+1);
-                fname=gal_checkset_automatic_output(&p->cp, p->objectsout,
-                                                    str);
-                gal_table_write(&p->spectra[i], NULL, NULL, GAL_TABLE_FORMAT_TXT,
-                                fname, NULL, 0);
-                free(fname);
-              }
-          }
-    }
-
   /* Configuration information. */
   if(outisfits)
     {
@@ -735,36 +756,16 @@ mkcatalog_write_outputs(struct mkcatalogparams *p)
 
 
   /* Inform the user */
-  if(!p->cp.quiet)
+  if(!p->cp.quiet && p->objectcols)
     {
-      if(p->objectcols)
+      if(p->clumpsout && strcmp(p->clumpsout,p->objectsout))
         {
-          if(p->clumpsout && strcmp(p->clumpsout,p->objectsout))
-            {
-              printf("  - Output objects catalog: %s\n", p->objectsout);
-              if(p->clumps)
-                printf("  - Output clumps catalog: %s\n", p->clumpsout);
-            }
-          else
-            printf("  - Catalog written to %s\n", p->objectsout);
-
+          printf("  - Output objects catalog: %s\n", p->objectsout);
+          if(p->clumps)
+            printf("  - Output clumps catalog: %s\n", p->clumpsout);
         }
-
-      if(p->spectra)
-        {
-          if(outisfits)
-            {
-              if(p->objectcols)
-                printf("  - Spectra in %zu extensions named 'SPECTRUM_NN'.\n",
-                       p->numobjects);
-              else
-                printf("  - Output: %s (Spectra in %zu extensions named "
-                       "'SPECTRUM_NN').\n)", p->objectsout, p->numobjects);
-            }
-          else
-            printf("  - Spectra in %zu files with '-spec-NN.txt' suffix.\n",
-                   p->numobjects);
-        }
+      else
+        printf("  - Catalog written to %s\n", p->objectsout);
     }
 }
 

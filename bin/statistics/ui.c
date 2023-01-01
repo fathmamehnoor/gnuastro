@@ -853,7 +853,7 @@ ui_read_columns_in_one(struct statisticsparams *p)
 
       /* Read the different comma-separated strings into an array (within a
          'gal_data_t'). */
-      strs=gal_options_parse_csv_strings_raw(tmp->v, NULL, 0);
+      strs=gal_options_parse_csv_strings_to_data(tmp->v, NULL, 0);
       strarr=strs->array;
 
       /* Add each array element to the final list of columns. */

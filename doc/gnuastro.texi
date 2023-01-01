@@ -272,6 +272,7 @@ Tutorials
 * Detecting large extended targets::  NoiseChisel for huge extended targets.
 * Building the extended PSF::   How to extract an extended PSF from science data.
 * Sufi simulates a detection::  Simulating a detection.
+* Detecting lines and extracting spectra in 3D data::  Extracting spectra and emission line properties.
 
 General program usage tutorial
 
@@ -317,6 +318,16 @@ Building the extended PSF
 * Inner part of the PSF::       Going towards the PSF center.
 * Uniting the different PSF components::  Merging all the components into one PSF.
 * Subtracting the PSF::         Having the PSF, we now want to subtract it.
+
+Detecting lines and extracting spectra in 3D data
+
+* Viewing spectra and redshifted lines::  Interactively see the spectra of an object
+* Sky lines in optical IFUs::   How to see sky lines in a cube.
+* Continuum subtraction::       Removing the continuum from a data cube.
+* 3D detection with NoiseChisel::  Finding emission-lines and their spectra.
+* 3D measurements and spectra::  Measuring 3d properties including spectra.
+* Extracting a single spectrum and plotting it::  Extracting a single vector row.
+* Pseudo narrow-band images::   Collapsing the third dimension into a 2D image.
 
 Installation
 
@@ -659,7 +670,7 @@ MakeCatalog measurements
 * Surface brightness measurements::  Various ways to measure surface brightness.
 * Morphology measurements nonparametric::  Non-parametric morphology.
 * Morphology measurements elliptical::  Elliptical morphology measurements.
-* Spectra measurement in a cube::  How to get the value of a label across all slices.
+* Measurements per slice spectra::  Measurements on each slice (like spectra).
 
 Invoking MakeCatalog
 
@@ -718,9 +729,9 @@ High-level calculations
 
 CosmicCalculator
 
-* Distance on a 2D curved space::  Distances in 2D for simplicity
+* Distance on a 2D curved space::  Distances in 2D for simplicity.
 * Extending distance concepts to 3D::  Going to 3D (our real universe).
-* Invoking astcosmiccal::       How to run CosmicCalculator
+* Invoking astcosmiccal::       How to run CosmicCalculator.
 
 Invoking CosmicCalculator
 
@@ -2002,6 +2013,7 @@ For an explanation of the conventions we use in the example codes through the bo
 * Detecting large extended targets::  NoiseChisel for huge extended targets.
 * Building the extended PSF::   How to extract an extended PSF from science data.
 * Sufi simulates a detection::  Simulating a detection.
+* Detecting lines and extracting spectra in 3D data::  Extracting spectra and emission line properties.
 @end menu
 
 
@@ -2329,7 +2341,7 @@ The returned value is @mymath{9.06711} arcmin@mymath{^2}.
 In other words, the image does cover this area, but there is no data in more than half of the pixels.
 So let's calculate the area coverage over-which we actually have data.
 
-The FITS world coordinate system (WCS) meta data standard contains the key to answering this question.
+The FITS world coordinate system (WCS) metadata standard contains the key to answering this question.
 Run the following command to see all the FITS keywords (metadata) for one of the images (almost identical with the other images because they are scaled to the same region of Sky):
 
 @example
@@ -2346,7 +2358,7 @@ We can thus conclude that the value of @code{CDELT*} is in units of degrees-per-
 In the FITS standard the @code{CDELT} keywords are optional.
 When @code{CDELT} keywords are not present, the @code{PC} matrix is assumed to contain @emph{both} the coordinate rotation and scales.
 Note that not all FITS writers use the @code{CDELT} convention.
-So you might not find the @code{CDELT} keywords in the WCS meta data of some FITS files.
+So you might not find the @code{CDELT} keywords in the WCS metadata of some FITS files.
 However, all Gnuastro programs (which use the default FITS keyword writing format of WCSLIB) write their output WCS with the @code{CDELT} convention, even if the input does not have it.
 If your dataset does not use the @code{CDELT} convention, you can feed it to any (simple) Gnuastro program (for example, Arithmetic) and the output will have the @code{CDELT} keyword.
 See Section 8 of the @url{https://fits.gsfc.nasa.gov/standard40/fits_standard40aa-le.pdf, FITS standard} for more}.
@@ -7216,7 +7228,7 @@ Each image or dataset will have its own particularities that you will have to ta
 
 
 
-@node Sufi simulates a detection,  , Building the extended PSF, Tutorials
+@node Sufi simulates a detection, Detecting lines and extracting spectra in 3D data, Building the extended PSF, Tutorials
 @section Sufi simulates a detection
 
 @cindex Azophi
@@ -7774,12 +7786,886 @@ It was nearly sunset and they had to begin preparing for the night's measurement
 
 
 
+@node Detecting lines and extracting spectra in 3D data,  , Sufi simulates a detection, Tutorials
+@section Detecting lines and extracting spectra in 3D data
+
+@cindex IFU
+@cindex MUSE
+@cindex ACIS
+@cindex Pixel
+@cindex Voxel
+@cindex Spectrum
+@cindex 3D data cube
+@cindex Integral field unit
+@cindex Cube (3D) spectrums
+@cindex Hyperspectral imaging
+3D data cubes are an increasingly common format of data products in observational astronomy.
+As opposed to 2D images (where each 2D ``picture element'' or ``pixel'' covers an infinitesimal area on the surface of the sky), 3D data cubes contain ``volume elements'' or ``voxels'' that are also connected in a third dimension.
+
+The most common case of 3D data in observational astrophysics is when the first two dimensions are spatial (RA and Dec on the sky), and the third dimension is wavelength.
+This type of data is generically (also outside of astronomy) known as Hyperspectral imaging@footnote{@url{https://en.wikipedia.org/wiki/Hyperspectral_imaging}}.
+For example high-level data products of Integral Field Units (IFUs) like MUSE@footnote{@url{https://en.wikipedia.org/wiki/Multi-unit_spectroscopic_explorer}} in the optical, ACIS@footnote{@url{https://en.wikipedia.org/wiki/Advanced_CCD_Imaging_Spectrometer}} in the X-ray, or in the radio where most data are 3D cubes.
+
+@cindex Abell 370 galaxy cluster
+In this tutorial, we'll use a small crop of a reduced deep MUSE cube centered on the @url{https://en.wikipedia.org/wiki/Abell_370, Abell 360} galaxy cluster from the Pilot-WINGS survey; see @url{https://arxiv.org/abs/2202.04663, Lagattuta et al. 2022}.
+Abell 360 has a spiral galaxy in its background that is stretched due to the cluster's gravitational potential to create a beautiful arch.
+If you haven't seen it yet, have a look at some of its images in the Wikipedia link above before continuing.
+
+The Pilot-WINGS survey data are available in its webpage@footnote{@url{https://astro.dur.ac.uk/~hbpn39/pilot-wings.html}}.
+The cube of the @emph{core} region is 10.2GBs.
+This can be prohibitivly large to download (and later process) on many networks and smaller computers.
+Therefore, in this demonstration we won't be using the full cube.
+We have prepared a small crop@footnote{You can download the full cube and create the crop your self with the commands below.
+Due to the decompression of the +10GB file that is necessary for the compressed downloaded file (note that its suffix is @file{.fits.gz}), the Crop command will take a little long.
+@example
+$ wget https://astro.dur.ac.uk/~hbpn39/pilotWINGS/A370_PilotWINGS_CORE.fits.gz
+$ astcrop A370_PilotWINGS_CORE.fits.gz -hDATA --mode=img \
+          --section=200:300,100:200 -oa370-crop.fits --metaname=DATA
+$ astcrop A370_PilotWINGS_CORE.fits.gz -hSTAT --mode=img --append \
+          --section=200:300,100:200 -oa370-crop.fits --metaname=STAT
+@end example
+} of the full cube that you can download with the first command below.
+The randomly selected crop is centered on (RA,Dec) of (39.96769,-1.58930), with a width of about 27 arcseconds.
+
+@example
+$ mkdir tutorial-3d
+$ cd tutorial-3d
+$ wget http://akhlaghi.org/data/a370-crop.fits    # Downloads 287 MB
+@end example
+
+In the sections below, we will first review how you can visually inspect a 3D datacube in DS9 and interactively see the spectra of any region.
+We will then subtract the continuum emission, detect the emission-lines within this cube and extract their spectra.
+We will finish with creating pseudo narrow-band images optimized for some of the emission lines.
+
+@menu
+* Viewing spectra and redshifted lines::  Interactively see the spectra of an object
+* Sky lines in optical IFUs::   How to see sky lines in a cube.
+* Continuum subtraction::       Removing the continuum from a data cube.
+* 3D detection with NoiseChisel::  Finding emission-lines and their spectra.
+* 3D measurements and spectra::  Measuring 3d properties including spectra.
+* Extracting a single spectrum and plotting it::  Extracting a single vector row.
+* Pseudo narrow-band images::   Collapsing the third dimension into a 2D image.
+@end menu
+
+@node Viewing spectra and redshifted lines, Sky lines in optical IFUs, Detecting lines and extracting spectra in 3D data, Detecting lines and extracting spectra in 3D data
+@subsection Viewing spectra and redshifted lines
+
+In @ref{Detecting lines and extracting spectra in 3D data} we downloaded a small crop from the Pilot-WINGS survey of Abell 370 cluster; observed with MUSE.
+In this section, we will review how you can visualize/inspect a datacube using that example.
+With the first command below, we'll open DS9 such that each 2D slice of the cube (at a fixed wavelength) is seen as a single image.
+If you move the slider in the ``Cube'' window (that also opens), you can view the same field at different wavelengths.
+We are ending the first command with a `@code{&}' so you can continue viewing DS9 while using the command-line (press one extra @code{ENTER} to see the prompt).
+With the second command, you can see that the spacing between each slice is @mymath{1.25\times10^{-10}} meters (or 1.25 Angstroms).
+
+@example
+$ astscript-fits-view a370-crop.fits -h1 --ds9scale="limits -5 20" &
+
+$ astfits a370-crop.fits --pixelscale
+Basic information for --pixelscale (remove info with '--quiet' or '-q')
+  Input: a370-crop.fits (hdu 1) has 3 dimensions.
+  Pixel scale in each FITS dimension:
+    1: 5.55556e-05 (deg/pixel) = 0.2 (arcsec/pixel)
+    2: 5.55556e-05 (deg/pixel) = 0.2 (arcsec/pixel)
+    3: 1.25e-10 (m/slice)
+  Pixel area (on each 2D slice) :
+    3.08642e-09 (deg^2) = 0.04 (arcsec^2)
+  Voxel volume:
+    3.85802e-19 (deg^2*m) = 5e-12 (arcsec^2*m) = 0.05 (arcsec^2*A)
+@end example
+
+In the DS9 ``Cube'' window, you will see two numbers on the two sides of the scroller.
+The left number is the wavelength in meters (WCS coordinate in 3rd dimension) and the right number is the slice number (slice number or array coordinates in 3rd dimension).
+You can manually edit any of these numbers and press ENTER to go to that slice in any coordinate system.
+If you want to go one-by-one, simply press the ``Next'' button.
+The first few slides are very noisy, but in the rest the noise level decreases and the galaxies are more obvious.
+
+As you slide between the different wavelengths, you see that the noise-level is not constant and in some slices, the sky noise is very strong (for example, go to slice 3201 and press the ``Next'' button).
+We will discuss these issues below (in @ref{Sky lines in optical IFUs}).
+To view the spectra of a region in DS9 take the following steps:
+
+@enumerate
+@item
+Click somewhere on the image (to make sure DS9 receives your keyboard inputs), then press @code{Ctrl+R} to activate regions and click on the brighest galaxy of this cube (center-right, at RA, Dec of 39.9659175 and -1.5893075).
+@item
+A thin green circle will show up; this is called a ``region'' in DS9.
+@item
+Double-click on the region, and you will see a ``Circle'' window.
+@item
+Within the ``Circle'' window, click on the ``Analysis'' menu and select ``Plot 3D''.
+@item
+A second ``Circle'' window will open that shows the spectra within your selected region.
+This is just the sum of values on each slice within the region.
+@item
+Don't close the second ``circle'' window (that shows the spectrum).
+Click and hold the region in DS9, and move it to other objects within the cube.
+You will see that the spectrum changes as you move the region, and you can see that different objects have very different spectra.
+You can even see the spectra of only one part of a galaxy, not the whole galaxy.
+@item
+Take the region back to the first (brightest) galaxy that we originally started with.
+@item
+Slide over different wavelengths in the ``Cube'' window, you will see the light-blue line moving through the spectrum as you slide to different wavelengths.
+This line shows the wavelength of the displayed image in the main window over the spectra.
+@cindex H-alpha
+@item
+The strongest emission line in this galaxy appears to be around 8500 Angstroms or @mymath{8.5\times10^{-7}} meters.
+From the position of the @url{https://en.wikipedia.org/wiki/Balmer_jump, Balmer break} (blue-ward of 5000 Angstroms for this galaxy), the strong seems to be H-alpha.
+@item
+To confirm that this is H-alpha, you can select the ``Edit'' menu in the spectrum window and select ``Zoom''.
+@item
+Double-click and hold (for next step also) somewhere before the strongest line and slightly above the continuum (for example at @code{8E-07} in the horizontal and @mymath{60\times10^{-20}}erg/Angstrom/cm@mymath{^2}/s on the vertical).
+As you move your cursor (while holding), you will see a rectangular box getting created.
+@item
+Move the bottom-left corner of the box to somewhere after the strongest line and below the continuum.
+For example at @code{9E-07} and @mymath{20\times10^{-20}}erg/Angstrom/cm@mymath{^2}/s.
+@item
+Once you remove your finger from the mouse/touchpad, it will zoom-in to that part of the spectrum.
+@item
+To zoom out to the full spectrum, just press the right mouse button over the spectra (or tap with two fingers on a touchpad).
+@item
+Select that zoom-box again to see the brightest line much more clearly.
+You can also see the two lines of the Nitrogen II doublet that sandwitch H-alpha.
+Beside its relative position to the Balmer break, this is further evidence that the strongest line is H-alpha.
+@item
+@cindex NII doublet
+Let's have a look at the galaxy in its best glory: right over the H-alpha line:
+Move the wavelength slider accurately (by pressing the ``Previous'' or ``Next'' buttons) such that the blue line falls in the middle of the H-alpha line.
+We see that the wavelength at this slice is @code{8.56593e-07} meters or 8565.93 Angstroms.
+Please compare the image of the galaxy at this wavelength with the wavelenghts before (by pressing ``Next'' or ``Previous'').
+You will also see that it is much more extended and brighter than other wavelengths!
+H-alpha shows the un-obscured star formation of the galaxy!
+@end enumerate
+
+@cartouche
+@noindent
+@strong{Automaticly going to next slice:} When you want to get a general feeling of the cube, pressing the ``Next'' button many times is annoying and slow.
+To automatically shift between the slices, you can press the ``Play'' button in the DS9 ``Cube'' window.
+You can adjust the time it stays on each slice by clicking on the ``Interval'' menu and selecting lower values.
+@end cartouche
+
+Knowing that this is H-alpha at 8565.93 Angstroms, you can get the redshift of the galaxy with the first command below and the location of all other expected lines in Gnuastro's spectral line database with the second command.
+Because there are many lines in the second command (more than 200!), with the third command, we'll only limit it to the Balmer series (that start with @code{H-}) using @command{grep}.
+The output of the second command prints the metadata on the top (that is not shown any more in the third command due to the @code{grep} call).
+To be complete, the first column is the observed wavelength of the given line in the given redshift and the second column is the name of the line.
+
+@example
+# Redshift where H-alpha falls on 8565.93.
+$ astcosmiccal --obsline=H-alpha,8565.93 --usedredshift
+0.305221
+
+# Wavelength of all lines in Gnuastro's database at this redshift
+$ astcosmiccal --obsline=H-alpha,8565.93 --listlinesatz
+
+# Only the Balmer series (Lines starting with 'H-'; given to Grep).
+$ astcosmiccal --obsline=H-alpha,8565.93 --listlinesatz | grep H-
+4812.13             H-19
+4818.29             H-18
+4825.61             H-17
+4834.36             H-16
+4844.95             H-15
+4857.96             H-14
+4874.18             H-13
+4894.79             H-12
+4921.52             H-11
+4957.1              H-10
+5006.03             H-9
+5076.09             H-8
+5181.83             H-epsilon
+5353.68             H-delta
+5665.27             H-gamma
+6345.11             H-beta
+8565.93             H-alpha
+4758.84             H-limit
+@end example
+
+@cindex H-beta
+Zoom-out to the full spectrum and move the displayed slice to the location of the first emission line that is blue-ward (at shorter wavelengths) of H-alpha (at around 6300 Angstroms) and follow the previous steps to confirm that you are on its center.
+You will see that it falls exactly on @mymath{6.34468\times10^{-7}} m or 6344.68 Angstroms.
+Now, have a look at the balmer lines above.
+You have found the H-beta line!
+
+The rest of the @url{https://en.wikipedia.org/wiki/Balmer_series, Balmer series} that you see in the list above (like H-gamma, H-delta and H-epsilon) are visible only as absorption lines.
+Please check their location by moving the blue line on the wavelengths above and confirm the spectral absorption lines with the ones above.
+The Balmer break is caused by the fact that these stronger Balmer absorption lines become too close to each other.
+
+Looking back at the full spectrum, you can also confirm that the only other relatively strong emission line in this galaxy, that is on the blue side of the spectrum is the weakest OII line that is approximately located at 4864 Angstroms in the observed spectra of this galaxy.
+The numbers after the various OII emission lines show their rest-frame wavelengths (``OII'' can correspond to many electron transitions, so we should be clear about which one we are talking about).
+
+@example
+$ astcosmiccal --obsline=H-alpha,8565.93 --listlinesatz | grep O-II-
+4863.3              O-II-3726
+4866.93             O-II-3728
+5634.82             O-II-4317
+5762.42             O-II-4414
+9554.21             O-II-7319
+9568.22             O-II-7330
+@end example
+
+Please stop here and spend some time on doing the exercise above on other galaxies in the this cube to get a feeling of types of galaxy spectral features (and later on the full/large cube).
+You will notice that only star-forming galaxies have such strong emission lines!
+If you enjoy it, go get the full non-cropped cube and investigate the spectra, redshifts and emission/absorption lines of many more galaxies.
+
+But going into those higher-level details of the physical meaning of the spectra (as intriguing as they are!) is beyond the scope of this tutorial.
+So we have to stop at this stage unfortuantely.
+Now that you have a relatively good feeling of this small cube, let's start doing some analysis to extract the spectra of the objects in this cube.
+
+@node Sky lines in optical IFUs, Continuum subtraction, Viewing spectra and redshifted lines, Detecting lines and extracting spectra in 3D data
+@subsection Sky lines in optical IFUs
+
+@cindex Sky emission-lines
+@cindex O-H lines (from atmosphere)
+As we were visually inspecting the cube in @ref{Viewing spectra and redshifted lines}, we noticed some slices with very bad noise.
+They will later affect our detection within the cube, so in this section let's have a fast look at them here.
+We'll start by looking at the two cubes within the downloaded FITS file:
+
+@example
+$ astscript-fits-view a370-crop.fits
+@end example
+
+The cube on the left is the same cube we studied before.
+The cube on the right (which is called @code{STAT}) shows the variance of each voxel.
+Go to slice 3195 and press ``Next'' to view the subsequent slices.
+Initially (for the first 5 or 6 slices), the noise looks reasonable.
+But as you pass slice 3206, you will see that the noise becomes very bad in both cubes.
+It stays like this until about slice 3238!
+As you go through the whole cube, you will notice that these slices are much more frequent in the reddest wavelengths.
+
+@cindex Sky
+@cindex Atmosphere emission lines
+These slices are affected by the emission lines from our own atmosphere!
+The atmosphere's emission in these wavelengths significantly raises the background level in these slices.
+As a result, the poisson noise also increases significantly (see @ref{Photon counting noise}).
+During the data reduction, the excess background flux of each slice is removed as the Sky (or the mean of undetected pixels, see @ref{Sky value}).
+However, the increased Poisson noise (scatter of pixel values) remains!
+
+To see spectrum of the sky emission lines, simply put a region somewhere in the @code{STAT} cube and generate its spectrum (as we did in @ref{Viewing spectra and redshifted lines}).
+You will clearly see the comb-like shape of atmospheric emission lines and can use this to know where to expect them.
 
 
+@node Continuum subtraction, 3D detection with NoiseChisel, Sky lines in optical IFUs, Detecting lines and extracting spectra in 3D data
+@subsection Continuum subtraction
+@cindex Continuum subtraction
+In @ref{Viewing spectra and redshifted lines}, we visually inspected some of the most prominent emission lines of the brightest galaxy of the demo MUSE cube (see @ref{Detecting lines and extracting spectra in 3D data}).
+Here, we will remove the ``continuum'' flux from under the emission lines to see them more distinctly.
 
+Within a spectra, the continuum is the local ``background'' flux in the third/wavelength dimension.
+In other words, it is the flux that would be present at that wavelength if the emission line didn't exist.
+Therefore, to accurately measure the flux of the emission line, we first need to subtract the continuum.
+One crude way of estimating the continuum flux at every slice is to use the sigma-clipped median value of that same pixel in the @mymath{\pm{N/2}} slides around it (for more on sigma-clipping, see @ref{Sigma clipping}).
 
+In this case, @mymath{N=100} should be a good first approximate (since it is much larger than any of the absorption or emission lines).
+With the first command below, let's use Arithmetic's filtering operators for estimating the sigma-clipped median only along the third dimension for every pixel in every slice (see @ref{Filtering operators}).
+With the second command, have a look at the filtered cube and spectra.
+Note that the first command is computationally expensive and may take a minute or so.
 
+@example
+$ astarithmetic a370-crop.fits set-i --output=filtered.fits \
+                3 0.2 1 1 100 i filter-sigclip-median
 
+$ astscript-fits-view filtered.fits -h1 --ds9scale="limits -5 20"
+@end example
+
+Looking at the filtered cube above, and sliding through the different wavelenths, you will see the noise in each slice has been significantly reduced!
+This is expected because each pixel's value is now calculated from 100 others (along the third dimension)!
+Using the same steps as @ref{Viewing spectra and redshifted lines}, plot the spectra of the brightest galaxy.
+Then, have a look at its spectra.
+You see that the emission lines have been significantly smoothed out to become almost@footnote{For more on why Sigma-clipping is only a crude solution to background removal, see @url{https://arxiv.org/abs/1505.01664, Akhlaghi and Ichikawa 2015}.} invisible.
+
+You can now subtract this ``continuum'' cube from the input cube to create the emission-line cube.
+Infact, as you see below, we can do it in a single Arithmetic command (blending the filtering and subtraction in one command).
+Note how the only difference with the previous Arithmetic command is that we added an @code{i} before the @code{3} and a @code{-} after @code{filter-sigclip-median}.
+For more on Arithmetic's powerful notation, see @ref{Reverse polish notation}.
+With the second command below, let's view the input @emph{and} continuum-subtracted cubes together:
+
+@example
+$ astarithmetic a370-crop.fits set-i --output=no-continuum.fits \
+                i 3 0.2 1 1 100 i filter-sigclip-median -
+
+$ astscript-fits-view a370-crop.fits no-continuum.fits -h1 \
+                      --ds9scale="limits -5 20"
+@end example
+
+Once the cubes are open, slide through the different wavelengths.
+Comparing the left (input) and right (continuum-subtracted) slices, you will rarely see any galaxy in the continuum-subtracted one!
+As its name suggests, the continuum flux is continuously present in all the wavelengths (with gradual change)!
+But the continuum has been subtracted now; so in the right-side image, you don't see anything on wavelengths that don't contain a spectral emission line.
+Some dark regions also appear; these are absorption lines!
+Please spend a few minutes sliding through the wavelenghts and seeing how the emission lines pop-up and disappear again.
+It is almost like skuba diving, with fish appearing out of nowhere and passing by you.
+
+@cindex Doppler effect
+@cindex Galaxy kinematics
+@cindex Kinematics (galaxies)
+Let's go to slice 3046 (corresponding to 8555.93 Angstroms; just before the H-alpha line for the brightest galaxy in @ref{Viewing spectra and redshifted lines}).
+Now press the ``Next'' button to change slices one by one until there is no more emission in the brightest galaxy.
+As you go to redder slices, you will see that not only does the brightness increase, but the position of the emission also changes.
+This is the @url{https://en.wikipedia.org/wiki/Doppler_effect, doppler effect} caused by the rotation of the galaxy: the side that rotating towards us gets blue-shifted to bluer slices and the one that is going away from us gets redshifted to redder slices.
+If you go to the emission lines of the other galaxies, you will see that they move with a different angle!
+We can use this to derive the galaxy's rotational properties and kinematics (Gnuastro doesn't have this feature yet).
+
+To see the Doppler shift in the spectrum, plot the spectrum over the top-side of the galaxy (which is visible in slice 3047).
+Then Zoom-in to the H-alpha line (as we did in @ref{Viewing spectra and redshifted lines}) and press ``Next'' until you reach the end of the H-alpha emission-line.
+You see that by the time H-alpha disappears in the spectrum, within the cube, the emission shifts in the vertical axis by about 15 pixels!
+Then, move the region across the same path that the emission passed.
+You will clearly see that the H-alpha and Nitrogen II lines also move with you, in the zoomed-in spectra.
+Again, try this for several other emission lines, and several other galaxies to get a good feeling of this important concept when using hyper-spectral 3D data.
+
+@node 3D detection with NoiseChisel, 3D measurements and spectra, Continuum subtraction, Detecting lines and extracting spectra in 3D data
+@subsection 3D detection with NoiseChisel
+
+In @ref{Continuum subtraction} we subtracted the continuum emission, leaving us with only noise and the absorption and emission lines.
+The absorption lines are negative and will be missed by detection methods that look for a positive skewness@footnote{But if you want to detect the absorption lines, just multiply the cube by @mymath{-1} and repeat the same steps here (the noise is symmetic around 0).} (like @ref{NoiseChisel}).
+So we will focus on the detection and extaction of emission lines here.
+
+The first step is to extract the voxels that contain emission signal.
+To do that, we will be using @ref{NoiseChisel}.
+NoiseChisel and @ref{Segment} operate on 2D images or 3D cubes.
+But by default, they are configured for 2D images (some parameters like tile size take a different number of values based on the dimensionality).
+Therefore, to do 3D detection, the first necessary step is to run NoiseChisel with the default 3D configuration file.
+
+To see where Gnuastro's programs are installed, you can run the following command (the printed output is the default location when you install Gnuastro from source, but if you used another installation method or manually set a different location, you will see a different output, just use that):
+
+@example
+$ which astnoisechisel
+/usr/local/bin/astnoisechisel
+@end example
+
+As you see, the compiled binary programs (like NoiseChisel) are installed in the @file{bin/} sub-directory of the install path (@file{/usr/local} in the example above, may be different on your system).
+The configuration files are in the @file{etc/} sub-directory of the install path (here only showing NoiseChisel's configuration files):
+
+@example
+$ ls /usr/local/etc/astnoisechisel*.conf
+/usr/local/etc/astnoisechisel-3d.conf
+/usr/local/etc/astnoisechisel.conf
+@end example
+
+@noindent
+We should therefore call NoiseChisel with the 3D configuraiton file like below (please change @file{/usr/local} to any directory that you find from the @code{which} command above):
+
+@example
+$ astnoisechisel --config=/usr/local/etc/astnoisechisel-3d.conf \
+                 no-continuum.fits --output=det.fits
+@end example
+
+But having to add this long @option{--config} option is annoying and makes the command hard to read!
+To simplify the calling of NoiseChisel in 3D, let's first make a shell alias called @command{astnoisechisel-3d} using the @command{alias} command.
+Afterwards, we can just use the alias.
+Afterwards (in the second command below), we are calling the alias, producing the same output as above.
+Finally (with the last command), let's have a look at NoiseChisel's output:
+
+@example
+$ alias astnoisechisel-3d="astnoisechisel \
+           --config=/usr/local/etc/astnoisechisel-3d.conf"
+
+$ astnoisechisel-3d no-continuum.fits --output=det.fits
+
+$ astscript-fits-view det.fits
+@end example
+
+Similar to its 2D outputs, NoiseChisel's output contains four extensions/HDUs (see @ref{NoiseChisel output}).
+For a multi-extension file with 3D data, @code{astscript-fits-view} shows each cube as a separate DS9 ``Frame''.
+In this way, as you slide through the wavelengths, you see the same slice in all the cubes.
+The third and fourth extensions are the Sky and Sky standard deviation, which are not relevant here, so you can close them.
+To do that, press on the ``Frame'' button (in the top row of buttons), then press ``delete'' two times in the second row of buttons.
+
+As a final preparation, manaully set the scale of @code{INPUT-NO-SKY} cube to a fixed range so the changing flux/noise in each slice doesn't interfer with visually comparing the data in the slices as you move around:
+@enumerate
+@item
+Click on the @code{INPUT-NO-SKY} cube, so it is selected.
+@item
+Click on the ``Scale'' menu, then the ``Scale Parameters''.
+@item
+For the ``Low'' value set -2 and for the ``High'' value set 5.
+@item
+In the ``Cube'' window, slide between the slices to confirm that the noise level is visually fixed.
+@item
+Go back to the first slice for the next steps.
+Note that the first and last couple of slices have much higher noise, don't worry about those.
+@end enumerate
+
+As you press the ``Next'' button in the first few slides, you will notice that the @code{DETECTION} cube is fully black: showing that nothing has been detected.
+The first detection pops up in the 55th slice for the galaxy on the top of this cube.
+As you press ``Next'' you will see that the detection fades away and other detections pop up.
+Spend a few minutes shifting between the different slices and comparing the detected voxels with the emission lines in the continuum-subtracted cube (the @code{INPUT-NO-SKY} extension).
+
+Go ahead to slice 2815 and press ``Next'' a few times.
+You will notice that the detections suddenly start covering the whole slice and until slice 2859 where the detection map becomes normal (no extra detections!).
+This is the effect of the sky lines we mentioned before in @ref{Sky lines in optical IFUs}.
+The increased noise makes the reduction very hard and as a result, a lot of artifacts appear.
+To reduce the effect of sky lines, we can divide the cube by its standard deviation (the square root of the variance or @code{STAT} extension; see  @ref{Sky lines in optical IFUs}) and run NoiseChisel afterwards.
+
+@example
+$ astarithmetic no-continuum.fits -h1 a370-crop.fits -hSTAT sqrt / \
+                --output=sn.fits
+
+$ astnoisechisel-3d sn.fits --output=det.fits
+
+$ astscript-fits-view det.fits
+@end example
+
+After the new detection map opens have another look at the specific slices mentioned above (from slice 2851 to 2859).
+You will see that there are no more detection maps that cover the whole field of view.
+Scroll the slide counter across the whole cube, you will rarely see such effects by Sky lines any more.
+But this is just a crude solution and doesn't remove all sky line artifacts.
+For example go to slide 650 and press ``Next''.
+You will see that the artifacts caused by this sky line are so strong that the solution above wasn't successful.
+For these very strong emission lines, we need to improve the reduction.
+But generally, since the number of sky-line affected slices has significantly decreased, we can go ahead.
+
+@node 3D measurements and spectra, Extracting a single spectrum and plotting it, 3D detection with NoiseChisel, Detecting lines and extracting spectra in 3D data
+@subsection 3D measurements and spectra
+
+In the context of optical IFUs or radio IFUs in astronomy, a ``Spectum'' is defined as separate measurements on each 2D slice of the 3D cube.
+Each 2D slice is defined by the first two FITS dimensions: the first FITS dimension is the horizontal axis and the second is the vertical axis.
+As with the tutorial on 2D image analysis (in @ref{Segmentation and making a catalog}), let's run Segment to see how it works in 3D.
+Like NoiseChisel above, to simplify the commands, let's make an alias (@ref{3D detection with NoiseChisel}):
+
+@example
+$ alias astsegment-3d="astsegment \
+           --config=/usr/local/etc/astsegment-3d.conf"
+
+$ astsegment-3d det.fits --output=seg.fits
+
+$ astscript-fits-view seg.fits
+@end example
+
+You see that we now have 3D clumps and 3D objects.
+So we can go ahead to do measurements.
+MakeCatalog can do single-valued measurements (as in 2D) on 3D datasets also.
+For example, with the command below, let's get the flux-weighted center (in the three dimensions) and sum of pixel values.
+There isn't usually a standard name for the third WCS dimension (unlike Ra/Dec).
+So in Gnuastro, we just call it @option{--w3}.
+With the second command, we are having a look at the first 5 rows.
+Note that we are not using @option{-Y} with @command{asttable} anymore because it the wavelength column would only be shown as zero (since it is in meters!).
+
+@example
+$ astmkcatalog seg.fits --ids --ra --dec --w3 --sum --output=cat.fits
+
+$ asttable cat.fits -h1 -O --txtf64p=5 --head=5
+# Column 1: OBJ_ID [counter    ,i32,] Object identifier.
+# Column 2: RA     [deg        ,f64,] Flux weighted center (WCS axis 1).
+# Column 3: DEC    [deg        ,f64,] Flux weighted center (WCS axis 2).
+# Column 4: AWAV   [m          ,f64,] Flux weighted center (WCS axis 3).
+# Column 5: SUM    [input-units,f32,] Sum of sky subtracted values.
+1  3.99677e+01   -1.58660e+00   4.82994e-07   7.311189e+02
+2  3.99660e+01   -1.58927e+00   4.86411e-07   7.872681e+03
+3  3.99682e+01   -1.59141e+00   4.90609e-07   1.314548e+03
+4  3.99677e+01   -1.58666e+00   4.90816e-07   7.798024e+02
+5  3.99659e+01   -1.58930e+00   4.93657e-07   3.255210e+03
+@end example
+
+Besides the single-valued measurements above (that are shared with 2D inputs), on 3D cubes, MakeCatalog can also do per-slice measurements.
+The options for these measurements are formatted as @option{--*in-slice}.
+With the command below, you can check their list:
+
+@example
+$ astmkcatalog --help | grep in-slice
+   --area-in-slice        [3D input] Number of labeled in each slice.
+   --area-other-in-slice  [3D input] Area of other lab. in proj area.
+   --area-proj-in-slice   [3D input] Num. voxels in '--sumprojinslice'.
+   --sum-err-in-slice     [3D input] Error in '--suminslice'.
+   --sum-in-slice         [3D input] Sum of values in each slice.
+   --sum-other-err-in-slice [3D input] Area in '--sumotherinslice'.
+   --sum-other-in-slice   [3D input] Sum of other lab. in proj area.
+   --sum-proj-err-in-slice [3D input] Error of '--sumprojinslice'.
+   --sum-proj-in-slice    [3D input] Sum of proj. area in each slice.
+@end example
+
+For every label and measurement, these options will give many values in a vector column (see @ref{Vector columns}).
+Let's have a look by asking for the sum of values and area of each label in each slice associated to each label with the command below.
+There is just one important point: in @ref{3D detection with NoiseChisel}, we ran NoiseChisel on the signal-to-noise image, not the continuum-subtracted image!
+So the values to use for the measurement of each label should come from the @file{no-continuum.fits} file (not @file{seg.fits}).
+
+@example
+$ astmkcatalog seg.fits --ids --ra --dec --w3 --sum  \
+               --area-in-slice --sum-in-slice --output=cat.fits \
+               --valuesfile=no-continuum.fits
+
+$ asttable -i cat.fits
+--------
+seg_cat.fits (hdu: 1)
+-------          -----       ----          -------
+No.Name          Units       Type          Comment
+-------          -----       ----          -------
+1  OBJ_ID        counter     int32         Object identifier.
+2  RA            deg         float64       Flux wht center (WCS 1).
+3  DEC           deg         float64       Flux wht center (WCS 2).
+4  AWAV          m           float64       Flux wht center (WCS 3).
+5  SUM           input-units float32       Sum of sky-subed values.
+6  AREA-IN-SLICE counter     int32(3681)   Number of pix. in each slice.
+7  SUM-IN-SLICE  input-units float32(3681) Sum of values in each slice.
+--------
+Number of rows: 211
+--------
+@end example
+
+You can see that the new @code{AREA-IN-SLICE} and @code{SUM-IN-SLICE} columns have a @code{(3681)} in their types.
+This shows that unlike the single-valued columns before them, in these columns, each row has 3681 values (a ``vector'' column).
+If you are not already familiar with vector columns, please take a few minutes to read @ref{Vector columns}.
+Since a MUSE data cube has 3681 slices, this is effectively the spectrum of each object.
+
+Let's find the object that corresponds to the H-alpha emission of the brightest galaxy (that we found in @ref{Viewing spectra and redshifted lines}).
+That emission line was around 8565.93 Angstroms, so let's look for the objects within @mymath{\pm5} Angstroms of that value (between 8560 to 8570 Angstroms):
+
+@example
+$ asttable cat.fits --range=AWAV,8.560e-7,8.570e-7 -cobj_id,ra,dec -Y
+198    39.965897   -1.589279
+@end example
+
+From the command above, we see that at this wavelength, there was only one object.
+Let's extract its spectrum by asking for the @code{sum-in-slice} column:
+
+@example
+$ asttable cat.fits --range=AWAV,8.560e-7,8.570e-7 \
+           -carea-in-slice,sum-in-slice
+@end example
+
+If you look into the outputs, you will see that it is a single line!
+It contains a long list of 0 values at the start and @code{nan} values in the end.
+If you scroll slowly, in the middle of each you will see some non-zero and non-NaN numbers.
+To help interpret this more easily, let's transpose these vector columns (so each value of the vector column becomes a row in the output).
+We will use the @option{--transpose} option of Table for this (just note that since transposition changes the number of rows, it can only be used when your table only has vector columns and they all have the same number of elements (as in this case, for more):
+
+@example
+$ asttable cat.fits --range=AWAV,8.560e-7,8.570e-7 \
+           -carea-in-slice,sum-in-slice --transpose
+@end example
+
+We now see the measurements on each slice printed in a separate line (making it much more easier to visually read).
+However, without a counter, it is very hard to interpret them.
+Let's pipe the output to a new Table command and use column arithmetic's @code{counter} operator for displaying the slice number (see @ref{Size and position operators}).
+Note that since we are piping the output, we also added @option{-O} so the column metadata are also passed to the new instance of Table:
+
+@example
+$ asttable cat.fits --range=AWAV,8.560e-7,8.570e-7 -O \
+           -carea-in-slice,sum-in-slice --transpose \
+           | asttable -c'arith $1 counter swap',2
+...[[truncated]]...
+3040   0       nan
+3041   0       nan
+3042   0       nan
+3043   0       nan
+3044   1       4.311140e-01
+3045   18      3.936019e+00
+3046   161    -5.800080e+00
+3047   360     2.967184e+02
+3048   625     1.912855e+03
+3049   823     5.140487e+03
+3050   945     7.174101e+03
+3051   999     6.967604e+03
+3052   1046    6.468591e+03
+3053   1025    6.457354e+03
+3054   996     6.599119e+03
+3055   966     6.762280e+03
+3056   873     5.014052e+03
+3057   649     2.003334e+03
+3058   335     3.167579e+02
+3059   131     1.670975e+01
+3060   25     -2.953789e+00
+3061   0       nan
+3062   0       nan
+3063   0       nan
+3064   0       nan
+...[[truncated]]...
+
+$ astscript-fits-view seg.fits
+@end example
+
+After DS9 opens with the last command above, go to slice 3044 (which is the first non-NaN slice in the spectrum above).
+In the @code{OBJECTS} extension of this slice, you see several non-zero pixels.
+The few non-zero pixels on the bottom have a label of 197 and the single non-zero pixel at a higher Y axis position has a label of 198 (which as we saw above, was the label of the H-alpha emission of this galaxy).
+The few 197 labeled pixels in this slice are the last voxels of the NII emission that is just blue-ward of H-alpha.
+
+The single pixel you see in slice 3044 is why you see a value of 1 in the @code{AREA-IN-SLICE} column.
+As you go to the next slices, if you count the pixels, you will see they add up to the same number you see in that column.
+The values in the @code{SUM-IN-SLICE} are the sum of values in the continuum-subtracted cube for those same voxels.
+You should now be able to understand why the @option{--sum-in-slice} column has NaN values in all other slices: because this label doesn't exist in any other slice!
+Also, within slices that contain label 198, this column only uses the voxels that have the label.
+So as you see in the second column above, the area that is used in each changes.
+
+Therefore @option{--sum-in-slice} or @option{area-in-slice} are the raw 3D spectrum of each 3D emission-line.
+This is a different concept from the traditional ``spectrum'' where the same area is used over all the slices.
+To get that you should use the @option{--sumprojinslice} column of MakeCatalog.
+All the @option{--*in-slice} options that contain a @code{proj} in their name are measurements over the fixed ``projection'' of the 3D volume on the 2D surface of each slice.
+To see the effect, let's also ask MakeCatalog to measure this projected sum column:
+
+@example
+$ astmkcatalog seg.fits --ids --ra --dec --w3 --sum  \
+               --area-in-slice --sum-in-slice --sum-proj-in-slice \
+               --output=cat.fits --valuesfile=no-continuum.fits
+$ asttable cat.fits --range=AWAV,8.560e-7,8.570e-7 -O \
+           -carea-in-slice,sum-in-slice,sum-proj-in-slice \
+           --transpose \
+           | asttable -c'arith $1 counter swap',2,3
+...[[truncated]]...
+3040   0       nan            8.686357e+02
+3041   0       nan            4.384907e+02
+3042   0       nan            4.994813e+00
+3043   0       nan           -1.595918e+02
+3044   1       4.311140e-01  -2.793141e+02
+3045   18      3.936019e+00  -3.251023e+02
+3046   161    -5.800080e+00  -2.709914e+02
+3047   360     2.967184e+02   1.049625e+02
+3048   625     1.912855e+03   1.841315e+03
+3049   823     5.140487e+03   5.108451e+03
+3050   945     7.174101e+03   7.149740e+03
+3051   999     6.967604e+03   6.913166e+03
+3052   1046    6.468591e+03   6.442184e+03
+3053   1025    6.457354e+03   6.393185e+03
+3054   996     6.599119e+03   6.572642e+03
+3055   966     6.762280e+03   6.716916e+03
+3056   873     5.014052e+03   4.974084e+03
+3057   649     2.003334e+03   1.870787e+03
+3058   335     3.167579e+02   1.057906e+02
+3059   131     1.670975e+01  -2.415764e+02
+3060   25     -2.953789e+00  -3.534623e+02
+3061   0       nan           -3.745465e+02
+3062   0       nan           -2.532008e+02
+3063   0       nan           -2.372232e+02
+3064   0       nan           -2.153670e+02
+...[[truncated]]...
+@end example
+
+As you see, in the new @code{SUM-PROJ-IN-SLICE} column, we have a measurement in each slice: including slices that do not have the label of 198 at all.
+Also, the area used to measure this sum is the same in all slices (similar to a classical spectrometer's output).
+
+However, there is a big problem: have a look at the sums in slices 3040 and 3041: the values are increasing!
+This is because of the emission in the NII line that also falls over the projected area of H-alpha.
+This shows the power of IFUs as opposed to classical spectrometers: we can distinguish between individual lines based on spatial position and do measurements in 3D!
+
+Finally, in case you want the spectrum with the continuum, you just have to change the file given to @option{--valuesfile}:
+
+@example
+$ astmkcatalog seg.fits --ids --ra --dec --w3 --sum  \
+               --area-in-slice --sum-in-slice --sum-proj-in-slice \
+               --valuesfile=a370-crop.fits \
+               --output=cat-with-continuum.fits
+@end example
+
+@node Extracting a single spectrum and plotting it, Pseudo narrow-band images, 3D measurements and spectra, Detecting lines and extracting spectra in 3D data
+@subsection Extracting a single spectrum and plotting it
+
+In @ref{3D measurements and spectra} we measured the spectra of all the objects with the MUSE data cube of this demonstration tutorial.
+Let's now write the resulting spectra for our object 198 into a file to view our measured spectra in TOPCAT for a more visual inspection.
+But we don't want slice numbers (which are specific to MUSE), we want the horizontal axis to be in Angstroms.
+To do that, we can use the WCS information:
+
+@table @code
+@item CRPIX3
+The ``Coordinate Reference PIXel'' in the 3rd dimension (or slice number of reference)
+Let's call this @mymath{s_r}.
+@item CRVAL3
+The ``Coordinate Reference VALue'' in the 3rd dimension (the WCS coordinate of the slice in @code{CRPIX3}.
+Let's call this @mymath{\lambda_r}
+@item CDELT3
+The ``Coordinate DELTa'' in the 3rd dimension, or how much the WCS changes with every slice.
+Let's call this @mymath{\delta}.
+@end table
+
+@noindent
+To find the @mymath{\lambda} (wavelength) of any slice with number @mymath{s}, we can simply use this equation:
+
+@dispmath{\lambda=\lambda_r+\delta(s-s_r)}
+
+Let's extract these three values from the FITS WCS keywords as shell variables to automatically do this within Table's column arithmetic.
+Here we are using the technique that is described in @ref{Separate shell variables for multiple outputs}.
+
+@example
+$ eval $(astfits seg.fits --keyvalue=CRPIX3,CRVAL3,CDELT3 -q \
+                 | xargs printf "sr=%s; lr=%s; d=%s;")
+
+## Just for a check:
+$ echo $sr
+1.000000e+00
+$ echo $lr
+4.749679687500000e-07
+$ echo $d
+1.250000000000000e-10
+@end example
+
+Now that we have the necessary constants, we can simply convert the equation above into @ref{Reverse polish notation} and use column arithmetic to convert the slice counter into wavelength in the command of @ref{3D measurements and spectra}.
+
+@example
+$ asttable cat.fits --range=AWAV,8.560e-7,8.570e-7 -O \
+       -carea-in-slice,sum-in-slice,sum-proj-in-slice \
+       --transpose \
+       | asttable -c'arith $1 counter '$sr' - '$d' x '$lr' + f32 swap' \
+                  -c2,3 --output=spectrum-obj-198.fits \
+                  --colmetadata=1,WAVELENGTH,m,"Wavelength of slice." \
+                  --colmetadata=2,"AREA-IN-SLICE",voxel,"No. of voxels."
+
+$ astscript-fits-view spectrum-obj-198.fits
+@end example
+
+Once TOPCAT opens, take the following steps:
+
+@enumerate
+@item
+In the ``Graphics'' menu, select ``Plane plot''.
+@item
+Change @code{AREA-IN-SLICE} to @code{SUM-PROJ-IN-SLICE}.
+@item
+Select the ``Form'' tab.
+@item
+Click on the button with the large green ``+'' button and select ``Add line''.
+@item
+Un-select the ``Mark'' item that was originally selected.
+@end enumerate
+
+@noindent
+Of course, the table in @file{spectrum-obj-198.fits} can be plotted using any other plotting tool you prefer to use in your scientific papers.
+
+@node Pseudo narrow-band images,  , Extracting a single spectrum and plotting it, Detecting lines and extracting spectra in 3D data
+@subsection Pseudo narrow-band images
+
+In @ref{Continuum subtraction} we subtracted/separated the continuum from the emission/absorption lines of our galaxy in the MUSE cube.
+Let's visualize the morphology of the galaxy at some of the spectral lines to see how it looks.
+To do this, we will create pseudo narrow-band 2D images by collapsing the cube along the third dimension within a certain wavelength range that is optimized for that flux.
+
+Let's find the wavelength range that corresponds to H-alpha emission we studied in @ref{Extracting a single spectrum and plotting it}.
+Fortunately MakeCatalog can calculate the minimum and maximum position of each label along each dimension like the command below.
+If you always need these values, you can includ these columns in the same MakeCatalog with @option{--sum-proj-in-slice}.
+Here we are running it separately to help you follow the discussion there.
+
+@example
+$ astmkcatalog seg.fits --output=cat-ranges.fits \
+               --ids --min-x --max-x --min-y --max-y --min-z --max-z
+@end example
+
+Let's extract the minimum and maximum positions of this particular object with the first command and with the second, we'll write them into different shell variables.
+With the second command, we are writing those six values into a single string in the format of Crop's @ref{Crop section syntax}.
+For more on the @code{eval}-based shell trick we used here, see @ref{Separate shell variables for multiple outputs}.
+Finally, we are running Crop and viewing the cropped 3D cube.
+
+@example
+$ asttable cat-ranges.fits --equal=OBJ_ID,198 \
+                  -cMIN_X,MAX_X,MIN_Y,MAX_Y,MIN_Z,MAX_Z
+56     101    11     61     3044   3060
+
+$ eval $(asttable cat-ranges.fits --equal=OBJ_ID,198 \
+                  -cMIN_X,MAX_X,MIN_Y,MAX_Y,MIN_Z,MAX_Z \
+                  | xargs printf "section=%s:%s,%s:%s,%s:%s; ")
+
+$ astcrop no-continuum.fits --mode=img --section=$section \
+          --output=crop-no-continuum.fits
+
+$ astscript-fits-view crop-no-continuum.fits
+@end example
+
+Go through the slices and you will only see this particular region of the full cube.
+We can now collapse the third dimension of this image into a 2D pseudo-narrow band image with Arithmetic's @ref{Dimensionality changing operators}:
+
+@example
+$ astarithmetic crop-no-continuum.fits 3 collapse-sum \
+                --output=collapsed-all.fits
+
+$ astscript-fits-view collapsed-all.fits
+@end example
+
+During the collapse, used all the pixels in each slice.
+This is not good for the faint outskirts in the peak of the emission line: the noise of the slices with less signal decreases the over-all signal-to-noise ratio in the pseudo-narrow band image.
+So let's set all the pixels that aren't labeled with this object as NaN, then collapse.
+To do that, we first need to crop the @code{OBJECT} cube in @file{seg.fits}.
+With the second command, please have a look to confirm how the labels change as a function of wavelength.
+
+@example
+$ astcrop seg.fits -hOBJECTS --mode=img --section=$section \
+          --output=crop-obj.fits
+
+$ astscript-fits-view crop-obj.fits
+@end example
+
+Let's use Arithmetic to first set all the pixels that are not equal to 198 in @file{collapsed-obj.fits} to be NaN in @file{crop-no-continuum.fits}.
+With the second command, we are opening the two collapsed images together:
+
+@example
+$ astarithmetic crop-no-continuum.fits set-i \
+                crop-obj.fits          set-o \
+                i o 198 ne nan where 3 collapse-sum \
+                --output=collapsed-obj.fits
+
+$ astscript-fits-view collapsed-all.fits collapsed-obj.fits \
+                      --ds9extra="-lock scalelimits yes -blink"
+@end example
+
+Let it blink a few times and focus on the outskirts: you will see that the diffuse flux in the outskirts has indeed been preserved better in the object-based collapsed narrow-band image.
+But this is a little hard to appreciate in the 2D image.
+To see it better practice, let's get the two radial profiles.
+We will approximately assume a position angle of -80 and axis ratio of 0.7@footnote{To derive the axis ratio and position angle automatically, you can take the following steps. Note that we are not using NoiseChisel because this crop has been intentionally selected to contain signal, so there is no raw noise inside of it.
+@example
+$ aststatistics collapsed-all.fits --sky --tilesize=5,5
+$ astarithmetic collapsed-all.fits -h1 collapsed-all_sky.fits -hSKY_STD / 5 gt \
+                -ocollapsed-lab.fits
+$ astmkcatalog collapsed-lab.fits -h1 --valuesfile=collapsed-all.fits \
+               --position-angle --axis-ratio
+$ asttable collapsed-all_arith_cat.fits -Y
+-78.817        0.694
+@end example
+}.
+With the final command below, we are opening both radial profiles in TOPCAT to visualize them.
+We are also undersampling the radial profile to have better signal-to-noise ratio in the outer radii:
+
+@example
+$ astscript-radial-profile collapsed-all.fits \
+           --position-angle=-80 --axis-ratio=0.7 \
+           --undersample=2 --output=collapsed-all-rad.fits
+
+$ astscript-radial-profile collapsed-obj.fits \
+           --position-angle=-80 --axis-ratio=0.7 \
+           --undersample=2 --output=collapsed-obj-rad.fits
+@end example
+
+To view the difference, let's merge the two profiles (the @code{MEAN} column) into one table and simply print the two profiles beside each other.
+We will then pipe the resulting table containing both columns to a second call to Gnuastro's Table and use column arithmetic to subtract the two mean values and divide them by the optimized one (to get the fractional difference):
+
+@example
+$ asttable collapsed-all-rad.fits --catcolumns=MEAN -O \
+           --catcolumnfile=collapsed-obj-rad.fits \
+           | asttable -c1,2,3 -c'arith $3 $2 - $3 /' \
+                      --colmetadata=2,MEAN-ALL \
+                      --colmetadata=3,MEAN-OBJ \
+                      --colmetadata=4,DIFF,frac,"Fractional diff." -YO
+# Column 1: RADIUS   [pix        ,f32,] Radial distance
+# Column 2: MEAN-ALL [input-units,f32,] Mean of sky subtracted values.
+# Column 3: MEAN-OBJ [input-units,f32,] Mean of sky subtracted values.
+# Column 4: DIFF     [frac       ,f32,] Fractional diff.
+0.000          436.737        450.256        0.030
+2.000          371.880        384.071        0.032
+4.000          313.429        320.138        0.021
+6.000          275.744        280.102        0.016
+8.000          152.214        154.470        0.015
+10.000         59.311         62.207         0.047
+12.000         18.466         20.396         0.095
+14.000         6.940          8.671          0.200
+16.000         3.052          4.256          0.283
+18.000         1.590          2.848          0.442
+20.000         1.430          2.550          0.439
+22.000         0.838          1.975          0.576
+@end example
+
+@noindent
+As you see, beyond a radius of 10, the last fractional difference column becomes very large, showing that a lot of signal is missing in the @code{MEAN-ALL} column.
+For a more visual comparison of the two profiles, you can use the command below to open both tables in TOPCAT:
+
+@example
+$ astscript-fits-view collapsed-all-rad.fits \
+                      collapsed-obj-rad.fits
+@end example
+
+Once TOPCAT has opened take the following steps:
+@enumerate
+@item
+Select @file{collapsed-all-rad.fits}
+@item
+In the ``Graphics'' menu, select ``Plane Plot''.
+@item
+Click on the ``Axes'' side-bar (by default, at the bottom half of the window), and click on ``Y Log'' to view the vertical axis in logarithmic scale.
+@item
+In the ``Layers'' menu, select ``Add Position Control''.
+You will see that at the bottom half, a new scatter plot information is displayed.
+@item
+Click on the scroll-down menu infront of ``Table'' and select @file{2: collapsed-obj-rad.fits}.
+Afterwards, you will see the optimized pseudo-narrow-band image radial profile as blue points.
+@end enumerate
 
 @node Installation, Common program behavior, Tutorials, Top
 @chapter Installation
@@ -8065,7 +8951,7 @@ Therefore its headers (and libraries) are not needed.
 @cindex Numpy
 @cindex Python3
 Python is a high-level programming language and Numpy is the most commonly used library within Python to add multi-dimensional arrays and matrices.
-If version 3 of Python is available with a corresponding Numpy Library, Gnuastro's library will be built with some Python-related helper functions.
+If you configure Gnuastro with @option{--with-python} @emph{and} version 3 of Python is available with a corresponding Numpy Library, Gnuastro's library will be built with some Python-related helper functions.
 Python wrappers for Gnuastro's library (for example, `pyGnuastro') can use these functions when being built from source.
 For more on Gnuastro's Python helper functions, see @ref{Python interface}.
 
@@ -10629,9 +11515,9 @@ Let's review the solution (in more detail):
 @item
 @cindex Standard input
 @cindex @command{xargs} (extended arguments)
-We pipe the output into the @option{xargs}@footnote{For more on @command{xargs}, see @url{https://en.wikipedia.org/wiki/Xargs}. In short @command{xargs} will take the standard input (from the pipe in this scenario) and put it as arguments of the next program.
-In other words, it is good for programs that don't take input from standard input (@command{printf} in this case; but also includes others like @command{cp}, @command{rm}, or @command{echo}).} (extended arguments).
-@command{xargs} puts the two numbers it gets from the pipe, as arguments for @command{printf} (formatted print) because @command{printf} doesn't take input from pipes.
+We pipe the output into @command{xargs}@footnote{For more on @command{xargs}, see @url{https://en.wikipedia.org/wiki/Xargs}.
+It will take the standard input (from the pipe in this scenario) and put it as arguments of the next program (@command{printf} in this scenario).
+In other words, it is good for programs that don't take input from standard input (@command{printf} in this case; but also includes others like @command{cp}, @command{rm}, or @command{echo}).} (extended arguments) which puts the two numbers it gets from the pipe, as arguments for @command{printf} (formatted print; because @command{printf} doesn't take input from pipes).
 @item
 Within the @command{printf} call, we write the values after putting a variable name and equal-sign, and in between them we put a @key{;} (as if it was a shell command).
 The @code{%s} tells @command{printf} to print each input as a string (not to interpret it as a number and loose precision).
@@ -10662,6 +11548,8 @@ $ echo $my_std
 @cindex Portable script
 This @command{eval}-based solution has been tested in in GNU Bash, Dash and Zsh and it works nicely in them (is ``portable'').
 This is because the constructs used here are pretty low-level (and widely available).
+
+For examples usages of this technique, see the following sections: @ref{Extracting a single spectrum and plotting it} and @ref{Pseudo narrow-band images}.
 
 @node Configuration files, Getting help, Command-line, Common program behavior
 @section Configuration files
@@ -12707,7 +13595,7 @@ To stop as soon as an error occurs, run with @option{--quitonerror}.
 
 @item -p
 @itemx --printallkeys
-Print the full meta data (keywords, values, units and comments) in the specified FITS extension (HDU).
+Print the full metadata (keywords, values, units and comments) in the specified FITS extension (HDU).
 If this option is called along with any of the other keyword editing commands, as described above, all other editing commands take precedence to this.
 Therefore, it will print the final keywords after all the editing has been done.
 
@@ -14462,13 +15350,13 @@ To address these problems, the FITS standard has defined the concept of ``vector
 Within each row of a single vector column, we can store any number of datapoints (like the MUSE spectra above or the full radial profile of each galaxy).
 All the values in a vector column have to have the same @ref{Numeric data types}, and the number of elements within each vector column is the same for all rows.
 
-By grouping conceptually similar data points (like a spectra) in one vector column, we can significantly reduce the number of columns and make it much more managable, without loosing any information!
+By grouping conceptually similar data points (like a spectrum) in one vector column, we can significantly reduce the number of columns and make it much more managable, without loosing any information!
 To demonstrate the vector column features of Gnuastro's Table program, let's start with a randomly generated small (5 rows and 3 columns) catalog.
 This will allows us to show the outputs of each step here, but you can apply the same concept to vectors with any number of colums.
 
 With the command below, we use @code{seq} to generate a single-column table that is piped to Gnuastro's Table program.
-Table then uses column arithmetic to generate three columns with random values from that base row (for more, see @ref{Column arithmetic}).
-Each column has with a larger noise sigma.
+Table then uses column arithmetic to generate three columns with random values from that column (for more, see @ref{Column arithmetic}).
+Each column becomes noisy, with standard deviations of 2, 5 and 10.
 Finally, we will add metadata to each column, giving each a different name (using names is always the best way to work with columns):
 
 @example
@@ -14486,18 +15374,18 @@ With the command below, let's have a look at the table.
 When you run it, you will have a different random number generator seed, so the numbers will be slightly different.
 For making reproducible random numbers, see @ref{Generating random numbers}.
 The @option{-Y} option is used for more easily readable numbers (without it, floating point numbers are written in scientific notation, for more see @ref{Printing floating point numbers}) and with the @option{-O} we are asking Table to also print the metadata.
-For more on Table's options, see @ref{Invoking asttable} and for seeing how the short options can be merged, see @ref{Options}.
+For more on Table's options, see @ref{Invoking asttable} and for seeing how the short options can be merged (such that @option{-Y -O} is identical to @option{-YO}), see @ref{Options}.
 
 @example
 $ asttable table.fits -YO
 # Column 1: abc [none,f32,] First column.
 # Column 2: def [none,f32,] Second column.
 # Column 3: ghi [none,f32,] Third column.
--2.694         -9.130         +6.865
-+3.166         +4.239         +18.386
-+4.709         +0.561         +1.817
--0.338         +4.927         -5.010
-+7.291         +5.541         +3.311
+1.074           5.535         -4.464
+0.606          -2.011          15.397
+1.475           1.811          5.687
+2.248           7.663         -7.789
+6.355           17.374         6.767
 @end example
 
 We see that indeed, it has three columns, with our given names.
@@ -14509,18 +15397,18 @@ As the name suggests, @option{--tovector} will merge the rows of the two columns
 $ asttable table.fits -YO --tovector=def,ghi
 # Column 1: abc        [none,f32   ,] First column.
 # Column 2: def-VECTOR [none,f32(2),] Vector by merging multiple cols.
--2.694         -9.130         +6.865
-+3.166         +4.239         +18.386
-+4.709         +0.561         +1.817
--0.338         +4.927         -5.010
-+7.291         +5.541         +3.311
+1.074           5.535         -4.464
+0.606          -2.011          15.397
+1.475           1.811          5.687
+2.248           7.663         -7.789
+6.355           17.374         6.767
 @end example
 
 @cindex Tokens
 If you ignore the metadata, this doesn't seem to have changed anything!
 You see that each line of numbers still has three ``tokens'' (to distinguish them from ``columns'').
 But once you look at the metadata, you only see metadata for two columns, not three.
-If you look closely, the numeric data type of the newly added fourth column is `@code{f32(2)}' (look above, previously it was @code{f32}).
+If you look closely, the numeric data type of the newly added fourth column is `@code{f32(2)}' (look above; previously it was @code{f32}).
 The @code{(2)} shows that the second column contains two numbers/tokens not one.
 If your vector column consisted of 3681 numbers, this would be @code{f32(3681)}.
 Looking again at the metadata, we see that @option{--tovector} has also created a new name and comments for the new column.
@@ -14533,7 +15421,7 @@ We can get a first confirmation by looking at the table's metadata in the second
 
 @example
 $ asttable table.fits -YO --tovector=def,ghi --output=vec.fits \
-           --colmetadata=2,defghi,nounits,"New vector column"
+           --colmetadata=2,vector,nounits,"New vector column."
 
 $ asttable vec.fits -i
 --------
@@ -14542,56 +15430,57 @@ vec.fits (hdu: 1)
 No.Name    Units    Type        Comment
 -------    -----    ----        -------
 1  abc     none     float32     First column.
-2  defghi  nounits  float32(2)  New vector column
+2  vector  nounits  float32(2)  New vector column.
 --------
 Number of rows: 5
+--------
 @end example
 
 @noindent
-A more robust confirmation would be to print the values in the newly added @code{defghi} column.
-As expected, asking for a single column with @option{--column} (or @option{-c}) will given us two numbers per row/line.
+A more robust confirmation would be to print the values in the newly added @code{vector} column.
+As expected, asking for a single column with @option{--column} (or @option{-c}) will given us two numbers per row/line (instead of one!).
 
 @example
-$ asttable vec.fits -c defghi -YO
-# Column 1: defghi [nounits,f32(2),] New vector column
--9.130         +6.865
-+4.239         +18.386
-+0.561         +1.817
-+4.927         -5.010
-+5.541         +3.311
+$ asttable vec.fits -c vector -YO
+# Column 1: vector [nounits,f32(2),] New vector column.
+ 5.535         -4.464
+-2.011          15.397
+ 1.811          5.687
+ 7.663         -7.789
+ 17.374         6.767
 @end example
 
 If you want to keep the original single-valued columns that went into the vector column, you can use the @code{--keepvectfin} option (read it as ``KEEP VECtor To/From Inputs''):
 
 @example
 $ asttable table.fits -YO --tovector=def,ghi --keepvectfin \
-           --colmetadata=4,defghi,nounits,"New vector column"
+           --colmetadata=4,vector,nounits,"New vector column."
 # Column 1: abc    [none   ,f32   ,] First column.
 # Column 2: def    [none   ,f32   ,] Second column.
 # Column 3: ghi    [none   ,f32   ,] Third column.
-# Column 4: defghi [nounits,f32(2),] New vector column
--2.694         -9.130         +6.865         -9.130         +6.865
-+3.166         +4.239         +18.386        +4.239         +18.386
-+4.709         +0.561         +1.817         +0.561         +1.817
--0.338         +4.927         -5.010         +4.927         -5.010
-+7.291         +5.541         +3.311         +5.541         +3.311
+# Column 4: vector [nounits,f32(2),] New vector column.
+1.074           5.535         -4.464          5.535         -4.464
+0.606          -2.011          15.397        -2.011          15.397
+1.475           1.811          5.687          1.811          5.687
+2.248           7.663         -7.789          7.663         -7.789
+6.355           17.374         6.767          17.374         6.767
 @end example
 
 Now that you know how to create vector columns, let's assume you have the inverse scenario: you want to extract one of the values of a vector column into a separate single-valued column.
 To do this, you can use the @option{--fromvector} option.
-The @option{--fromvector} option takes the name (or counter) of a vector column, followed by any number of integer counters.
+The @option{--fromvector} option takes the name (or counter) of a vector column, followed by any number of integer counters (counting from 1).
 It will extract those elements into separate single-valued columns.
 For example, let's assume you want to extract the second element of the @code{defghi} column in the file you made before:
 
 @example
-$ asttable vec.fits --fromvector=defghi,2 -YO
+$ asttable vec.fits --fromvector=vector,2 -YO
 # Column 1: abc      [none   ,f32,] First column.
-# Column 2: defghi-2 [nounits,f32,] New vector column
--2.694         +6.865
-+3.166         +18.386
-+4.709         +1.817
--0.338         -5.010
-+7.291         +3.311
+# Column 2: vector-2 [nounits,f32,] New vector column.
+1.074          -4.464
+0.606           15.397
+1.475           5.687
+2.248          -7.789
+6.355           6.767
 @end example
 
 @noindent
@@ -14601,10 +15490,12 @@ This feature is useful in scenarios where you want to select some rows based on 
 @cartouche
 @noindent
 @strong{Vector columns and FITS ASCII tables:} As mentioned above, the FITS standard only recognizes vector columns in its Binary table format (the default FITS table format in Gnuastro).
-You can use the @option{--tableformat=fits-ascii} option to write your tables in the FITS ASCII format (see @ref{Input output options}).
+You can still use the @option{--tableformat=fits-ascii} option to write your tables in the FITS ASCII format (see @ref{Input output options}).
 In this case, if a vector column is present, it will be written as separate single-element columns to avoid loosing information (as if you run called @option{--fromvector} on all the elements of the vector column).
 A warning is printed if this occurs.
 @end cartouche
+
+For an application of the vector column concepts introduced here on MUSE data, see the 3D data cube tutorial and in paraticular these two sections: @ref{3D measurements and spectra} and @ref{Extracting a single spectrum and plotting it}.
 
 @node Column arithmetic, Operation precedence in Table, Vector columns, Table
 @subsection Column arithmetic
@@ -14663,9 +15554,9 @@ When the columns have descriptive names, the command/script actually becomes muc
 It is also independent of the low-level table structure: for the second command, the column numbers of the @code{AWAV} and @code{SPECTRUM} columns in @file{table.fits} is irrelevant.
 
 Column arithmetic changes the values of the data within the column.
-So the old column meta data cannot be used any more.
+So the old column metadata cannot be used any more.
 By default the output column of the arithmetic operation will be given a generic metadata (for example, its name will be @code{ARITH_1}, which is hardly useful!).
-But meta data are critically important and it is good practice to always have short, but descriptive, names for each columns, units and also some comments for more explanation.
+But metadata are critically important and it is good practice to always have short, but descriptive, names for each columns, units and also some comments for more explanation.
 To add metadata to a column, you can use the @option{--colmetadata} option that is described in @ref{Invoking asttable} and @ref{Operation precedence in Table}.
 
 Since the arithmetic expressions are a value to @option{--column}, it does not necessarily have to be a separate option, so the commands above are also identical to the command below (note that this only has one @option{-c} option).
@@ -14862,6 +15753,17 @@ The Table program can do many operations on the rows and columns of the input ta
 In this section we will describe which operation is done before/after which operation.
 Knowing this precedence table is important to avoid confusion when you ask for more than one operation.
 For a description of each option, please see @ref{Invoking asttable}.
+By default, column-based operations will be done first.
+You can ask for switching to row-based operations to be done first, using the @option{--rowfirst} option.
+
+@cartouche
+@noindent
+@strong{Pipes for different precedence:} It may happen that your desired series of operations cannot be done with the precedence mentioned below (in one command).
+In this case, you can pipe the output of one call to @command{asttable} to another @command{asttable}.
+Just don't forget to give @option{-O} (or @option{--colinfoinstdout}) to the first instance (so the column metadata are also passed to the next instance).
+Without metadata, all numbers will be read as double-precision (see @ref{Gnuastro text table format}; recall that piping is done in plain text format), vector columns will be broken into single-valued columns, and column names, units and comments will be lost.
+At the end of this section, there is an example of doing this.
+@end cartouche
 
 @table @asis
 @item Column information (@option{--information} or @option{-i})
@@ -14874,11 +15776,17 @@ This can therefore be called at the end of an arbitrarily long Table command onl
 When this option is given, only the columns given to this option (from the main input) will be used for all future steps.
 When @option{--column} (or @option{-c}) is not given, then all the main input's columns will be used in the next steps.
 
-@item Column(s) from other file(s) (@option{--catcolumnfile} and @option{--catcolumnhdu}, @option{--catcolumns})
-When column concatenation (addition) is requested, columns from other tables (in other files, or other HDUs of the same FITS file) will be added after the existing columns read from the main input.
-In one command, you can call these options multiple times to allow addition of columns from many files.
+@item Column-based operations
+By default the following column-based operations will be done before the row-based operations in the next item.
+If you need to give precedence to row-based operations, use @option{--rowfirst}.
 
-The rest of the operations below are done on the rows, therefore you can merge the columns of various tables into one table, then start adding/limiting the rows of the output.
+@table @asis
+
+@item Column(s) from other file(s): @option{--catcolumnfile}
+When column concatenation (addition) is requested, columns from other tables (in other files, or other HDUs of the same FITS file) will be added after the existing columns are read from the main input.
+In one command, you can call @option{--catcolumnfile} multiple times to allow addition of columns from many files.
+
+Therefore you can merge the columns of various tables into one table in this step (at the start), then start adding/limiting the rows, or building vector columns, .
 If any of the row-based operations below are requested in the same @code{asttable} command, they will also be applied to the rows of the added columns.
 However, the conditions to keep/reject rows can only be applied to the rows of the columns in main input table (not the columns that are added with these options).
 
@@ -14886,9 +15794,27 @@ However, the conditions to keep/reject rows can only be applied to the rows of t
 Once all the input columns are read into memory, if any of them are vectors, you can extract a single-valued column from the vector columns at this stage.
 For more on vector columns, see @ref{Vector columns}.
 
-@item Rows from other file(s) (@option{--catrowfile} and @option{--catrowhdu})
+@item Creating vector columns (@option{--tovector})
+After column arithmetic, there is no other way to add new columns so the @option{--tovector} operator is applied at this stage.
+You can use it to merge multiple columns that are available in this stage to a single vector column.
+For more, see @ref{Vector columns}.
+
+@item Column arithmetic
+Once the final rows are selected in the requested order, column arithmetic is done (if requested).
+For more on column arithmetic, see @ref{Column arithmetic}.
+
+@end table
+
+
+@item Row-based operations
+Row-based operations only work within the rows of existing columns when they are activated.
+By default row-based operations are activated after column-based operations (which are mentioned above).
+If you need to give precedence to row-based operations, use @option{--rowfirst}.
+
+@table @asis
+@item Rows from other file(s) (@option{--catrowfile})
 With this feature, you can import rows from other tables (in other files, or other HDUs of the same FITS file).
-The same column selection of @option{--column} is applied to the tables given here.
+The same column selection of @option{--column} is applied to the tables given to this option.
 The column metadata (name, units and comments) will be taken from the main input.
 Two conditions are mandatory for adding rows:
 @itemize
@@ -14896,37 +15822,42 @@ Two conditions are mandatory for adding rows:
 The number of columns used from the new tables must be equal to the number of columns in memory, by the time control reaches here.
 @item
 The data type of each column (see @ref{Numeric data types}) should be the same as the respective column in memory by the time control reaches here.
-If the data types are different, you can use the type conversion operators of Table's column arithmetic on the inputs in a separate command first (see @ref{Numerical type conversion operators} and @ref{Column arithmetic}).
+If the data types are different, you can use the type conversion operators of column arithmetic which has higher precedence (and will therefore be applied before this by default).
+For more on type conversion, see @ref{Numerical type conversion operators} and @ref{Column arithmetic}).
 @end itemize
 
 @item Row selection by value in a column
+The following operations select rows based on the values in them.
+A more complete description of each of these options is given in @ref{Invoking asttable}.
+
 @itemize
 @item
-@option{--range}: only keep rows within a certain interval in given column.
+@option{--range}: only keep rows where the value in the given column is within a certain interval.
 @item
-@option{--inpolygon}: only keep rows within the polygon of @option{--polygon}.
+@option{--inpolygon}: only keep rows where the value is within the polygon of @option{--polygon}.
 @item
 @option{--outpolygon}: only keep rows outside the polygon of @option{--polygon}.
 @item
-@option{--equal}: only keep rows with specified value in given column.
+@option{--equal}: only keep rows with an specified value in given column.
 @item
 @option{--notequal}: only keep rows without specified value in given column.
 @item
 @option{--noblank}: only keep rows that are not blank in the given column(s).
 @end itemize
-These options take certain column(s) as input and remove some rows from the full table (all columns), based on the given limitations.
-They can be called any number of times (to limit the final rows based on values in different columns for example).
+
+These options can be called any number of times (to limit the final rows based on values in different columns for example).
 Since these are row-rejection operations, their internal order is irrelevant.
 In other words, it makes no difference if @option{--equal} is called before or after @option{--range} for example.
 
 As a side-effect, because NaN/blank values are defined to fail on any condition, these operations will also remove rows with NaN/blank values in the specified column they are checking.
 Also, the columns that are used for these operations do not necessarily have to be in the final output table (you may not need the column after doing the selection based on it).
 
-Even though these options are applied after merging columns from other tables, currently their condition-columns can only come from the main input table.
-In other words, even though the rows of the added columns (from another file) will also be selected with these options, the condition to keep/reject rows cannot be taken from the newly added columns.
+By default, these options are applied after merging columns from other tables.
+However, currently, the column given to these options can only come from the main input table.
+If you need to apply these operations on columns from @option{--catcolumnfile}, pipe the output of one instance of Table with @option{--catcolumnfile} into another instance of Table as suggested in the box above this list.
 
-These options are applied first because the speed of later operations can be greatly affected by the number of rows.
-For example, if you also call the @option{--sort} option, and your row selection will result in 50 rows (from an input of 1000 rows), limiting the number of rows can greatly speed up the sorting in your final output.
+These row-based operations options are applied first because the speed of later operations can be greatly affected by the number of rows.
+For example, if you also call the @option{--sort} option, and your row selection will result in 50 rows (from an input of 10000 rows), limiting the number of rows first will greatly speed up the sorting in your final output.
 
 @item Sorting (@option{--sort})
 Sort of the rows based on values in a certain column.
@@ -14946,24 +15877,21 @@ The column to sort by can only come from the main input table columns (not colum
 
 These options limit/select rows based on their position within the table (not their value in any certain column).
 
-@item Column arithmetic
-Once the final rows are selected in the requested order, column arithmetic is done (if requested).
-For more on column arithmetic, see @ref{Column arithmetic}.
-
-@item Creating vector columns (@option{--tovector})
-After column arithmetic, there is no other way to add new columns so the @option{--tovector} operator is applied at this stage.
-You can use it to merge multiple columns that are available in this stage to a single vector column.
-For more, see @ref{Vector columns}.
+@item Transpose vector columns (@option{--transpose})
+Transposing vector columns will not affect the number or metadata of columns, it will just re-arrange them in their 2D structure.
+As a result, after transposing, the number of rows changes, as well as the number of elements in each vector column.
+See the description of this option in @ref{Invoking asttable} for more (with an example).
+@end table
 
 @item Column metadata (@option{--colmetadata})
-Changing column metadata is necessary after column arithmetic or adding new columns from other tables (that were done above).
+Once the structure of the final table is set, you can set the column metadata just before finishing.
 
 @item Output row selection (@option{--noblankend})
 Only keep the output rows that do not have a blank value in the given column(s).
 For example, you may need to apply arithmetic operations on the columns (through @ref{Column arithmetic}) before rejecting the undesired rows.
 After the arithmetic operation is done, you can use the @code{where} operator to set the non-desired columns to NaN/blank and use @option{--noblankend} option to remove them just before writing the output.
 In other scenarios, you may want to remove blank values based on columns in another table.
-You can also use the modified metadata of the previous steps to use updated names!
+To help in readability, you can also use the final column names that you set with @option{--colmetadata}!
 See the example below for applying any generic value-based row selection based on @option{--noblankend}.
 @end table
 
@@ -14971,9 +15899,9 @@ As an example, let's review how Table interprets the command below.
 We are assuming that @file{table.fits} contains at least three columns: @code{RA}, @code{DEC} and @code{PARAM} and you only want the RA and Dec of the rows where @mymath{p\times 2<5} (@mymath{p} is the value of each row in the @code{PARAM} column).
 
 @example
-asttable table.fits -cRA,DEC --noblankend=MULTIP \
-         -c'arith PARAM 2 x set-i i i 5 gt nan where' \
-         --colmetadata=3,MULTIP,unit,"Description of column"
+$ asttable table.fits -cRA,DEC --noblankend=MULTIP \
+           -c'arith PARAM 2 x set-i i i 5 gt nan where' \
+           --colmetadata=3,MULTIP,unit,"Description of column"
 @end example
 
 @noindent
@@ -14995,14 +15923,12 @@ The lowest precedence operation is @option{--noblankend=MULTIP}.
 So only rows that are not blank/NaN in the @code{MULTIP} column are kept.
 @item
 Finally, the output table (with three columns) is written to the command-line.
-If you also want to print the column metadata, you can use the @option{--colinfoinstdout} option.
+If you also want to print the column metadata, you can use the @option{-O} (or @option{--colinfoinstdout}) option.
 Alternatively, if you want the output in a file, you can use the @option{--output} option to save the table in FITS or plain-text format.
 @end enumerate
 
-@cartouche
-@noindent
-@strong{Out of precedence:} It may happen that your desired operation needs a separate precedence.
-In this case you can pipe the output of Table into another call of Table and use the @option{--colinfoinstdout} option to preserve the metadata between the two calls.
+It may happen that your desired operation needs a separate precedence.
+In this case you can pipe the output of Table into another call of Table and use the @option{-O} (or @option{--colinfoinstdout}) option to preserve the metadata between the two calls.
 
 For example, let's assume that you want to sort the output table from the example command above based on the new @code{MULTIP} column.
 Since sorting is done prior to column arithmetic, you cannot do it in one command, but you can circumvent this limitation by simply piping the output (including metadata) to another call to Table:
@@ -15013,7 +15939,6 @@ asttable table.fits -cRA,DEC --noblankend=MULTIP --colinfoinstdout \
          --colmetadata=3,MULTIP,unit,"Description of column" \
          | asttable --sort=MULTIP --output=selected.fits
 @end example
-@end cartouche
 
 @node Invoking asttable,  , Operation precedence in Table, Table
 @subsection Invoking Table
@@ -15208,6 +16133,30 @@ See @option{--catcolumnfile} for more.
 
 @item --catcolumnrawname
 Do Not modify the names of the concatenated (appended) columns, see description in @option{--catcolumnfile}.
+
+@item --transpose
+Transpose (as in a matrix) the given vector column(s) individually.
+When this operation is done (see @ref{Operation precedence in Table}), only vector columns of the same data type and with the same number of elements should exist in the table.
+A usage of this operator is presented in the IFU spectroscopy tutorial in @ref{Extracting a single spectrum and plotting it}.
+
+As a generic example, see the commands below.
+The @file{in.txt} table below has two vector columns (each with three elements) in two rows.
+After running @command{asttable} with @option{--transpose}, you can see how the vector columns have two elements per row (@code{u8(3)} has been replaced by @code{u8(2)}), and that the table now has three rows.
+
+@example
+$ cat in.txt
+# Column 1: abc [nounits,u8(3),] First vector colum
+# Column 2: def [nounits,u8(3),] Second vector colum
+111  112  113  211  212  213
+121  122  123  221  222  223
+
+$ asttable in.txt --transpose -O
+# Column 1: abc [nounits,u8(2),] First vector colum
+# Column 2: def [nounits,u8(2),] Second vector colum
+111    121    211    221
+112    122    212    222
+113    123    213    223
+@end example
 
 @item --fromvector=STR,INT[,INT[,INT]]
 Extract the given tokens/elements from the given vector column into separate single-valued columns.
@@ -16664,7 +17613,7 @@ When only one crop is desired, the value to @option{--output} will be read as a 
 If no output is specified or if it is a directory, the output file name will follow the automatic output names of Gnuastro, see @ref{Automatic output}: The string given to @option{--suffix} will be replaced with the @file{.fits} suffix of the input.
 @end itemize
 
-By default, as suggested by the FITS standard and implemented in all Gnuastro programs, the first/primary extension of the output files will only contain meta data.
+By default, as suggested by the FITS standard and implemented in all Gnuastro programs, the first/primary extension of the output files will only contain metadata.
 The cropped images/cubes will be written into the 2nd HDU of their respective FITS file (which is actually counted as @code{1} because HDU counting starts from @code{0}).
 However, if you want the cropped data to be written into the primary (0-th) HDU, run Crop with the @option{--primaryimghdu} option.
 
@@ -16719,7 +17668,7 @@ If the output file doesn't exist, this option is redundant.
 
 @item --primaryimghdu
 Write the output into the primary (0-th) HDU/extension of the output.
-By default, like all Gnuastro's default outputs, no data is written in the primary extension because the FITS standard suggests keeping that extension free of data and only for meta data.
+By default, like all Gnuastro's default outputs, no data is written in the primary extension because the FITS standard suggests keeping that extension free of data and only for metadata.
 
 @item -t
 @itemx --oneelemstdout
@@ -25117,6 +26066,7 @@ When the object cannot be represented as an ellipse, this interpretation breaks 
 
 
 
+
 @node Adding new columns to MakeCatalog, MakeCatalog measurements, Measuring elliptical parameters, MakeCatalog
 @subsection Adding new columns to MakeCatalog
 
@@ -25210,7 +26160,7 @@ Columns/options that are unique to one catalog (only objects, or only clumps), a
 * Surface brightness measurements::  Various ways to measure surface brightness.
 * Morphology measurements nonparametric::  Non-parametric morphology.
 * Morphology measurements elliptical::  Elliptical morphology measurements.
-* Spectra measurement in a cube::  How to get the value of a label across all slices.
+* Measurements per slice spectra::  Measurements on each slice (like spectra).
 @end menu
 
 @node Identifier columns, Position measurements in pixels, MakeCatalog measurements, MakeCatalog measurements
@@ -25761,7 +26711,7 @@ This is only available for 3-dimensional datasets.
 When working with Integral Field Unit (IFU) datasets, this projection onto the first two dimensions would be a narrow-band image.
 @end table
 
-@node Morphology measurements elliptical, Spectra measurement in a cube, Morphology measurements nonparametric, MakeCatalog measurements
+@node Morphology measurements elliptical, Measurements per slice spectra, Morphology measurements nonparametric, MakeCatalog measurements
 @subsubsection Morphology measurements (elliptical)
 
 When your target objects are sufficiently ellipse-like, you can use the measurements below to quantify the various parameters of the ellipse.
@@ -25795,33 +26745,89 @@ The geometric (ignoring pixel values) axis ratio of the profile, assuming it is 
 The geometric (ignoring pixel values) angle of the semi-major axis with the first FITS axis in degrees.
 @end table
 
-@node Spectra measurement in a cube,  , Morphology measurements elliptical, MakeCatalog measurements
-@subsubsection Spectra measurement in a cube
+@node Measurements per slice spectra,  , Morphology measurements elliptical, MakeCatalog measurements
+@subsubsection Measurements per slice (spectra)
 
+@cindex Spectrum
 @cindex 3D data-cubes
 @cindex Cubes (3D data)
 @cindex IFU: Integral Field Unit
 @cindex Integral field unit (IFU)
 @cindex Spectrum (of astronomical source)
-MakeCatalog can also do multi-valued measurements per label.
-Currently the only such measurement is the creation of spectra from 3D data cubes as discussed below:
+When the input is a 3D data cube, MakeCatalog has the following multi-valued measurements per label.
+For a tutorial on how to use these options and interpret their values, see @ref{Detecting lines and extracting spectra in 3D data}.
+
+These options will do measurements on each 2D slice of the input 3D cube; hence the common the format of @code{--*-in-slice}.
+Each slice usually corresponds to a certain wavelength, you can also think of these measurements as spectra.
+
+For each row (input label), each of the columns described here will contain multiple values as a vector column.
+The number of measurements in each column is the number of slices in the cube, or the size of the cube along the third dimension.
+To learn more about vector columns and how to manipulate them, see @ref{Vector columns}.
+For example usage of these columns in the tutorial above, see @ref{3D measurements and spectra} and @ref{Extracting a single spectrum and plotting it}.
+
+@noindent
+There are two ways to do each measurement on a slice for each label:
+@table @asis
+@item Only label
+The measurement will only be done on the voxels in the slice that are assciated to that label.
+These types of per-slice measurement therefore have the following properties:
+@itemize
+@item
+This will only be a measurement of that label and will not be affected by any other label.
+@item
+The number of voxels used in each slice can be different (usually only one or two voxels at the two extremes of the label (along the third dimension), and many in the middle.
+@item
+Since most labels are localized along the third dimension (maybe only covering 20 slices out of thousands!), many of the measurements (on slices where the label doesn't exist) will be NaN (for the sum measurements for example) or 0 (for the area measurements).
+@end itemize
+@item Projected label
+MakeCatalog will first project the 3D label into a 2D surface (along the third dimension) to get its 2D footprint.
+Afterwards, all the voxels in that 2D footprint will be measured all slices.
+All these measurements will have a @option{-proj-} component in their name.
+These types of per-slice measurement therefore has the following properties:
+
+@itemize
+@item
+A measurement will be done on each slice of the cube.
+@item
+All measurements will be done on the same surface area.
+@item
+Labels can overlap when they are projected onto the first two FITS dimensions (the spatial coordinates, not spectral).
+As a result, other emission lines or objects may contaminate the resulting spectrum for each label.
+@end itemize
+
+To help separate other labels, MakeCatalog can do a third type of measurement on each slice: measurements on the voxels that belong to other labels but overlap with the 2D projection.
+This can be used to see how much your projected measurement is affected by other emission sources (on the projected spectra) and also if multiple lines (labeled regions) belong to the same physical object.
+These measurements contain @code{-other-} in their name.
+@end table
 
 @table @option
-@item --spectrum
-Generate a spectrum (measurement along the first two FITS dimensions) for each label when the input dataset is a 3D data cube.
-With this option, a seprate table/spectrum will be generated for every label.
-If the output is a FITS file, each label's spectrum will be written into an extension of that file with a standard name of @code{SPECTRUM_NN} (the label will be replaced with @code{NN}).
-If the output is a plain text file, each label's spectrum will be written into a separate file with the suffix @file{spec-NN.txt}.
-See @ref{MakeCatalog output} for more on specifying MakeCatalog's output file.
 
-The spectra will contain one row for every slice (third FITS dimension) of the cube.
-Since the physical nature of the third dimension is different, two types of spectra (along with their errors) are measured:
-1) Sum of values in each slice that only have the requested label.
-2) Sum of values on the 2D projection of the whole label (the area of this projection can be requested with the @option{--area-xy} column above).
+@item --sum-in-slice
+[Only label] Sum of values in each slice.
 
-Labels can overlap when they are projected onto the first two FITS dimensions (the spatial domain).
-To help separate them, MakeCatalog does a third measurement on each slice: the area, sum of values and error of all pixels that belong to other labels but overlap with the 2D projection.
-This can be used to see how reliable the emission line measurement is (on the projected spectra) and also if multiple lines (labeled regions) belong to the same physical object.
+@item --sum-err-in-slice
+[Only label] Error in '--sum-in-slice'.
+
+@item --area-in-slice
+[Only label] Number of labeled in each slice.
+
+@item --sum-proj-in-slice
+[Projected label] Sum of projected area in each slice.
+
+@item --area-proj-in-slice:
+[Projected label] Number of voxels that are used in @option{--sum-proj-in-slice}.
+
+@item --sum-proj-err-in-slice
+[Projected label] Error of @option{--sum-proj-in-slice}.
+
+@item --area-other-in-slice
+[Projected label] Area of other label in projected area on each slice.
+
+@item --sum-other-in-slice
+[Projected label] Sum of other label in projected area on each slice.
+
+@item --sum-other-err-in-slice:
+[Projected label] Area in @option{--sum-other-in-slice}.
 @end table
 
 
@@ -28168,9 +29174,9 @@ The focus here is obtaining a physical insight into these equations (mainly for 
 There are many books thoroughly deriving and proving all the equations with all possible initial conditions and assumptions for any abstract universe, interested readers can study those books.
 
 @menu
-* Distance on a 2D curved space::  Distances in 2D for simplicity
+* Distance on a 2D curved space::  Distances in 2D for simplicity.
 * Extending distance concepts to 3D::  Going to 3D (our real universe).
-* Invoking astcosmiccal::       How to run CosmicCalculator
+* Invoking astcosmiccal::       How to run CosmicCalculator.
 @end menu
 
 @node Distance on a 2D curved space, Extending distance concepts to 3D, CosmicCalculator, CosmicCalculator
@@ -28389,7 +29395,7 @@ $ astcosmiccal --redshift=0.8 --volume
 
 ## Print redshift and age of universe when Lyman-alpha line is
 ## at 6000 angstrom (another way to specify redshift).
-$ astcosmiccal --obsline=lyalpha,6000 --age
+$ astcosmiccal --obsline=Ly-alpha,6000 --age
 
 ## Print luminosity distance, angular diameter distance and age
 ## of universe in one row at redshift 0.4
@@ -28401,7 +29407,7 @@ $ astcosmiccal -l0.7 -m0.3 -z2.1
 
 ## Print wavelength of all pre-defined spectral lines when
 ## Lyman-alpha is observed at 4000 Angstroms.
-$ astcosmiccal --obsline=lyalpha,4000 --listlinesatz
+$ astcosmiccal --obsline=Ly-alpha,4000 --listlinesatz
 @end example
 
 The input parameters (current matter density, etc.) can be given as command-line options or in the configuration files, see @ref{Configuration files}.
@@ -28467,177 +29473,18 @@ Radiation density divided by the critical density in the current Universe (@myma
 @cindex Wavelength, rest-frame
 Find the redshift to use in next steps based on the rest-frame and observed wavelengths of a line.
 This option is thus an alternative to @code{--redshift} or @code{--velocity}, it cannot be used with them.
-Wavelengths are assumed to be in Angstroms.
+
 The first argument identifies the line.
-It can be one of the standard names below, or any rest-frame wavelength in Angstroms.
+It can be one of the standard names, or any rest-frame wavelength in Angstroms.
 The second argument is the observed wavelength of that line.
-For example, @option{--obsline=lyalpha,6000} is the same as @option{--obsline=1215.64,6000}.
+For example, @option{--obsline=Ly-alpha,6000} is the same as @option{--obsline=1215.64,6000}.
+Wavelengths are assumed to be in Angstroms by default (other units can be selected with @option{--lineunit}, see @ref{CosmicCalculator spectral line calculations}).
 
-The pre-defined names are listed below, sorted from red (longer wavelength) to blue (shorter wavelength).
-You can get this list on the command-line with the @option{--listlines}.
+The list of pre-defined names for the lines in Gnuastro's database is available by running
 
-@table @code
-@item siired
-[6731@AA{}] SII doublet's redder line.
-
-@item sii
-@cindex Doublet: SII
-@cindex SII doublet
-[6724@AA{}] SII doublet's mean center at .
-
-@item siiblue
-[6717@AA{}] SII doublet's bluer line.
-
-@item niired
-[6584@AA{}] NII doublet's redder line.
-
-@item nii
-@cindex Doublet: NII
-@cindex NII doublet
-[6566@AA{}] NII doublet's mean center.
-
-@item halpha
-@cindex H-alpha
-[6562.8@AA{}] H-@mymath{\alpha} line.
-
-@item niiblue
-[6548@AA{}] NII doublet's bluer line.
-
-@item oiiired-vis
-[5007@AA{}] OIII doublet's redder line in the visible.
-
-@item oiii-vis
-@cindex Doublet: OIII (visible)
-@cindex OIII doublet in visible
-[4983@AA{}] OIII doublet's mean center in the visible.
-
-@item oiiiblue-vis
-[4959@AA{}] OIII doublet's bluer line in the visible.
-
-@item hbeta
-@cindex H-beta
-[4861.36@AA{}] H-@mymath{\beta} line.
-
-@item heii-vis
-[4686@AA{}] HeII doublet's redder line in the visible.
-
-@item hgamma
-@cindex H-gamma
-[4340.46@AA{}] H-@mymath{\gamma} line.
-
-@item hdelta
-@cindex H-delta
-[4101.74@AA{}] H-@mymath{\delta} line.
-
-@item hepsilon
-@cindex H-epsilon
-[3970.07@AA{}] H-@mymath{\epsilon} line.
-
-@item neiii
-[3869@AA{}] NEIII line.
-
-@item oiired
-[3729@AA{}] OII doublet's redder line.
-
-@item oii
-@cindex Doublet: OII
-@cindex OII doublet
-[3727.5@AA{}] OII doublet's mean center.
-
-@item oiiblue
-[3726@AA{}] OII doublet's bluer line.
-
-@item blimit
-@cindex Balmer limit
-[3646@AA{}] Balmer limit.
-
-@item mgiired
-[2803@AA{}] MgII doublet's redder line.
-
-@item mgii
-@cindex Doublet: MgII
-@cindex MgII doublet
-[2799.5@AA{}] MgII doublet's mean center.
-
-@item mgiiblue
-[2796@AA{}] MgII doublet's bluer line.
-
-@item ciiired
-[1909@AA{}] CIII doublet's redder line.
-
-@item ciii
-@cindex Doublet: CIII
-@cindex CIII doublet
-[1908@AA{}] CIII doublet's mean center.
-
-@item ciiiblue
-[1907@AA{}] CIII doublet's bluer line.
-
-@item si_iiired
-[1892@AA{}] SiIII doublet's redder line.
-
-@item si_iii
-@cindex Doublet: SiIII
-@cindex SiIII doublet
-[1887.5@AA{}] SiIII doublet's mean center.
-
-@item si_iiiblue
-[1883@AA{}] SiIII doublet's bluer line.
-
-@item oiiired-uv
-[1666@AA{}] OIII doublet's redder line in the ultra-violet.
-
-@item oiii-uv
-@cindex Doublet: OIII (in UV)
-@cindex OIII doublet in UV
-[1663.5@AA{}] OIII doublet's mean center in the ultra-violet.
-
-@item oiiiblue-uv
-[1661@AA{}] OIII doublet's bluer line in the ultra-violet.
-
-@item heii-uv
-[1640@AA{}] HeII doublet's bluer line in the ultra-violet.
-
-@item civred
-[1551@AA{}] CIV doublet's redder line.
-
-@item civ
-@cindex Doublet: CIV
-@cindex CIV doublet
-[1549@AA{}] CIV doublet's mean center.
-
-@item civblue
-[1548@AA{}] CIV doublet's bluer line.
-
-@item nv
-[1240@AA{}] NV (four times ionized Sodium).
-
-@item lyalpha
-@cindex Lyman-alpha
-[1215.67@AA{}] Lyman-@mymath{\alpha} line.
-
-@item lybeta
-@cindex Lyman-beta
-[1025.7@AA{}] Lyman-@mymath{\beta} line.
-
-@item lygamma
-@cindex Lyman-gamma
-[972.54@AA{}] Lyman-@mymath{\gamma} line.
-
-@item lydelta
-@cindex Lyman-delta
-[949.74@AA{}] Lyman-@mymath{\delta} line.
-
-@item lyepsilon
-@cindex Lyman-epsilon
-[937.80@AA{}] Lyman-@mymath{\epsilon} line.
-
-@item lylimit
-@cindex Lyman limit
-[912@AA{}] Lyman limit.
-
-@end table
-
+@example
+$ astcosmiccal --listlines
+@end example
 @end table
 
 
@@ -28782,6 +29629,8 @@ Note that @option{--obsline} is an input parameter, so it is discussed (with the
 
 @item --listlines
 List the pre-defined rest frame spectral line wavelengths and their names on standard output, then abort CosmicCalculator.
+The units of the displayed wavelengths for each line can be determined with @option{--lineunit} (see below).
+
 When this option is given, other operations on the command-line will be ignored.
 This is convenient when you forget the specific name of the spectral line used within Gnuastro, or when you forget the exact wavelength of a certain line.
 
@@ -28802,14 +29651,34 @@ And if you want to use the list later and have it as a table in a file, you can 
 @item --listlinesatz
 Similar to @option{--listlines} (above), but the printed wavelength is not in the rest frame, but redshifted to the given redshift.
 Recall that the redshift can be specified by @option{--redshift} directly or by @option{--obsline}, see @ref{CosmicCalculator input options}.
+For an example usage of this option, see @ref{Viewing spectra and redshifted lines}.
 
 @item -i STR/FLT
 @itemx --lineatz=STR/FLT
 The wavelength of the specified line at the redshift given to CosmicCalculator.
 The line can be specified either by its name or directly as a number (its wavelength).
+The units of the displayed wavelengths for each line can be determined with @option{--lineunit} (see below).
+
 To get the list of pre-defined names for the lines and their wavelength, you can use the @option{--listlines} option, see @ref{CosmicCalculator input options}.
 In the former case (when a name is given), the returned number is in units of Angstroms.
 In the latter (when a number is given), the returned value is the same units of the input number (assuming it is a wavelength).
+
+@item --lineunit=STR
+The units to display line wavelengths above.
+It can take the following four values.
+If you need any other unit, please contact us at @code{bug-gnuastro@@gnu.org}.
+
+@table @code
+@item m
+Meter.
+@item micro-m
+Micrometer or @mymath{10^{-6}m}.
+@item nano-m
+Nanometer, or @mymath{10^{-9}m}.
+@item angstrom
+Angstrom or @mymath{10^{-10}m}; the default unit when this option is not called.
+@end table
+
 
 @end table
 
@@ -33403,7 +34272,7 @@ However (when necessary) @code{dsize} must not have any zero values (a dimension
 @deftypefun {gal_data_t *} gal_data_alloc_empty (size_t @code{ndim}, size_t @code{minmapsize}, int @code{quietmmap})
 Allocate an empty dataset with a certain number of dimensions, but no 'array' component.
 The @code{size} element will be set to zero and the @code{dsize} array will be properly allocated (based on the number of dimensions), but all elements will be zero.
-This is useful in scenarios where you just need a @code{gal_data_t} for meta data.
+This is useful in scenarios where you just need a @code{gal_data_t} for metadata.
 @end deftypefun
 
 
@@ -33908,11 +34777,11 @@ Extract space-separated components of the input string.
 If any space element should be kept (and not considered as a delimiter between two tokens), precede it with a back-slash (@code{\}).
 @end deftypefun
 
-@deftypefun {char *} gal_list_str_cat (gal_list_str_t @code{*list})
-Concatenate (append) the input list of strings into a single space-separated string.
+@deftypefun {char *} gal_list_str_cat (gal_list_str_t @code{*list}, char @code{delimiter})
+Concatenate (append) the input list of strings into a single string where each node is separated from the next with the given @code{delimiter}.
 The space for the output string is allocated by this function and should be freed when you have finished with it.
 
-If there is any SPACE characters in any of the elements, a back-slash (@code{\}) will be printed before the SPACE character.
+If there is any delimiter characters are present in any of the elements, a back-slash (@code{\}) will be printed before the SPACE character.
 This is necessary, otherwise, a function like @code{gal_list_str_extract} will not be able to extract the elements back into separate elements in a list.
 @end deftypefun
 
@@ -34695,7 +35564,7 @@ use these anywhere you see the @code{tableformat} variable.
 @deffnx Macro GAL_TABLE_SEARCH_COMMENT
 When the desired column is not a number, these values determine if the
 string to match, or regular expression to search, be in the @emph{name},
-@emph{units} or @emph{comments} of the column meta data. These values
+@emph{units} or @emph{comments} of the column metadata. These values
 should be used for the @code{searchin} variables of the functions.
 @end deffn
 
@@ -37990,48 +38859,38 @@ inverse:    AFTER[ perm[i] ] = BEFORE[ i       ]     i = 0 .. N-1
 @end example
 
 @cindex GNU Scientific Library
-The functions here are a re-implementation of the GNU Scientific Library's
-@code{gsl_permute} function. The reason we did not use that function was
-that it uses system-specific types (like @code{long} and @code{int}) which
-can have different widths on different systems, hence are not easily
-convertible to Gnuastro's fixed width types (see @ref{Numeric data
-types}). There is also a separate function for each type, heavily using
-macros to allow a @code{base} function to work on all the types. Thus it is
-hard to read/understand. Hence, Gnuastro contains a re-write of their steps
-in a new type-agnostic method which is a single function that can work on
-any type.
+The functions here are a re-implementation of the GNU Scientific Library's @code{gsl_permute} function.
+The reason we did not use that function was that it uses system-specific types (like @code{long} and @code{int}) which can have different widths on different systems, hence are not easily convertible to Gnuastro's fixed width types (see @ref{Numeric data types}).
+There is also a separate function for each type, heavily using macros to allow a @code{base} function to work on all the types.
+Thus it is hard to read/understand.
+Hence, Gnuastro contains a re-write of their steps in a new type-agnostic method which is a single function that can work on any type.
 
-As described in GSL's source code and manual, this implementation comes
-from Donald Knuth's @emph{Art of computer programming} book, in the
-"Sorting and Searching" chapter of Volume 3 (3rd ed). Exercise 10 of
-Section 5.2 defines the problem and in the answers, Knuth describes the
-solution. So if you are interested, please have a look there for more.
+As described in GSL's source code and manual, this implementation comes from Donald Knuth's @emph{Art of computer programming} book, in the "Sorting and Searching" chapter of Volume 3 (3rd ed).
+Exercise 10 of Section 5.2 defines the problem and in the answers, Knuth describes the solution.
+So if you are interested, please have a look there for more.
 
-We are in contact with the GSL developers and in the
-future@footnote{Gnuastro's @url{http://savannah.gnu.org/task/?14497, Task
-14497}. If this task is still ``postponed'' when you are reading this and
-you are interested to help, your contributions would be very welcome. Both Gnuastro
-and GSL developers are very busy, hence both would appreciate your help.}
-we will submit these implementations to GSL. If they are finally
-incorporated there, we will delete this section in future versions.
+We are in contact with the GSL developers and in the future@footnote{Gnuastro's @url{http://savannah.gnu.org/task/?14497, Task 14497}.
+If this task is still ``postponed'' when you are reading this and you are interested to help, your contributions would be very welcome.
+Both Gnuastro and GSL developers are very busy, hence both would appreciate your help.} we will submit these implementations to GSL.
+If they are finally incorporated there, we will delete this section in future versions.
 
 @deftypefun void gal_permutation_check (size_t @code{*permutation}, size_t @code{size})
-Print how @code{permutation} will re-order an array that has @code{size}
-elements for each element in one one line.
+Print how @code{permutation} will re-order an array that has @code{size} elements for each element in one one line.
 @end deftypefun
 
 @deftypefun void gal_permutation_apply (gal_data_t @code{*input}, size_t @code{*permutation})
-Apply @code{permutation} on the @code{input} dataset (can have any type),
-see above for the definition of permutation.
+Apply @code{permutation} on the @code{input} dataset (can have any type), see above for the definition of permutation.
 @end deftypefun
 
 @deftypefun void gal_permutation_apply_inverse (gal_data_t @code{*input}, size_t @code{*permutation})
-Apply the inverse of @code{permutation} on the @code{input} dataset (can
-have any type), see above for the definition of permutation.
+Apply the inverse of @code{permutation} on the @code{input} dataset (can have any type), see above for the definition of permutation.
 @end deftypefun
 
-
-
+@deftypefun void gal_permutation_transpose_2d (gal_data_t @code{*input})
+Transpose an input 2D matrix into a new dataset.
+If the input is not a square, this function will change the @code{input->array} element to a newly allocated array (the old one will be freed internally).
+Therefore, in case you have already stored @code{input->array} for other usage @emph{before} this function, and the input is not a square, be sure to update the previously stored pointer if the input is not a square.
+@end deftypefun
 
 
 @node Matching, Statistical operations, Permutations, Gnuastro library
@@ -38080,7 +38939,8 @@ If @code{aperture[1]==1}, the aperture will be a circle of radius @code{aperture
 When the aperture is an ellipse, distances between the points are also calculated in the respective elliptical distances (@mymath{r_{el}} in @ref{Defining an ellipse and ellipsoid}).
 
 @strong{Output permutations ignore internal sorting}: the output permutations will correspond to the initial inputs.
-Therefore, even when @code{inplace!=0} (and this function re-arranges the inputs in place), the output permutation will correspond to original (possibly non-sorted) inputs. The reason for this is that you rarely want to permute the actual positional columns after the match.
+Therefore, even when @code{inplace!=0} (and this function re-arranges the inputs in place), the output permutation will correspond to original (possibly non-sorted) inputs.
+The reason for this is that you rarely want to permute the actual positional columns after the match.
 Usually, you also have other columns (such as the magnitude and morphology) and you want to find how they differ between the objects that match.
 Once you have the permutations, they can be applied to those other columns (see @ref{Permutations}) and the higher-level processing can continue.
 So if you do not need the coordinate columns for the rest of your analysis, it is better to set @code{inplace=1}.
@@ -39939,40 +40799,246 @@ All these functions are declared in @file{gnuastro/spectra.h}.
 @cindex Doublet: MgII
 @cindex Doublet: CIII
 @deffn  Macro GAL_SPECLINES_INVALID
-@deffnx Macro GAL_SPECLINES_SIIRED
-@deffnx Macro GAL_SPECLINES_SII
-@deffnx Macro GAL_SPECLINES_SIIBLUE
-@deffnx Macro GAL_SPECLINES_NIIRED
-@deffnx Macro GAL_SPECLINES_NII
-@deffnx Macro GAL_SPECLINES_HALPHA
-@deffnx Macro GAL_SPECLINES_NIIBLUE
-@deffnx Macro GAL_SPECLINES_OIIIRED
-@deffnx Macro GAL_SPECLINES_OIII
-@deffnx Macro GAL_SPECLINES_OIIIBLUE
-@deffnx Macro GAL_SPECLINES_HBETA
-@deffnx Macro GAL_SPECLINES_HEIIRED
-@deffnx Macro GAL_SPECLINES_HGAMMA
-@deffnx Macro GAL_SPECLINES_HDELTA
-@deffnx Macro GAL_SPECLINES_HEPSILON
-@deffnx Macro GAL_SPECLINES_NEIII
-@deffnx Macro GAL_SPECLINES_OIIRED
-@deffnx Macro GAL_SPECLINES_OII
-@deffnx Macro GAL_SPECLINES_OIIBLUE
-@deffnx Macro GAL_SPECLINES_BLIMIT
-@deffnx Macro GAL_SPECLINES_MGIIRED
-@deffnx Macro GAL_SPECLINES_MGII
-@deffnx Macro GAL_SPECLINES_MGIIBLUE
-@deffnx Macro GAL_SPECLINES_CIIIRED
-@deffnx Macro GAL_SPECLINES_CIII
-@deffnx Macro GAL_SPECLINES_CIIIBLUE
-@deffnx Macro GAL_SPECLINES_HEIIBLUE
-@deffnx Macro GAL_SPECLINES_LYALPHA
-@deffnx Macro GAL_SPECLINES_LYLIMIT
-@deffnx Macro GAL_SPECLINES_INVALID_MAX
-Internal values/identifiers for specific spectral lines as is clear from
-their names.
-Note the first and last one, they can be used when parsing the lines automatically: both do not correspond to any line, but their integer values correspond to the two integers just before and after the first and last line identifier.
+@deffnx Macro GAL_SPECLINES_Ne_VIII_770
+@deffnx Macro GAL_SPECLINES_Ne_VIII_780
+@deffnx Macro GAL_SPECLINES_Ly_epsilon
+@deffnx Macro GAL_SPECLINES_Ly_delta
+@deffnx Macro GAL_SPECLINES_Ly_gamma
+@deffnx Macro GAL_SPECLINES_C_III_977
+@deffnx Macro GAL_SPECLINES_N_III_989
+@deffnx Macro GAL_SPECLINES_N_III_991_51
+@deffnx Macro GAL_SPECLINES_N_III_991_57
+@deffnx Macro GAL_SPECLINES_Ly_beta
+@deffnx Macro GAL_SPECLINES_O_VI_1031
+@deffnx Macro GAL_SPECLINES_O_VI_1037
+@deffnx Macro GAL_SPECLINES_Ar_I_1066
+@deffnx Macro GAL_SPECLINES_Ly_alpha
+@deffnx Macro GAL_SPECLINES_N_V_1238
+@deffnx Macro GAL_SPECLINES_N_V_1242
+@deffnx Macro GAL_SPECLINES_Si_II_1260
+@deffnx Macro GAL_SPECLINES_Si_II_1264
+@deffnx Macro GAL_SPECLINES_O_I_1302
+@deffnx Macro GAL_SPECLINES_C_II_1334
+@deffnx Macro GAL_SPECLINES_C_II_1335
+@deffnx Macro GAL_SPECLINES_Si_IV_1393
+@deffnx Macro GAL_SPECLINES_O_IV_1397
+@deffnx Macro GAL_SPECLINES_O_IV_1399
+@deffnx Macro GAL_SPECLINES_Si_IV_1402
+@deffnx Macro GAL_SPECLINES_N_IV_1486
+@deffnx Macro GAL_SPECLINES_C_IV_1548
+@deffnx Macro GAL_SPECLINES_C_IV_1550
+@deffnx Macro GAL_SPECLINES_He_II_1640
+@deffnx Macro GAL_SPECLINES_O_III_1660
+@deffnx Macro GAL_SPECLINES_O_III_1666
+@deffnx Macro GAL_SPECLINES_N_III_1746
+@deffnx Macro GAL_SPECLINES_N_III_1748
+@deffnx Macro GAL_SPECLINES_Al_III_1854
+@deffnx Macro GAL_SPECLINES_Al_III_1862
+@deffnx Macro GAL_SPECLINES_Si_III
+@deffnx Macro GAL_SPECLINES_C_III_1908
+@deffnx Macro GAL_SPECLINES_N_II_2142
+@deffnx Macro GAL_SPECLINES_O_III_2320
+@deffnx Macro GAL_SPECLINES_C_II_2323
+@deffnx Macro GAL_SPECLINES_C_II_2324
+@deffnx Macro GAL_SPECLINES_Fe_XI_2648
+@deffnx Macro GAL_SPECLINES_He_II_2733
+@deffnx Macro GAL_SPECLINES_Mg_V_2782
+@deffnx Macro GAL_SPECLINES_Mg_II_2795
+@deffnx Macro GAL_SPECLINES_Mg_II_2802
+@deffnx Macro GAL_SPECLINES_Fe_IV_2829
+@deffnx Macro GAL_SPECLINES_Fe_IV_2835
+@deffnx Macro GAL_SPECLINES_Ar_IV_2853
+@deffnx Macro GAL_SPECLINES_Ar_IV_2868
+@deffnx Macro GAL_SPECLINES_Mg_V_2928
+@deffnx Macro GAL_SPECLINES_He_I_2945
+@deffnx Macro GAL_SPECLINES_O_III_3132
+@deffnx Macro GAL_SPECLINES_He_I_3187
+@deffnx Macro GAL_SPECLINES_He_II_3203
+@deffnx Macro GAL_SPECLINES_O_III_3312
+@deffnx Macro GAL_SPECLINES_Ne_V_3345
+@deffnx Macro GAL_SPECLINES_Ne_V_3425
+@deffnx Macro GAL_SPECLINES_O_III_3444
+@deffnx Macro GAL_SPECLINES_N_I_3466_4
+@deffnx Macro GAL_SPECLINES_N_I_3466_5
+@deffnx Macro GAL_SPECLINES_He_I_3487
+@deffnx Macro GAL_SPECLINES_Fe_VII_3586
+@deffnx Macro GAL_SPECLINES_Fe_VI_3662
+@deffnx Macro GAL_SPECLINES_H_19
+@deffnx Macro GAL_SPECLINES_H_18
+@deffnx Macro GAL_SPECLINES_H_17
+@deffnx Macro GAL_SPECLINES_H_16
+@deffnx Macro GAL_SPECLINES_H_15
+@deffnx Macro GAL_SPECLINES_H_14
+@deffnx Macro GAL_SPECLINES_O_II_3726
+@deffnx Macro GAL_SPECLINES_O_II_3728
+@deffnx Macro GAL_SPECLINES_H_13
+@deffnx Macro GAL_SPECLINES_H_12
+@deffnx Macro GAL_SPECLINES_Fe_VII_3758
+@deffnx Macro GAL_SPECLINES_H_11
+@deffnx Macro GAL_SPECLINES_H_10
+@deffnx Macro GAL_SPECLINES_H_9
+@deffnx Macro GAL_SPECLINES_Fe_V_3839
+@deffnx Macro GAL_SPECLINES_Ne_III_3868
+@deffnx Macro GAL_SPECLINES_He_I_3888
+@deffnx Macro GAL_SPECLINES_H_8
+@deffnx Macro GAL_SPECLINES_Fe_V_3891
+@deffnx Macro GAL_SPECLINES_Fe_V_3911
+@deffnx Macro GAL_SPECLINES_Ne_III_3967
+@deffnx Macro GAL_SPECLINES_H_epsilon
+@deffnx Macro GAL_SPECLINES_He_I_4026
+@deffnx Macro GAL_SPECLINES_S_II_4068
+@deffnx Macro GAL_SPECLINES_Fe_V_4071
+@deffnx Macro GAL_SPECLINES_S_II_4076
+@deffnx Macro GAL_SPECLINES_H_delta
+@deffnx Macro GAL_SPECLINES_He_I_4143
+@deffnx Macro GAL_SPECLINES_Fe_II_4178
+@deffnx Macro GAL_SPECLINES_Fe_V_4180
+@deffnx Macro GAL_SPECLINES_Fe_II_4233
+@deffnx Macro GAL_SPECLINES_Fe_V_4227
+@deffnx Macro GAL_SPECLINES_Fe_II_4287
+@deffnx Macro GAL_SPECLINES_Fe_II_4304
+@deffnx Macro GAL_SPECLINES_O_II_4317
+@deffnx Macro GAL_SPECLINES_H_gamma
+@deffnx Macro GAL_SPECLINES_O_III_4363
+@deffnx Macro GAL_SPECLINES_Ar_XIV
+@deffnx Macro GAL_SPECLINES_O_II_4414
+@deffnx Macro GAL_SPECLINES_Fe_II_4416
+@deffnx Macro GAL_SPECLINES_Fe_II_4452
+@deffnx Macro GAL_SPECLINES_He_I_4471
+@deffnx Macro GAL_SPECLINES_Fe_II_4489
+@deffnx Macro GAL_SPECLINES_Fe_II_4491
+@deffnx Macro GAL_SPECLINES_N_III_4510
+@deffnx Macro GAL_SPECLINES_Fe_II_4522
+@deffnx Macro GAL_SPECLINES_Fe_II_4555
+@deffnx Macro GAL_SPECLINES_Fe_II_4582
+@deffnx Macro GAL_SPECLINES_Fe_II_4583
+@deffnx Macro GAL_SPECLINES_Fe_II_4629
+@deffnx Macro GAL_SPECLINES_N_III_4634
+@deffnx Macro GAL_SPECLINES_N_III_4640
+@deffnx Macro GAL_SPECLINES_N_III_4641
+@deffnx Macro GAL_SPECLINES_C_III_4647
+@deffnx Macro GAL_SPECLINES_C_III_4650
+@deffnx Macro GAL_SPECLINES_C_III_5651
+@deffnx Macro GAL_SPECLINES_Fe_III_4658
+@deffnx Macro GAL_SPECLINES_He_II_4685
+@deffnx Macro GAL_SPECLINES_Ar_IV_4711
+@deffnx Macro GAL_SPECLINES_Ar_IV_4740
+@deffnx Macro GAL_SPECLINES_H_beta
+@deffnx Macro GAL_SPECLINES_Fe_VII_4893
+@deffnx Macro GAL_SPECLINES_Fe_IV_4903
+@deffnx Macro GAL_SPECLINES_Fe_II_4923
+@deffnx Macro GAL_SPECLINES_O_III_4958
+@deffnx Macro GAL_SPECLINES_O_III_5006
+@deffnx Macro GAL_SPECLINES_Fe_II_5018
+@deffnx Macro GAL_SPECLINES_Fe_III_5084
+@deffnx Macro GAL_SPECLINES_Fe_VI_5145
+@deffnx Macro GAL_SPECLINES_Fe_VII_5158
+@deffnx Macro GAL_SPECLINES_Fe_II_5169
+@deffnx Macro GAL_SPECLINES_Fe_VI_5176
+@deffnx Macro GAL_SPECLINES_Fe_II_5197
+@deffnx Macro GAL_SPECLINES_N_I_5200
+@deffnx Macro GAL_SPECLINES_Fe_II_5234
+@deffnx Macro GAL_SPECLINES_Fe_IV_5236
+@deffnx Macro GAL_SPECLINES_Fe_III_5270
+@deffnx Macro GAL_SPECLINES_Fe_II_5276
+@deffnx Macro GAL_SPECLINES_Fe_VII_5276
+@deffnx Macro GAL_SPECLINES_Fe_XIV
+@deffnx Macro GAL_SPECLINES_Ca_V
+@deffnx Macro GAL_SPECLINES_Fe_II_5316_6
+@deffnx Macro GAL_SPECLINES_Fe_II_5316_7
+@deffnx Macro GAL_SPECLINES_Fe_VI_5335
+@deffnx Macro GAL_SPECLINES_Fe_VI_5424
+@deffnx Macro GAL_SPECLINES_Cl_III_5517
+@deffnx Macro GAL_SPECLINES_Cl_III_5537
+@deffnx Macro GAL_SPECLINES_Fe_VI_5637
+@deffnx Macro GAL_SPECLINES_Fe_VI_5677
+@deffnx Macro GAL_SPECLINES_C_III_5697
+@deffnx Macro GAL_SPECLINES_Fe_VII_5720
+@deffnx Macro GAL_SPECLINES_N_II_5754
+@deffnx Macro GAL_SPECLINES_C_IV_5801
+@deffnx Macro GAL_SPECLINES_C_IV_5811
+@deffnx Macro GAL_SPECLINES_He_I_5875
+@deffnx Macro GAL_SPECLINES_O_I_6046
+@deffnx Macro GAL_SPECLINES_Fe_VII_6087
+@deffnx Macro GAL_SPECLINES_O_I_6300
+@deffnx Macro GAL_SPECLINES_S_III_6312
+@deffnx Macro GAL_SPECLINES_Si_II_6347
+@deffnx Macro GAL_SPECLINES_O_I_6363
+@deffnx Macro GAL_SPECLINES_Fe_II_6369
+@deffnx Macro GAL_SPECLINES_Fe_X
+@deffnx Macro GAL_SPECLINES_Fe_II_6516
+@deffnx Macro GAL_SPECLINES_N_II_6548
+@deffnx Macro GAL_SPECLINES_H_alpha
+@deffnx Macro GAL_SPECLINES_N_II_6583
+@deffnx Macro GAL_SPECLINES_S_II_6716
+@deffnx Macro GAL_SPECLINES_S_II_6730
+@deffnx Macro GAL_SPECLINES_O_I_7002
+@deffnx Macro GAL_SPECLINES_Ar_V
+@deffnx Macro GAL_SPECLINES_He_I_7065
+@deffnx Macro GAL_SPECLINES_Ar_III_7135
+@deffnx Macro GAL_SPECLINES_Fe_II_7155
+@deffnx Macro GAL_SPECLINES_Ar_IV_7170
+@deffnx Macro GAL_SPECLINES_Fe_II_7172
+@deffnx Macro GAL_SPECLINES_C_II_7236
+@deffnx Macro GAL_SPECLINES_Ar_IV_7237
+@deffnx Macro GAL_SPECLINES_O_I_7254
+@deffnx Macro GAL_SPECLINES_Ar_IV_7262
+@deffnx Macro GAL_SPECLINES_He_I_7281
+@deffnx Macro GAL_SPECLINES_O_II_7319
+@deffnx Macro GAL_SPECLINES_O_II_7330
+@deffnx Macro GAL_SPECLINES_Ni_II_7377
+@deffnx Macro GAL_SPECLINES_Ni_II_7411
+@deffnx Macro GAL_SPECLINES_Fe_II_7452
+@deffnx Macro GAL_SPECLINES_N_I_7468
+@deffnx Macro GAL_SPECLINES_S_XII
+@deffnx Macro GAL_SPECLINES_Ar_III_7751
+@deffnx Macro GAL_SPECLINES_He_I_7816
+@deffnx Macro GAL_SPECLINES_Ar_I_7868
+@deffnx Macro GAL_SPECLINES_Ni_III
+@deffnx Macro GAL_SPECLINES_Fe_XI_7891
+@deffnx Macro GAL_SPECLINES_He_II_8236
+@deffnx Macro GAL_SPECLINES_Pa_20
+@deffnx Macro GAL_SPECLINES_Pa_19
+@deffnx Macro GAL_SPECLINES_Pa_18
+@deffnx Macro GAL_SPECLINES_O_I_8446
+@deffnx Macro GAL_SPECLINES_Pa_17
+@deffnx Macro GAL_SPECLINES_Ca_II_8498
+@deffnx Macro GAL_SPECLINES_Pa_16
+@deffnx Macro GAL_SPECLINES_Ca_II_8542
+@deffnx Macro GAL_SPECLINES_Pa_15
+@deffnx Macro GAL_SPECLINES_Cl_II
+@deffnx Macro GAL_SPECLINES_Pa_14
+@deffnx Macro GAL_SPECLINES_Fe_II_8616
+@deffnx Macro GAL_SPECLINES_Ca_II_8662
+@deffnx Macro GAL_SPECLINES_Pa_13
+@deffnx Macro GAL_SPECLINES_N_I_8680
+@deffnx Macro GAL_SPECLINES_N_I_8703
+@deffnx Macro GAL_SPECLINES_N_I_8711
+@deffnx Macro GAL_SPECLINES_Pa_12
+@deffnx Macro GAL_SPECLINES_Pa_11
+@deffnx Macro GAL_SPECLINES_Fe_II_8891
+@deffnx Macro GAL_SPECLINES_Pa_10
+@deffnx Macro GAL_SPECLINES_S_III_9068
+@deffnx Macro GAL_SPECLINES_Pa_9
+@deffnx Macro GAL_SPECLINES_S_III_9531
+@deffnx Macro GAL_SPECLINES_Pa_epsilon
+@deffnx Macro GAL_SPECLINES_C_I_9824
+@deffnx Macro GAL_SPECLINES_C_I_9850
+@deffnx Macro GAL_SPECLINES_S_VIII
+@deffnx Macro GAL_SPECLINES_He_I_10027
+@deffnx Macro GAL_SPECLINES_He_I_10031
+@deffnx Macro GAL_SPECLINES_Pa_delta
+@deffnx Macro GAL_SPECLINES_S_II_10286
+@deffnx Macro GAL_SPECLINES_S_II_10320
+@deffnx Macro GAL_SPECLINES_S_II_10336
+@deffnx Macro GAL_SPECLINES_Fe_XIII
+@deffnx Macro GAL_SPECLINES_He_I_10830
+@deffnx Macro GAL_SPECLINES_Pa_gamma
+@deffnx Macro GAL_SPECLINES_NUMBER
+Internal values/identifiers for recognized spectral lines as is clear from their names.
+They are based on the UV an optical table of galaxy emission lines of Drew Chojnowski@footnote{@url{http://astronomy.nmsu.edu/drewski/tableofemissionlines.html}}.
 
+Note the first and last macros, they can be used when parsing the lines automatically: both do not correspond to any line, but their integer values correspond to the two integers just before and after the first and last line identifier:
 @code{GAL_SPECLINES_INVALID} has a value of zero, and allows you to have a fixed integer which never corresponds to a line.
 @code{GAL_SPECLINES_INVALID_MAX} is the total number of pre-defined lines, plus one.
 So you can parse all the known lines with a @code{for} loop like this:
@@ -39981,70 +41047,14 @@ for(i=1;i<GAL_SPECLINES_INVALID_MAX;++i)
 @end example
 @end deffn
 
-@deffn  Macro GAL_SPECLINES_ANGSTROM_SIIRED
-@deffnx Macro GAL_SPECLINES_ANGSTROM_SII
-@deffnx Macro GAL_SPECLINES_ANGSTROM_SIIBLUE
-@deffnx Macro GAL_SPECLINES_ANGSTROM_NIIRED
-@deffnx Macro GAL_SPECLINES_ANGSTROM_NII
-@deffnx Macro GAL_SPECLINES_ANGSTROM_HALPHA
-@deffnx Macro GAL_SPECLINES_ANGSTROM_NIIBLUE
-@deffnx Macro GAL_SPECLINES_ANGSTROM_OIIIRED
-@deffnx Macro GAL_SPECLINES_ANGSTROM_OIII
-@deffnx Macro GAL_SPECLINES_ANGSTROM_OIIIBLUE
-@deffnx Macro GAL_SPECLINES_ANGSTROM_HBETA
-@deffnx Macro GAL_SPECLINES_ANGSTROM_HEIIRED
-@deffnx Macro GAL_SPECLINES_ANGSTROM_HGAMMA
-@deffnx Macro GAL_SPECLINES_ANGSTROM_HDELTA
-@deffnx Macro GAL_SPECLINES_ANGSTROM_HEPSILON
-@deffnx Macro GAL_SPECLINES_ANGSTROM_NEIII
-@deffnx Macro GAL_SPECLINES_ANGSTROM_OIIRED
-@deffnx Macro GAL_SPECLINES_ANGSTROM_OII
-@deffnx Macro GAL_SPECLINES_ANGSTROM_OIIBLUE
-@deffnx Macro GAL_SPECLINES_ANGSTROM_BLIMIT
-@deffnx Macro GAL_SPECLINES_ANGSTROM_MGIIRED
-@deffnx Macro GAL_SPECLINES_ANGSTROM_MGII
-@deffnx Macro GAL_SPECLINES_ANGSTROM_MGIIBLUE
-@deffnx Macro GAL_SPECLINES_ANGSTROM_CIIIRED
-@deffnx Macro GAL_SPECLINES_ANGSTROM_CIII
-@deffnx Macro GAL_SPECLINES_ANGSTROM_CIIIBLUE
-@deffnx Macro GAL_SPECLINES_ANGSTROM_HEIIBLUE
-@deffnx Macro GAL_SPECLINES_ANGSTROM_LYALPHA
-@deffnx Macro GAL_SPECLINES_ANGSTROM_LYLIMIT
+@deffn  Macro GAL_SPECLINES_ANGSTROM_*
 Wavelength (in Angstroms) of the named lines.
+The @code{*} can take any of the line names of the @code{GAL_SPECLINES_*} Macros above.
 @end deffn
 
-@deffn  Macro GAL_SPECLINES_NAME_SIIRED
-@deffnx Macro GAL_SPECLINES_NAME_SII
-@deffnx Macro GAL_SPECLINES_NAME_SIIBLUE
-@deffnx Macro GAL_SPECLINES_NAME_NIIRED
-@deffnx Macro GAL_SPECLINES_NAME_NII
-@deffnx Macro GAL_SPECLINES_NAME_HALPHA
-@deffnx Macro GAL_SPECLINES_NAME_NIIBLUE
-@deffnx Macro GAL_SPECLINES_NAME_OIIIRED
-@deffnx Macro GAL_SPECLINES_NAME_OIII
-@deffnx Macro GAL_SPECLINES_NAME_OIIIBLUE
-@deffnx Macro GAL_SPECLINES_NAME_HBETA
-@deffnx Macro GAL_SPECLINES_NAME_HEIIRED
-@deffnx Macro GAL_SPECLINES_NAME_HGAMMA
-@deffnx Macro GAL_SPECLINES_NAME_HDELTA
-@deffnx Macro GAL_SPECLINES_NAME_HEPSILON
-@deffnx Macro GAL_SPECLINES_NAME_NEIII
-@deffnx Macro GAL_SPECLINES_NAME_OIIRED
-@deffnx Macro GAL_SPECLINES_NAME_OII
-@deffnx Macro GAL_SPECLINES_NAME_OIIBLUE
-@deffnx Macro GAL_SPECLINES_NAME_BLIMIT
-@deffnx Macro GAL_SPECLINES_NAME_MGIIRED
-@deffnx Macro GAL_SPECLINES_NAME_MGII
-@deffnx Macro GAL_SPECLINES_NAME_MGIIBLUE
-@deffnx Macro GAL_SPECLINES_NAME_CIIIRED
-@deffnx Macro GAL_SPECLINES_NAME_CIII
-@deffnx Macro GAL_SPECLINES_NAME_CIIIBLUE
-@deffnx Macro GAL_SPECLINES_NAME_HEIIBLUE
-@deffnx Macro GAL_SPECLINES_NAME_LYALPHA
-@deffnx Macro GAL_SPECLINES_NAME_LYLIMIT
-Names (as literal stings without any space, all in small-caps) that can be
-used to refer to the lines in your program and converted to and from line
-identifiers using the functions below.
+@deffn  Macro GAL_SPECLINES_NAME_*
+Names (as literal stings without any space) that can be used to refer to the lines in your program and converted to and from line identifiers using the functions below.
+The @code{*} can take any of the line names of the @code{GAL_SPECLINES_*} Macros above.
 @end deffn
 
 @deftypefun {char *} gal_speclines_line_name (int @code{linecode})
@@ -40068,9 +41078,12 @@ emitted from (if its restframe wavelength was @code{restline}).
 @end deftypefun
 
 @deftypefun double gal_speclines_line_redshift_code (double @code{obsline}, int @code{linecode})
-Return the redshift where the observed wavelength (@code{obsline}) was
-emitted from (assuming its a specific spectra line, identified with
-@code{linecode}).
+Return the redshift where the observed wavelength (@code{obsline}) was emitted from a pre-defined spectral line in the macros above.
+For example, you want the redshift where the H-alpha line falls at a wavelength of 8000 Angsroms, you can call this function like this:
+
+@example
+gal_speclines_line_redshift_code(8000, GAL_SPECLINES_H_alpha);
+@end example
 @end deftypefun
 
 

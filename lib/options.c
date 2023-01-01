@@ -966,7 +966,8 @@ gal_options_parse_list_of_numbers(char *string, char *filename,
 #define OPTIONS_COMMENTED_COMMA 14
 #define OPTIONS_COMMENTED_COLON 15
 gal_data_t *
-gal_options_parse_list_of_strings(char *string, char *filename, size_t lineno)
+gal_options_parse_list_of_strings(char *string, char *filename,
+                                  size_t lineno)
 {
   size_t num;
   gal_data_t *out;
@@ -1048,28 +1049,60 @@ gal_options_parse_list_of_strings(char *string, char *filename, size_t lineno)
 
 
 
-/* The input to this function is a string of any number of strings
-   separated by a comma (',') for example: 'a,abc,abcd'. The output
-   'gal_data_t' contains the array of given strings. You can read the
-   number of inputs from its 'size' element. */
-gal_data_t *
-gal_options_parse_csv_strings_raw(char *string, char *filename,
-                                  size_t lineno)
+static int
+options_string_has_space(char *string)
 {
-  size_t i, num;
-  gal_data_t *out;
-  char *c=string, *cc, *str=NULL;
-  gal_list_str_t *list=NULL, *tstrll=NULL;
+  char *c;
+
+  /* If a space character is present, just return. */
+  for(c=string;*c!='\0';++c) if(*c==' ' || *c=='\t') return 1;
+
+  /* If control reaches here, there was no space character. */
+  return 0;
+}
 
 
-  /* The nature of the arrays/numbers read here is very small, so since
-     'p->cp.minmapsize' might not have been read yet, we will set it to -1
-     (largest size_t number), so the values are kept in memory. */
-  int quietmmap=1;
-  size_t minmapsize=-1;
 
+
+#if 0
+static char *
+options_print_liststr_as_csv(void *inval)
+{
+  char *out=NULL;
+  gal_list_str_t *tmp, *values=*(gal_list_str_t **)(option->value);
+
+  for(tmp=values;tmp!=NULL;tmp=tmp->next)
+    printf("%s: %s\n", __func__, tmp->v);
+
+  /* Return output. */
+  return out;
+}
+#endif
+
+
+
+
+
+/* NOTE: output is REVERSED (since the option parsing automatically
+   reverses STRLLs at its end).. */
+gal_list_str_t *
+gal_options_parse_csv_strings_to_list(char *string, char *filename,
+                                      size_t lineno)
+{
+  char *str=NULL;
+  char *cc, *c=string;
+  gal_list_str_t *list=NULL;
+
+  /* Remove any possibly commented new-line where we have a backslash
+     followed by a new-line character (replace the two characters with two
+     single space characters). This can happen with the "--column='arith'"
+     feature in Table, when it gets long (bug #58371). But to be general in
+     other cases too, we'll just correct it here. */
+  for(c=string;*c!='\0';++c)
+    if(*c=='\\' && *(c+1)=='\n') { *c=' '; *(++c)=' '; }
 
   /* Go through the input character by character. */
+  c=string;
   while(string && *c!='\0')
     {
       switch(*c)
@@ -1077,7 +1110,7 @@ gal_options_parse_csv_strings_raw(char *string, char *filename,
         /* Comma marks the transition to the next string. */
         case ',':
 
-          /* The whole can't start with a comma. */
+          /* The whole string can't start with a comma. */
           if(str==NULL)
             {
               if(filename)
@@ -1112,11 +1145,80 @@ gal_options_parse_csv_strings_raw(char *string, char *filename,
       ++c;
     }
 
-
   /* If the last element wasn't a comma, the last string hasn't been added
      to the list yet. */
   if(str) gal_list_str_add(&list, str, 1);
 
+  /* Return the reversed list (the option parsing tools automatically
+     reverse STRLLs at the end). */
+  return list;
+}
+
+
+
+
+
+/* For options that can take multiple values multiple times:
+
+    --option=val1,val2 --option=val3,val4,val5 ...
+
+   We want to merge/append all the separate values into separate tokens of
+   a single 'gal_list_str_t'.
+ */
+void *
+gal_options_parse_csv_strings_append(struct argp_option *option, char *arg,
+                                     char *filename, size_t lineno,
+                                     void *junk)
+{
+  gal_list_str_t *olist, *alist;
+
+  /* We want to print the values. */
+  if(lineno==-1)
+    return gal_list_str_cat(*(gal_list_str_t **)(option->value), ',');
+
+  /* We want to read the values. */
+  else
+    {
+      /* Read all the values given to this instance of the option. */
+      alist=gal_options_parse_csv_strings_to_list(arg, filename, lineno);
+
+      /* Get the output list and update it by putting the new list before
+         it (note that the option parsing infrastructure will automatically
+         reverse STRLLs. */
+      olist=*(gal_list_str_t **)(option->value);
+      gal_list_str_last(alist)->next=olist;
+      *(gal_list_str_t **)(option->value)=alist;
+
+      /* Return a NULL pointer */
+      return NULL;
+    }
+}
+
+
+
+
+
+/* The input to this function is a string of any number of strings
+   separated by a comma (',') for example: 'a,abc,abcd'. The output
+   'gal_data_t' contains the array of given strings. You can read the
+   number of inputs from its 'size' element. */
+gal_data_t *
+gal_options_parse_csv_strings_to_data(char *string, char *filename,
+                                      size_t lineno)
+{
+  size_t i, num;
+  gal_data_t *out;
+  gal_list_str_t *list=NULL, *tstrll=NULL;
+
+
+  /* The nature of the arrays/numbers read here is very small, so since
+     'p->cp.minmapsize' might not have been read yet, we will set it to -1
+     (largest size_t number), so the values are kept in memory. */
+  int quietmmap=1;
+  size_t minmapsize=-1;
+
+  /* Extract the separate tokens in the CSV string. */
+  list=gal_options_parse_csv_strings_to_list(string, filename, lineno);
 
   /* Allocate the output data structure and fill it up. */
   if(list)
@@ -1160,7 +1262,7 @@ gal_options_parse_csv_strings(struct argp_option *option, char *arg,
                               char *filename, size_t lineno, void *junk)
 {
   size_t nc;
-  char *c, **strarr;
+  char **strarr;
   int i, has_space=0;
   gal_data_t *values;
   char *str, sstr[GAL_OPTIONS_STATIC_MEM_FOR_VALUES];
@@ -1174,22 +1276,13 @@ gal_options_parse_csv_strings(struct argp_option *option, char *arg,
       /* See if there are any space characters in the final string. */
       strarr=values->array;
       for(i=0;i<values->size;++i)
-        if(has_space==0)
-        {
-          for(c=strarr[i];*c!='\0';++c)
-            if(*c==' ' || *c=='\t')
-              {
-                has_space=1;
-                break;
-              }
-        }
+        if(has_space==0) has_space=options_string_has_space(strarr[i]);
 
       /* If there is a space, the string must start wth quotation marks. */
       nc = has_space ? 1 : 0;
       if(has_space) {sstr[0]='"'; sstr[1]='\0';}
 
-
-      /* Write each string into the output string */
+      /* Write each string into the output string. */
       for(i=0;i<values->size;++i)
         {
           if( nc > GAL_OPTIONS_STATIC_MEM_FOR_VALUES-100 )
@@ -1224,9 +1317,11 @@ gal_options_parse_csv_strings(struct argp_option *option, char *arg,
                       "given to '--%s'", option->name);
 
       /* Read the values. */
-      values=gal_options_parse_csv_strings_raw(arg, filename, lineno);
+      values=gal_options_parse_csv_strings_to_data(arg, filename, lineno);
 
-      /* Put the values into the option. */
+      /* Put the values into the option and return NULL (the return value
+         is only for cases where the user wants to see the values, not set
+         them). */
       *(gal_data_t **)(option->value) = values;
       return NULL;
     }
@@ -1265,7 +1360,7 @@ gal_options_merge_list_of_csv(gal_list_str_t **list)
 
       /* Read the different comma-separated strings into an array (within a
          'gal_data_t'). */
-      strs=gal_options_parse_csv_strings_raw(tmp->v, NULL, 0);
+      strs=gal_options_parse_csv_strings_to_data(tmp->v, NULL, 0);
       strarr=strs->array;
 
       /* Go through all the items and add the pointers to the output
@@ -2609,8 +2704,8 @@ options_parse_file(char *filename,  struct gal_options_common_params *cp,
             if( options_set_from_name(name, arg, cp->coptions, cp,
                                       filename, lineno) )
               error_at_line(EXIT_FAILURE, 0, filename, lineno,
-                            "unrecognized option '%s', for the full list of "
-                            "options, please run with '--help'", name);
+                            "unrecognized option '%s', for the full list "
+                            "of options, please run with '--help'", name);
         }
     }
 

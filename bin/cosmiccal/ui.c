@@ -32,6 +32,7 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 
 #include <gnuastro/fits.h>
 #include <gnuastro/table.h>
+#include <gnuastro/pointer.h>
 #include <gnuastro/speclines.h>
 #include <gnuastro/cosmology.h>
 
@@ -206,6 +207,7 @@ ui_add_to_single_value(struct argp_option *option, char *arg,
 {
   int linecode;
   double *dptr, val=NAN;
+  gal_list_str_t *ltmp, *lines;
   struct cosmiccalparams *p = (struct cosmiccalparams *)params;
 
   /* In case of printing the option values. */
@@ -224,22 +226,36 @@ ui_add_to_single_value(struct argp_option *option, char *arg,
     {
     /* Options with arguments. */
     case UI_KEY_LINEATZ:
+
       /* Make sure an argument is given. */
       if(arg==NULL)
         error(EXIT_FAILURE, 0, "option '--lineatz' needs an argument");
 
-      /* If the argument is a number, read it, if not, see if its a known
-         specral line name. */
-      dptr=&val;
-      if( gal_type_from_string((void **)(&dptr), arg, GAL_TYPE_FLOAT64) )
+      /* The input can be a coma-separated string. */
+      lines=gal_options_parse_csv_strings_to_list(arg, filename, lineno);
+      gal_list_str_reverse(&lines); /* the function returns the raw list. */
+      for(ltmp=lines;ltmp!=NULL;ltmp=ltmp->next)
         {
-          linecode=gal_speclines_line_code(arg);
-          if(linecode==GAL_SPECLINES_INVALID)
-            error(EXIT_FAILURE, 0, "'%s' not a known spectral line name",
-                  arg);
-          val=gal_speclines_line_angstrom(linecode);
+          /* If the argument is a number, read it, if not, see if it is a
+             known specral line name. */
+          dptr=&val;
+          if( gal_type_from_string((void **)(&dptr), ltmp->v,
+                                   GAL_TYPE_FLOAT64) )
+            {
+              linecode=gal_speclines_line_code(ltmp->v);
+              if(linecode==GAL_SPECLINES_INVALID)
+                error(EXIT_FAILURE, 0, "'%s' not a known spectral line name",
+                      ltmp->v);
+              val=gal_speclines_line_angstrom(linecode);
+            }
+          gal_list_f64_add(&p->specific_arg, val);
+
+          /* Add this option to the print list and return. */
+          gal_list_i32_add(option->value, option->key);
         }
-      gal_list_f64_add(&p->specific_arg, val);
+
+      /* Activate the flag for sanity checks later. */
+      p->haslineatz=1;
       break;
 
     /* Options without arguments. */
@@ -257,10 +273,10 @@ ui_add_to_single_value(struct argp_option *option, char *arg,
           /* Only proceed if the (possibly given) argument is 1. */
           if(arg[0]=='0' && arg[1]=='\0') return NULL;
         }
-    }
 
-  /* Add this option to the print list and return. */
-  gal_list_i32_add(option->value, option->key);
+      /* Add this option to the print list and return. */
+      gal_list_i32_add(option->value, option->key);
+    }
   return NULL;
 }
 
@@ -392,16 +408,26 @@ ui_read_check_only_options(struct cosmiccalparams *p)
   /* Check if the density fractions add up to 1 (within floating point
      error). */
   if( sum > (1+1e-8) || sum < (1-1e-8) )
-    error(EXIT_FAILURE, 0, "sum of fractional densities is not 1, but %.8f. "
-          "The cosmological constant ('olambda'), matter ('omatter') "
-          "and radiation ('oradiation') densities are given as %.8f, %.8f, "
-          "%.8f", sum, p->olambda, p->omatter, p->oradiation);
+    error(EXIT_FAILURE, 0, "sum of fractional densities is not 1, but "
+          "%.8f. The cosmological constant ('olambda'), matter "
+          "('omatter') and radiation ('oradiation') densities are given "
+          "as %.8f, %.8f, %.8f", sum, p->olambda, p->omatter,
+          p->oradiation);
 
   /* Make sure that '--listlines' and '--listlinesatz' aren't called
      together. */
   if(p->listlines && p->listlinesatz)
     error(EXIT_FAILURE, 0, "'--listlines' and '--listlinesatz' can't be "
           "called together");
+
+  /* If any of the line options are requested, make sure that 'lineunit' is
+     also given. */
+  if( (p->listlines || p->listlinesatz || p->haslineatz || hasobsline)
+      && p->lineunit==0 )
+    error(EXIT_FAILURE, 0, "no '--lineunit' specified! For the "
+          "operations on lines, it is necessary to specify the unit "
+          "of the reported wavelength with this option. See the output "
+          "of '--help' for acceptable values");
 
   /* Make sure that '--redshift' and '--obsline' aren't called together. */
   if( (hasredshift + hasvelocity + hasobsline) > 1 )
@@ -434,31 +460,77 @@ ui_read_check_only_options(struct cosmiccalparams *p)
 static void
 ui_list_lines(struct cosmiccalparams *p)
 {
-  size_t i;
+  double ang;
+  size_t i, j;
+
+  /* Make sure '--lineunit' is given. */
+  if(p->lineunit==NULL)
+    error(EXIT_FAILURE, 0, "no unit specified for the wavelength of the "
+          "spectral lines. Please use '--lineunit' to specify your "
+          "desired unit");
 
   /* Print basic information. Note that '--listlinesatz' is requested, also
      print the redshift used. */
-  printf("# %s\n", PROGRAM_STRING);
-  if(p->listlinesatz)
-    printf("# Assumed redshift: %g\n", p->redshift);
+  if(p->cp.quiet==0)
+    {
+      printf("# %s\n", PROGRAM_STRING);
+      if(p->listlinesatz)
+        printf("# Assumed redshift: %g\n", p->redshift);
+      printf("# Source of rest frame wavelenghts (retrieved on 2023-01-15):\n"
+             "#     http://astronomy.nmsu.edu/drewski/tableofemission"
+             "lines.html\n");
 
-  /* Print column metadata. */
-  printf("# Column 1: Wavelength [Angstrom,f32] %s.\n",
-         ( p->listlinesatz
-           ? "Line wavelength at assumed redshift"
-           : "Rest frame wavelength of the line"));
-  printf("# Column 2: Name       [name,  str10] Line name in Gnuastro.\n");
+      /* Print column metadata. */
+      printf("# Column 1: Wavelength [%s,f32] %s.\n", p->lineunit,
+             ( p->listlinesatz
+               ? "Line wavelength at assumed redshift"
+               : "Rest frame wavelength of the line"));
+      printf("# Column 2: Name       [name,  str15] Line name in Gnuastro.\n");
+    }
 
   /* Print the line information. */
-  for(i=1;i<GAL_SPECLINES_INVALID_MAX;++i)
-    printf("%-15g%s\n",
-           ( p->listlinesatz
-             ? ( gal_speclines_line_angstrom(i) * (1+p->redshift) )
-             : gal_speclines_line_angstrom(i) ),
-           gal_speclines_line_name(i));
+  for(i=1;i<GAL_SPECLINES_NUMBER;++i)
+    {
+      /* Get the wavelength (in angstroms) for this line and print it. */
+      ang=gal_speclines_line_angstrom(i);
+      printf("%-20g%s\n",
+             ( p->listlinesatz
+               ? ( ang * (1+p->redshift) ) : ang ) * p->lineunitmultip,
+             gal_speclines_line_name(i));
+    }
 
-  /* Abort the program. */
+  /* Print the break locations. */
+  if(p->cp.quiet==0) printf("\n# Hydrogen series limits:\n");
+  for(i=0;i<GAL_SPECLINES_LIMIT_NUMBER;++i)
+    {
+      /* Get the wavelength (in angstroms) for this line and print it. */
+      j=i+GAL_SPECLINES_LIMIT_LYMAN;
+      ang=gal_speclines_line_angstrom(j);
+      printf("%-20g%s\n",
+             ( p->listlinesatz
+               ? ( ang * (1+p->redshift) ) : ang ) * p->lineunitmultip,
+             gal_speclines_line_name(j));
+    }
+
+  /* Abort the program successfully. */
   exit(EXIT_SUCCESS);
+}
+
+
+
+
+
+static void
+ui_preparations_lineunit(struct cosmiccalparams *p)
+{
+  if(      !strcmp(p->lineunit, "m")        ) p->lineunitmultip=1e-10;
+  else if( !strcmp(p->lineunit, "nano-m")   ) p->lineunitmultip=0.1;
+  else if( !strcmp(p->lineunit, "micro-m")  ) p->lineunitmultip=1e-4;
+  else if( !strcmp(p->lineunit, "angstrom") ) p->lineunitmultip=1;
+  else
+    error(EXIT_FAILURE, 0, "invalid value '%s' to '--lineunit'! Please "
+          "re-run this command with '--help' to see the acceptable "
+          "values", p->lineunit);
 }
 
 
@@ -481,20 +553,23 @@ ui_preparations(struct cosmiccalparams *p)
           "'--redshift', '--velocity' (in km/s), or '--obsline' to specify "
           "a redshift, run with '--help' for more");
 
+  /* If a line unit is given find the factor that should be multiplied. */
+  if(p->lineunit || p->obsline) ui_preparations_lineunit(p);
+
   /* If '--listlines' is given, print them and abort the program
      successfully, don't continue with the preparations. Note that
      '--listlines' is the rest-frame lines. So we don't need any
      redshift. */
-  if(p->listlines)
-    ui_list_lines(p);
+  if(p->listlines) ui_list_lines(p);
 
   /* If '--obsline' has been given, set the redshift based on it (it can't
      be called with '--velocity'). */
   if(p->obsline)
     p->redshift = ( (p->obsline->status==GAL_SPECLINES_INVALID)
                     ? gal_speclines_line_redshift(obsline[0], obsline[1])
-                    : gal_speclines_line_redshift_code(obsline[0],
-                                                       p->obsline->status) );
+                    : gal_speclines_line_redshift_code( (obsline[0]
+                                                         / p->lineunitmultip),
+                                                        p->obsline->status) );
 
   /* If '--velocity' has been given, set the redshift based on it (it can't
      be called with '--obsline'). */
@@ -507,10 +582,20 @@ ui_preparations(struct cosmiccalparams *p)
      check.*/
   if(p->redshift==0.0f) p->redshift=MAIN_REDSHIFT_ZERO;
 
+  /* In case the redshift is negative, print an error. It will be detected
+     and abort the program, prior to this if given directly, but can also
+     happen with '--obsline' for example). */
+  if(p->redshift<0)
+    error(EXIT_FAILURE, 0, "the selected redshift (%.4f) is negative! "
+          "This can happen when you give unreasonable values to indirect "
+          "ways of specifying the redshift. For example calling "
+          "'--obsline=H-alpha,2000'. When calling '--obsline', please "
+          "make sure that your observed line is redder than the rest-frame "
+          "wavelength of the given line", p->redshift);
+
   /* Now that we have the redshift, we can print the 'listlinesatz'
      option. */
-  if(p->listlinesatz)
-    ui_list_lines(p);
+  if(p->listlinesatz) ui_list_lines(p);
 
   /* The list is filled out in a first-in-last-out order. By the time
      control reaches here, the list is finalized. So we should just reverse

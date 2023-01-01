@@ -1231,7 +1231,8 @@ ui_set_output(struct converttparams *p)
     }
 
   /* Check if the output already exists and remove it if allowed. */
-  gal_checkset_writable_remove(cp->output, p->inputnames->v, 0,
+  gal_checkset_writable_remove(cp->output,
+                               p->inputnames ? p->inputnames->v : NULL, 0,
                                cp->dontdelete);
 }
 
