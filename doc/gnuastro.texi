@@ -1490,7 +1490,7 @@ Here we hope to convince you of the unique benefits of this interface which can 
 
 @cindex GNOME 3
 Through GNOME 3@footnote{@url{http://www.gnome.org/}}, most GNU/Linux based operating systems now have an advanced and useful GUI.
-Since the GUI was created long after the command-line, some wrongly consider the command line to be obsolete.
+Since the GUI was created long after the command-line, some wrongly consider the command-line to be obsolete.
 Both interfaces are useful for different tasks.
 For example, you cannot view an image, video, PDF document or web page on the command-line.
 On the other hand you cannot reproduce your results easily in the GUI.
@@ -1707,7 +1707,7 @@ In this book we have the following conventions:
 
 @item
 All commands that are to be run on the shell (command-line) prompt as the user start with a @command{$}.
-In case they must be run as a super-user or system administrator, they will start with a single @command{#}.
+In case they must be run as a superuser or system administrator, they will start with a single @command{#}.
 If the command is in a separate line and next line @code{is also in the code type face}, but does not have any of the @command{$} or @command{#} signs, then it is the output of the command after it is run.
 As a user, you do not need to type those lines.
 A line that starts with @command{##} is just a comment for explaining the command to a human reader and must not be typed.
@@ -8779,7 +8779,7 @@ The first three steps in @ref{Quick start} need no extra explanation, so we will
 @cindex Configuring
 The @command{$ ./configure} step is the most important step in the build and install process.
 All the required packages, libraries, headers and environment variables are checked in this step.
-The behaviors of make and make install can also be set through command line options to this command.
+The behaviors of make and make install can also be set through command-line options to this command.
 
 @cindex Configure options
 @cindex Customizing installation
@@ -8796,7 +8796,7 @@ $ ./configure --help
 @cindex GNU Autoconf
 A complete explanation is also included in the @file{INSTALL} file.
 Note that this file was written by the authors of GNU Autoconf (which builds the @file{configure} script), therefore it is common for all programs which use the @command{$ ./configure} script for building and installing, not just Gnuastro.
-Here we only discuss cases where you do not have super-user access to the system and if you want to change the executable names.
+Here we only discuss cases where you do not have superuser access to the system and if you want to change the executable names.
 But before that, a review of the options to configure that are particular to Gnuastro are discussed.
 
 @menu
@@ -8937,8 +8937,8 @@ However, do not run the tests and directly install after building.
 @vindex --prefix
 @cindex Superuser, not possible
 @cindex Root access, not possible
-@cindex No access to super-user install
-@cindex Install with no super-user access
+@cindex No access to superuser install
+@cindex Install with no superuser access
 One of the most commonly used options to @file{./configure} is @option{--prefix}, it is used to define the directory that will host all the installed files (or the ``prefix'' in their final absolute file name).
 For example, when you are using a server and you do not have administrator or root access.
 In this example scenario, if you do not use the @option{--prefix} option, you will not be able to install the built files and thus access them from anywhere without having to worry about where they are installed.
@@ -10482,7 +10482,7 @@ We will later allow FITS files into the programs through standard input also.
 @cindex File system Hierarchy Standard
 Each program needs a certain number of parameters to run.
 Supplying all the necessary parameters each time you run the program is very frustrating and prone to errors.
-Therefore all the programs read the values for the necessary options you have not given in the command line from one of several plain text files (which you can view and edit with any text editor).
+Therefore all the programs read the values for the necessary options you have not given in the command-line from one of several plain text files (which you can view and edit with any text editor).
 These files are known as configuration files and are usually kept in a directory named @file{etc/} according to the file system hierarchy
 standard@footnote{@url{http://en.wikipedia.org/wiki/Filesystem_Hierarchy_Standard}}.
 
@@ -10812,7 +10812,7 @@ Man pages were the Unix method of providing command-line documentation to a prog
 With GNU Info, see @ref{Info} the usage of this method of documentation is highly discouraged.
 This is because Info provides a much more easier to navigate and read environment.
 
-However, some operating systems require a man page for packages that are installed and some people are still used to this method of command line help.
+However, some operating systems require a man page for packages that are installed and some people are still used to this method of command-line help.
 So the programs in Gnuastro also have Man pages which are automatically generated from the outputs of @option{--version} and @option{--help} using the GNU help2man program.
 So if you run
 @example
@@ -12947,7 +12947,7 @@ When ConvertType is asked to output to plain text file, this information comment
 When converting an image to plain text, consider the fact that if the image is large, the number of columns in each line will become very large, possibly making it very hard to open in some text editors.
 
 @item Standard output (command-line)
-This is very similar to the plain text output, but instead of creating a file to keep the printed values, they are printed on the command line.
+This is very similar to the plain text output, but instead of creating a file to keep the printed values, they are printed on the command-line.
 This can be very useful when you want to redirect the results directly to another program in one command with no intermediate file.
 The only difference is that only the pixel values are printed (with no information comment line).
 To print to the standard output, set the output name to `@file{stdout}'.
@@ -13076,7 +13076,7 @@ The names are not case sensitive so you can use them in any form (for example, @
 @cindex 24-bit terminal
 @cindex True color terminal
 @cindex Terminal (true color, 24 bit)
-On the command line, you can also get the list of colors with the @option{--listcolors} option to CovertType, like below.
+On the command-line, you can also get the list of colors with the @option{--listcolors} option to CovertType, like below.
 In particular, if your terminal is 24-bit or "true color", in the last column, you will see each color.
 This greatly helps in selecting the best color for our purpose easily on the command-line (without taking your hands off the keyboard and getting distracted).
 
@@ -16358,7 +16358,7 @@ For example, let's assume you want to work on the deepest part of the WFC3/IR im
 @end example
 
 They have provided mask images with only these pixels in the WFC3/IR images, but what if you also need to work on the same region in the full resolution ACS images? Also what if you want to use the CANDELS data for the shallow region? Running Crop with @option{--polygon} will easily pull out this region of the image for you, irrespective of the resolution.
-If you have set the operating mode to WCS mode in your nearest configuration file (see @ref{Configuration files}), there is no need to call @option{--mode=wcs} on the command line.
+If you have set the operating mode to WCS mode in your nearest configuration file (see @ref{Configuration files}), there is no need to call @option{--mode=wcs} on the command-line.
 
 @example
 $ astcrop --mode=wcs desired-filter-image(s).fits           \
@@ -18992,7 +18992,7 @@ They are designed to do complex operations, without necessarily having a complex
 @item set-AAA
 Set the characters after the dash (@code{AAA} in the case shown here) as a name for the first popped operand on the stack.
 The named dataset will be freed from memory as soon as it is no longer needed, or if the name is reset to refer to another dataset later in the command.
-This operator thus enables re-usability of a dataset without having to re-read it from a file every time it is necessary during a process.
+This operator thus enables reusability of a dataset without having to reread it from a file every time it is necessary during a process.
 When a dataset is necessary more than once, this operator can thus help simplify reading/writing on the command-line (thus avoiding potential bugs), while also speeding up the processing.
 
 Like all operators, this operator pops the top operand off of the main processing stack, but unlike other operands, it will not add anything back to the stack immediately.
@@ -25279,7 +25279,7 @@ However, MakeCatalog can also do measurements that produce more than one value f
 Currently the only such measurement is generation of spectra from 3D cubes with the @option{--spectrum} option and it is discussed in the end of this section.
 
 Command-line options are used to identify which measurements you want in the final catalog(s) and in what order.
-If any of the options below is called on the command line or in any of the configuration files, it will be included as a column in the output catalog.
+If any of the options below is called on the command-line or in any of the configuration files, it will be included as a column in the output catalog.
 The order of the columns is in the same order as the options were seen by MakeCatalog (see @ref{Configuration file precedence}).
 Some of the columns apply to both ``objects'' and ``clumps'' and some are particular to only one of them (for the definition of ``objects'' and ``clumps'', see @ref{Segment}).
 Columns/options that are unique to one catalog (only objects, or only clumps), are explicitly marked with [Objects] or [Clumps] to specify the catalog they will be placed in.
@@ -36137,7 +36137,8 @@ They will create lists of tiles that are also usable by the general tools discus
 As discussed in @ref{Tessellation}, (mainly raw) astronomical images will mostly require two layers of tessellation, one for amplifier channels which all have the same size and another (smaller tile-size) tessellation over each channel.
 Hence, in this section we define a general structure to keep the main parameters of this two-layer tessellation and help in benefiting from it.
 
-@deftp {Type (C @code{struct})} gal_tile_two_layer_params The general structure to keep all the necessary parameters for a two-layer tessellation.
+@deftp {Type (C @code{struct})} gal_tile_two_layer_params
+The general structure to keep all the necessary parameters for a two-layer tessellation.
 
 @example
 struct gal_tile_two_layer_params
@@ -40024,7 +40025,7 @@ to date with all the changes in the language. This is fine for private
 companies, but usually too expensive for scientific projects that have
 limited funding for a fixed period. As a result, the reproducibility of the
 result (ability to regenerate the result in the future, which is a core
-principal of any scientific result) and re-usability of all the investments
+principal of any scientific result) and reusability of all the investments
 that went into the science software will be lost to future generations!
 Rebuilding all the dependencies of a software in an obsolete language is
 not easy, or even not possible. Future-proof code (as long as current
@@ -41739,6 +41740,27 @@ Just as a reminder, always keep your work on each issue in a separate local and 
 After you make your announcement, other people might contribute to the branch before merging it in to @file{master}, so this is very important.
 As a final reminder: before starting each issue branch from @file{master}, be sure to run @command{git pull} in @file{master} as shown above.
 This will enable you to start your branch (work) from the most recent commit and thus simplify the final merging of your work.
+
+@cartouche
+@noindent
+@strong{what do you do in the line of 'do your checks'?:} As you can see in the commands above, we consider a line for your checks.
+At this line, you should run the following command.
+This script is available in the top source directory to build Gnuastro in a separate directory (see @ref{Separate build and source directories}):
+
+@example
+$ ./developer-build -p junk
+@end example
+
+After running it, you can see possible errors that might have occurred while modifying the desired files. 
+In another suggestion, if you change the book, it is better to run the command below in the 'build' file and see your modification:
+
+@example
+$ make pdf
+@end example
+
+Also, if you update an example of the book, you should copy-paste it into a text editor and check that it runs correctly. 
+If there are no problems, you can add your modification and commit it.  
+@end cartouche
 
 
 

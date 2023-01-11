@@ -105,7 +105,7 @@ pop_number_of_operands(struct arithmeticparams *p, int op, char *token_string,
       gal_list_data_add(params, tmp);
 
       /* A small sanity check (none of the parameters for sigma-clipping,
-         or quantile estimation can be negative. */
+         or quantile estimation can be negative). */
       if( ((float *)(tmp->array))[0]<=0.0 )
         error(EXIT_FAILURE, 0, "the %s popped operand of the '%s' "
               "operator cannot be negative", cstring, token_string);
@@ -114,7 +114,7 @@ pop_number_of_operands(struct arithmeticparams *p, int op, char *token_string,
       cstring=c?"third":"second";
     }
 
-  /* Check if its a number. */
+  /* Check if it is a number. */
   numpop=operands_pop(p, token_string);
   if(numpop->size>1)
     error(EXIT_FAILURE, 0, "the %s popped operand of the '%s' "

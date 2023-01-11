@@ -237,7 +237,7 @@ gal_type_from_name(char *str)
 
 
 
-/* Put the minimum (or maximum for the 'gal_data_type_max') value for the
+/* Put the minimum (or maximum for the 'gal_type_max') value for the
    type in the space (that must already be allocated before the call to
    this function) pointed to by in.  */
 void
