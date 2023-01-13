@@ -1,12 +1,12 @@
 #Creat final PSF for all tiles and all filters.
 #
 # Original authors:
-# Copyright (C) 2019-2022 Samane Raji <samaneraji@gmail.com>
+# Copyright (C) 2022 Sepideh Eskandarlou <sepideh.eskandarlou@gmail.com>
 #
 # Contributers:
+# Copyright (C) 2019-2022 Samane Raji <samaneraji@gmail.com>
 # Copyright (C) 2019-2022 Mohammad Akhlaghi <mohammad@akhlaghi.org>
 # Copyright (C) 2019-2022 Zahra sharbaf <zahra.sharbaf2@gmail.com>
-# Copyright (C) 2022 Sepideh Eskandarlou <sepideh.eskandarlou@gmail.com>
 #
 # This Makefile is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
