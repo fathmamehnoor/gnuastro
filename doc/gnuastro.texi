@@ -1631,6 +1631,7 @@ Fill in the form as described below and submit it (see @ref{Gnuastro project web
 Using the top horizontal menu items, immediately under the top page title.
 Hovering your mouse on ``Support'' will open a drop-down list.
 Select ``Submit new''.
+Also if you have an account in Savannah, you can choose ``Bugs'' in the menu items and then select ``Submit new''.
 
 @item
 In the main body of the page, under the ``Communication tools'' section, click on ``Submit new item''.
@@ -1646,6 +1647,24 @@ Once the items have been registered in the mailing list or web page, the develop
 These two trackers can only be edited by the Gnuastro project developers, but they can be browsed by anyone, so you can follow the progress on your bug.
 You are most welcome to join us in developing Gnuastro and fixing the bug you have found maybe a good starting point.
 Gnuastro is designed to be easy for anyone to develop (see @ref{Science and its tools}) and there is a full chapter devoted to developing it: @ref{Developing}.
+
+@cartouche
+@noindent
+@strong{Savannah's Markup:} When posting to Savannah, it helps to have the code displayed in mono-space font and a different background, you may also want to make a list of items or make some words bold.
+For features like these, you should use Savannah's ``Markup'' guide at @url{https://savannah.gnu.org/markup-test.php}.
+You can access this page by clicking on the ``Full Markup'' link that is just beside the ``Preview'' button, near the box that you write your comments.
+As you see there, for example when you want to high-light code, you should put it within a ``+verbatim+'' and ``-verbatim-'' environment like below:
+
+@example
++verbatim+
+astarithmetic image.fits image_arith.fits -h1 isblank nan where
+-verbatim-
+@end example
+
+@noindent
+Unfortunately, Savannah doesn't have a way to edit submitted comments.
+Therefore be sure to press the ``Preview'' button and check your report's final format before the final submission.
+@end cartouche
 
 
 @node Suggest new feature, Announcements, Report a bug, Introduction
@@ -19373,14 +19392,14 @@ For more on how Gnuastro's program create the tile grid (tessellation), see @ref
 @node Edges in the spatial domain,  , Convolution process, Spatial domain convolution
 @subsubsection Edges in the spatial domain
 
-In purely `linear' spatial filtering (convolution), there are problems on the edges of the input image.
+In purely `linear' spatial filtering (convolution), there are problems with the edges of the input image.
 Here we will explain the problem in the spatial domain.
 For a discussion of this problem from the frequency domain perspective, see @ref{Edges in the frequency domain}.
 The problem originates from the fact that on the edges, in practice@footnote{Because we assumed the overlapping pixels outside the input image have a value of zero.}, the sum of the weights we use on the actual image pixels is not unity.
 For example, as discussed above, a profile in the center of an image will have the same brightness before and after convolution.
 However, for partially imaged profile on the edge of the image, the brightness (sum of its pixel fluxes within the image, see @ref{Brightness flux magnitude}) will not be equal, some of the flux is going to be `eaten' by the edges.
 
-If you ran @command{$ make check} on the source files of Gnuastro, you can see the this effect by comparing the @file{convolve_frequency.fits} with @file{convolve_spatial.fits} in the @file{./tests/} directory.
+If you run @command{$ make check} on the source files of Gnuastro, you can see this effect by comparing the @file{convolve_frequency.fits} with @file{convolve_spatial.fits} in the @file{./tests/} directory.
 In the spatial domain, by default, no assumption will be made about pixels outside of the image or any blank pixels in the image.
 The problem explained above will also occur on the sides of blank regions (see @ref{Blank pixels}).
 The solution to this edge effect problem is only possible in the spatial domain.
@@ -19397,7 +19416,7 @@ In the frequency domain, there is no way to avoid this loss of flux near the edg
 
 Note that the edge effect discussed here is different from the one in @ref{If convolving afterwards}.
 In making mock images we want to simulate a real observation.
-In a real observation the images of the galaxies on the sides of the CCD are first blurred by the atmosphere and instrument, then imaged.
+In a real observation, the images of the galaxies on the sides of the CCD are first blurred by the atmosphere and instrument, then imaged.
 So light from the parts of a galaxy which are immediately outside the CCD will affect the parts of the galaxy which are covered by the CCD.
 Therefore in modeling the observation, we have to convolve an image that is larger than the input image by exactly half of the convolution kernel.
 We can hence conclude that this correction for the edges is only useful when working on actual observed images (where we do not have any more data on the edges) and not in modeling.
@@ -32645,6 +32664,7 @@ Just do not forget to free the array after you are done with it:
 
 @example
 size_t *dinc=gal_dimension_increment(ndim, dsize);
+free(dinc);
 @end example
 
 @code{dinc} depends on @code{ndim} and @code{dsize}, but it must be defined outside this function-like macro since it involves allocation to help in performance.
@@ -39287,6 +39307,7 @@ main(void)
 
   /* Clean up and return. */
   gal_data_free(input);
+  free(dinc);
   return EXIT_SUCCESS;
 @}
 @end example
