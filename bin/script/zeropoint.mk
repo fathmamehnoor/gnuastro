@@ -183,8 +183,9 @@ $(magdiff): $(tmpdir)/%-magdiff.fits: $(tmpdir)/%-cat.fits \
 	match=$(subst .fits,-match.fits,$@)
 	input=$(tmpdir)/input-$(word 2,$(subst -, ,$*))-cat.fits
 	astmatch $$ref --hdu=1 $$input --hdu2=1 \
-	         --ccol1=RA,DEC --ccol2=RA,DEC --aperture=0.2 \
+	         --ccol1=RA,DEC --ccol2=RA,DEC \
 	         --outcols=aMAGNITUDE,bMAGNITUDE \
+	         --aperture=$(matchradius) \
 	         --output=$$match
 
 #	Subtract the reference catalog mag from input catalog's mag.

@@ -30026,6 +30026,12 @@ Magnitude column name of the reference catalog.
 @itemx --reference=STR,[STR]
 Reference image or images which based on the zeropoint of the input image will be estimated.
 
+@item -s FLT
+@itemx --matchradius=FLT
+Matching radius in arc seconds.
+The searching distance to match sources with the reference catalog.
+By default it is 0.2 arcsec.
+
 @item -z FLT,[FLT]
 @itemx --referencezp=FLT,[FLT]
 Zeropoint of the reference image or images.

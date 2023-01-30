@@ -60,6 +60,7 @@ racolumn="RA"
 referencezp=""
 referencehdu=""
 deccolumn="DEC"
+matchradius=0.2
 magnituderange=""
 magcolumn="MAGNITUDE"
 version=@VERSION@magmg
@@ -97,12 +98,13 @@ $scriptname options:
   -d, --deccolumn=STR          Declination (Dec) column name of the ref. catalog.
   -m, --magcolumn=STR          Magnitude column name of the ref. catalog.
   -M, --magnituderange=FLT,FLT Range of the magnitude to be considered.
+  -s, --matchradius=FLT        Matching distance with the ref. catalog.
 
   -R, --reference=STR[,STR]    Image(s) considered as the reference(s).
   -z, --referencezp=FLT[,FLT]  Zero point(s) of the reference image(s).
   -H, --referencehdu=STR/INT   HDU/Extension name(s) or number(s) the ref. images.
-  -a, --aperarcsec=FLT[,FLT]   Aperture radius (in arco seconds).
-  -K, --keepzpap               Keep a zero point for each aperture in a different HDU.
+  -a, --aperarcsec=FLT[,FLT]   Aperture radius (in arco seconds) for photometry.
+  -K, --keepzpap               Keep the zero point from each aperture in a different HDU.
   -j, --jobs=INT               Number of threads; maximum jobs with no arg.
 
  Output:
@@ -275,6 +277,9 @@ do
        -m|--magcolumn)          magcolumn="$2";                               check_v "$1" "$magcolumn";  shift;shift;;
        -m=*|--magcolumn=*)      magcolumn="${1#*=}";                          check_v "$1" "$magcolumn";  shift;;
        -m*)                     magcolumn=$(echo "$1" | sed -e's/-m//');      check_v "$1" "$magcolumn";  shift;;
+       -s|--matchradius)        matchradius="$2";                             check_v "$1" "$matchradius";  shift;shift;;
+       -s=*|--matchradius=*)    matchradius="${1#*=}";                        check_v "$1" "$matchradius";  shift;;
+       -s*)                     matchradius=$(echo "$1" | sed -e's/-s//');    check_v "$1" "$matchradius";  shift;;
 
        -M|--magnituderange)     magnituderange="$2";                          check_v "$1" "$magnituderange";  shift;shift;;
        -M=*|--magnituderange=*) magnituderange="${1#*=}";                     check_v "$1" "$magnituderange";  shift;;
@@ -492,11 +497,12 @@ fi
 #
 # Basic parameters.
 config=$tmpdir/zeropoint.conf
-echo "input    = $inputs"  > $config
-echo "output   = $output" >> $config
-echo "hduinput = $hdu"    >> $config
-echo "zpinput  = 0"       >> $config
-echo "tmpdir   = $tmpdir" >> $config
+echo "zpinput = 0" > $config
+echo "input = $inputs" >> $config
+echo "hduinput = $hdu" >> $config
+echo "output = $output" >> $config
+echo "tmpdir = $tmpdir" >> $config
+echo "matchradius = $matchradius" >> $config
 
 # Magnitude range. Empty string if not provided.
 if [ x$magnituderange = x ]; then
