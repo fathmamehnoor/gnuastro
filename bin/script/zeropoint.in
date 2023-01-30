@@ -1,7 +1,13 @@
 #!/bin/sh
 
-# Calculate the Zeropoint of the image based on the reference images or
+# Calculate the zero point of an image based on reference images or a
 # catalog.
+#
+# This script will compute some basic parameters that are necessary for the
+# computation of the zero point. These parameters are saved into a
+# configuration Makefile. Finally, the Makefile is executed at the end of
+# this script. The reason of using Make is to parallelize the computation
+# of the zero point so it obtained faster than using a simpler script.
 #
 # Run with '--help' for more information.
 #
@@ -9,7 +15,8 @@
 #     Sepideh Eskandarlou <sepideh.eskandarlou@gmail.com>
 # Contributing author:
 #     Mohammad Akhlaghi <mohammad@akhlaghi.org>
-# Copyright (C) 2020-2022 Free Software Foundation, Inc.
+#     Raul Infante-Sainz <infantesainz@gmail.com>
+# Copyright (C) 2020-2023 Free Software Foundation, Inc.
 #
 # Gnuastro is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -28,9 +35,11 @@
 # Exit the script in the case of failure
 set -e
 
+
 # 'LC_NUMERIC' is responsible for formatting numbers printed by the OS.  It
 # prevents floating points like '23,45' instead of '23.45'.
 export LC_NUMERIC=C
+
 
 
 
@@ -47,14 +56,15 @@ keepzpap=""
 reference=""
 aperarcsec=""
 cataloghdu=""
-referencezp=""
 racolumn="RA"
+referencezp=""
 referencehdu=""
 deccolumn="DEC"
-version=@VERSION@magmg
 magnituderange=""
 magcolumn="MAGNITUDE"
+version=@VERSION@magmg
 scriptname=@SCRIPT_NAME@
+
 
 
 
@@ -80,26 +90,23 @@ catalog.
 
 $scriptname options:
  Input:
-  -h, --hdu=STR/INT            HDU/Extension name of number of the input file.
-  -c, --catalog=STR            Reference catalog which based on it zeropoint of
-                               input will be compute.
-  -C, --cataloghdu=STR/INT     HDU/Extension name of number of the catalog.
-  -r, --racolumn=STR           Right Ascension (R.A.) column name of the reference
-                               catalog.
-  -d, --deccolumn=STR          Declination (Dec) column name of the reference
-                               catalog.
-  -m, --magcolumn=STR          Magnitude column name of the reference catalog.
-  -M, --magnituderange=FLT,FLT Range of the magnitude.
-  -R, --reference=STR[,STR]    Rerence image(s) which based on them zeropoint of
-                               input will be compute.
-  -z, --referencezp=FLT[,FLT]  Zeropoints of reference images.
-  -H, --referencehdu=STR/INT   HDU/Extension name of number of the reference files.
-  -a, --aperarcsec=FLT[,FLT]   Aperure arcseconds.
-  -K, --keepzpap               Keep zeropoint of each aperture in different extension.
-  -j, --jobs=INT               Allow N jobs at once; infinite jobs with no arg.
+  -h, --hdu=STR/INT            HDU/Extension name or number of the input file.
+  -c, --catalog=STR            Reference catalog considered as the reference.
+  -C, --cataloghdu=STR/INT     HDU/Extension name of number of the ref. catalog.
+  -r, --racolumn=STR           Right Ascension (R.A.) column name of the ref. catalog.
+  -d, --deccolumn=STR          Declination (Dec) column name of the ref. catalog.
+  -m, --magcolumn=STR          Magnitude column name of the ref. catalog.
+  -M, --magnituderange=FLT,FLT Range of the magnitude to be considered.
+
+  -R, --reference=STR[,STR]    Image(s) considered as the reference(s).
+  -z, --referencezp=FLT[,FLT]  Zero point(s) of the reference image(s).
+  -H, --referencehdu=STR/INT   HDU/Extension name(s) or number(s) the ref. images.
+  -a, --aperarcsec=FLT[,FLT]   Aperture radius (in arco seconds).
+  -K, --keepzpap               Keep a zero point for each aperture in a different HDU.
+  -j, --jobs=INT               Number of threads; maximum jobs with no arg.
 
  Output:
-  -o, --output            Output with zeropoint estimation and best aperture.
+  -o, --output            Output with zero point estimation and best aperture.
   -t, --tmpdir            Directory to keep temporary files.
   -k, --keeptmp           Keep temporal/auxiliar files.
 
@@ -126,7 +133,7 @@ EOF
 print_version() {
      cat <<EOF
 $scriptname (GNU Astronomy Utilities) $version
-Copyright (C) 2020-2022 Free Software Foundation, Inc.
+Copyright (C) 2020-2023 Free Software Foundation, Inc.
 License GPLv3+: GNU General public license version 3 or later.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
@@ -397,16 +404,14 @@ fi
 
 
 # Overlap check between input and reference images
-# ------------------------------------------------------------------------
+# ------------------------------------------------
 #
-# In this step, we have to check and be sure the input imge has overlap
-# with reference catalog or reference images or not. If they have overlap
-# everything is fine and script can contiue. But if they do not overlap
-# together the script will be stop and let the user know that the input
-# image does not overlap with reference catalog and imaged.
+# In this step, we have to check and be sure if input image overlaps with
+# reference catalog or reference images. If they overlap, everything is
+# fine and script can contiue. But if they do not overlap together the
+# script will stop and let the user know that the input image does not
+# overlap with reference catalog or image.
 #
-# If the user insert the catalog as reference, check it overlap with input
-# image or not.
 # Find minimum and maximum RA/Dec values of the input image.
 allradecinput=$(astfits $inputs --hdu=$hdu --skycoverage -q | awk 'NR==2')
 minrainput=$(echo $allradecinput  | awk '{print $1}')
@@ -415,7 +420,7 @@ mindecinput=$(echo $allradecinput | awk '{print $3}')
 maxdecinput=$(echo $allradecinput | awk '{print $4}')
 if [ x"$catalog" != x ]; then
 
-    # Find the overlap area between catalog and image.
+    # Find the overlaping area between catalog and image.
     skycoverage=$tmpdir/skycoverage.fits
     asttable $catalog --inpolygon=$racolumn,$deccolumn \
              --polygon="$minrainput,$mindecinput \
@@ -427,8 +432,8 @@ if [ x"$catalog" != x ]; then
     # The number of stars in the overlaping area.
     number=$(asttable $skycoverage | wc -l)
 
-    # If catalog overlap the image, the script will continue and obtain the
-    # zero point. While, if they do not overlap the script will stopped.
+    # Stop the execution if the number of sources is zero (common sources
+    # not found).
     if [ "$number" = 0 ]; then
 
         # Stop if the catalog doesn't overlap with the image.
@@ -436,19 +441,20 @@ if [ x"$catalog" != x ]; then
         echo "Please provide an image and a catalog that overlap together."
         exit 1
     fi
+
 elif [ x"$reference" != x ]; then
 
-    # Compute how many references images is used.
+    # Compute how many references images are used.
     nums=$(echo $reference \
               | awk 'BEGIN{FS=","}{for(i=1;i<=NF;++i) printf "%s ", i}')
 
     for n in $nums; do
 
-        # Extract the reference images name and their hdu.
+        # Extract the reference images name and their HDU.
         img=$(echo $reference | awk 'BEGIN{FS=","}{printf "%s", $'$n'}')
         hduimg=$(echo $referencehdu | awk 'BEGIN{FS=","}{printf "%s", $'$n'}')
 
-        # Find the overlap area between catalog and image.
+        # Find the overlaping area between the catalog and the image.
         skycoverage=$tmpdir/skycoverage-$n.fits
         astfits $img --hdu=$hduimg --skycoverage -q \
             | awk 'NR==2 {printf "%f %f\n%f %f\n%f %f\n%f %f\n", $1,$3,$1,$4,$2,$3,$2,$4}' \
@@ -461,7 +467,7 @@ elif [ x"$reference" != x ]; then
         # The number of stars in the overlaping area.
         number=$(asttable $skycoverage | wc -l)
 
-        # If reference image overlap with input image, the script will
+        # If reference image overlaps with input image, the script will
         # continue and obtain the zero point. While, if they do not overlap
         # the script will stopped.
         if [ "$number" = 0 ]; then
@@ -478,11 +484,13 @@ fi
 
 
 
-# Prepare a configuration file for running the make file
-#-------------------------------------------------------
+# Prepare a configuration file for running the Makefile
+# -----------------------------------------------------
 #
-# At first the user wants to compute the Zeropoint for input image based on
-# the images or catalog.
+# Here, necessary parameters to run the Makefile are set as Make parameters
+# that will be included in the 'zeropoint.mk' in it execution.
+#
+# Basic parameters.
 config=$tmpdir/zeropoint.conf
 echo "input    = $inputs"  > $config
 echo "output   = $output" >> $config
@@ -490,22 +498,21 @@ echo "hduinput = $hdu"    >> $config
 echo "zpinput  = 0"       >> $config
 echo "tmpdir   = $tmpdir" >> $config
 
-# Obtain the magnitude range from the command line arguments.
+# Magnitude range. Empty string if not provided.
 if [ x$magnituderange = x ]; then
     echo "magrange = " >> $config
 else
     echo "magrange = $magnituderange" >> $config
 fi
 
-# Put the size of the apertures in a variables. The comma should be
-# change with a space.
+# Size of the apertures. The comma should be change with a space.
 aper=$(echo $aperarcsec | sed 's|,| |g')
 echo "aper-arcsec = $aper" >> $config
+
+# If a catalog is provided as the reference.
 if [ x"$catalog" != x ]; then
 
-    # Determine the type of the refence. In this case, if the user give the
-    # catalog the type of the reference is "img cat", because based on the
-    # catlog we want to compute the zeropoint.
+    # Basic parameters.
     echo "reftype = cat" >> $config
     echo "ref1 = $catalog" >> $config
     echo "hduref1 = $cataloghdu" >> $config
@@ -513,14 +520,18 @@ if [ x"$catalog" != x ]; then
     echo "ra = $racolumn" >> $config
     echo "dec = $deccolumn" >> $config
     echo "mag = $magcolumn" >> $config
+
 else
-    # Basic configuration
+
+    # Type of reference file: img.
     echo "reftype = img" >> $config
 
-    # Compute how many references images is used.
+    # Compute how many references images are used.
     num=$(echo $reference \
-              | awk 'BEGIN{FS=","}{for(i=1;i<=NF;++i) printf "%s ", i}')
+               | awk 'BEGIN{FS=","}{for(i=1;i<=NF;++i) printf "%s ", i}')
     echo "refnumber = $num" >> $config
+
+    # For each image, write its variables.
     for n in $num; do
         img=$(echo $reference | awk 'BEGIN{FS=","}{printf "%s", $'$n'}')
         hdu=$(echo $referencehdu | awk 'BEGIN{FS=","}{printf "%s", $'$n'}')
@@ -534,11 +545,12 @@ fi
 
 
 
-# Keep the zeropoint of different appertures in different extension.
-# ------------------------------------------------------------------
+
+# Keep the zeropoint from the different apertures in different extensions
+# -----------------------------------------------------------------------
 #
-# If user specify to keep the zeropoint of the different appeertures it
-# will be saved in the different extension of the output.
+# If the user specifies to keep the zeropoint of the different apertures
+# they will be saved in different extensions of the output.
 if [ x"$keepzpap" = x ]; then
     echo "keepzpap =    " >> $config
 else
@@ -550,6 +562,9 @@ fi
 
 
 # Call the Makefile
+# -----------------
+#
+# Here, Makefile is invoked.
 if [ x$installdir = x ]; then
     mksrc=zeropoint.mk
 else
@@ -560,10 +575,11 @@ make -f $mksrc tmpdir=$tmpdir --jobs=$jobs
 
 
 
+
 # Remove temporary directory
 # --------------------------
 #
-# If user does not specify to keep build file with the option of
+# If user does not specify to keep the build file with the option of
 # --keeptmp', then the directory will be removed.
 if [ x"$keeptmp" = x ]; then
    rm -rf $tmpdir

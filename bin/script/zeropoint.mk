@@ -1,12 +1,13 @@
-#Creat final PSF for all tiles and all filters.
+# Estimate the zero point of an image
 #
 # Original authors:
-# Copyright (C) 2022 Sepideh Eskandarlou <sepideh.eskandarlou@gmail.com>
+# Copyright (C) 2022-2023 Sepideh Eskandarlou <sepideh.eskandarlou@gmail.com>
 #
 # Contributers:
-# Copyright (C) 2019-2022 Samane Raji <samaneraji@gmail.com>
-# Copyright (C) 2019-2022 Mohammad Akhlaghi <mohammad@akhlaghi.org>
-# Copyright (C) 2019-2022 Zahra sharbaf <zahra.sharbaf2@gmail.com>
+# Copyright (C) 2019-2023 Samane Raji <samaneraji@gmail.com>
+# Copyright (C) 2019-2023 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+# Copyright (C) 2019-2023 Zahra sharbaf <zahra.sharbaf2@gmail.com>
+# Copyright (C) 2019-2023 Raul Infante-Sainz <infantesainz@gmail.com>
 #
 # This Makefile is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -33,14 +34,15 @@ all: final
 # Make all the commands in the recipe in one shell.
 .ONESHELL:
 
-# Second expantion.
+# Second expansion.
 .SECONDEXPANSION:
 
 # Stop the recipe's shell if the command fails
 .SHELLFLAGS = -ec
 
-# Include configure files.
+# Include the configure file.
 include $(tmpdir)/zeropoint.conf
+
 
 
 
@@ -85,18 +87,18 @@ $(stars): $(input) | $(tmpdir)
 
 
 
-# Conditional for image or catalog reference
+# If the reference type is 'img', 'gencat' will be a list with many names
+# as the number of input images. If it is a catalog, prepare the single
+# reference catalog with desired columns
 ifeq ($(reftype),img)
 gencat=$(foreach i, $(refnumber), ref$(i))
 
 else
-
-# Initialize 'gencat' to an empty string
 gencat=
 
-# Prepare the catalog for comparing in different apperture.
+# Prepare the catalog for comparing in different appertures.
 cataper=$(foreach a,$(aper-arcsec), \
-          $(tmpdir)/ref1-$(a)-cat.fits)
+         $(tmpdir)/ref1-$(a)-cat.fits)
 $(cataper): $(tmpdir)/ref1-%-cat.fits:
 
 	asttable $(ref1) -c$(ra),$(dec) -c$(mag) \
@@ -111,14 +113,15 @@ endif
 
 
 
+
 # Apertures photometry
 # --------------------
 #
-# To generate the apertures catalog we’ll use Gnuastro’s MakeProfiles
-# We’ll first read the positions from the Gaia catalog, then use AWK
-# to set the other parameters of each profile to be a fixed circle of
-# radius 5.1 pixels. To calculate the pixel size I have to use the big
-# origin image before cropping
+# To generate the apertures catalog we will use Gnuastro’s MakeProfiles. We
+# will first read the positions from the Gaia catalog, then use AWK to set
+# the other parameters of each profile to be a fixed circle of radius 5.1
+# pixels. To calculate the pixel size I have to use the big origin image
+# before cropping
 zpinput=0
 aperture=$(foreach i,input $(gencat), \
           $(foreach a,$(aper-arcsec), \
@@ -164,8 +167,8 @@ $(aperture): $(tmpdir)/%-cat.fits: $(stars)
 # Calculate magnitude differences
 # -------------------------------
 #
-# Match reference catalog with input catalog and put reference
-# magnitude in the catalog. Then subtract the reference mag from input
+# Match the reference catalog with the input catalog and put reference
+# magnitude in the catalog. Then subtract the reference mag. from input
 # mag. Finally, the final target has two columns of reference mag and
 # subtracted mag.
 allrefs=$(foreach i, $(refnumber), ref$(i))
@@ -197,13 +200,13 @@ $(magdiff): $(tmpdir)/%-magdiff.fits: $(tmpdir)/%-cat.fits \
 
 
 
-
-# Zeropoint for each aperture
-# ---------------------------
+# Computing the zero point for each aperture
+# ------------------------------------------
 #
-# Finding the Zeropoint. Calculate Zeropoint number in seperated file
-# and calculate the root mean square of Zeropoint.
-aperzeropoint=$(foreach a,$(aper-arcsec),$(tmpdir)/zeropoint-$(a).txt)
+# Calculate Zeropoint number in seperated files and calculate the root mean
+# square of zero point.
+aperzeropoint=$(foreach a,$(aper-arcsec), \
+                $(tmpdir)/zeropoint-$(a).txt)
 $(aperzeropoint): $(tmpdir)/zeropoint-%.txt: \
                   $$(foreach r,$(allrefs),$(tmpdir)/$$(r)-%-magdiff.fits)
 
@@ -226,10 +229,11 @@ $(aperzeropoint): $(tmpdir)/zeropoint-%.txt: \
 	  rangeopt="--range=MAG-REF,$(magrange)"
 	fi
 
-#	Find the statistic zeropoint and write it into the target.
+#	Find the zeropoint and its standard deviationg using sigma-clipped
+#	median and standard deviation. Write them into the target.
 	zpstd=$$(asttable $$merged $$rangeopt -cMAG-DIFF \
 	                  | aststatistics --sigclip-median \
-	                                  --sigclip-std -q)
+	                                  --sigclip-std --quiet)
 	echo "$* $$zpstd" > $@
 
 
@@ -239,12 +243,12 @@ $(aperzeropoint): $(tmpdir)/zeropoint-%.txt: \
 # Most accurate zeropoint
 # -----------------------
 #
-# Using the standard deviation of the zeropoints for each aperture,
-# select the one with the least scatter.
+# For each aperture, one zeropoint and its STD has been computed. The best
+# value is the one with the lowest STD value.
 zeropoint=$(output)
 $(zeropoint): $(aperzeropoint)
 
-#	Obtained the zeropoint and zeropoint std of each apertures.
+#	Obtain the zeropoint and zero point STD of each aperture.
 	zp=$(subst .fits,-tmp.txt,$@)
 
 	echo "# Column 1: APERTURE  [arcsec,f32,]" > $$zp
@@ -254,22 +258,24 @@ $(zeropoint): $(aperzeropoint)
 	  cat $(tmpdir)/zeropoint-$$a.txt        >> $$zp
 	done
 
-#	Find the best aperture, its zeropoint and standard deviation for
-#	writting in the header of the output.
+#	Find the best aperture; its zero point and STD.
 	magmin=""
 	magmax=""
 	if [ x"$(magrange)" != x ]; then
-	  magmin=$$(echo "$(magrange)" | sed 's\,\ \' | awk '{print $$1}')
-	  magmax=$$(echo "$(magrange)" | sed 's\,\ \' | awk '{print $$2}')
+	  magmin=$$(echo "$(magrange)" | sed 's|,| |' | awk '{print $$1}')
+	  magmax=$$(echo "$(magrange)" | sed 's|,| |' | awk '{print $$2}')
 	fi
+
+#	Auxiliary/temporary file
 	asttable $$zp --output=$@.fits
 
 	bestaper=$$(asttable $$zp --sort=ZPSTD --head=1 --column=APERTURE)
 	bestzp=$$(asttable $$zp --sort=ZPSTD --head=1  --column=ZEROPOINT)
 	beststd=$$(asttable $$zp --sort=ZPSTD --head=1  --column=ZPSTD)
+
 	astfits $@.fits --write=/,"Zeropoint properties"
 	astfits $@.fits --write=ZPAPER,"$$bestaper","Best aperture."
-	astfits $@.fits --write=ZPVALUE,"$$bestzp","Best zeropoint."
+	astfits $@.fits --write=ZPVALUE,"$$bestzp","Best zero point."
 	astfits $@.fits --write=ZPSTD,"$$beststd","Best standard deviation of zeropoint."
 
 #	If the user requested a certain magnitude range, add minmag and maxmag to header.
@@ -280,9 +286,9 @@ $(zeropoint): $(aperzeropoint)
 
 	if [ x"$(keepzpap)" = x ]; then
 
-#	   The 'bestaper' above is returned from 'asttable', so (which is
-#	   saved as a floating point), so the extra digits in reading
-#	   floating points
+#	   The 'bestaper' above is returned from 'asttable', that is saved
+#	   as a floating point, so the extra digits in reading floating
+#	   points
 	   for a in $(aper-arcsec); do
 	     check=$$(echo $$a \
 	                   | awk -vb=$$bestaper \
@@ -291,13 +297,14 @@ $(zeropoint): $(aperzeropoint)
 
 	   done
 
-#	   Move the main table to the output and copy the Mag-vs-Zeroppoint
+#	   Move the main table to the output and copy the mag-vs-zeroppoint
 #	   plot for the best aperture.
 	   astfits $(tmpdir)/zeropoint-$$bestaperstr-merged.fits --copy=1 -o$@.fits
 	   mv $@.fits $@
 	else
-#	   Move the main table to the output and copy the Mag-vs-Zeroppoint
-#	   plot for the whole aperture.
+
+#	  Move the main table to the output and copy the mag-vs-zeroppoint
+#	  plot for the whole aperture.
 	  for a in $(aper-arcsec); do
 	    astfits $(tmpdir)/zeropoint-$$a-merged.fits --copy=1 -o$@.fits
 	  done
@@ -306,6 +313,7 @@ $(zeropoint): $(aperzeropoint)
 
 #	Clean up.
 	rm $$zp
+
 
 
 
