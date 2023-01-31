@@ -60,17 +60,18 @@ $(tmpdir):; mkdir $@
 # Use Gaia catalog and only keep the objects with good parallax (to
 # confirm that they are stars).
 stars=$(tmpdir)/gaia.fits
-$(stars): $(input) | $(tmpdir)
+$(stars): $(input) \
+          | $(tmpdir)
 
 #	Download from Gaia.
-	raw=$(subst .fits,-raw.fits,$@)
+#	Only keep stars (with good parallax).
+#	Clean up.
+	raw=$(subst .fits,-raw.fits,$@); \
 	astquery gaia --dataset=dr3 \
 	         --overlapwith=$(input) \
 	         -csource_id -cra -cdec -cparallax \
 	         -cphot_g_mean_mag -cparallax_error \
-	         -cpmra -cpmdec --output=$$raw
-
-#	Only keep stars (with good parallax).
+	         -cpmra -cpmdec --output=$$raw; \
 	asttable $$raw -cra,dec \
 	         -cphot_g_mean_mag --colinfoinstdout \
 	         -c'arith parallax parallax abs \
@@ -78,9 +79,7 @@ $(stars): $(input) | $(tmpdir)
 	         --colmetadata=4,PARALLAX,int32,"Stars with good parallax." \
 	         --noblankend=PARALLAX \
 	         | asttable -cra,dec -cphot_g_mean_mag \
-	                    --output=$@
-
-#	Clean up.
+	                    --output=$@; \
 	rm $$raw
 
 
@@ -126,38 +125,34 @@ zpinput=0
 aperture=$(foreach i,input $(gencat), \
           $(foreach a,$(aper-arcsec), \
            $(tmpdir)/$(i)-$(a)-cat.fits))
-$(aperture): $(tmpdir)/%-cat.fits: $(stars)
+$(aperture): $(tmpdir)/%-cat.fits: \
+             $(stars)
 
 #	Extract the names.
-	img=$($(word 1, $(subst -, ,$*)))
-	zp=$(zp$(word 1, $(subst -, ,$*)))
-	aperarcsec=$(word 2, $(subst -, ,$*))
-	hdu=$(hdu$(word 1, $(subst -, ,$*)))
-
 #	Convert the aperture size (arcsec) to pixels.
+#	Make an aperture catalog by using aperture size in pixels
+#	Make an image of apertures.
+#	Build a catalog of this aperture image.
+#	Clean up.
+	img=$($(word 1, $(subst -, ,$*))); \
+	zp=$(zp$(word 1, $(subst -, ,$*))); \
+	aperarcsec=$(word 2, $(subst -, ,$*)); \
+	hdu=$(hdu$(word 1, $(subst -, ,$*))); \
+	aperwcscat=$(subst .fits,-aperwcscat.txt,$@); \
+	aperimg=$(subst .fits,-aper.fits,$@); \
 	aperpix=$$(astfits $$img --hdu=$$hdu --pixelscale --quiet \
 	                   | awk -v s=$$aperarcsec \
-	                         '{print s/($$1 * 3600)}')
-
-#	Make an aperture catalog by using aperture size in pixels
-	aperwcscat=$(subst .fits,-aperwcscat.txt,$@)
+	                         '{print s/($$1 * 3600)}'); \
 	asttable $(stars) -cra,dec \
 	         | awk -v r=$$aperpix \
 	               '{ print NR, $$1, $$2, 5, r, 0, 0, 1, NR, 1 }' \
-	         > $$aperwcscat
-
-#	Make an image of apertures.
-	aperimg=$(subst .fits,-aper.fits,$@)
+	         > $$aperwcscat; \
 	astmkprof $$aperwcscat --background=$$img --backhdu=$$hdu \
 	          --clearcanvas --replace --type=int32 --mforflatpix \
-	          --mode=wcs --output=$$aperimg --quiet
-
-#	Build a catalog of this aperture image.
+	          --mode=wcs --output=$$aperimg --quiet; \
 	astmkcatalog $$aperimg -h1 --output=$@ --zeropoint=$$zp \
 	             --inbetweenints --valuesfile=$$img \
-	             --valueshdu=$$hdu --ids --ra --dec --magnitude
-
-#	Clean up.
+	             --valueshdu=$$hdu --ids --ra --dec --magnitude; \
 	rm $$aperwcscat $$aperimg
 
 
@@ -175,26 +170,23 @@ allrefs=$(foreach i, $(refnumber), ref$(i))
 magdiff=$(foreach r,$(allrefs), \
          $(foreach a,$(aper-arcsec), \
           $(tmpdir)/$(r)-$(a)-magdiff.fits))
-$(magdiff): $(tmpdir)/%-magdiff.fits: $(tmpdir)/%-cat.fits \
+$(magdiff): $(tmpdir)/%-magdiff.fits: \
+            $(tmpdir)/%-cat.fits \
             $(tmpdir)/input-$$(word 2,$$(subst -, ,%))-cat.fits
 
 #	Find the matching objects in both catalogs.
-	ref=$(tmpdir)/$*-cat.fits
-	match=$(subst .fits,-match.fits,$@)
-	input=$(tmpdir)/input-$(word 2,$(subst -, ,$*))-cat.fits
-	astmatch $$ref --hdu=1 $$input --hdu2=1 \
+#	Subtract the reference catalog mag from input catalog's mag.
+#	Clean up.
+	match=$(subst .fits,-match.fits,$@); \
+	astmatch $< --hdu=1 $(word 2,$^) --hdu2=1 \
 	         --ccol1=RA,DEC --ccol2=RA,DEC \
 	         --outcols=aMAGNITUDE,bMAGNITUDE \
 	         --aperture=$(matchradius) \
-	         --output=$$match
-
-#	Subtract the reference catalog mag from input catalog's mag.
+	         --output=$$match; \
 	asttable $$match -c1 -c'arith $$1 $$2 -' \
 	         --colmetadat=1,MAG-REF,f32,"Magnitude of reference." \
                  --colmetadat=2,MAG-DIFF,f32,"Magnitude diff with input." \
-	         --noblankend=1,2 --output=$@
-
-#	Clean up.
+	         --noblankend=1,2 --output=$@; \
 	rm $$match
 
 
@@ -212,30 +204,27 @@ $(aperzeropoint): $(tmpdir)/zeropoint-%.txt: \
                   $$(foreach r,$(allrefs),$(tmpdir)/$$(r)-%-magdiff.fits)
 
 #	Merge all the magdiffs from all the references.
-	opts=""
-	if [ "$(refnumber)" != 1 ]; then
-	  for r in $$(echo $(refnumber) | sed -e's|1||'); do
-	    opts="$$opts --catrowfile=$(tmpdir)/ref$$r-$*-magdiff.fits"
-	  done
-	fi
-
 #	Merge all the rows from all the reference images into one.
-	merged=$(subst .txt,-merged.fits,$@)
-	asttable $(tmpdir)/ref1-$*-magdiff.fits $$opts -o$$merged
-	astfits $$merged --update=EXTNAME,APER-$*
-
 #	If the user requested a certain magnitude range, use it.
-	rangeopt=""
-	if [ x"$(magrange)" != x ]; then
-	  rangeopt="--range=MAG-REF,$(magrange)"
-	fi
-
 #	Find the zeropoint and its standard deviationg using sigma-clipped
 #	median and standard deviation. Write them into the target.
+	merged=$(subst .txt,-merged.fits,$@); \
+	opts=""; \
+	if ! [ "$(refnumber)" = 1 ]; then \
+	  for r in $$(echo $(refnumber) | sed -e's|1||'); do \
+	    opts="$$opts --catrowfile=$(tmpdir)/ref$$r-$*-magdiff.fits"; \
+	  done; \
+	fi; \
+	asttable $(tmpdir)/ref1-$*-magdiff.fits $$opts -o$$merged; \
+	astfits $$merged --update=EXTNAME,APER-$*; \
+	rangeopt=""; \
+	if ! [ x"$(magrange)" = x ]; then \
+	  rangeopt="--range=MAG-REF,$(magrange)"; \
+	fi; \
 	zpstd=$$(asttable $$merged $$rangeopt -cMAG-DIFF \
 	                  | aststatistics --sigclip-median \
-	                                  --sigclip-std --quiet)
-	echo "$* $$zpstd" > $@
+	                                  --sigclip-std --quiet); \
+	 echo "$* $$zpstd" > $@
 
 
 
@@ -250,69 +239,57 @@ zeropoint=$(output)
 $(zeropoint): $(aperzeropoint)
 
 #	Obtain the zeropoint and zero point STD of each aperture.
-	zp=$(subst .fits,-tmp.txt,$@)
-
-	echo "# Column 1: APERTURE  [arcsec,f32,]" > $$zp
-	echo "# Column 2: ZEROPOINT [mag,f32,]"  >> $$zp
-	echo "# Column 3: ZPSTD     [mag,f32,]"  >> $$zp
-	for a in $(aper-arcsec); do
-	  cat $(tmpdir)/zeropoint-$$a.txt        >> $$zp
-	done
-
 #	Find the best aperture; its zero point and STD.
-	magmin=""
-	magmax=""
-	if [ x"$(magrange)" != x ]; then
-	  magmin=$$(echo "$(magrange)" | sed 's|,| |' | awk '{print $$1}')
-	  magmax=$$(echo "$(magrange)" | sed 's|,| |' | awk '{print $$2}')
-	fi
-
 #	Auxiliary/temporary file
-	asttable $$zp --output=$@.fits
-
-	bestaper=$$(asttable $$zp --sort=ZPSTD --head=1 --column=APERTURE)
-	bestzp=$$(asttable $$zp --sort=ZPSTD --head=1  --column=ZEROPOINT)
-	beststd=$$(asttable $$zp --sort=ZPSTD --head=1  --column=ZPSTD)
-
-	astfits $@.fits --write=/,"Zeropoint properties"
-	astfits $@.fits --write=ZPAPER,"$$bestaper","Best aperture."
-	astfits $@.fits --write=ZPVALUE,"$$bestzp","Best zero point."
-	astfits $@.fits --write=ZPSTD,"$$beststd","Best standard deviation of zeropoint."
-
 #	If the user requested a certain magnitude range, add minmag and maxmag to header.
-	if [ x"$(magrange)" != x ]; then
-	  astfits $@.fits --write=MAGMIN,"$$magmin","Minimum magnitude for obtaining zeropoint."
-	  astfits $@.fits --write=MAGMAX,"$$magmax","Maximum magnitude for obtaining zeropoint."
-	fi
-
-	if [ x"$(keepzpap)" = x ]; then
-
 #	   The 'bestaper' above is returned from 'asttable', that is saved
 #	   as a floating point, so the extra digits in reading floating
 #	   points
-	   for a in $(aper-arcsec); do
-	     check=$$(echo $$a \
-	                   | awk -vb=$$bestaper \
-	                         '$$1>b-1e-6 && $$1<b+1e-6{print "yes"}')
-	     if [ x$$check = xyes ]; then bestaperstr=$$a; fi
-
-	   done
-
 #	   Move the main table to the output and copy the mag-vs-zeroppoint
 #	   plot for the best aperture.
-	   astfits $(tmpdir)/zeropoint-$$bestaperstr-merged.fits --copy=1 -o$@.fits
-	   mv $@.fits $@
-	else
-
 #	  Move the main table to the output and copy the mag-vs-zeroppoint
 #	  plot for the whole aperture.
-	  for a in $(aper-arcsec); do
-	    astfits $(tmpdir)/zeropoint-$$a-merged.fits --copy=1 -o$@.fits
-	  done
-	  mv $@.fits $@
-	fi
-
 #	Clean up.
+	zp=$(subst .fits,-tmp.txt,$@); \
+	echo "# Column 1: APERTURE  [arcsec,f32,]" > $$zp; \
+	echo "# Column 2: ZEROPOINT [mag,f32,]"  >> $$zp; \
+	echo "# Column 3: ZPSTD     [mag,f32,]"  >> $$zp; \
+	for a in $(aper-arcsec); do \
+	  cat $(tmpdir)/zeropoint-$$a.txt    >> $$zp; \
+	done; \
+	magmin=""; \
+	magmax=""; \
+	if ! [ x"$(magrange)" = x ]; then \
+	  magmin=$$(echo "$(magrange)" | sed 's|,| |' | awk '{print $$1}'); \
+	  magmax=$$(echo "$(magrange)" | sed 's|,| |' | awk '{print $$2}'); \
+	fi; \
+	asttable $$zp --output=$@.fits; \
+	bestaper=$$(asttable $$zp --sort=ZPSTD --head=1 --column=APERTURE); \
+	bestzp=$$(asttable $$zp --sort=ZPSTD --head=1  --column=ZEROPOINT); \
+	beststd=$$(asttable $$zp --sort=ZPSTD --head=1  --column=ZPSTD); \
+	astfits $@.fits --write=/,"Zeropoint properties"; \
+	astfits $@.fits --write=ZPAPER,"$$bestaper","Best aperture."; \
+	astfits $@.fits --write=ZPVALUE,"$$bestzp","Best zero point."; \
+	astfits $@.fits --write=ZPSTD,"$$beststd","Best standard deviation of zeropoint."; \
+	if ! [ x"$(magrange)" = x ]; then \
+	  astfits $@.fits --write=MAGMIN,"$$magmin","Minimum magnitude for obtaining zeropoint."; \
+	  astfits $@.fits --write=MAGMAX,"$$magmax","Maximum magnitude for obtaining zeropoint."; \
+	fi; \
+	if [ x"$(keepzpap)" = x ]; then \
+	    for a in $(aper-arcsec); do \
+	        check=$$(echo $$a \
+	                      | awk -vb=$$bestaper \
+	                         '$$1>b-1e-6 && $$1<b+1e-6{print "yes"}'); \
+	         if [ x$$check = xyes ]; then bestaperstr=$$a; fi; \
+	    done; \
+	   astfits $(tmpdir)/zeropoint-$$bestaperstr-merged.fits --copy=1 -o$@.fits; \
+	   mv $@.fits $@; \
+	else \
+	    for a in $(aper-arcsec); do \
+	        astfits $(tmpdir)/zeropoint-$$a-merged.fits --copy=1 -o$@.fits; \
+	    done; \
+	    mv $@.fits $@; \
+	fi; \
 	rm $$zp
 
 
