@@ -393,10 +393,16 @@ if [ x"$tmpdir" = x ]; then \
   tmpdir=$(pwd)/"$basename"_zeropoint
 fi
 
+# This script will be run in a Makefile. In Make if the all the
+# prerequiesits are exist the Make do not build the prerequiesit in second
+# run. But we do not want it in Gnuastro, because sometimes user change a
+# option and she/he wants to check the final result but the final output do
+# not want to change because all the prerequiesit exist. Due to this at
+# first we will remove temeporary directory.
 if [ -d "$tmpdir" ]; then
-  junk=1
+    rm "$tmpdir"/*
 else
-  mkdir -p "$tmpdir"
+    mkdir "$tmpdir"
 fi
 
 # Default output catalog file

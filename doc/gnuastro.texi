@@ -29719,7 +29719,7 @@ $ astfits zp/jplus-zeropoint.fits
 Let's have a look at each extension with Gnuastro's @command{asttable} program:
 
 @example
-asttable zp/jplus-zeropoint.fits --hdu=1 -i
+$ asttable zp/jplus-zeropoint.fits --hdu=1 -i
 --------
 zp/jplus-zeropoint.fits (hdu: 1)
 -------       -----   ----     -------
@@ -29732,7 +29732,7 @@ No.Name       Units   Type     Comment
 Number of rows: 1
 --------
 
-asttable zp/jplus-zeropoint.fits --hdu=2 -i
+$ asttable zp/jplus-zeropoint.fits --hdu=2 -i
 --------
 zp/jplus-zeropoint.fits (hdu: 2)
 -------      -----  ----     -------
