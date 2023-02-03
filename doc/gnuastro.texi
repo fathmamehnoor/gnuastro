@@ -9325,6 +9325,11 @@ Finally multiple short option names cannot be merged: for example, you can say @
 Just copy it in the top source directory of that software and run it from there.
 @end cartouche
 
+@cartouche
+@noindent
+@strong{Example usage:} See @ref{Forking tutorial} for an example usage of this script in some scenarios.
+@end cartouche
+
 @table @option
 
 @item -b STR
@@ -40818,7 +40823,7 @@ your work).
 This script is designed to be run each time you make a change and want to
 test your work (with some possible input and output). The script itself is
 heavily commented and thoroughly describes the best way to use it, so we
-will not repeat it here.
+will not repeat it here. For a usage example, see @ref{Forking tutorial}.
 
 As a short summary: you specify the build directory, an output directory
 (for the built program to be run in, and also contains the inputs), the
@@ -41704,9 +41709,7 @@ However, please repeat the steps below for each independent issue you intend to 
 
 Let's assume you have found a bug in @file{lib/statistics.c}'s median  calculating function.
 Before actually doing anything, please announce it (see @ref{Report a bug}) so everyone knows you are working on it, or to confirm if others are not already working on it.
-With the commands below, you make a branch, checkout to it, correct the bug, check if it is indeed fixed, add it to the staging area, commit it to the new branch and push it to your hosting service.
-Since Gnuastro is a large project, commit messages have to follow certain standards that you should follow, they are described in @ref{Commit guidelines}.
-
+With the commands below, you make a branch, checkout to it, correct the bug and check if it is indeed fixed.
 But before all of this, make sure that you are on the @file{master} branch and that your @file{master} branch is up to date with the main Gnuastro repository with the first two commands.
 
 @example
@@ -41714,7 +41717,54 @@ $ git checkout master
 $ git pull
 $ git checkout -b bug-median-stats      # Choose a descriptive name
 $ emacs lib/statistics.c
-$                                       # do your checks here
+@end example
+
+With the commands above, you have opened your favorite text editor (if it is not Emacs, feel free to use any other!) and are starting to make changes.
+Making changes will usually involve checking the compilation and outputs of the parts you have changed.
+Gnuastro already has some facilities to help you in your checks during/after development.
+
+@table @file
+@item developer-build
+This script does a full build (from the configuration phase to producing the final distribution tarball).
+During the process, if there is any error or crash, it will abort.
+This allows you to find problems that you hadn't predicted while modifying the files.
+This script is described more completely in @ref{Separate build and source directories}.
+Here is an example of running this script from scratch (the @file{junk} is just a place-holder for a URL):
+@example
+$ ./developer-build -p junk
+@end example
+
+If you just want a fast build to start your developing, the recommended way is to run it in debugging mode like below:
+
+@example
+$ ./developer-build -d
+@end example
+
+Without debugging mode, building Gnuastro can take several minutes due to the highly optimizable code structure of Gnuastro (which significantly improves the run-time of the programs, but is slower in the compilation phase).
+During development, you rarely need high speed at @emph{run-time}.
+This is because once you find the bug, you can decrease the size of the dataset to be very small and not be affected by run-time optimizations.
+However, during development, you do need a high speed at @emph{build-time} to see the changes fast and also need debugging flags (for example to run with Valgrind).
+Debugging flags are lost in the default highly-optimized build.
+
+@item tests/during-dev.sh
+This script is most commonly used during the development of a new feature within the library or programs (it is also mentioned in @ref{Building and debugging}).
+It assumes that you have built Gnuastro with the @file{./developer-build} script (usually in debugging mode).
+In other words, it assumes that all the built products are in the @file{build} directory.
+
+It has internal variables to set the name of the program you are testing, the name of its arguments and options, as well as the location that the built program should be run in.
+It is heavily commented, so we recommend reading those comments and will not go into more detail here.
+
+@item make pdf
+When making changes in the book, you can run this in the @file{build} directory to see your changes in the final PDF before committing.
+Furthermore, if you add or update an example code block of the book, you should copy-paste it into a text editor and check that it runs correctly (typos are very common and can be very annoying for first-time readers).
+If there are no problems, you can add your modification and commit it.
+@end table
+
+Once you have implemented your bug fix and made sure that it works, through the checks above, you are ready to stage, commit and push your changes with the commands below.
+Since Gnuastro is a large project, commit messages have to follow certain standards that you should follow, they are described in @ref{Commit guidelines}.
+Please read that section carefully, and view previous commits (with @code{git log}) before writing the commit message:
+
+@example
 $ git add lib/statistics.c
 $ git commit
 $ git push janedoe bug-median-stats
@@ -41741,26 +41791,7 @@ After you make your announcement, other people might contribute to the branch be
 As a final reminder: before starting each issue branch from @file{master}, be sure to run @command{git pull} in @file{master} as shown above.
 This will enable you to start your branch (work) from the most recent commit and thus simplify the final merging of your work.
 
-@cartouche
-@noindent
-@strong{what do you do in the line of 'do your checks'?:} As you can see in the commands above, we consider a line for your checks.
-At this line, you should run the following command.
-This script is available in the top source directory to build Gnuastro in a separate directory (see @ref{Separate build and source directories}):
 
-@example
-$ ./developer-build -p junk
-@end example
-
-After running it, you can see possible errors that might have occurred while modifying the desired files. 
-In another suggestion, if you change the book, it is better to run the command below in the 'build' file and see your modification:
-
-@example
-$ make pdf
-@end example
-
-Also, if you update an example of the book, you should copy-paste it into a text editor and check that it runs correctly. 
-If there are no problems, you can add your modification and commit it.  
-@end cartouche
 
 
 
