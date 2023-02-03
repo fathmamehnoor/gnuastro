@@ -14,7 +14,7 @@
 # Contributing author(s):
 #     Pedram Ashofteh-Ardakani <pedramardakani@pm.me>
 #     Jash Shah <jash28582@gmail.com>
-# Copyright (C) 2015-2022 Free Software Foundation, Inc.
+# Copyright (C) 2015-2023 Free Software Foundation, Inc.
 #
 # Gnuastro is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by
