@@ -2197,7 +2197,7 @@ In particular, the exposure time of the deep inner region is more than 4 times t
 
 To simplify the analysis in this tutorial, we will only be working on the deep field, so let's crop it out of the full dataset.
 Fortunately the XDF survey web page (above) contains the vertices of the deep flat WFC3-IR field@footnote{@url{https://archive.stsci.edu/prepds/xdf/#dataproducts}}.
-With Gnuastro's Crop program@footnote{To learn more about the crop program see @ref{Crop}.}, you can use those vertices to cutout this deep region from the larger image.
+With Gnuastro's Crop program, you can use those vertices to cutout this deep region from the larger image (to learn more about the Crop program see @ref{Crop}).
 But before that, to keep things organized, let's make a directory called @file{flat-ir} and keep the flat (single-depth) regions in that directory (with a `@file{xdf-}' prefix for a shorter and easier filename).
 
 @example
@@ -2238,7 +2238,7 @@ Therefore keeping zero-valued pixels in this image will cause them to identified
 Generally, when you want to ignore some pixels in a dataset, and avoid higher-level ambiguities or complications, it is always best to give them blank values (not zero, or some other absurdly large or small number).
 Gnuastro has the Arithmetic program for such cases, and we will introduce it later in this tutorial.
 
-In the example above, the polygon vertices are in degrees, but you can also replace them with sexagesimal@footnote{@url{https://en.wikipedia.org/wiki/Sexagesimal}} coordinates (for example, using @code{03h32m44.9794} or @code{03:32:44.9794} instead of @code{53.187414} instead of the first RA and @code{-27d46m44.9472} or @code{-27:46:44.9472} instead of the first Dec).
+In the example above, the polygon vertices are in degrees, but you can also replace them with sexagesimal@footnote{@url{https://en.wikipedia.org/wiki/Sexagesimal}} coordinates (for example, using @code{03h32m44.9794} or @code{03:32:44.9794} instead of @code{53.187414}, the first RA, and @code{-27d46m44.9472} or @code{-27:46:44.9472} instead of @code{-27.779152}, the first Dec).
 To further simplify things, you can even define your polygon visually as a DS9 ``region'', save it as a ``region file'' and give that file to crop.
 But we need to continue, so if you are interested to learn more, see @ref{Crop}.
 
@@ -2266,12 +2266,12 @@ $ for f in f105w f125w f160w; do \
 @cindex @code{CDELT}
 @cindex Coordinate scales
 @cindex Scales, coordinate
-This is the deepest image we currently have of the sky.
+The cropped images in @ref{Dataset inspection and cropping} are the deepest images we currently have of the sky.
 The first thing that comes to mind may be this: ``How large is this field on the sky?''.
 You can get a fast and crude answer with Gnuastro's Fits program, using this command:
 
 @example
-astfits flat-ir/xdf-f160w.fits --skycoverage
+$ astfits flat-ir/xdf-f160w.fits --skycoverage
 @end example
 
 It will print the sky coverage in two formats (all numbers are in units of degrees for this image): 1) the image's central RA and Dec and full width around that center, 2) the range of RA and Dec covered by this image.
@@ -2280,7 +2280,7 @@ You can also use this option to automatically calculate the area covered by this
 With the @option{--quiet} option, the printed output of @option{--skycoverage} will not contain human-readable text, making it easier for automatic (computer) processing:
 
 @example
-astfits flat-ir/xdf-f160w.fits --skycoverage --quiet
+$ astfits flat-ir/xdf-f160w.fits --skycoverage --quiet
 @end example
 
 The second row is the coverage range along RA and Dec (compare with the outputs before using @option{--quiet}).
@@ -2288,7 +2288,7 @@ We can thus simply subtract the second from the first column and multiply it wit
 We will also multiply each by 60 to have the area in arc-minutes squared.
 
 @example
-astfits flat-ir/xdf-f160w.fits --skycoverage --quiet \
+$ astfits flat-ir/xdf-f160w.fits --skycoverage --quiet \
         | awk 'NR==2@{print ($2-$1)*60*($4-$3)*60@}'
 @end example
 
@@ -2298,10 +2298,10 @@ In other words, the image does cover this area, but there is no data in more tha
 So let's calculate the area coverage over-which we actually have data.
 
 The FITS world coordinate system (WCS) meta data standard contains the key to answering this question.
-Run the following command to see all the FITS keywords (metadata) for one of the images (almost identical with the other images because they were are scaled to the same region of Sky):
+Run the following command to see all the FITS keywords (metadata) for one of the images (almost identical with the other images because they are scaled to the same region of Sky):
 
 @example
-astfits flat-ir/xdf-f160w.fits -h1
+$ astfits flat-ir/xdf-f160w.fits -h1
 @end example
 
 Look into the keywords grouped under the `@code{World Coordinate System (WCS)}' title.
@@ -2527,7 +2527,7 @@ The relevant time (in seconds) is shown after @code{real}.}!
 This can be improved by @emph{hundreds} of times!
 This section will show you how.
 
-Generally, repeated calls to a generic program (like CosmicCalculator) are slow, because a generic program can have a lot of overhead on each call:
+Generally, repeated calls to a generic program (like CosmicCalculator) are slow, because a generic program can have a lot of overhead on each call.
 To be generic and easy to operate, CosmicCalculator has to parse the command-line and all configuration files (see @ref{Option management and configuration files}) which contain human-readable characters and need a lot of pre-processing to be ready for processing by the computer.
 Afterwards, CosmicCalculator has to check the sanity of its inputs and check which of its many options you have asked for.
 All the this pre-processing takes as much time as the high-level calculation you are requesting, and it has to re-do all of these for every redshift in your loop.
@@ -2778,12 +2778,14 @@ $ rm -rf my-cosmology*
 
 @node Warping to a new pixel grid, NoiseChisel and Multi-Extension FITS files, Option management and configuration files, General program usage tutorial
 @subsection Warping to a new pixel grid
-We are now ready to start processing the downloaded images.
-The XDF datasets we are using here are already aligned to the same pixel grid.
-However, warping to a different/matched pixel grid is commonly needed before higher-level analysis when you are using datasets from different instruments.
-So let's have a look at Gnuastro's warping features here.
+We are now ready to start processing the deep HST images that were prepared in @ref{Dataset inspection and cropping}.
+One of the most important points while using several images for data processing is that those images must have the same pixel grid.
+The process of changing the pixel grid is named `warp'.
+Fortunately, Gnuastro has Warp program for warping the pixel grid (see @ref{Warp}).
 
-Gnuastro's Warp program should be used for warping the pixel-grid (see @ref{Warp}).
+Warping to a different/matched pixel grid is commonly needed before higher-level analysis especially when you are using datasets from different instruments.
+The XDF datasets we are using here are already aligned to the same pixel grid.
+But let's have a look at some of Gnuastro's linear warping features here.
 For example, try rotating one of the images by 20 degrees:
 
 @example
@@ -2820,7 +2822,8 @@ However, if you run Warp multiple times, the pixels will be mixed multiple times
 Recall that the merging of multiple warps is done through matrix multiplication, therefore order matters in the separate operations.
 At a lower level, through Warp's @option{--matrix} option, you can directly request your desired final warp and do not have to break it up into different warps like above (see @ref{Invoking astwarp}).
 
-Fortunately these datasets are already aligned to the same pixel grid, so you do not actually need the files that were just generated.You can safely delete them all with the following command.
+Fortunately these datasets are already aligned to the same pixel grid, so you do not actually need the files that were just generated.
+You can safely delete them all with the following command.
 Here, you see why we put the processed outputs that we need later into a separate directory.
 In this way, the top directory can be used for temporary files for testing that you can simply delete with a generic command like below.
 
@@ -2916,7 +2919,8 @@ A ``cube'' window opens along with DS9's main window.
 The buttons and horizontal scroll bar in this small new window can be used to navigate between the extensions.
 In this mode, all DS9's settings (for example, zoom or color-bar) will be identical between the extensions.
 Try zooming into one part and flipping through the extensions to see how the galaxies were detected along with the Sky and Sky standard deviation values for that region.
-Just have in mind that NoiseChisel's job is @emph{only} detection (separating signal from noise), We will do segmentation on this result later to find the individual galaxies/peaks over the detected pixels.
+Just have in mind that NoiseChisel's job is @emph{only} detection (separating signal from noise).
+We will do segmentation on this result later to find the individual galaxies/peaks over the detected pixels.
 
 The second extension of NoiseChisel's output (numbered 1, named @code{INPUT-NO-SKY}) is the Sky-subtracted input that you provided.
 The third (@code{DETECTIONS}) is NoiseChisel's main output which is a binary image with only two possible values for all pixels: 0 for noise and 1 for signal.
@@ -29006,7 +29010,7 @@ Let's repeat the command above, but use a precision of 3 to resolve more finer d
 @example
 $ astscript-radial-profile image.fits --center=1.23,4.567 \
             --mode=wcs --measure=mean,area --rmax=10 \
-            --output=radial.fits --quiet
+            --precision=3 --output=radial.fits --quiet
 $ asttable radial.fits --head=10 -ffixed -p4
 0.0000        0.0139        1
 1.0000        0.0056        4
@@ -29020,7 +29024,7 @@ $ asttable radial.fits --head=10 -ffixed -p4
 4.0000        0.0011        4
 @end example
 
-Do you see how how many more radii have been added?
+Do you see how many more radii have been added?
 Between 1.0 and 2.0, we now have one extra radius, between 2.0 to 3.0, we have two new radii and so on.
 If you go to larger and larger radii, you will notice that they get resolved into many sub-components and the number of pixels used in each measurement will not be significant (you can already see that in the comparison above).
 This has two problems:
