@@ -55,5 +55,5 @@ if [ ! -f $img      ]; then echo "$img does not exist.";   exit 77; fi
 # string. Such programs will execute the command if present and help in
 # debugging when the developer doesn't have access to the user's system.
 $check_with_program $execname $img --x --y --ra --dec --magnitude     \
-                              --upperlimitmag --sn --tableformat=txt  \
+                              --upperlimit-mag --sn --tableformat=txt  \
                               --clumpscat --output=objects-clumps.txt

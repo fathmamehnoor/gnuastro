@@ -108,8 +108,8 @@ $scriptname options:
   -S, --segment=STR       Output of Segment (with OBJECTS and CLUMPS).
   -N, --normop=STR        Operator for computing the normalization value
                           (mean, sigclip-mean, etc.).
-  -Q, --axisratio=FLT     Axis ratio for ellipse maskprofile (A/B).
-  -p, --positionangle=FLT Position angle for ellipse mask profile.
+  -Q, --axis-ratio=FLT    Axis ratio for ellipse maskprofile (A/B).
+  -p, --position-angle=FLT Position angle for ellipse mask profile.
   -s, --sigmaclip=FLT,FLT Sigma-clip multiple and tolerance.
   -d, --nocentering       Don't warp the center coord to central pixel.
 
@@ -318,11 +318,11 @@ do
         -s|--sigmaclip)      sigmaclip="$2";                            check_v "$1" "$sigmaclip";  shift;shift;;
         -s=*|--sigmaclip=*)  sigmaclip="${1#*=}";                       check_v "$1" "$sigmaclip";  shift;;
         -s*)                 sigmaclip=$(echo "$1"  | sed -e's/-s//');  check_v "$1" "$sigmaclip";  shift;;
-        -Q|--axisratio)      axisratio="$2";                            check_v "$1" "$axisratio";  shift;shift;;
-        -Q=*|--axisratio=*)  axisratio="${1#*=}";                       check_v "$1" "$axisratio";  shift;;
+        -Q|--axis-ratio)     axisratio="$2";                            check_v "$1" "$axisratio";  shift;shift;;
+        -Q=*|--axis-ratio=*) axisratio="${1#*=}";                       check_v "$1" "$axisratio";  shift;;
         -Q*)                 axisratio=$(echo "$1"  | sed -e's/-Q//');  check_v "$1" "$axisratio";  shift;;
-        -p|--positionangle)        positionangle="$2";                                  check_v "$1" "$positionangle";  shift;shift;;
-        -p=*|--positionangle=*)    positionangle="${1#*=}";                             check_v "$1" "$positionangle";  shift;;
+        -p|--position-angle)       positionangle="$2";                                  check_v "$1" "$positionangle";  shift;shift;;
+        -p=*|--position-angle=*)   positionangle="${1#*=}";                             check_v "$1" "$positionangle";  shift;;
         -p*)                       positionangle=$(echo "$1"  | sed -e's/-p//');        check_v "$1" "$positionangle";  shift;;
 
 
@@ -822,9 +822,9 @@ if [ x"$normradiusmin" != x   -a   x"$normradiusmax" != x ]; then
     fi
     astscript-radial-profile $centermsk --hdu=1 --rmax=$maxr \
                              --measure=$normop $finalsigmaclip \
-                             --positionangle=$positionangle \
+                             --position-angle=$positionangle \
                              --tmpdir=$tmpdir --keeptmp \
-                             --axisratio=$axisratio \
+                             --axis-ratio=$axisratio \
                              --output=$radialprofile $quiet
 
     # The normalization value is computed from the radial profile in between

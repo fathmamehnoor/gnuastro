@@ -414,11 +414,11 @@ struct argp_option program_options[] =
       UI_GROUP_OTHERSETTINGS
     },
     {
-      "fracmax",
+      "frac-max",
       UI_KEY_FRACMAX,
       "FLT[,FLT]",
       0,
-      "Fraction(s) in --fracmaxarea1 or --fracmaxarea2.",
+      "Fraction(s) in --frac-max* options.",
       UI_GROUP_OTHERSETTINGS,
       &p->fracmax,
       GAL_TYPE_STRING,
@@ -432,7 +432,7 @@ struct argp_option program_options[] =
       UI_KEY_SPATIALRESOLUTION,
       "FLT",
       0,
-      "Spatial resolution (for surface brightness error).",
+      "Spatial resolution (for surf. brightness err).",
       UI_GROUP_OTHERSETTINGS,
       &p->spatialresolution,
       GAL_TYPE_FLOAT32,
@@ -467,7 +467,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "objid",
+      "obj-id",
       UI_KEY_OBJID,
       0,
       0,
@@ -481,7 +481,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "hostobjid",
+      "host-obj-id",
       UI_KEY_HOSTOBJID,
       0,
       0,
@@ -495,7 +495,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "idinhostobj",
+      "id-in-host-obj",
       UI_KEY_IDINHOSTOBJ,
       0,
       0,
@@ -516,7 +516,7 @@ struct argp_option program_options[] =
     /* Position related columns (pixel). */
     {
       0, 0, 0, 0,
-      "Positional columns (pixel)",
+      "Positional (pixel/image) measurements",
       UI_GROUP_COLUMNS_POSITION_PIXEL
     },
     {
@@ -562,7 +562,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "geox",
+      "geo-x",
       UI_KEY_GEOX,
       0,
       0,
@@ -576,7 +576,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "geoy",
+      "geo-y",
       UI_KEY_GEOY,
       0,
       0,
@@ -590,7 +590,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "geoz",
+      "geo-z",
       UI_KEY_GEOZ,
       0,
       0,
@@ -604,11 +604,11 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "minvx",
-      UI_KEY_MINVX,
+      "min-val-x",
+      UI_KEY_MINVALX,
       0,
       0,
-      "Minimum value's X axis position",
+      "Minimum value's X axis position.",
       UI_GROUP_COLUMNS_POSITION_PIXEL,
       0,
       GAL_TYPE_INVALID,
@@ -618,11 +618,11 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "maxvx",
-      UI_KEY_MAXVX,
+      "max-val-x",
+      UI_KEY_MAXVALX,
       0,
       0,
-      "Maximum value's X axis position",
+      "Maximum value's X axis position.",
       UI_GROUP_COLUMNS_POSITION_PIXEL,
       0,
       GAL_TYPE_INVALID,
@@ -632,11 +632,11 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "minvy",
-      UI_KEY_MINVY,
+      "min-val-y",
+      UI_KEY_MINVALY,
       0,
       0,
-      "Minimum value's Y axis position",
+      "Minimum value's Y axis position.",
       UI_GROUP_COLUMNS_POSITION_PIXEL,
       0,
       GAL_TYPE_INVALID,
@@ -646,11 +646,11 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "maxvy",
-      UI_KEY_MAXVY,
+      "max-val-y",
+      UI_KEY_MAXVALY,
       0,
       0,
-      "Maximum value's Y axis position",
+      "Maximum value's Y axis position.",
       UI_GROUP_COLUMNS_POSITION_PIXEL,
       0,
       GAL_TYPE_INVALID,
@@ -660,11 +660,11 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "minvz",
-      UI_KEY_MINVZ,
+      "min-val-z",
+      UI_KEY_MINVALZ,
       0,
       0,
-      "Minimum value's Z axis position",
+      "Minimum value's Z axis position.",
       UI_GROUP_COLUMNS_POSITION_PIXEL,
       0,
       GAL_TYPE_INVALID,
@@ -674,8 +674,8 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "maxvz",
-      UI_KEY_MAXVZ,
+      "max-val-z",
+      UI_KEY_MAXVALZ,
       0,
       0,
       "Maximum value's Z axis position",
@@ -688,7 +688,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "minx",
+      "min-x",
       UI_KEY_MINX,
       0,
       0,
@@ -702,7 +702,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "maxx",
+      "max-x",
       UI_KEY_MAXX,
       0,
       0,
@@ -716,7 +716,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "miny",
+      "min-y",
       UI_KEY_MINY,
       0,
       0,
@@ -730,7 +730,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "maxy",
+      "max-y",
       UI_KEY_MAXY,
       0,
       0,
@@ -744,7 +744,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "minz",
+      "min-z",
       UI_KEY_MINZ,
       0,
       0,
@@ -758,7 +758,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "maxz",
+      "max-z",
       UI_KEY_MAXZ,
       0,
       0,
@@ -772,7 +772,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "clumpsx",
+      "clumps-x",
       UI_KEY_CLUMPSX,
       0,
       0,
@@ -786,7 +786,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "clumpsy",
+      "clumps-y",
       UI_KEY_CLUMPSY,
       0,
       0,
@@ -800,7 +800,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "clumpsz",
+      "clumps-z",
       UI_KEY_CLUMPSZ,
       0,
       0,
@@ -814,7 +814,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "clumpsgeox",
+      "clumps-geo-x",
       UI_KEY_CLUMPSGEOX,
       0,
       0,
@@ -828,7 +828,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "clumpsgeoy",
+      "clumps-geo-y",
       UI_KEY_CLUMPSGEOY,
       0,
       0,
@@ -842,7 +842,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "clumpsgeoz",
+      "clumps-geo-z",
       UI_KEY_CLUMPSGEOZ,
       0,
       0,
@@ -863,7 +863,7 @@ struct argp_option program_options[] =
     /* Position related columns (WCS). */
     {
       0, 0, 0, 0,
-      "Positional columns (WCS)",
+      "Positional (WCS) measurements",
       UI_GROUP_COLUMNS_POSITION_WCS
     },
     {
@@ -937,7 +937,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "geow1",
+      "geo-w1",
       UI_KEY_GEOW1,
       0,
       0,
@@ -951,7 +951,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "geow2",
+      "geo-w2",
       UI_KEY_GEOW2,
       0,
       0,
@@ -965,7 +965,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "geow3",
+      "geo-w3",
       UI_KEY_GEOW2,
       0,
       0,
@@ -979,7 +979,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "clumpsw1",
+      "clumps-w1",
       UI_KEY_CLUMPSW1,
       0,
       0,
@@ -993,7 +993,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "clumpsw2",
+      "clumps-w2",
       UI_KEY_CLUMPSW2,
       0,
       0,
@@ -1007,7 +1007,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "clumpsw3",
+      "clumps-w3",
       UI_KEY_CLUMPSW3,
       0,
       0,
@@ -1021,7 +1021,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "clumpsgeow1",
+      "clumps-geo-w1",
       UI_KEY_CLUMPSGEOW1,
       0,
       0,
@@ -1035,7 +1035,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "clumpsgeow2",
+      "clumps-geo-w2",
       UI_KEY_CLUMPSGEOW2,
       0,
       0,
@@ -1049,7 +1049,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "clumpsgeow3",
+      "clumps-geo-w3",
       UI_KEY_CLUMPSGEOW3,
       0,
       0,
@@ -1070,7 +1070,7 @@ struct argp_option program_options[] =
     /* Brightness/pixel-value related columns. */
     {
       0, 0, 0, 0,
-      "Brightness/magnitude (only using pixel value/error) related columns",
+      "Brightness/magnitude (only using pixel value/error) measurements",
       UI_GROUP_COLUMNS_BRIGHTNESS
     },
     {
@@ -1088,8 +1088,8 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "sumerr",
-      UI_KEY_SUMERR,
+      "sum-error",
+      UI_KEY_SUMERROR,
       0,
       0,
       "Error (1-sigma) in measuring sum.",
@@ -1102,7 +1102,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "clumpssum",
+      "clumps-sum",
       UI_KEY_CLUMPSSUM,
       0,
       0,
@@ -1116,7 +1116,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "sumnoriver",
+      "sum-no-river",
       UI_KEY_SUMNORIVER,
       0,
       0,
@@ -1200,8 +1200,8 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "magnitudeerr",
-      UI_KEY_MAGNITUDEERR,
+      "magnitude-error",
+      UI_KEY_MAGNITUDEERROR,
       0,
       0,
       "Magnitude error of objects or clumps.",
@@ -1214,7 +1214,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "clumpsmagnitude",
+      "clumps-magnitude",
       UI_KEY_CLUMPSMAGNITUDE,
       0,
       0,
@@ -1242,7 +1242,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "upperlimitmag",
+      "upperlimit-mag",
       UI_KEY_UPPERLIMITMAG,
       0,
       0,
@@ -1256,7 +1256,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "upperlimitonesigma",
+      "upperlimit-onesigma",
       UI_KEY_UPPERLIMITONESIGMA,
       0,
       0,
@@ -1270,7 +1270,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "upperlimitsigma",
+      "upperlimit-sigma",
       UI_KEY_UPPERLIMITSIGMA,
       0,
       0,
@@ -1284,7 +1284,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "upperlimitquantile",
+      "upperlimit-quantile",
       UI_KEY_UPPERLIMITQUANTILE,
       0,
       0,
@@ -1298,7 +1298,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "upperlimitskew",
+      "upperlimit-skew",
       UI_KEY_UPPERLIMITSKEW,
       0,
       0,
@@ -1312,11 +1312,11 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "riverave",
-      UI_KEY_RIVERAVE,
+      "river-mean",
+      UI_KEY_RIVERMEAN,
       0,
       0,
-      "Average river value surrounding a clump.",
+      "Mean river value surrounding a clump.",
       UI_GROUP_COLUMNS_BRIGHTNESS,
       0,
       GAL_TYPE_INVALID,
@@ -1326,7 +1326,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "rivernum",
+      "river-num",
       UI_KEY_RIVERNUM,
       0,
       0,
@@ -1368,7 +1368,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "skystd",
+      "sky-std",
       UI_KEY_SKYSTD,
       0,
       0,
@@ -1441,15 +1441,16 @@ struct argp_option program_options[] =
 
 
 
+
     /* Brightness/pixel-value related columns. */
     {
       0, 0, 0, 0,
-      "Surface brightness related columns (all: mag/arcsec^2)",
+      "Surface brightness measurements (all: mag/arcsec^2)",
       UI_GROUP_COLUMNS_SURFACEBRIGHTNESS
     },
     {
-      "surfacebrightness",
-      UI_KEY_SURFACEBRIGHTNESS,
+      "sb",
+      UI_KEY_SB,
       0,
       0,
       "Surface brightness.",
@@ -1462,11 +1463,11 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "sberror",
+      "sb-error",
       UI_KEY_SBERROR,
       0,
       0,
-      "Surface brightness error.",
+      "Surface brightness error from STD/VAR image.",
       UI_GROUP_COLUMNS_SURFACEBRIGHTNESS,
       0,
       GAL_TYPE_INVALID,
@@ -1476,7 +1477,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "upperlimitsb",
+      "upperlimit-sb",
       UI_KEY_UPPERLIMITSB,
       0,
       0,
@@ -1504,11 +1505,11 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "sigclip-mean-sb-err",
-      UI_KEY_SIGCLIPMEANSBERR,
+      "sigclip-mean-sb-delta",
+      UI_KEY_SIGCLIPMEANSBDELTA,
       0,
       0,
-      "Error in SB of sigclip-mean (1 pix area).",
+      "sigclip-mean-sb delta from sigclip'd STD.",
       UI_GROUP_COLUMNS_SURFACEBRIGHTNESS,
       0,
       GAL_TYPE_INVALID,
@@ -1531,7 +1532,34 @@ struct argp_option program_options[] =
       GAL_OPTIONS_NOT_SET,
       ui_column_codes_ll
     },
-
+    {
+      "half-sum-sb",
+      UI_KEY_HALFSUMSB,
+      0,
+      0,
+      "Surface brightness within --halfsumarea.",
+      UI_GROUP_COLUMNS_SURFACEBRIGHTNESS,
+      0,
+      GAL_TYPE_INVALID,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
+      ui_column_codes_ll
+    },
+    {
+      "half-max-sb",
+      UI_KEY_HALFMAXSB,
+      0,
+      0,
+      "Surface brightness within half the maximum.",
+      UI_GROUP_COLUMNS_SURFACEBRIGHTNESS,
+      0,
+      GAL_TYPE_INVALID,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
+      ui_column_codes_ll
+    },
 
 
 
@@ -1540,11 +1568,11 @@ struct argp_option program_options[] =
     /* Morphology/shape related columns. */
     {
       0, 0, 0, 0,
-      "Morphology/shape related columns",
+      "Morphology/shape (non-parametric) measurements",
       UI_GROUP_COLUMNS_MORPHOLOGY
     },
     {
-      "numclumps",
+      "num-clumps",
       UI_KEY_NUMCLUMPS,
       0,
       0,
@@ -1572,7 +1600,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "areaarcsec2",
+      "area-arcsec2",
       UI_KEY_AREAARCSEC2,
       0,
       0,
@@ -1586,11 +1614,11 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "areaminv",
-      UI_KEY_MINVNUM,
+      "area-min-val",
+      UI_KEY_MINVALNUM,
       0,
       0,
-      "Number of pixels with minimum value.",
+      "Number of pixels used in '--min-val-*'.",
       UI_GROUP_COLUMNS_POSITION_PIXEL,
       0,
       GAL_TYPE_INVALID,
@@ -1600,11 +1628,11 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "areamaxv",
-      UI_KEY_MAXVNUM,
+      "area-max-val",
+      UI_KEY_MAXVALNUM,
       0,
       0,
-      "Number of pixels with maximum value.",
+      "Number of pixels used in '--max-val-*'.",
       UI_GROUP_COLUMNS_POSITION_PIXEL,
       0,
       GAL_TYPE_INVALID,
@@ -1614,7 +1642,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "areaxy",
+      "area-xy",
       UI_KEY_AREAXY,
       0,
       0,
@@ -1628,7 +1656,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "clumpsarea",
+      "clumps-area",
       UI_KEY_CLUMPSAREA,
       0,
       0,
@@ -1642,7 +1670,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "weightarea",
+      "weight-area",
       UI_KEY_WEIGHTAREA,
       0,
       0,
@@ -1656,7 +1684,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "geoarea",
+      "geo-area",
       UI_KEY_GEOAREA,
       0,
       0,
@@ -1670,123 +1698,11 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "geoareaxy",
+      "geo-area-xy",
       UI_KEY_GEOAREAXY,
       0,
       0,
-      "Projected geoarea in first two dimensions.",
-      UI_GROUP_COLUMNS_MORPHOLOGY,
-      0,
-      GAL_TYPE_INVALID,
-      GAL_OPTIONS_RANGE_ANY,
-      GAL_OPTIONS_NOT_MANDATORY,
-      GAL_OPTIONS_NOT_SET,
-      ui_column_codes_ll
-    },
-    {
-      "semimajor",
-      UI_KEY_SEMIMAJOR,
-      0,
-      0,
-      "RMS along major axis (in pixels).",
-      UI_GROUP_COLUMNS_MORPHOLOGY,
-      0,
-      GAL_TYPE_INVALID,
-      GAL_OPTIONS_RANGE_ANY,
-      GAL_OPTIONS_NOT_MANDATORY,
-      GAL_OPTIONS_NOT_SET,
-      ui_column_codes_ll
-    },
-    {
-      "semiminor",
-      UI_KEY_SEMIMINOR,
-      0,
-      0,
-      "RMS along minor axis (in pixels).",
-      UI_GROUP_COLUMNS_MORPHOLOGY,
-      0,
-      GAL_TYPE_INVALID,
-      GAL_OPTIONS_RANGE_ANY,
-      GAL_OPTIONS_NOT_MANDATORY,
-      GAL_OPTIONS_NOT_SET,
-      ui_column_codes_ll
-    },
-    {
-      "axisratio",
-      UI_KEY_AXISRATIO,
-      0,
-      0,
-      "Flux weighted axis ratio.",
-      UI_GROUP_COLUMNS_MORPHOLOGY,
-      0,
-      GAL_TYPE_INVALID,
-      GAL_OPTIONS_RANGE_ANY,
-      GAL_OPTIONS_NOT_MANDATORY,
-      GAL_OPTIONS_NOT_SET,
-      ui_column_codes_ll
-    },
-    {
-      "positionangle",
-      UI_KEY_POSITIONANGLE,
-      0,
-      0,
-      "Flux weighted position angle.",
-      UI_GROUP_COLUMNS_MORPHOLOGY,
-      0,
-      GAL_TYPE_INVALID,
-      GAL_OPTIONS_RANGE_ANY,
-      GAL_OPTIONS_NOT_MANDATORY,
-      GAL_OPTIONS_NOT_SET,
-      ui_column_codes_ll
-    },
-    {
-      "geosemimajor",
-      UI_KEY_GEOSEMIMAJOR,
-      0,
-      0,
-      "RMS along major axis (ignoring value).",
-      UI_GROUP_COLUMNS_MORPHOLOGY,
-      0,
-      GAL_TYPE_INVALID,
-      GAL_OPTIONS_RANGE_ANY,
-      GAL_OPTIONS_NOT_MANDATORY,
-      GAL_OPTIONS_NOT_SET,
-      ui_column_codes_ll
-    },
-    {
-      "geosemiminor",
-      UI_KEY_GEOSEMIMINOR,
-      0,
-      0,
-      "RMS along minor axis (ignoring value).",
-      UI_GROUP_COLUMNS_MORPHOLOGY,
-      0,
-      GAL_TYPE_INVALID,
-      GAL_OPTIONS_RANGE_ANY,
-      GAL_OPTIONS_NOT_MANDATORY,
-      GAL_OPTIONS_NOT_SET,
-      ui_column_codes_ll
-    },
-    {
-      "geoaxisratio",
-      UI_KEY_GEOAXISRATIO,
-      0,
-      0,
-      "Geometric axis ratio.",
-      UI_GROUP_COLUMNS_MORPHOLOGY,
-      0,
-      GAL_TYPE_INVALID,
-      GAL_OPTIONS_RANGE_ANY,
-      GAL_OPTIONS_NOT_MANDATORY,
-      GAL_OPTIONS_NOT_SET,
-      ui_column_codes_ll
-    },
-    {
-      "geopositionangle",
-      UI_KEY_GEOPOSITIONANGLE,
-      0,
-      0,
-      "Geometric position angle.",
+      "Projected geo-area in first two dimensions.",
       UI_GROUP_COLUMNS_MORPHOLOGY,
       0,
       GAL_TYPE_INVALID,
@@ -1810,7 +1726,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "halfmaxarea",
+      "half-max-area",
       UI_KEY_HALFMAXAREA,
       0,
       0,
@@ -1824,7 +1740,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "halfmaxradius",
+      "half-max-radius",
       UI_KEY_HALFMAXRADIUS,
       0,
       0,
@@ -1838,7 +1754,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "halfmaxsum",
+      "half-max-sum",
       UI_KEY_HALFMAXSUM,
       0,
       0,
@@ -1852,21 +1768,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "halfmaxsb",
-      UI_KEY_HALFMAXSB,
-      0,
-      0,
-      "Surface brightness within half the maximum.",
-      UI_GROUP_COLUMNS_MORPHOLOGY,
-      0,
-      GAL_TYPE_INVALID,
-      GAL_OPTIONS_RANGE_ANY,
-      GAL_OPTIONS_NOT_MANDATORY,
-      GAL_OPTIONS_NOT_SET,
-      ui_column_codes_ll
-    },
-    {
-      "halfsumarea",
+      "half-sum-area",
       UI_KEY_HALFSUMAREA,
       0,
       0,
@@ -1880,21 +1782,7 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "halfsumsb",
-      UI_KEY_HALFSUMSB,
-      0,
-      0,
-      "Surface brightness within --halfsumarea.",
-      UI_GROUP_COLUMNS_MORPHOLOGY,
-      0,
-      GAL_TYPE_INVALID,
-      GAL_OPTIONS_RANGE_ANY,
-      GAL_OPTIONS_NOT_MANDATORY,
-      GAL_OPTIONS_NOT_SET,
-      ui_column_codes_ll
-    },
-    {
-      "halfsumradius",
+      "half-sum-radius",
       UI_KEY_HALFSUMRADIUS,
       0,
       0,
@@ -1908,8 +1796,8 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "fracmaxsum1",
-      UI_KEY_FRACMAXSUM1,
+      "frac-max1-sum",
+      UI_KEY_FRACMAX1SUM,
       0,
       0,
       "Sum of pixels brighter than 1st frac. of max.",
@@ -1922,8 +1810,8 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "fracmaxsum2",
-      UI_KEY_FRACMAXSUM2,
+      "frac-max2-sum",
+      UI_KEY_FRACMAX2SUM,
       0,
       0,
       "Sum of pixels brighter than 2nd frac. of max.",
@@ -1936,8 +1824,8 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "fracmaxarea1",
-      UI_KEY_FRACMAXAREA1,
+      "frac-max1-area",
+      UI_KEY_FRACMAX1AREA,
       0,
       0,
       "Area containing 1st fraction of maximum.",
@@ -1950,8 +1838,8 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "fracmaxarea2",
-      UI_KEY_FRACMAXAREA2,
+      "frac-max2-area",
+      UI_KEY_FRACMAX2AREA,
       0,
       0,
       "Area containing 2nd fraction of maximum.",
@@ -1964,8 +1852,8 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "fracmaxradius1",
-      UI_KEY_FRACMAXRADIUS1,
+      "frac-max1-radius",
+      UI_KEY_FRACMAX1RADIUS,
       0,
       0,
       "Radius calculated from --fracmaxarea1.",
@@ -1978,8 +1866,8 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
-      "fracmaxradius2",
-      UI_KEY_FRACMAXRADIUS2,
+      "frac-max2-radius",
+      UI_KEY_FRACMAX2RADIUS,
       0,
       0,
       "Radius calculated from --fracmaxarea2.",
@@ -1992,6 +1880,128 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
 
+
+
+
+
+    /* Elliptical measurements columns. */
+    {
+      0, 0, 0, 0,
+      "Morphology/shape (elliptical) measurements",
+      UI_GROUP_COLUMNS_ELLIPTICAL
+    },
+    {
+      "semi-major",
+      UI_KEY_SEMIMAJOR,
+      0,
+      0,
+      "RMS along major axis (in pixels).",
+      UI_GROUP_COLUMNS_ELLIPTICAL,
+      0,
+      GAL_TYPE_INVALID,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
+      ui_column_codes_ll
+    },
+    {
+      "semi-minor",
+      UI_KEY_SEMIMINOR,
+      0,
+      0,
+      "RMS along minor axis (in pixels).",
+      UI_GROUP_COLUMNS_ELLIPTICAL,
+      0,
+      GAL_TYPE_INVALID,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
+      ui_column_codes_ll
+    },
+    {
+      "axis-ratio",
+      UI_KEY_AXISRATIO,
+      0,
+      0,
+      "Flux weighted axis ratio.",
+      UI_GROUP_COLUMNS_ELLIPTICAL,
+      0,
+      GAL_TYPE_INVALID,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
+      ui_column_codes_ll
+    },
+    {
+      "position-angle",
+      UI_KEY_POSITIONANGLE,
+      0,
+      0,
+      "Flux weighted position angle.",
+      UI_GROUP_COLUMNS_ELLIPTICAL,
+      0,
+      GAL_TYPE_INVALID,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
+      ui_column_codes_ll
+    },
+    {
+      "geo-semi-major",
+      UI_KEY_GEOSEMIMAJOR,
+      0,
+      0,
+      "Geometric RMS along major axis (ignoring value).",
+      UI_GROUP_COLUMNS_ELLIPTICAL,
+      0,
+      GAL_TYPE_INVALID,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
+      ui_column_codes_ll
+    },
+    {
+      "geo-semi-minor",
+      UI_KEY_GEOSEMIMINOR,
+      0,
+      0,
+      "Geometric RMS along minor axis (ignoring value).",
+      UI_GROUP_COLUMNS_ELLIPTICAL,
+      0,
+      GAL_TYPE_INVALID,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
+      ui_column_codes_ll
+    },
+    {
+      "geo-axis-ratio",
+      UI_KEY_GEOAXISRATIO,
+      0,
+      0,
+      "Geometric (ignoring values, only lab) axis ratio.",
+      UI_GROUP_COLUMNS_ELLIPTICAL,
+      0,
+      GAL_TYPE_INVALID,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
+      ui_column_codes_ll
+    },
+    {
+      "geo-position-angle",
+      UI_KEY_GEOPOSITIONANGLE,
+      0,
+      0,
+      "Geometric (ignoring values, only lab) pos. angle.",
+      UI_GROUP_COLUMNS_ELLIPTICAL,
+      0,
+      GAL_TYPE_INVALID,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
+      ui_column_codes_ll
+    },
 
 
 

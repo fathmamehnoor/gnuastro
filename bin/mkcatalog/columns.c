@@ -204,6 +204,7 @@ columns_wcs_preparation(struct mkcatalogparams *p)
           switch(colcode->v)
             {
             /* High-level. */
+            case UI_KEY_SB:
             case UI_KEY_RA:
             case UI_KEY_DEC:
             case UI_KEY_SBERROR:
@@ -212,8 +213,7 @@ columns_wcs_preparation(struct mkcatalogparams *p)
             case UI_KEY_AREAARCSEC2:
             case UI_KEY_SIGCLIPSTDSB:
             case UI_KEY_SIGCLIPMEANSB:
-            case UI_KEY_SIGCLIPMEANSBERR:
-            case UI_KEY_SURFACEBRIGHTNESS:
+            case UI_KEY_SIGCLIPMEANSBDELTA:
 
             /* Low-level. */
             case UI_KEY_W1:
@@ -260,6 +260,7 @@ columns_wcs_preparation(struct mkcatalogparams *p)
         break;
 
       /* Calculate the pixel area if necessary. */
+      case UI_KEY_SB:
       case UI_KEY_SBERROR:
       case UI_KEY_HALFMAXSB:
       case UI_KEY_HALFSUMSB:
@@ -267,8 +268,7 @@ columns_wcs_preparation(struct mkcatalogparams *p)
       case UI_KEY_UPPERLIMITSB:
       case UI_KEY_SIGCLIPSTDSB:
       case UI_KEY_SIGCLIPMEANSB:
-      case UI_KEY_SIGCLIPMEANSBERR:
-      case UI_KEY_SURFACEBRIGHTNESS:
+      case UI_KEY_SIGCLIPMEANSBDELTA:
         pixscale=gal_wcs_pixel_scale(p->objects->wcs);
         p->pixelarcsecsq=pixscale[0]*pixscale[1]*3600.0f*3600.0f;
         free(pixscale);
@@ -303,7 +303,7 @@ columns_sanity_check(struct mkcatalogparams *p)
       case UI_KEY_SIGCLIPMEANSB:
       case UI_KEY_SIGCLIPNUMBER:
       case UI_KEY_SIGCLIPMEDIAN:
-      case UI_KEY_SIGCLIPMEANSBERR:
+      case UI_KEY_SIGCLIPMEANSBDELTA:
         if(isnan(p->sigmaclip[0]) || isnan(p->sigmaclip[1]))
           error(EXIT_FAILURE, 0, "no sigma-clip defined! When any of the "
                 "sigma-clipping columns are requested, it is necessary to "
@@ -349,8 +349,8 @@ columns_sanity_check(struct mkcatalogparams *p)
           case UI_KEY_GEOSEMIMINOR:
           case UI_KEY_GEOAXISRATIO:
           case UI_KEY_HALFSUMRADIUS:
-          case UI_KEY_FRACMAXRADIUS1:
-          case UI_KEY_FRACMAXRADIUS2:
+          case UI_KEY_FRACMAX1RADIUS:
+          case UI_KEY_FRACMAX2RADIUS:
           case UI_KEY_GEOPOSITIONANGLE:
             error(EXIT_FAILURE, 0, "columns requiring second moment "
                   "calculations (like semi-major, semi-minor, axis ratio "
@@ -483,7 +483,7 @@ columns_define_alloc(struct mkcatalogparams *p)
           oiflag[ OCOL_NUM ] = ciflag[ CCOL_NUM ] = 1;
           break;
 
-        case UI_KEY_SURFACEBRIGHTNESS:
+        case UI_KEY_SB:
           name           = "SURFACE_BRIGHTNESS";
           unit           = "mag/arcsec^2";
           ocomment       = "Surface brightness (magnitude of brightness/area).";
@@ -753,8 +753,8 @@ columns_define_alloc(struct mkcatalogparams *p)
           disp_precision = 3;
           oiflag[ OCOL_C_GZ ] = 1;
 
-        case UI_KEY_MINVX:
-          name           = "MIN_V_X";
+        case UI_KEY_MINVALX:
+          name           = "MIN_VAL_X";
           unit           = "pixel";
           ocomment       = "Minimum value X pixel position.";
           ccomment       = ocomment;
@@ -767,8 +767,8 @@ columns_define_alloc(struct mkcatalogparams *p)
           oiflag[ OCOL_MINVNUM ] = ciflag[ CCOL_MINVNUM ] = 1;
           break;
 
-        case UI_KEY_MAXVX:
-          name           = "MAX_V_X";
+        case UI_KEY_MAXVALX:
+          name           = "MAX_VAL_X";
           unit           = "pixel";
           ocomment       = "Maximum value X pixel position.";
           ccomment       = ocomment;
@@ -781,8 +781,8 @@ columns_define_alloc(struct mkcatalogparams *p)
           oiflag[ OCOL_MAXVNUM ] = ciflag[ CCOL_MAXVNUM ] = 1;
           break;
 
-        case UI_KEY_MINVY:
-          name           = "MIN_V_Y";
+        case UI_KEY_MINVALY:
+          name           = "MIN_VAL_Y";
           unit           = "pixel";
           ocomment       = "Minimum value Y pixel position.";
           ccomment       = ocomment;
@@ -795,8 +795,8 @@ columns_define_alloc(struct mkcatalogparams *p)
           oiflag[ OCOL_MINVNUM ] = ciflag[ CCOL_MINVNUM ] = 1;
           break;
 
-        case UI_KEY_MAXVY:
-          name           = "MAX_V_Y";
+        case UI_KEY_MAXVALY:
+          name           = "MAX_VAL_Y";
           unit           = "pixel";
           ocomment       = "Maximum value Y pixel position.";
           ccomment       = ocomment;
@@ -809,8 +809,8 @@ columns_define_alloc(struct mkcatalogparams *p)
           oiflag[ OCOL_MAXVNUM ] = ciflag[ CCOL_MAXVNUM ] = 1;
           break;
 
-        case UI_KEY_MINVZ:
-          name           = "MIN_V_Z";
+        case UI_KEY_MINVALZ:
+          name           = "MIN_VAL_Z";
           unit           = "pixel";
           ocomment       = "Minimum value Z pixel position.";
           ccomment       = ocomment;
@@ -823,8 +823,8 @@ columns_define_alloc(struct mkcatalogparams *p)
           oiflag[ OCOL_MINVNUM ] = ciflag[ CCOL_MINVNUM ] = 1;
           break;
 
-        case UI_KEY_MAXVZ:
-          name           = "MAX_V_Z";
+        case UI_KEY_MAXVALZ:
+          name           = "MAX_VAL_Z";
           unit           = "pixel";
           ocomment       = "Maximum value Z pixel position.";
           ccomment       = ocomment;
@@ -837,8 +837,8 @@ columns_define_alloc(struct mkcatalogparams *p)
           oiflag[ OCOL_MAXVNUM ] = ciflag[ CCOL_MAXVNUM ] = 1;
           break;
 
-        case UI_KEY_MINVNUM:
-          name           = "MIN_V_NUM";
+        case UI_KEY_MINVALNUM:
+          name           = "MIN_VAL_NUM";
           unit           = "counter";
           ocomment       = "Number of pixels with the minimum value.";
           ccomment       = ocomment;
@@ -850,8 +850,8 @@ columns_define_alloc(struct mkcatalogparams *p)
           oiflag[ OCOL_MINVNUM ] = ciflag[ CCOL_MINVNUM ] = 1;
           break;
 
-        case UI_KEY_MAXVNUM:
-          name           = "MAX_V_NUM";
+        case UI_KEY_MAXVALNUM:
+          name           = "MAX_VAL_NUM";
           unit           = "counter";
           ocomment       = "Number of pixels with the maximum value..";
           ccomment       = ocomment;
@@ -1210,7 +1210,7 @@ columns_define_alloc(struct mkcatalogparams *p)
                                    ciflag[ CCOL_RIV_SUM ] = 1;
           break;
 
-        case UI_KEY_SUMERR:
+        case UI_KEY_SUMERROR:
           name           = "SUM_ERROR";
           unit           = MKCATALOG_NO_UNIT;
           ocomment       = "Error (1-sigma) in measuring sum.";
@@ -1397,7 +1397,7 @@ columns_define_alloc(struct mkcatalogparams *p)
                                        ciflag[ CCOL_RIV_SUM     ] = 1;
           break;
 
-        case UI_KEY_SIGCLIPMEANSBERR:
+        case UI_KEY_SIGCLIPMEANSBDELTA:
           name           = "SIGCLIP-MEAN-SB-ERR";
           unit           = "mag/arcsec^2";
           ocomment       = "Error in SB (over one pixel) of "
@@ -1451,7 +1451,7 @@ columns_define_alloc(struct mkcatalogparams *p)
                                    ciflag[ CCOL_RIV_NUM ] = 1;
           break;
 
-        case UI_KEY_MAGNITUDEERR:
+        case UI_KEY_MAGNITUDEERROR:
           name           = "MAGNITUDE_ERROR";
           unit           = "log";
           ocomment       = "Error in measuring magnitude.";
@@ -1589,8 +1589,8 @@ columns_define_alloc(struct mkcatalogparams *p)
           oiflag[ OCOL_UPPERLIMIT_SKEW ] = oiflag[ CCOL_UPPERLIMIT_SKEW ] = 1;
           break;
 
-        case UI_KEY_RIVERAVE:
-          name           = "RIVER_AVE";
+        case UI_KEY_RIVERMEAN:
+          name           = "RIVER_MEAN";
           unit           = MKCATALOG_NO_UNIT;
           ocomment       = NULL;
           ccomment       = "Average river value surrounding this clump.";
@@ -1904,11 +1904,11 @@ columns_define_alloc(struct mkcatalogparams *p)
           oiflag[ OCOL_HALFSUMNUM ] = ciflag[ CCOL_HALFSUMNUM ] = 1;
           break;
 
-        case UI_KEY_FRACMAXSUM1:
-        case UI_KEY_FRACMAXSUM2:
-          name           = ( colcode->v==UI_KEY_FRACMAXSUM1
-                             ? "FRAC_MAX_SUM_1"
-                             : "FRAC_MAX_SUM_2" );
+        case UI_KEY_FRACMAX1SUM:
+        case UI_KEY_FRACMAX2SUM:
+          name           = ( colcode->v==UI_KEY_FRACMAX1SUM
+                             ? "FRAC_MAX1_SUM"
+                             : "FRAC_MAX1_SUM" );
           unit           = MKCATALOG_NO_UNIT;
           otype          = GAL_TYPE_FLOAT32;
           ctype          = GAL_TYPE_FLOAT32;
@@ -1917,7 +1917,7 @@ columns_define_alloc(struct mkcatalogparams *p)
           disp_precision = 0;
           oiflag[ OCOL_NUM ] = ciflag[ CCOL_NUM ] = 1;
           oiflag[ OCOL_SUM ] = ciflag[ CCOL_SUM ] = 1;
-          if(colcode->v==UI_KEY_FRACMAXSUM1)
+          if(colcode->v==UI_KEY_FRACMAX1SUM)
             {
               ocomment = "Sum of pixels brighter than 1st fraction of maximum.";
               oiflag[ OCOL_FRACMAX1SUM ] = ciflag[ CCOL_FRACMAX1SUM ] = 1;
@@ -1930,11 +1930,11 @@ columns_define_alloc(struct mkcatalogparams *p)
           ccomment = ocomment;
           break;
 
-        case UI_KEY_FRACMAXAREA1:
-        case UI_KEY_FRACMAXAREA2:
-          name           = ( colcode->v==UI_KEY_FRACMAXAREA1
-                             ? "FRAC_MAX_AREA_1"
-                             : "FRAC_MAX_AREA_2" );
+        case UI_KEY_FRACMAX1AREA:
+        case UI_KEY_FRACMAX2AREA:
+          name           = ( colcode->v==UI_KEY_FRACMAX1AREA
+                             ? "FRAC_MAX1_AREA"
+                             : "FRAC_MAX2_AREA" );
           unit           = "counter";
           ocomment       = "Number of pixels brighter than given fraction of maximum value.";
           ccomment       = ocomment;
@@ -1945,7 +1945,7 @@ columns_define_alloc(struct mkcatalogparams *p)
           disp_precision = 0;
           oiflag[ OCOL_NUM ] = ciflag[ CCOL_NUM ] = 1;
           oiflag[ OCOL_SUM ] = ciflag[ CCOL_SUM ] = 1;
-          if(colcode->v==UI_KEY_FRACMAXAREA1)
+          if(colcode->v==UI_KEY_FRACMAX1AREA)
             oiflag[ OCOL_FRACMAX1NUM ] = ciflag[ CCOL_FRACMAX1NUM ] = 1;
           else
             oiflag[ OCOL_FRACMAX2NUM ] = ciflag[ CCOL_FRACMAX2NUM ] = 1;
@@ -1954,8 +1954,8 @@ columns_define_alloc(struct mkcatalogparams *p)
         case UI_KEY_FWHM:
         case UI_KEY_HALFMAXRADIUS:
         case UI_KEY_HALFSUMRADIUS:
-        case UI_KEY_FRACMAXRADIUS1:
-        case UI_KEY_FRACMAXRADIUS2:
+        case UI_KEY_FRACMAX1RADIUS:
+        case UI_KEY_FRACMAX2RADIUS:
           unit           = "pixels";
           otype          = GAL_TYPE_FLOAT32;
           ctype          = GAL_TYPE_FLOAT32;
@@ -1993,12 +1993,12 @@ columns_define_alloc(struct mkcatalogparams *p)
               oiflag[ OCOL_HALFSUMNUM  ] = ciflag[ CCOL_HALFSUMNUM  ] = 1;
               ocomment = "Radius at half of total sum (accounting for ellipticity).";
               break;
-            case UI_KEY_FRACMAXRADIUS1:
+            case UI_KEY_FRACMAX1RADIUS:
               name="FRAC_MAX_RADIUS_1";
               oiflag[ OCOL_FRACMAX1NUM ] = ciflag[ CCOL_FRACMAX1NUM ] = 1;
               ocomment = "Radius derived from area of 1st fraction of maximum.";
               break;
-            case UI_KEY_FRACMAXRADIUS2:
+            case UI_KEY_FRACMAX2RADIUS:
               name="FRAC_MAX_RADIUS_2";
               oiflag[ OCOL_FRACMAX2NUM ] = ciflag[ CCOL_FRACMAX2NUM ] = 1;
               ocomment = "Radius derived from area of 2nd fraction of maximum.";
@@ -2439,7 +2439,7 @@ columns_fill(struct mkcatalog_passparams *pp)
           ((float *)colarr)[oind] = oi[OCOL_NUM]*p->pixelarcsecsq;
           break;
 
-        case UI_KEY_SURFACEBRIGHTNESS:
+        case UI_KEY_SB:
           ((float *)colarr)[oind] = MKC_SB(oi[OCOL_SUM], oi[OCOL_NUM]);
           break;
 
@@ -2524,35 +2524,35 @@ columns_fill(struct mkcatalog_passparams *pp)
                                                oi[OCOL_C_NUMALL] );
           break;
 
-        case UI_KEY_MINVX:
+        case UI_KEY_MINVALX:
           ((float *)colarr)[oind] = MKC_RATIO( oi[OCOL_MINVX], oi[OCOL_MINVNUM] );
           break;
 
-        case UI_KEY_MAXVX:
+        case UI_KEY_MAXVALX:
           ((float *)colarr)[oind] = MKC_RATIO( oi[OCOL_MAXVX], oi[OCOL_MAXVNUM] );
           break;
 
-        case UI_KEY_MINVY:
+        case UI_KEY_MINVALY:
           ((float *)colarr)[oind] = MKC_RATIO( oi[OCOL_MINVY], oi[OCOL_MINVNUM] );
           break;
 
-        case UI_KEY_MAXVY:
+        case UI_KEY_MAXVALY:
           ((float *)colarr)[oind] = MKC_RATIO( oi[OCOL_MAXVY], oi[OCOL_MAXVNUM] );
           break;
 
-        case UI_KEY_MINVZ:
+        case UI_KEY_MINVALZ:
           ((float *)colarr)[oind] = MKC_RATIO( oi[OCOL_MINVZ], oi[OCOL_MINVNUM] );
           break;
 
-        case UI_KEY_MAXVZ:
+        case UI_KEY_MAXVALZ:
           ((float *)colarr)[oind] = MKC_RATIO( oi[OCOL_MAXVZ], oi[OCOL_MAXVNUM] );
           break;
 
-        case UI_KEY_MINVNUM:
+        case UI_KEY_MINVALNUM:
           ((uint32_t *)colarr)[oind] = oi[OCOL_MINVNUM];
           break;
 
-        case UI_KEY_MAXVNUM:
+        case UI_KEY_MAXVALNUM:
           ((uint32_t *)colarr)[oind] = oi[OCOL_MAXVNUM];
           break;
 
@@ -2613,7 +2613,7 @@ columns_fill(struct mkcatalog_passparams *pp)
                                       : NAN );
           break;
 
-        case UI_KEY_SUMERR:
+        case UI_KEY_SUMERROR:
           ((float *)colarr)[oind] = columns_sum_error(p, oi, 0);
           break;
 
@@ -2665,7 +2665,7 @@ columns_fill(struct mkcatalog_passparams *pp)
           ((float *)colarr)[oind] = MKC_SB(oi[ OCOL_SIGCLIPMEAN ], 1);
           break;
 
-        case UI_KEY_SIGCLIPMEANSBERR:
+        case UI_KEY_SIGCLIPMEANSBDELTA:
           ((float *)colarr)[oind] = SCLIP_SBERR(oi[ OCOL_SIGCLIPMEAN ],
                                                 oi[ OCOL_SIGCLIPSTD ]);
           break;
@@ -2680,7 +2680,7 @@ columns_fill(struct mkcatalog_passparams *pp)
                                       : NAN );
           break;
 
-        case UI_KEY_MAGNITUDEERR:
+        case UI_KEY_MAGNITUDEERROR:
           ((float *)colarr)[oind] = MAG_ERROR(p, oi, 0);
           break;
 
@@ -2785,19 +2785,19 @@ columns_fill(struct mkcatalog_passparams *pp)
                                             oi[OCOL_HALFMAXNUM] );
           break;
 
-        case UI_KEY_FRACMAXSUM1:
+        case UI_KEY_FRACMAX1SUM:
           ((float *)colarr)[oind] = oi[OCOL_FRACMAX1SUM];
           break;
 
-        case UI_KEY_FRACMAXSUM2:
+        case UI_KEY_FRACMAX2SUM:
           ((float *)colarr)[oind] = oi[OCOL_FRACMAX2SUM];
           break;
 
-        case UI_KEY_FRACMAXAREA1:
+        case UI_KEY_FRACMAX1AREA:
           ((int32_t *)colarr)[oind] = oi[OCOL_FRACMAX1NUM];
           break;
 
-        case UI_KEY_FRACMAXAREA2:
+        case UI_KEY_FRACMAX2AREA:
           ((int32_t *)colarr)[oind] = oi[OCOL_FRACMAX2NUM];
           break;
 
@@ -2809,8 +2809,8 @@ columns_fill(struct mkcatalog_passparams *pp)
         case UI_KEY_FWHM:
         case UI_KEY_HALFMAXRADIUS:
         case UI_KEY_HALFSUMRADIUS:
-        case UI_KEY_FRACMAXRADIUS1:
-        case UI_KEY_FRACMAXRADIUS2:
+        case UI_KEY_FRACMAX1RADIUS:
+        case UI_KEY_FRACMAX2RADIUS:
           /* First derive the axis ratio (as 'tmp'), then set the index to
              use and calculate the radius from the area and axis ratio. */
           tmp = ( columns_second_order(pp, oi, UI_KEY_SEMIMINOR, 0)
@@ -2820,8 +2820,8 @@ columns_fill(struct mkcatalog_passparams *pp)
             case UI_KEY_FWHM:           tmpind=OCOL_HALFMAXNUM;  break;
             case UI_KEY_HALFMAXRADIUS:  tmpind=OCOL_HALFMAXNUM;  break;
             case UI_KEY_HALFSUMRADIUS:  tmpind=OCOL_HALFSUMNUM;  break;
-            case UI_KEY_FRACMAXRADIUS1: tmpind=OCOL_FRACMAX1NUM; break;
-            case UI_KEY_FRACMAXRADIUS2: tmpind=OCOL_FRACMAX2NUM; break;
+            case UI_KEY_FRACMAX1RADIUS: tmpind=OCOL_FRACMAX1NUM; break;
+            case UI_KEY_FRACMAX2RADIUS: tmpind=OCOL_FRACMAX2NUM; break;
             }
           tmp = sqrt( oi[tmpind]/(tmp*M_PI) );
           if(key==UI_KEY_FWHM)
@@ -2872,7 +2872,7 @@ columns_fill(struct mkcatalog_passparams *pp)
             ((float *)colarr)[cind]=ci[CCOL_NUM]*p->pixelarcsecsq;
             break;
 
-          case UI_KEY_SURFACEBRIGHTNESS:
+          case UI_KEY_SB:
             ((float *)colarr)[cind]=MKC_SB(ci[CCOL_SUM], ci[CCOL_NUM]);
             break;
 
@@ -2926,35 +2926,35 @@ columns_fill(struct mkcatalog_passparams *pp)
                                                  ci[CCOL_NUMALL] );
             break;
 
-          case UI_KEY_MINVX:
+          case UI_KEY_MINVALX:
             ((float *)colarr)[cind] = MKC_RATIO( ci[CCOL_MINVX], ci[CCOL_MINVNUM] );
             break;
 
-          case UI_KEY_MAXVX:
+          case UI_KEY_MAXVALX:
             ((float *)colarr)[cind] = MKC_RATIO( ci[CCOL_MAXVX], ci[CCOL_MAXVNUM] );
             break;
 
-          case UI_KEY_MINVY:
+          case UI_KEY_MINVALY:
             ((float *)colarr)[cind] = MKC_RATIO( ci[CCOL_MINVY], ci[CCOL_MINVNUM] );
             break;
 
-          case UI_KEY_MAXVY:
+          case UI_KEY_MAXVALY:
             ((float *)colarr)[cind] = MKC_RATIO( ci[CCOL_MAXVY], ci[CCOL_MAXVNUM] );
             break;
 
-          case UI_KEY_MINVZ:
+          case UI_KEY_MINVALZ:
             ((float *)colarr)[cind] = MKC_RATIO( ci[CCOL_MINVZ], ci[CCOL_MINVNUM] );
             break;
 
-          case UI_KEY_MAXVZ:
+          case UI_KEY_MAXVALZ:
             ((float *)colarr)[cind] = MKC_RATIO( ci[CCOL_MAXVZ], ci[CCOL_MAXVNUM] );
             break;
 
-          case UI_KEY_MINVNUM:
+          case UI_KEY_MINVALNUM:
             ((uint32_t *)colarr)[cind] = ci[CCOL_MINVNUM];
             break;
 
-          case UI_KEY_MAXVNUM:
+          case UI_KEY_MAXVALNUM:
             ((uint32_t *)colarr)[cind] = ci[CCOL_MAXVNUM];
             break;
 
@@ -2990,7 +2990,7 @@ columns_fill(struct mkcatalog_passparams *pp)
             ((float *)colarr)[cind] = columns_clump_sum(ci);
             break;
 
-          case UI_KEY_SUMERR:
+          case UI_KEY_SUMERROR:
             ((float *)colarr)[cind] = columns_sum_error(p, ci, 1);
             break;
 
@@ -3050,7 +3050,7 @@ columns_fill(struct mkcatalog_passparams *pp)
             ((float *)colarr)[cind] = MKC_MAG(ci[ CCOL_SUM ]-tmp);
             break;
 
-          case UI_KEY_MAGNITUDEERR:
+          case UI_KEY_MAGNITUDEERROR:
             ((float *)colarr)[cind] = MAG_ERROR(p, ci, 1);
             break;
 
@@ -3084,7 +3084,7 @@ columns_fill(struct mkcatalog_passparams *pp)
             ((float *)colarr)[cind] = ci[ CCOL_UPPERLIMIT_SKEW ];
             break;
 
-          case UI_KEY_RIVERAVE:
+          case UI_KEY_RIVERMEAN:
             ((float *)colarr)[cind] = ( ci[ CCOL_RIV_NUM]
                                         ? ci[ CCOL_RIV_SUM ]/ci[ CCOL_RIV_NUM]
                                         : NAN );
@@ -3161,19 +3161,19 @@ columns_fill(struct mkcatalog_passparams *pp)
                                               ci[CCOL_HALFMAXNUM] );
             break;
 
-          case UI_KEY_FRACMAXSUM1:
+          case UI_KEY_FRACMAX1SUM:
             ((int32_t *)colarr)[cind] = ci[CCOL_FRACMAX1SUM];
             break;
 
-          case UI_KEY_FRACMAXSUM2:
+          case UI_KEY_FRACMAX2SUM:
             ((int32_t *)colarr)[cind] = ci[CCOL_FRACMAX2SUM];
             break;
 
-          case UI_KEY_FRACMAXAREA1:
+          case UI_KEY_FRACMAX1AREA:
             ((int32_t *)colarr)[cind] = ci[CCOL_FRACMAX1NUM];
             break;
 
-          case UI_KEY_FRACMAXAREA2:
+          case UI_KEY_FRACMAX2AREA:
             ((int32_t *)colarr)[cind] = ci[CCOL_FRACMAX2NUM];
             break;
 
@@ -3185,8 +3185,8 @@ columns_fill(struct mkcatalog_passparams *pp)
           case UI_KEY_FWHM:
           case UI_KEY_HALFMAXRADIUS:
           case UI_KEY_HALFSUMRADIUS:
-          case UI_KEY_FRACMAXRADIUS1:
-          case UI_KEY_FRACMAXRADIUS2:
+          case UI_KEY_FRACMAX1RADIUS:
+          case UI_KEY_FRACMAX2RADIUS:
             tmp = ( columns_second_order(  pp, ci, UI_KEY_SEMIMINOR, 1)
                     / columns_second_order(pp, ci, UI_KEY_SEMIMAJOR, 1) );
             switch(key)
@@ -3194,8 +3194,8 @@ columns_fill(struct mkcatalog_passparams *pp)
               case UI_KEY_FWHM:           tmpind=CCOL_HALFMAXNUM;  break;
               case UI_KEY_HALFMAXRADIUS:  tmpind=CCOL_HALFMAXNUM;  break;
               case UI_KEY_HALFSUMRADIUS:  tmpind=CCOL_HALFSUMNUM;  break;
-              case UI_KEY_FRACMAXRADIUS1: tmpind=CCOL_FRACMAX1NUM; break;
-              case UI_KEY_FRACMAXRADIUS2: tmpind=CCOL_FRACMAX2NUM; break;
+              case UI_KEY_FRACMAX1RADIUS: tmpind=CCOL_FRACMAX1NUM; break;
+              case UI_KEY_FRACMAX2RADIUS: tmpind=CCOL_FRACMAX2NUM; break;
               }
             tmp = sqrt( ci[tmpind]/(tmp*M_PI) );
             if(key==UI_KEY_FWHM)

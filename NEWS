@@ -58,6 +58,10 @@ See the end of the file for license conditions.
      'EXTNAME' keyword in FITS).
 
    MakeCatalog:
+   - Book: with the increasing number of possible measurements the
+     "MakeCatalog measurements" section of the Gnuastro book has been
+     broken into separate sub-section and contextually similar measurements
+     are grouped separartely there.
    --sigclip-mean-sb: surface brightness (over one pixel's area in
      arcsec^2) of the sigma-clipped mean of the values. This is useful in
      scenarios where you want to compare surface brightness values
@@ -159,6 +163,26 @@ See the end of the file for license conditions.
 
 ** Removed features
 
+  MakeCatalog
+  - Removed the short option format for the following measurements
+    (columns). This was done because the short options affect the sorting
+    in the output of '--help', making it hard to find the options
+    visually. Because most measurements do not have a short format, we have
+    seen that the short format is rarely used. Only the most commonly used
+    measurements keep their short format, and only when they don't affect
+    the alphabetic sorting of the output of '--help':
+       --area                     (short option was 'a')
+       --axis-ratio               (short option was 'Q')
+       --magnitude-error          (short option was 'G')
+       --num-clumps               (short option was 'c')
+       --position-angle           (short option was 'p')
+       --semi-major               (short option was 'A')
+       --semi-minor               (short option was 'B')
+       --sn                       (short option was 'n')
+       --sum                      (short option was 'b')
+       --upperlimit-mag           (short option was 'u')
+
+
 ** Changed features
 
   Configuration:
@@ -173,15 +197,97 @@ See the end of the file for license conditions.
     won't be needing it either.
 
   MakeCatalog:
-  --sum: new name for the old '--brightness' column. "Brightness" has a
-    specific meaning in astronomy/physics and has units of
-    energy/time. However, astronomical images aren't in this unit, they
-    are usually in counts, or can have an arbitray units (like
-    nanomaggy). The new name is derived from what this column does (sum of
-    pixel values) to avoid confusions.
-  --sumerr: new name for '--brightnesserr'.
-  --clumpssum: new name for '--clumpbrightness'.
-  --sumnoriver: new name for '--brightnessnoriver'.
+  - "Sum" used instead of "brightness"
+    --sum: new name for the old '--brightness' column. "Brightness" has a
+      specific meaning in astronomy/physics and has units of
+      energy/time. However, astronomical images aren't in this unit, they
+      are usually in counts, or can have an arbitray units (like
+      nanomaggy). The new name is derived from what this column does (sum
+      of pixel values) to avoid confusions.
+    --sum-error: new name for '--brightnesserr'.
+    --clumps-sum: new name for '--clumpbrightness'.
+    --sum-no-river: new name for '--brightnessnoriver'.
+  - Using a hyphen to help in readability and usability:
+       Old name                         New name
+       ========                         ========
+       --areaarcsec2                    --area-arcsec2
+       --areamaxv                       --area-max-val
+       --areaminv                       --area-min-val
+       --areaxy                         --area-xy
+       --axisratio                      --axis-ratio
+       --clumpsarea                     --clumps-area
+       --clumpsgeow1                    --clumps-geo-w1
+       --clumpsgeow2                    --clumps-geo-w2
+       --clumpsgeow3                    --clumps-geo-w3
+       --clumpsgeox                     --clumps-geo-x
+       --clumpsgeoy                     --clumps-geo-y
+       --clumpsgeoz                     --clumps-geo-z
+       --clumpsmagnitude                --clumps-magnitude
+       --clumpsw1                       --clumps-w1
+       --clumpsw2                       --clumps-w2
+       --clumpsw3                       --clumps-w3
+       --clumpsx                        --clumps-x
+       --clumpsy                        --clumps-y
+       --clumpsz                        --clumps-z
+       --fracmax                        --frac-max
+       --fracmaxarea1                   --frac-max1-area
+       --fracmaxarea2                   --frac-max2-area
+       --fracmaxradius1                 --frac-max1-radius
+       --fracmaxradius2                 --frac-max2-radius
+       --fracmaxsum1                    --frac-max1-sum
+       --fracmaxsum2                    --frac-max2-sum
+       --geoarea                        --geo-area
+       --geoareaxy                      --geo-area-xy
+       --geoaxisratio                   --geo-axis-ratio
+       --geopositionangle               --geo-position-angle
+       --geosemimajor                   --geo-semi-major
+       --geosemiminor                   --geo-semi-minor
+       --geow1                          --geo-w1
+       --geow2                          --geo-w2
+       --geow3                          --geo-w3
+       --geox                           --geo-x
+       --geoy                           --geo-y
+       --geoz                           --geo-z
+       --halfmaxarea                    --half-max-area
+       --halfmaxradius                  --half-max-radius
+       --halfmaxsb                      --half-max-sb
+       --halfmaxsum                     --half-max-sum
+       --halfsumarea                    --half-sum-area
+       --halfsumradius                  --half-sum-radius
+       --halfsumsb                      --half-sum-sb
+       --hostobjid                      --host-obj-id
+       --idinhostobj                    --id-in-host-obj
+       --magnitudeerr                   --magnitude-error
+       --maxvx                          --max-val-x
+       --maxvy                          --max-val-y
+       --maxvz                          --max-val-z
+       --maxx                           --max-x
+       --maxy                           --max-y
+       --maxz                           --max-z
+       --minvx                          --min-val-x
+       --minvy                          --min-val-y
+       --minvz                          --min-val-z
+       --minx                           --min-x
+       --miny                           --min-y
+       --minz                           --min-z
+       --numclumps                      --num-clumps
+       --objid                          --obj-id
+       --positionangle                  --position-angle
+       --riverave                       --river-mean
+       --rivernum                       --river-number
+       --sberror                        --sb-error
+       --semimajor                      --semi-major
+       --semiminor                      --semi-minor
+       --sigclip-mean-sb-err            --sigclip-mean-sb-delta
+       --skystd                         --sky-std
+       --surfacebrightness              --sb
+       --upperlimitmag                  --upperlimit-mag
+       --upperlimitonesigma             --upperlimit-onesigma
+       --upperlimitquantile             --upperlimit-quantile
+       --upperlimitsb                   --upperlimit-sb
+       --upperlimitsigma                --upperlimit-sigma
+       --upperlimitskew                 --upperlimit-skew
+       --weightarea                     --weight-area
 
   MakeNoise:
   --bgnotmag: new name for the old '--bgisbrightness' option. See the
@@ -207,6 +313,12 @@ See the end of the file for license conditions.
 
   astscript-psf-select-stars:
   - Now uses the Gaia DR3 dataset by default (until now it was using eDR3).
+
+  astscript-psf-stamp:
+  astscript-psf-unite:
+  astscript-radial-profile:
+  --axis-ratio: new name for old '--axisratio'
+  --position-angle: new name for old '--positionangle'
 
   Library:
   - gal_blank_remove_rows: new 'onlydim0' argument to ignore vector columns

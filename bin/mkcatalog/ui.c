@@ -418,7 +418,7 @@ ui_read_check_only_options(struct mkcatalogparams *p)
   /* Make sure that '--fracmax' is given if necessary and that the fracsum
      values are less than one. */
   for(colcode=p->columnids; colcode!=NULL; colcode=colcode->next)
-    if( (colcode->v==UI_KEY_FRACMAXAREA1 || colcode->v==UI_KEY_FRACMAXAREA2)
+    if( (colcode->v==UI_KEY_FRACMAX1AREA || colcode->v==UI_KEY_FRACMAX2AREA)
         && p->fracmax==NULL )
       error(EXIT_FAILURE, 0, "please specify your required fractions for "
             "'--fracmaxarea' using the '--fracmax' option (for example "
@@ -440,7 +440,7 @@ ui_read_check_only_options(struct mkcatalogparams *p)
       /* If a second fracum column is necessary, make sure two values are
          given to --fracmax. */
       for(colcode=p->columnids; colcode!=NULL; colcode=colcode->next)
-        if(colcode->v==UI_KEY_FRACMAXAREA2 && p->fracmax->size==1)
+        if(colcode->v==UI_KEY_FRACMAX2AREA && p->fracmax->size==1)
           error(EXIT_FAILURE, 0, "only one value given to '--fracmax', "
                 "but '--fracmaxarea2' was requested! You need to give "
                 "the requested fraction as a second value to '--fracmax', "

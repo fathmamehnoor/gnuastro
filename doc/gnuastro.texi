@@ -632,6 +632,7 @@ MakeCatalog
 * Quantifying measurement limits::  For comparing different catalogs.
 * Measuring elliptical parameters::  Estimating elliptical parameters.
 * Adding new columns to MakeCatalog::  How to add new columns.
+* MakeCatalog measurements::    List of all the measurements/columns by MakeCatalog.
 * Invoking astmkcatalog::       Options and arguments to MakeCatalog.
 
 Quantifying measurement limits
@@ -644,11 +645,21 @@ Quantifying measurement limits
 * Surface brightness limit of image::  Extrapolate per-pixel noise-level to standard units.
 * Upper limit magnitude of image::  Measure the noise-level for a certain aperture.
 
+MakeCatalog measurements
+
+* Identifier columns::          Identifying labels of each row (object/clumps).
+* Position measurements in pixels::  Containing image/pixel (X/Y) measurements.
+* Position measurements in WCS::  Containing WCS (for example RA/Dec) measurements.
+* Brightness measurements::     Using pixel values of each label.
+* Surface brightness measurements::  Various ways to measure surface brightness.
+* Morphology measurements nonparametric::  Non-parametric morphology.
+* Morphology measurements elliptical::  Elliptical morphology measurements.
+* Spectra measurement in a cube::  How to get the value of a label across all slices.
+
 Invoking MakeCatalog
 
 * MakeCatalog inputs and basic settings::  Input files and basic settings.
 * Upper-limit settings::        Settings for upper-limit measurements.
-* MakeCatalog measurements::    Available measurements in MakeCatalog.
 * MakeCatalog output::          File names of MakeCatalog's output table.
 
 Match
@@ -3448,7 +3459,7 @@ For example, with the command below, let's generate a new catalog of the F160W f
 @example
 $ astmkcatalog seg/xdf-f160w.fits --ids --ra --dec --magnitude --sn \
                --zeropoint=25.94 --clumpscat --upnsigma=3 \
-               --upperlimitmag --upperlimitsigma \
+               --upperlimit-mag --upperlimit-sigma \
                --output=xdf-f160w.fits
 @end example
 
@@ -3518,7 +3529,7 @@ For example, in the Legacy Survey@footnote{@url{https://www.legacysurvey.org/dr9
 As mentioned above, an important caveat in this simple calculation is that we should only be looking at point-like objects, not simply everything.
 This is because the shape or radial slope of the profile has an important effect on this measurement: at the same total magnitude, a sharper object will have a higher S/N.
 To be more precise, we should first perform star-galaxy separation, then do this only for the objects that are classified as stars.
-A crude, first-order, method is to use the @option{--axisratio} option so MakeCatalog also measures the axis ratio, then call Table with @option{--range=upperlimit_sigma,,4.8:5.2} and @option{--range=axis_ratio,0.95:1} (in one command).
+A crude, first-order, method is to use the @option{--axis-ratio} option so MakeCatalog also measures the axis ratio, then call Table with @option{--range=upperlimit_sigma,,4.8:5.2} and @option{--range=axis_ratio,0.95:1} (in one command).
 Please do this for yourself as an exercise to see the difference with the result above.
 
 @noindent
@@ -4597,8 +4608,8 @@ Please see in @ref{Drawing with vector graphics} for the full list of columns/fe
 @noindent
 @strong{Drawing ellipses:} With the commands below, you can measure the elliptical properties of the objects and visualized them in a ready-to-publish PDF (we will only show the ellipses of the largest clumps):
 @example
-$ astmkcatalog ../seg/xdf-f160w.fits --ra --dec --semimajor \
-               --axisratio --positionangle --clumpscat \
+$ astmkcatalog ../seg/xdf-f160w.fits --ra --dec --semi-major \
+               --axis-ratio --position-angle --clumpscat \
                --output=ellipseinfo.fits
 $ asttable ellipseinfo.fits -hCLUMPS | awk '@{print 4@}' > params.txt
 $ asttable ellipseinfo.fits -hCLUMPS --catcolumnfile=params.txt \
@@ -5713,13 +5724,13 @@ astmkcatalog lab.fits -h1 --zeropoint=$zeropoint -osbl.fits \
              --valuesfile=r_detected.fits --valueshdu=INPUT-NO-SKY \
              --upmaskfile=r_detected.fits --upmaskhdu=DETECTIONS \
              --upnsigma=3 --checkuplim=1 --upnum=1000 \
-             --ids --upperlimitsb
+             --ids --upperlimit-sb
 @end example
 
 The @file{sbl.fits} catalog now contains the upper-limit surface brightness for a circle with an area of 25 arcsec@mymath{^2}.
 You can check the value with the command below, but the great thing is that now you have both of the surface brightness limiting magnitude in the headers discussed above, and the upper-limit surface brightness within the table.
 You can also add more profiles with different shapes and sizes if necessary.
-Of course, you can also use @option{--upperlimitsb} in your actual science objects and clumps to get an object-specific or clump-specific value.
+Of course, you can also use @option{--upperlimit-sb} in your actual science objects and clumps to get an object-specific or clump-specific value.
 
 @example
 $ asttable sbl.fits -cUPPERLIMIT_SB
@@ -5747,7 +5758,7 @@ astmkcatalog lab.fits -h1 --zeropoint=$zeropoint -osbl.fits \
              --valuesfile=r_detected.fits --valueshdu=INPUT-NO-SKY \
              --upmaskfile=r_detected.fits --upmaskhdu=DETECTIONS \
              --upnsigma=3 --checkuplim=1 --upnum=1000 \
-             --ids --upperlimitsb --envseed
+             --ids --upperlimit-sb --envseed
 @end example
 
 But where do all the random apertures of the upper-limit measurement fall on the image?
@@ -5797,7 +5808,7 @@ We will first run MakeCatalog to find the area of all the labels, then we will u
 
 @example
 # Run MakeCatalog to find the area of each label.
-$ astmkcatalog labeled.fits --ids --geoarea -h1 -ocat.fits
+$ astmkcatalog labeled.fits --ids --geo-area -h1 -ocat.fits
 
 ## Sort the table by the area column.
 $ asttable cat.fits --sort=AREA_FULL
@@ -5879,8 +5890,7 @@ Fortunately doing this is very easy with Gnuastro's MakeCatalog:
 
 @example
 $ astmkcatalog edge.fits -h1 --valuesfile=r_detected.fits \
-               --zeropoint=22.5 --ids --surfacebrightness --sn \
-               --magnitude
+               --zeropoint=22.5 --ids --sb --sn --magnitude
 $ asttable edge_cat.fits
 1      25.6971       55.2406       15.8994
 @end example
@@ -6438,11 +6448,11 @@ $ rm label/67510-masked-sat.fits label/67510-nc.fits \
 
 @noindent
 You can now simply run MakeCatalog on this image and be sure that saturated pixels will not affect the measurements.
-As one example, you can use MakeCatalog to find the clumps containing saturated pixels: recall that the @option{--area} column only calculates the area of non-blank pixels, while @option{--geoarea} calculates the area of the label (independent of their blank-ness in the values image):
+As one example, you can use MakeCatalog to find the clumps containing saturated pixels: recall that the @option{--area} column only calculates the area of non-blank pixels, while @option{--geo-area} calculates the area of the label (independent of their blank-ness in the values image):
 
 @example
-$ astmkcatalog label/67510-seg.fits --ids --ra --dec --area --geoarea \
-               --clumpscat --output=cat.fits
+$ astmkcatalog label/67510-seg.fits --ids --ra --dec --area \
+               --geo-area --clumpscat --output=cat.fits
 @end example
 
 The information of the clumps that have been affected by saturation can easily be found by selecting those with a differing value in the @code{AREA} and @code{AREA_FULL} columns:
@@ -24338,6 +24348,7 @@ For those who feel MakeCatalog's existing measurements/columns are not enough an
 * Quantifying measurement limits::  For comparing different catalogs.
 * Measuring elliptical parameters::  Estimating elliptical parameters.
 * Adding new columns to MakeCatalog::  How to add new columns.
+* MakeCatalog measurements::    List of all the measurements/columns by MakeCatalog.
 * Invoking astmkcatalog::       Options and arguments to MakeCatalog.
 @end menu
 
@@ -24932,7 +24943,7 @@ When the object cannot be represented as an ellipse, this interpretation breaks 
 
 
 
-@node Adding new columns to MakeCatalog, Invoking astmkcatalog, Measuring elliptical parameters, MakeCatalog
+@node Adding new columns to MakeCatalog, MakeCatalog measurements, Measuring elliptical parameters, MakeCatalog
 @subsection Adding new columns to MakeCatalog
 
 MakeCatalog is designed to allow easy addition of different measurements over a labeled image (see @url{https://arxiv.org/abs/1611.06387v1, Akhlaghi [2016]}).
@@ -24999,8 +25010,651 @@ Update this manual and add a description for the new column.
 
 
 
+@node MakeCatalog measurements, Invoking astmkcatalog, Adding new columns to MakeCatalog, MakeCatalog
+@subsection MakeCatalog measurements
 
-@node Invoking astmkcatalog,  , Adding new columns to MakeCatalog, MakeCatalog
+MakeCatalog's output measurements/columns can be specified using command-line options (@ref{Options}).
+The current measurements in MakeCatalog are those which only produce one final value for each label (for example, its magnitude: a single number).
+All the different label's measurements can be written as one column in a final table/catalog that contains other columns for other similar single-number measurements.
+
+In this case, all the different label's measurements can be written as one column in a final table/catalog that contains other columns for other similar single-number measurements.
+The majority of this section is devoted to MakeCatalog's single-valued measurements.
+However, MakeCatalog can also do measurements that produce more than one value for each label.
+Currently the only such measurement is generation of spectra from 3D cubes with the @option{--spectrum} option and it is discussed in the end of this section.
+
+Command-line options are used to identify which measurements you want in the final catalog(s) and in what order.
+If any of the options below is called on the command-line or in any of the configuration files, it will be included as a column in the output catalog.
+The order of the columns is in the same order as the options were seen by MakeCatalog (see @ref{Configuration file precedence}).
+Some of the columns apply to both ``objects'' and ``clumps'' and some are particular to only one of them (for the definition of ``objects'' and ``clumps'', see @ref{Segment}).
+Columns/options that are unique to one catalog (only objects, or only clumps), are explicitly marked with [Objects] or [Clumps] to specify the catalog they will be placed in.
+
+@menu
+* Identifier columns::          Identifying labels of each row (object/clumps).
+* Position measurements in pixels::  Containing image/pixel (X/Y) measurements.
+* Position measurements in WCS::  Containing WCS (for example RA/Dec) measurements.
+* Brightness measurements::     Using pixel values of each label.
+* Surface brightness measurements::  Various ways to measure surface brightness.
+* Morphology measurements nonparametric::  Non-parametric morphology.
+* Morphology measurements elliptical::  Elliptical morphology measurements.
+* Spectra measurement in a cube::  How to get the value of a label across all slices.
+@end menu
+
+@node Identifier columns, Position measurements in pixels, MakeCatalog measurements, MakeCatalog measurements
+@subsubsection Identifier columns
+
+The identifier of each row (group of measurements) is usually the first thing you will be requesting from MakeCatalog.
+Without the identifier, it is not clear which measurement corresponds to which label for the input.
+
+Since MakeCatalog can also optionally take sub-structure label (clumps; see @ref{Segment}), there are various identifiers in general that are listed below.
+The most generic (and shortest and easiest to type!) is the @option{--ids} option which can be used in object-only or object-clump catalogs.
+
+@table @option
+@item --i
+@itemx --ids
+This is a unique option which can add multiple columns to the final catalog(s).
+Calling this option will put the object IDs (@option{--obj-id}) in the objects catalog and host-object-ID (@option{--host-obj-id}) and ID-in-host-object (@option{--id-in-host-obj}) into the clumps catalog.
+Hence if only object catalogs are required, it has the same effect as @option{--obj-id}.
+
+@item --obj-id
+[Objects] ID of this object.
+
+@item -j
+@itemx --host-obj-id
+[Clumps] The ID of the object which hosts this clump.
+
+@item --id-in-host-obj
+[Clumps] The ID of this clump in its host object.
+@end table
+
+@node Position measurements in pixels, Position measurements in WCS, Identifier columns, MakeCatalog measurements
+@subsubsection Position measurements in pixels
+
+The position of a labeled region within your input dataset (in its own units) can be measured with the options in this section.
+By ``in its own units'' we mean pixels in a 2D image or voxels in a 3D cube.
+For example if the flux-weighted center of a label lies 123 pixels on the horizontal and 456 pixels on the vertical, the @option{--x} and @option{--y} options will put a value of 123 and 456 in their respective columns.
+As you see below, there are various ways to define the ``position'' of an object, so read the differences carefully to choose the one that corresponds best to your usage.
+
+@table @option
+@item -x
+@itemx --x
+The flux weighted center of all objects and clumps along the first FITS axis (horizontal when viewed in SAO DS9), see @mymath{\overline{x}} in @ref{Measuring elliptical parameters}.
+The weight has to have a positive value (pixel value larger than the Sky value) to be meaningful! Specially when doing matched photometry, this might not happen: no pixel value might be above the Sky value.
+For such detections, the geometric center will be reported in this column (see @option{--geo-x}).
+You can use @option{--weight-area} to see which was used.
+
+@item -y
+@itemx --y
+The flux weighted center of all objects and clumps along the second FITS axis (vertical when viewed in SAO DS9).
+See @option{--x}.
+
+@item -z
+@itemx --z
+The flux weighted center of all objects and clumps along the third FITS
+axis. See @option{--x}.
+
+@item --geo-x
+The geometric center of all objects and clumps along the first FITS axis axis.
+The geometric center is the average pixel positions irrespective of their pixel values.
+
+@item --geo-y
+The geometric center of all objects and clumps along the second FITS axis axis, see @option{--geo-x}.
+
+@item --geo-z
+The geometric center of all objects and clumps along the third FITS axis axis, see @option{--geo-x}.
+
+@item --min-val-x
+Position of pixel with minimum value in objects and clumps, along the first FITS axis.
+
+@item --max-val-x
+Position of pixel with maximum value in objects and clumps, along the first FITS axis.
+
+@item --min-val-y
+Position of pixel with minimum value in objects and clumps, along the first FITS axis.
+
+@item --max-val-y
+Position of pixel with maximum value in objects and clumps, along the first FITS axis.
+
+@item --min-val-z
+Position of pixel with minimum value in objects and clumps, along the first FITS axis.
+
+@item --max-val-z
+Position of pixel with maximum value in objects and clumps, along the first FITS axis.
+
+@item --min-x
+The minimum position of all objects and clumps along the first FITS axis.
+
+@item --max-x
+The maximum position of all objects and clumps along the first FITS axis.
+
+@item --min-y
+The minimum position of all objects and clumps along the second FITS axis.
+
+@item --max-y
+The maximum position of all objects and clumps along the second FITS axis.
+
+@item --min-z
+The minimum position of all objects and clumps along the third FITS axis.
+
+@item --max-z
+The maximum position of all objects and clumps along the third FITS axis.
+
+@item --clumps-x
+[Objects] The flux weighted center of all the clumps in this object along the first FITS axis.
+See @option{--x}.
+
+@item --clumps-y
+[Objects] The flux weighted center of all the clumps in this object along the second FITS axis.
+See @option{--x}.
+
+@item --clumps-z
+[Objects] The flux weighted center of all the clumps in this object along the third FITS axis.
+See @option{--x}.
+
+@item --clumps-geo-x
+[Objects] The geometric center of all the clumps in this object along the first FITS axis.
+See @option{--geo-x}.
+
+@item --clumps-geo-y
+[Objects] The geometric center of all the clumps in this object along the second FITS axis.
+See @option{--geo-x}.
+
+@item --clumps-geo-z
+[Objects] The geometric center of all the clumps in this object along
+the third FITS axis. See @option{--geo-z}.
+@end table
+
+@node Position measurements in WCS, Brightness measurements, Position measurements in pixels, MakeCatalog measurements
+@subsubsection Position measurements in WCS
+
+The position of a labeled region within your input dataset (in the World Coordinate System, or WCS) can be measured with the options in this section.
+As you see below, there are various ways to define the ``position'' of an object, so read the differences carefully to choose the one that corresponds best to your usage.
+
+The most common WCS coordiantes are Right Ascension (RA) and Declination in an equatorial system.
+Therefore, to simplify their usage, we have special @option{--ra} and @option{--dec} options.
+However, the WCS of datasets are in Galactic coordinates, so to be generic, you can use the @option{--w1}, @option{--w2} or @option{--w3} (if you have a 3D cube) options.
+In case your dataset's WCS is not in your desired system (for example it is Galactic, but you want equatorial 2000), you can use the @option{--wcscoordsys} option of Gnuastro's Fits program on the labeled image before running MakeCatalog (see @ref{Keyword inspection and manipulation}).
+
+@table @option
+@item -r
+@itemx --ra
+Flux weighted right ascension of all objects or clumps, see @option{--x}.
+This is just an alias for one of the lower-level @option{--w1} or @option{--w2} options.
+Using the FITS WCS keywords (@code{CTYPE}), MakeCatalog will determine which axis corresponds to the right ascension.
+If no @code{CTYPE} keywords start with @code{RA}, an error will be printed when requesting this column and MakeCatalog will abort.
+
+@item -d
+@itemx --dec
+Flux weighted declination of all objects or clumps, see @option{--x}.
+This is just an alias for one of the lower-level @option{--w1} or @option{--w2} options.
+Using the FITS WCS keywords (@code{CTYPE}), MakeCatalog will determine which axis corresponds to the declination.
+If no @code{CTYPE} keywords start with @code{DEC}, an error will be printed when requesting this column and MakeCatalog will abort.
+
+@item --w1
+Flux weighted first WCS axis of all objects or clumps, see @option{--x}.
+The first WCS axis is commonly used as right ascension in images.
+
+@item --w2
+Flux weighted second WCS axis of all objects or clumps, see @option{--x}.
+The second WCS axis is commonly used as declination in images.
+
+@item --w3
+Flux weighted third WCS axis of all objects or clumps, see
+@option{--x}. The third WCS axis is commonly used as wavelength in integral
+field unit data cubes.
+
+@item --geo-w1
+Geometric center in first WCS axis of all objects or clumps, see @option{--geo-x}.
+The first WCS axis is commonly used as right ascension in images.
+
+@item --geo-w2
+Geometric center in second WCS axis of all objects or clumps, see @option{--geo-x}.
+The second WCS axis is commonly used as declination in images.
+
+@item --geo-w3
+Geometric center in third WCS axis of all objects or clumps, see
+@option{--geo-x}. The third WCS axis is commonly used as wavelength in
+integral field unit data cubes.
+
+@item --clumps-w1
+[Objects] Flux weighted center in first WCS axis of all clumps in this object, see @option{--x}.
+The first WCS axis is commonly used as right ascension in images.
+
+@item --clumps-w2
+[Objects] Flux weighted declination of all clumps in this object, see @option{--x}.
+The second WCS axis is commonly used as declination in images.
+
+@item --clumps-w3
+[Objects] Flux weighted center in third WCS axis of all clumps in this object, see @option{--x}.
+The third WCS axis is commonly used as wavelength in integral field unit data cubes.
+
+@item --clumps-geo-w1
+[Objects] Geometric center right ascension of all clumps in this object, see @option{--geo-x}.
+The first WCS axis is commonly used as right ascension in images.
+
+@item --clumps-geo-w2
+[Objects] Geometric center declination of all clumps in this object, see @option{--geo-x}.
+The second WCS axis is commonly used as declination in images.
+
+@item --clumps-geo-w3
+[Objects] Geometric center in third WCS axis of all clumps in this object, see @option{--geo-x}.
+The third WCS axis is commonly used as wavelength in integral field unit data cubes.
+@end table
+
+@node Brightness measurements, Surface brightness measurements, Position measurements in WCS, MakeCatalog measurements
+@subsubsection Brightness measurements
+
+Within an image, pixels have both a position and a value.
+In the sections above all the measurements involved position (see @ref{Position measurements in pixels} or @ref{Position measurements in WCS}).
+The measurements in this section only deal with pixel values and ignore the pixel positions completely.
+In other words, for the options of this section each labeled region within the input is just a group of values (and their associated error values if necessary), and they let you do various types of measurements on the resulting distribution of values.
+
+@table @option
+@item --sum
+The sum of all pixel values associated to this label (object or clump).
+Note that if a sky value or image has been given, it will be subtracted before any column measurement.
+For clumps, the ambient values (average of river pixels around the clump, multiplied by the area of the clump) is subtracted, see @option{--river-mean}.
+So the sum of all the clump-sums in the clump catalog of one object will be smaller than the @option{--clumps-sum} column of the objects catalog.
+
+If no usable pixels are present over the clump or object (for example, they are all blank), the returned value will be NaN (note that zero is meaningful).
+
+@item --sum-error
+The (@mymath{1\sigma}) error in measuring the sum of values of a label (objects or clumps).
+
+The returned value will be NaN when the label covers only NaN pixels in the values image, or a pixel is NaN in the @option{--instd} image, but non-NaN in the values image.
+The latter situation usually happens when there is a bug in the previous steps of your analysis, and is important because those pixels with a NaN in the @option{--instd} image may contribute significantly to the final error.
+If you want to ignore those pixels in the error measurement, set them to zero (which is a meaningful number in such scenarios).
+
+@item --clumps-sum
+[Objects] The total sum of the clumps within an object.
+This is simply the sum of the pixels associated with clumps in the object.
+If no usable pixels are present over the clump or object (for example, they are all blank), the stored value will be NaN (note that zero is meaningful).
+
+@item --sum-no-river
+[Clumps] The sum of Sky (not river) subtracted clump pixel values.
+By definition, for the clumps, the average value of the rivers surrounding it are subtracted from it for a first order accounting for contamination by neighbors.
+
+If no usable pixels are present over the clump or object (for example, they are all blank), the stored value will be NaN (note that zero is meaningful).
+
+@item --mean
+The mean sky subtracted value of pixels within the object or clump.
+For clumps, the average river flux is subtracted from the sky subtracted mean.
+
+@item --std
+The standard deviation of the pixels within the object or clump.
+For clumps, the river pixels are not subtracted because that is a constant (per pixel) value and should not affect the standard deviation.
+
+@item --median
+The median sky subtracted value of pixels within the object or clump.
+For clumps, the average river flux is subtracted from the sky subtracted median.
+
+@item --maximum
+The maximum value of pixels within the object or clump.
+When the label (object or clump) is larger than three pixels, the maximum is actually derived by the mean of the brightest three pixels, not the largest pixel value of the same label.
+This is because noise fluctuations can be very strong in the extreme values of the objects/clumps due to Poisson noise (which gets stronger as the mean gets higher).
+Simply using the maximum pixel value will create a strong scatter in results that depend on the maximum (for example, the @option{--fwhm} option also uses this value internally).
+
+@item --sigclip-number
+The number of elements/pixels in the dataset after sigma-clipping the object or clump.
+The sigma-clipping parameters can be set with the @option{--sigmaclip} option described in @ref{MakeCatalog inputs and basic settings}.
+For more on Sigma-clipping, see @ref{Sigma clipping}.
+
+@item --sigclip-median
+The sigma-clipped median value of the object of clump's pixel distribution.
+For more on sigma-clipping and how to define it, see @option{--sigclip-number}.
+
+@item --sigclip-mean
+The sigma-clipped mean value of the object of clump's pixel distribution.
+For more on sigma-clipping and how to define it, see @option{--sigclip-number}.
+
+@item --sigclip-std
+The sigma-clipped standard deviation of the object of clump's pixel distribution.
+For more on sigma-clipping and how to define it, see @option{--sigclip-number}.
+
+@item -m
+@itemx --magnitude
+The magnitude of clumps or objects, see @option{--sum}.
+
+@item --magnitude-error
+The magnitude error of clumps or objects.
+The magnitude error is calculated from the signal-to-noise ratio (see @option{--sn} and @ref{Quantifying measurement limits}).
+Note that until now this error assumes uncorrelated pixel values and also does not include the error in estimating the aperture (or error in generating the labeled image).
+
+For now these factors have to be found by other means.
+@url{https://savannah.gnu.org/task/index.php?14124, Task 14124} has been defined for work on adding these sources of error too.
+
+The returned value will be NaN when the label covers only NaN pixels in the values image, or a pixel is NaN in the @option{--instd} image, but non-NaN in the values image.
+The latter situation usually happens when there is a bug in the previous steps of your analysis, and is important because those pixels with a NaN in the @option{--instd} image may contribute significantly to the final error.
+If you want to ignore those pixels in the error measurement, set them to zero (which is a meaningful number in such scenarios).
+
+@item --clumps-magnitude
+[Objects] The magnitude of all clumps in this object, see @option{--clumps-sum}.
+
+@item --upperlimit
+The upper limit value (in units of the input image) for this object or clump.
+This is the sigma-clipped standard deviation of the random distribution, multiplied by the value of @option{--upnsigma}).
+See @ref{Quantifying measurement limits} and @ref{Upper-limit settings} for a complete explanation.
+This is very important for the fainter and smaller objects in the image where the measured magnitudes are not reliable.
+
+@item --upperlimit-mag
+The upper limit magnitude for this object or clump.
+See @ref{Quantifying measurement limits} and @ref{Upper-limit settings} for a complete explanation.
+This is very important for the fainter and smaller objects in the image where the measured magnitudes are not reliable.
+
+@item --upperlimit-onesigma
+The @mymath{1\sigma} upper limit value (in units of the input image) for this object or clump.
+See @ref{Quantifying measurement limits} and @ref{Upper-limit settings} for a complete explanation.
+When @option{--upnsigma=1}, this column's values will be the same as @option{--upperlimit}.
+
+@item --upperlimit-sigma
+The position of the label's sum measured within the distribution of randomly placed upperlimit measurements in units of the distribution's @mymath{\sigma} or standard deviation.
+See @ref{Quantifying measurement limits} and @ref{Upper-limit settings} for a complete explanation.
+
+@item --upperlimit-quantile
+The position of the label's sum within the distribution of randomly placed upperlimit measurements as a quantile (value between 0 or 1).
+See @ref{Quantifying measurement limits} and @ref{Upper-limit settings} for a complete explanation.
+If the object is brighter than the brightest randomly placed profile, a value of @code{inf} is returned.
+If it is less than the minimum, a value of @code{-inf} is reported.
+
+@item --upperlimit-skew
+@cindex Skewness
+This column contains the non-parametric skew of the @mymath{\sigma}-clipped random distribution that was used to estimate the upper-limit magnitude.
+Taking @mymath{\mu} as the mean, @mymath{\nu} as the median and @mymath{\sigma} as the standard deviation, the traditional definition of skewness is defined as: @mymath{(\mu-\nu)/\sigma}.
+
+This can be a good measure to see how much you can trust the random measurements, or in other words, how accurately the regions with signal have been masked/detected. If the skewness is strong (and to the positive), then you can tell that you have a lot of undetected signal in the dataset, and therefore that the upper-limit measurement (and other measurements) are not reliable.
+
+@item --river-mean
+[Clumps] The average of the river pixel values around this clump.
+River pixels were defined in Akhlaghi and Ichikawa 2015.
+In short they are the pixels immediately outside of the clumps.
+This value is used internally to find the sum (or magnitude) and signal to noise ratio of the clumps.
+It can generally also be used as a scale to gauge the base (ambient) flux surrounding the clump.
+In case there was no river pixels, then this column will have the value of the Sky under the clump.
+So note that this value is @emph{not} sky subtracted.
+
+@item --river-num
+[Clumps] The number of river pixels around this clump, see
+@option{--river-mean}.
+
+@item --sn
+The Signal to noise ratio (S/N) of all clumps or objects.
+See Akhlaghi and Ichikawa (2015) for the exact equations used.
+
+The returned value will be NaN when the label covers only NaN pixels in the values image, or a pixel is NaN in the @option{--instd} image, but non-NaN in the values image.
+The latter situation usually happens when there is a bug in the previous steps of your analysis, and is important because those pixels with a NaN in the @option{--instd} image may contribute significantly to the final error.
+If you want to ignore those pixels in the error measurement, set them to zero (which is a meaningful number).
+
+@item --sky
+The sky flux (per pixel) value under this object or clump.
+This is actually the mean value of all the pixels in the sky image that lie on the same position as the object or clump.
+
+@item --sky-std
+The sky value standard deviation (per pixel) for this clump or object.
+This is the square root of the mean variance under the object, or the root mean square.
+@end table
+
+@node Surface brightness measurements, Morphology measurements nonparametric, Brightness measurements, MakeCatalog measurements
+@subsubsection Surface brightness measurements
+
+In astronomy, Surface brightness is most commonly measured in units of magnitudes per arcsec@mymath{^2} (for the formal definition, see @ref{Brightness flux magnitude}).
+Therefore it involves both the values of the pixels within each input label (or output row) and their position.
+
+@table @option
+@item --sb
+The surface brightness (in units of mag/arcsec@mymath{^2}) of the labeled region (objects or clumps).
+For more on the definition of the surface brightness, see @ref{Brightness flux magnitude}.
+
+@item --sb-error
+Error in measuring the surface brightness (the @option{--sb} column).
+This column will use the value given to @option{--spatialresolution} in the processing (in pixels).
+For more on @option{--spatialresolution}, see @ref{MakeCatalog inputs and basic settings} and for the equation used to derive the surface brightness error, see @ref{Surface brightness error of each detection}.
+
+@item --upperlimit-sb
+The upper-limit surface brightness (in units of mag/arcsec@mymath{^2}) of this labeled region (object or clump).
+In other words, this option measures the surface brightness of noise within the footprint of each input label.
+
+This is just a simple wrapper over lower-level columns: setting B and A as the value in the columns @option{--upperlimit} and @option{--area-arcsec2}, we fill this column by simply use the surface brightness equation of @ref{Brightness flux magnitude}.
+
+@item --half-sum-sb
+Surface brightness (in units of mag/arcsec@mymath{^2}) within the area that contains half the total sum of the label's pixels (object or clump).
+This is useful as a measure of the sharpness of an astronomical object: for example a star will have very few pixels at half the maximum, so its @option{--half-sum-sb} will be much brighter than a galaxy at the same magnitude.
+Also consider @option{--half-max-sb} below.
+
+This column just plugs in the values of half the value of the @option{--sum} column and the @option{--half-sum-area} column, into the surface brightness equation.
+Therefore please see the description in @option{--half-sum-area} to understand the systematics of this column and potential biases (see @ref{Morphology measurements nonparametric}).
+
+@item --half-max-sb
+The surface brightness (in units of mag/arcsec@mymath{^2}) within the region that contains half the maximum value of the labeled region.
+Like @option{--half-sum-sb} this option this is a good way to identify the ``central'' surface brightness of an object.
+To know when this measurement is reasonable, see the description of @option{--fwhm} in @ref{Morphology measurements nonparametric}.
+
+@item --sigclip-mean-sb
+Surface brightness (over 1 pixel's area in arcsec@mymath{^2}) of the sigma-clipped mean value of the pixel values distribution associated to each label (object or clump).
+This is useful in scenarios where your labels have approximately @emph{constant} surface brightness values @emph{after} after removing outliers: for example in a radial profile, see @ref{Invoking astscript-radial-profile}).
+
+In other scenarios it should be used with extreme care.
+For example over the full area of a galaxy/star the pixel distribution is not constant (or symmetric after adding noise), their pixel distributions are inherently skewed (with fewer pixels in the center, having a very large value and many pixels in the outer parts having lower values).
+Therefore, sigma-clipping is not meaningful for such objects!
+For more on the definition of the surface brightness, see @ref{Brightness flux magnitude}, for more on sigma-clipping, see @ref{Sigma clipping}.
+
+The error in this magnitude can be retrieved from the @option{--sigclip-mean-sb-delta} column described below, and you can use the @option{--sigclip-std-sb} column to find when the magnitude has become noise-dominated (signal-to-noise ratio is roughly 1).
+See the description of these two options for more.
+
+@item --sigclip-mean-sb-delta
+Scatter in the @option{--sigclip-mean-sb} without using the standard deviation of each pixel (that is given by @option{--instd} in @ref{MakeCatalog inputs and basic settings}).
+The scatter here is measured from the values of the label themselves.
+This measurement is therefore most meaningful when you expect the flux across one label to be constant (as in a radial profile for example).
+
+This is calculated using the equation in @ref{Surface brightness error of each detection}, where @mymath{\Delta{A}=0} (since sigma-clip is calculated per pixel and there is no error in a single pixel).
+Within the equation to derive @mymath{\Delta{M}} (the error in magnitude, derived in @ref{Magnitude measurement error of each detection}), the signal-to-noise ratio is defined by dividing the sigma-clipped mean by the sigma-clipped standard deviation.
+
+@item --sigclip-std-sb
+The surface brightness of the sigma-clipped standard deviation of all the pixels with the same label.
+For labels that are expected to have the same value in all their pixels (for example each annulus of a radial profile) this can be used to find the reliable (@mymath{1\sigma}) surface brightness for that label.
+In other words, if @option{--sigclip-mean-sb} is fainter than the value of this column, you know that noise is becoming significant.
+However, as described in @option{--sigclip-mean-sb}, the sigma-clipped measurements of MakeCatalog should only be used in certain situations like radial profiles, see the description there for more.
+@end table
+
+@node Morphology measurements nonparametric, Morphology measurements elliptical, Surface brightness measurements, MakeCatalog measurements
+@subsubsection Morphology measurements (non-parametric)
+
+Morphology defined as a way to quantify the ``shape'' of an object in your input image.
+This includes both the position and value of the pixels within your input labels.
+There are many ways to define the morphology of an object.
+In this section, we will review the available non-parametric measures of morphology.
+By non-parametric, we mean that no functional shape is assumed for the measurement.
+
+In @ref{Morphology measurements elliptical} you can see some parametric elliptical measurements (which are only valid when the object is actually an ellipse).
+
+@table @option
+@item --num-clumps
+[Objects] The number of clumps in this object.
+
+@item --area
+The raw area (number of pixels/voxels) in any clump or object independent of what pixel it lies over (if it is NaN/blank or unused for example).
+
+@item --arcsec2-area
+The used (non-blank in values image) area of the labeled region in units of arc-seconds squared.
+This column is just the value of the @option{--area} column, multiplied by the area of each pixel in the input image (in units of arcsec^2).
+Similar to the @option{--ra} or @option{--dec} columns, for this option to work, the objects extension used has to have a WCS structure.
+
+@item --area-min-val
+The number of pixels that are equal to the minimum value of the labeled region (clump or object).
+
+@item --area-max-val
+The number of pixels that are equal to the maximum value of the labeled region (clump or object).
+
+@item --area-xy
+@cindex IFU: Integral Field Unit
+@cindex Integral Field Unit
+Similar to @option{--area}, when the clump or object is projected onto the first two dimensions.
+This is only available for 3-dimensional datasets.
+When working with Integral Field Unit (IFU) datasets, this projection onto the first two dimensions would be a narrow-band image.
+
+@item --fwhm
+@cindex FWHM
+The full width at half maximum (in units of pixels, along the semi-major axis) of the labeled region (object or clump).
+The maximum value is estimated from the mean of the top-three pixels with the highest values, see the description under @option{--maximum}.
+The number of pixels that have half the value of that maximum are then found (value in the @option{--half-max-area} column) and a radius is estimated from the area.
+See the description under @option{--half-sum-radius} for more on converting area to radius along major axis.
+
+Because of its non-parametric nature, this column is most reliable on clumps and should only be used in objects with great caution.
+This is because objects can have more than one clump (peak with true signal) and multiple peaks are not treated separately in objects, so the result of this column will be biased.
+
+Also, because of its non-parametric nature, this FWHM it does not account for the PSF, and it will be strongly affected by noise if the object is faint/diffuse
+So when half the maximum value (which can be requested using the @option{--maximum} column) is too close to the local noise level (which can be requested using the @option{--sky-std} column), the value returned in this column is meaningless (its just noise peaks which are randomly distributed over the area).
+You can therefore use the @option{--maximum} and @option{--sky-std} columns to remove, or flag, unreliable FWHMs.
+For example, if a labeled region's maximum is less than 2 times the sky standard deviation, the value will certainly be unreliable (half of that is @mymath{1\sigma}!).
+For a more reliable value, this fraction should be around 4 (so half the maximum is 2@mymath{\sigma}).
+
+@item --half-max-area
+The number of pixels with values larger than half the maximum flux within the labeled region.
+This option is used to estimate @option{--fwhm}, so please read the notes there for the caveats and necessary precautions.
+
+@item --half-max-radius
+The radius of region containing half the maximum flux within the labeled region.
+This is just half the value reported by @option{--fwhm}.
+
+@item --half-max-sum
+The sum of the pixel values containing half the maximum flux within the labeled region (or those that are counted in @option{--halfmaxarea}).
+This option uses the pixels within @option{--fwhm}, so please read the notes there for the caveats and necessary precautions.
+
+@item --half-sum-area
+The number of pixels that contain half the object or clump's total sum of pixels (half the value in the @option{--sum} column).
+To count this area, all the non-blank values associated with the given label (object or clump) will be sorted and summed in order (starting from the maximum), until the sum becomes larger than half the total sum of the label's pixels.
+
+This option is thus good for clumps (which are defined to have a single peak in their morphology), but for objects you should be careful: if the object includes multiple peaks/clumps at roughly the same level, then the area reported by this option will be distributed over all the peaks.
+
+@item --half-sum-radius
+Radius (in units of pixels) derived from the area that contains half the total sum of the label's pixels (value reported by @option{--halfsumarea}).
+If the area is @mymath{A_h} and the axis ratio is @mymath{q}, then the value returned in this column is @mymath{\sqrt{A_h/({\pi}q)}}.
+This option is a good measure of the concentration of the @emph{observed} (after PSF convolution and noisy) object or clump,
+But as described below it underestimates the effective radius.
+Also, it should be used in caution with objects that may have multiple clumps.
+It is most reliable with clumps or objects that have one or zero clumps, see the note under @option{--halfsumarea}.
+
+@cindex Ellipse area
+@cindex Area, ellipse
+Recall that in general, for an ellipse with semi-major axis @mymath{a}, semi-minor axis @mymath{b}, and axis ratio @mymath{q=b/a} the area (@mymath{A}) is @mymath{A={\pi}ab={\pi}qa^2}.
+For a circle (where @mymath{q=1}), this simplifies to the familiar @mymath{A={\pi}a^2}.
+
+@cindex S@'ersic profile
+@cindex Effective radius
+This option should not be confused with the @emph{effective radius} for S@'ersic profiles, commonly written as @mymath{r_e}.
+For more on the S@'ersic profile and @mymath{r_e}, please see @ref{Galaxies}.
+Therefore, when @mymath{r_e} is meaningful for the target (the target is elliptically symmetric and can be parameterized as a S@'ersic profile), @mymath{r_e} should be derived from fitting the profile with a S@'ersic function which has been convolved with the PSF.
+But from the equation above, you see that this radius is derived from the raw image's labeled values (after convolution, with no parametric profile), so this column's value will generally be (much) smaller than @mymath{r_e}, depending on the PSF, depth of the dataset, the morphology, or if a fraction of the profile falls on the edge of the image.
+
+In other words, this option can only be interpreted as an effective radius if there is no noise and no PSF and the profile within the image extends to infinity (or a very large multiple of the effective radius) and it not near the edge of the image.
+
+@item  --frac-max1-area
+@itemx --frac-max2-area
+Number of pixels brighter than the given fraction(s) of the maximum pixel value.
+For the maximum value, see the description of @option{--maximum} column.
+The fraction(s) are given through the @option{--frac-max} option (that can take two values) and is described in @ref{MakeCatalog inputs and basic settings}.
+Recall that in @option{--halfmaxarea}, the fraction is fixed to 0.5.
+Hence, added with these two columns, you can sample three parts of the profile area.
+
+@item  --frac-max1-sum
+@itemx --frac-max2-sum
+Sum of pixels brighter than the given fraction(s) of the maximum pixel value.
+For the maximum value, see the description of @option{--maximum} column below.
+The fraction(s) are given through the @option{--frac-max} option (that can take two values) and is described in @ref{MakeCatalog inputs and basic settings}.
+Recall that in @option{--halfmaxsum}, the fraction is fixed to 0.5.
+Hence, added with these two columns, you can sample three parts of the profile's sum of pixels.
+
+@item  --frac-max1-radius
+@itemx --frac-max2-radius
+Radius (in units of pixels) derived from the area that contains the given fractions of the maximum valued pixel(s) of the label's pixels (value reported by @option{--frac-max1-area} or @option{--frac-max2-area}).
+For the maximum value, see the description of @option{--maximum} column below.
+The fractions are given through the @option{--frac-max} option (that can take two values) and is described in @ref{MakeCatalog inputs and basic settings}.
+Recall that in @option{--fwhm}, the fraction is fixed to 0.5.
+Hence, added with these two columns, you can sample three parts of the profile's radius.
+
+@item --clumps-area
+[Objects] The total area of all the clumps in this object.
+
+@item --weight-area
+The area (number of pixels) used in the flux weighted position calculations.
+
+@item --geo-area
+The area of all the pixels labeled with an object or clump.
+Note that unlike @option{--area}, pixel values are completely ignored in this column.
+For example, if a pixel value is blank, it will not be counted in @option{--area}, but will be counted here.
+
+@item --geo-area-xy
+Similar to @option{--geo-area}, when the clump or object is projected onto the first two dimensions.
+This is only available for 3-dimensional datasets.
+When working with Integral Field Unit (IFU) datasets, this projection onto the first two dimensions would be a narrow-band image.
+@end table
+
+@node Morphology measurements elliptical, Spectra measurement in a cube, Morphology measurements nonparametric, MakeCatalog measurements
+@subsubsection Morphology measurements (elliptical)
+
+When your target objects are sufficiently ellipse-like, you can use the measurements below to quantify the various parameters of the ellipse.
+For details of how the elliptical parameters are measured, see @ref{Measuring elliptical parameters}.
+For non-parametric morphological measurements, see @ref{Morphology measurements nonparametric}.
+The measures that start with @option{--geo-*} ignore the pixel values and just do the measurements on the label's ``geometric'' shape.
+
+@table @option
+@item --semi-major
+The pixel-value weighted root mean square (RMS) along the semi-major axis of the profile (assuming it is an ellipse) in units of pixels.
+
+@item --semi-minor
+The pixel-value weighted root mean square (RMS) along the semi-minor axis of the profile (assuming it is an ellipse) in units of pixels.
+
+@item --axis-ratio
+The pixel-value weighted axis ratio (semi-minor/semi-major) of the object or clump.
+
+@item --position-angle
+The pixel-value weighted angle of the semi-major axis with the first FITS axis in degrees.
+
+@item --geo-semi-major
+The geometric (ignoring pixel values) root mean square (RMS) along the semi-major axis of the profile, assuming it is an ellipse, in units of pixels.
+
+@item --geo-semi-minor
+The geometric (ignoring pixel values) root mean square (RMS) along the semi-minor axis of the profile, assuming it is an ellipse, in units of pixels.
+
+@item --geo-axis-ratio
+The geometric (ignoring pixel values) axis ratio of the profile, assuming it is an ellipse.
+
+@item --geo-position-angle
+The geometric (ignoring pixel values) angle of the semi-major axis with the first FITS axis in degrees.
+@end table
+
+@node Spectra measurement in a cube,  , Morphology measurements elliptical, MakeCatalog measurements
+@subsubsection Spectra measurement in a cube
+
+@cindex 3D data-cubes
+@cindex Cubes (3D data)
+@cindex IFU: Integral Field Unit
+@cindex Integral field unit (IFU)
+@cindex Spectrum (of astronomical source)
+MakeCatalog can also do multi-valued measurements per label.
+Currently the only such measurement is the creation of spectra from 3D data cubes as discussed below:
+
+@table @option
+@item --spectrum
+Generate a spectrum (measurement along the first two FITS dimensions) for each label when the input dataset is a 3D data cube.
+With this option, a seprate table/spectrum will be generated for every label.
+If the output is a FITS file, each label's spectrum will be written into an extension of that file with a standard name of @code{SPECTRUM_NN} (the label will be replaced with @code{NN}).
+If the output is a plain text file, each label's spectrum will be written into a separate file with the suffix @file{spec-NN.txt}.
+See @ref{MakeCatalog output} for more on specifying MakeCatalog's output file.
+
+The spectra will contain one row for every slice (third FITS dimension) of the cube.
+Since the physical nature of the third dimension is different, two types of spectra (along with their errors) are measured:
+1) Sum of values in each slice that only have the requested label.
+2) Sum of values on the 2D projection of the whole label (the area of this projection can be requested with the @option{--area-xy} column above).
+
+Labels can overlap when they are projected onto the first two FITS dimensions (the spatial domain).
+To help separate them, MakeCatalog does a third measurement on each slice: the area, sum of values and error of all pixels that belong to other labels but overlap with the 2D projection.
+This can be used to see how reliable the emission line measurement is (on the projected spectra) and also if multiple lines (labeled regions) belong to the same physical object.
+@end table
+
+
+
+
+
+@node Invoking astmkcatalog,  , MakeCatalog measurements, MakeCatalog
 @subsection Invoking MakeCatalog
 
 MakeCatalog will do measurements and produce a catalog from a labeled dataset and optional values dataset(s).
@@ -25016,7 +25670,7 @@ One line examples:
 @example
 ## Create catalog with RA, Dec, Magnitude and Magnitude error,
 ## from Segment's output:
-$ astmkcatalog --ra --dec --magnitude --magnitudeerr seg-out.fits
+$ astmkcatalog --ra --dec --magnitude --magnitude-error seg-out.fits
 
 ## Same catalog as above (using short options):
 $ asmkcatalog -rdmG seg-out.fits
@@ -25050,7 +25704,6 @@ Finally, in @ref{MakeCatalog output} the output file(s) created by MakeCatalog a
 @menu
 * MakeCatalog inputs and basic settings::  Input files and basic settings.
 * Upper-limit settings::        Settings for upper-limit measurements.
-* MakeCatalog measurements::    Available measurements in MakeCatalog.
 * MakeCatalog output::          File names of MakeCatalog's output table.
 @end menu
 
@@ -25060,7 +25713,7 @@ Finally, in @ref{MakeCatalog output} the output file(s) created by MakeCatalog a
 MakeCatalog works by using a localized/labeled dataset (see @ref{MakeCatalog}).
 This dataset maps/labels pixels to a specific target (row number in the final catalog) and is thus the only necessary input dataset to produce a minimal catalog in any situation.
 Because it only has labels/counters, it must have an integer type (see @ref{Numeric data types}), see below if your labels are in a floating point container.
-When the requested measurements only need this dataset (for example, @option{--geox}, @option{--geoy}, or @option{--geoarea}), MakeCatalog will not read any more datasets.
+When the requested measurements only need this dataset (for example, @option{--geo-x}, @option{--geo-y}, or @option{--geo-area}), MakeCatalog will not read any more datasets.
 
 Low-level measurements that only use the labeled image are rarely sufficient for any high-level science case.
 Therefore necessary input datasets depend on the requested columns in each run.
@@ -25189,25 +25842,32 @@ If the latter is larger than 1, it is read as an integer number and will be the 
 If it is smaller than 1, it is interpreted as the tolerance level to stop clipping.
 See @ref{Sigma clipping} for a complete explanation.
 
-@item --fracmax=FLT[,FLT]
-The fractions (one or two) of maximum value in objects or clumps to be used in the related columns, for example, @option{--fracmaxarea1}, @option{--fracmaxsum1} or @option{--fracmaxradius1}, see @ref{MakeCatalog measurements}.
+@item --frac-max=FLT[,FLT]
+The fractions (one or two) of maximum value in objects or clumps to be used in the related columns, for example, @option{--frac-max1-area}, @option{--frac-max1-sum} or @option{--frac-max1-radius}, see @ref{MakeCatalog measurements}.
 For the maximum value, see the description of @option{--maximum} column below.
 The value(s) of this option must be larger than 0 and smaller than 1 (they are a fraction).
-When only @option{--fracmaxarea1} or @option{--fracmaxsum1} is requested, one value must be given to this option, but if @option{--fracmaxarea2} or @option{--fracmaxsum2} are also requested, two values must be given to this option.
+When only @option{--frac-max1-area} or @option{--frac-max1-sum} is requested, one value must be given to this option, but if @option{--frac-max2-area} or @option{--frac-max2-sum} are also requested, two values must be given to this option.
 The values can be written as simple floating point numbers, or as fractions, for example, @code{0.25,0.75} and @code{0.25,3/4} are the same.
 
 @item --spatialresolution=FLT
 The error in measuring spatial properties (for example, the area) in units of pixels.
-You can think of this as the FWHM of the dataset's PSF and is used in measurements like the error in surface brightness (@option{--sberror}, see @ref{MakeCatalog measurements}).
+You can think of this as the FWHM of the dataset's PSF and is used in measurements like the error in surface brightness (@option{--sb-error}, see @ref{MakeCatalog measurements}).
 Ideally, images are taken in the optimal Nyquist sampling @ref{Sampling theorem}, so the default value for this option is 2.
 But in practice real images my be over-sampled (usually ground-based images, where you will need to increase the default value) or undersampled (some space-based images, where you will need to decrease the default value).
+
+@item --inbetweenints
+Output will contain one row for all integers between 1 and the largest label in the input (irrespective of their existance in the input image).
+By default, MakeCatalog's output will only contain rows with integers that actually corresponded to at least one pixel in the input dataset.
+
+For example, if the input's only labeled pixel values are 11 and 13, MakeCatalog's default output will only have two rows.
+If you use this option, it will have 13 rows and all the columns corresponding to integer identifiers that did not correspond to any pixel will be 0 or NaN (depending on context).
 @end table
 
 
 
 
 
-@node Upper-limit settings, MakeCatalog measurements, MakeCatalog inputs and basic settings, Invoking astmkcatalog
+@node Upper-limit settings, MakeCatalog output, MakeCatalog inputs and basic settings, Invoking astmkcatalog
 @subsubsection Upper-limit settings
 
 The upper-limit magnitude was discussed in @ref{Quantifying measurement limits}.
@@ -25294,591 +25954,7 @@ The total number of rows is thus unknown, but you can be sure that the number of
 @end table
 
 
-@node MakeCatalog measurements, MakeCatalog output, Upper-limit settings, Invoking astmkcatalog
-@subsubsection MakeCatalog measurements
-
-The final group of options particular to MakeCatalog are those that specify which measurements/columns should be written into the final output table.
-The current measurements in MakeCatalog are those which only produce one final value for each label (for example, its magnitude: a single number).
-All the different label's measurements can be written as one column in a final table/catalog that contains other columns for other similar single-number measurements.
-
-In this case, all the different label's measurements can be written as one column in a final table/catalog that contains other columns for other similar single-number measurements.
-The majority of this section is devoted to MakeCatalog's single-valued measurements.
-However, MakeCatalog can also do measurements that produce more than one value for each label.
-Currently the only such measurement is generation of spectra from 3D cubes with the @option{--spectrum} option and it is discussed in the end of this section.
-
-Command-line options are used to identify which measurements you want in the final catalog(s) and in what order.
-If any of the options below is called on the command-line or in any of the configuration files, it will be included as a column in the output catalog.
-The order of the columns is in the same order as the options were seen by MakeCatalog (see @ref{Configuration file precedence}).
-Some of the columns apply to both ``objects'' and ``clumps'' and some are particular to only one of them (for the definition of ``objects'' and ``clumps'', see @ref{Segment}).
-Columns/options that are unique to one catalog (only objects, or only clumps), are explicitly marked with [Objects] or [Clumps] to specify the catalog they will be placed in.
-
-@table @option
-
-@item --i
-@itemx --ids
-This is a unique option which can add multiple columns to the final catalog(s).
-Calling this option will put the object IDs (@option{--objid}) in the objects catalog and host-object-ID (@option{--hostobjid}) and ID-in-host-object (@option{--idinhostobj}) into the clumps catalog.
-Hence if only object catalogs are required, it has the same effect as @option{--objid}.
-
-@item --objid
-[Objects] ID of this object.
-
-@item -j
-@itemx --hostobjid
-[Clumps] The ID of the object which hosts this clump.
-
-@item --idinhostobj
-[Clumps] The ID of this clump in its host object.
-
-@item -x
-@itemx --x
-The flux weighted center of all objects and clumps along the first FITS axis (horizontal when viewed in SAO DS9), see @mymath{\overline{x}} in @ref{Measuring elliptical parameters}.
-The weight has to have a positive value (pixel value larger than the Sky value) to be meaningful! Specially when doing matched photometry, this might not happen: no pixel value might be above the Sky value.
-For such detections, the geometric center will be reported in this column (see @option{--geox}).
-You can use @option{--weightarea} to see which was used.
-
-@item -y
-@itemx --y
-The flux weighted center of all objects and clumps along the second FITS axis (vertical when viewed in SAO DS9).
-See @option{--x}.
-
-@item -z
-@itemx --z
-The flux weighted center of all objects and clumps along the third FITS
-axis. See @option{--x}.
-
-@item --geox
-The geometric center of all objects and clumps along the first FITS axis axis.
-The geometric center is the average pixel positions irrespective of their pixel values.
-
-@item --geoy
-The geometric center of all objects and clumps along the second FITS axis axis, see @option{--geox}.
-
-@item --geoz
-The geometric center of all objects and clumps along the third FITS axis axis, see @option{--geox}.
-
-@item --minvx
-Position of pixel with minimum value in objects and clumps, along the first FITS axis.
-
-@item --maxvx
-Position of pixel with maximum value in objects and clumps, along the first FITS axis.
-
-@item --minvy
-Position of pixel with minimum value in objects and clumps, along the first FITS axis.
-
-@item --maxvy
-Position of pixel with maximum value in objects and clumps, along the first FITS axis.
-
-@item --minvz
-Position of pixel with minimum value in objects and clumps, along the first FITS axis.
-
-@item --maxvz
-Position of pixel with maximum value in objects and clumps, along the first FITS axis.
-
-@item --minx
-The minimum position of all objects and clumps along the first FITS axis.
-
-@item --maxx
-The maximum position of all objects and clumps along the first FITS axis.
-
-@item --miny
-The minimum position of all objects and clumps along the second FITS axis.
-
-@item --maxy
-The maximum position of all objects and clumps along the second FITS axis.
-
-@item --minz
-The minimum position of all objects and clumps along the third FITS axis.
-
-@item --maxz
-The maximum position of all objects and clumps along the third FITS axis.
-
-@item --clumpsx
-[Objects] The flux weighted center of all the clumps in this object along the first FITS axis.
-See @option{--x}.
-
-@item --clumpsy
-[Objects] The flux weighted center of all the clumps in this object along the second FITS axis.
-See @option{--x}.
-
-@item --clumpsz
-[Objects] The flux weighted center of all the clumps in this object along the third FITS axis.
-See @option{--x}.
-
-@item --clumpsgeox
-[Objects] The geometric center of all the clumps in this object along the first FITS axis.
-See @option{--geox}.
-
-@item --clumpsgeoy
-[Objects] The geometric center of all the clumps in this object along the second FITS axis.
-See @option{--geox}.
-
-@item --clumpsgeoz
-[Objects] The geometric center of all the clumps in this object along
-the third FITS axis. See @option{--geoz}.
-
-@item -r
-@itemx --ra
-Flux weighted right ascension of all objects or clumps, see @option{--x}.
-This is just an alias for one of the lower-level @option{--w1} or @option{--w2} options.
-Using the FITS WCS keywords (@code{CTYPE}), MakeCatalog will determine which axis corresponds to the right ascension.
-If no @code{CTYPE} keywords start with @code{RA}, an error will be printed when requesting this column and MakeCatalog will abort.
-
-@item -d
-@itemx --dec
-Flux weighted declination of all objects or clumps, see @option{--x}.
-This is just an alias for one of the lower-level @option{--w1} or @option{--w2} options.
-Using the FITS WCS keywords (@code{CTYPE}), MakeCatalog will determine which axis corresponds to the declination.
-If no @code{CTYPE} keywords start with @code{DEC}, an error will be printed when requesting this column and MakeCatalog will abort.
-
-@item --w1
-Flux weighted first WCS axis of all objects or clumps, see @option{--x}.
-The first WCS axis is commonly used as right ascension in images.
-
-@item --w2
-Flux weighted second WCS axis of all objects or clumps, see @option{--x}.
-The second WCS axis is commonly used as declination in images.
-
-@item --w3
-Flux weighted third WCS axis of all objects or clumps, see
-@option{--x}. The third WCS axis is commonly used as wavelength in integral
-field unit data cubes.
-
-@item --geow1
-Geometric center in first WCS axis of all objects or clumps, see @option{--geox}.
-The first WCS axis is commonly used as right ascension in images.
-
-@item --geow2
-Geometric center in second WCS axis of all objects or clumps, see @option{--geox}.
-The second WCS axis is commonly used as declination in images.
-
-@item --geow3
-Geometric center in third WCS axis of all objects or clumps, see
-@option{--geox}. The third WCS axis is commonly used as wavelength in
-integral field unit data cubes.
-
-@item --clumpsw1
-[Objects] Flux weighted center in first WCS axis of all clumps in this object, see @option{--x}.
-The first WCS axis is commonly used as right ascension in images.
-
-@item --clumpsw2
-[Objects] Flux weighted declination of all clumps in this object, see @option{--x}.
-The second WCS axis is commonly used as declination in images.
-
-@item --clumpsw3
-[Objects] Flux weighted center in third WCS axis of all clumps in this object, see @option{--x}.
-The third WCS axis is commonly used as wavelength in integral field unit data cubes.
-
-@item --clumpsgeow1
-[Objects] Geometric center right ascension of all clumps in this object, see @option{--geox}.
-The first WCS axis is commonly used as right ascension in images.
-
-@item --clumpsgeow2
-[Objects] Geometric center declination of all clumps in this object, see @option{--geox}.
-The second WCS axis is commonly used as declination in images.
-
-@item --clumpsgeow3
-[Objects] Geometric center in third WCS axis of all clumps in this object,
-see @option{--geox}. The third WCS axis is commonly used as wavelength in
-integral field unit data cubes.
-
-@item -b
-@itemx --sum
-The sum of all pixel values associated to this label (object or clump).
-Note that if a sky value or image has been given, it will be subtracted before any column measurement.
-For clumps, the ambient values (average of river pixels around the clump, multiplied by the area of the clump) is subtracted, see @option{--riverave}.
-So the sum of all the clump-sums in the clump catalog of one object will be smaller than the @option{--clumpssum} column of the objects catalog.
-
-If no usable pixels are present over the clump or object (for example, they are all blank), the returned value will be NaN (note that zero is meaningful).
-
-@item --sumerr
-The (@mymath{1\sigma}) error in measuring the sum of values of a label (objects or clumps).
-
-The returned value will be NaN when the label covers only NaN pixels in the values image, or a pixel is NaN in the @option{--instd} image, but non-NaN in the values image.
-The latter situation usually happens when there is a bug in the previous steps of your analysis, and is important because those pixels with a NaN in the @option{--instd} image may contribute significantly to the final error.
-If you want to ignore those pixels in the error measurement, set them to zero (which is a meaningful number in such scenarios).
-
-@item --clumpssum
-[Objects] The total sum of the clumps within an object.
-This is simply the sum of the pixels associated with clumps in the object.
-If no usable pixels are present over the clump or object (for example, they are all blank), the stored value will be NaN (note that zero is meaningful).
-
-@item --sumnoriver
-[Clumps] The sum of Sky (not river) subtracted clump pixel values.
-By definition, for the clumps, the average value of the rivers surrounding it are subtracted from it for a first order accounting for contamination by neighbors.
-
-If no usable pixels are present over the clump or object (for example, they are all blank), the stored value will be NaN (note that zero is meaningful).
-
-@item --mean
-The mean sky subtracted value of pixels within the object or clump.
-For clumps, the average river flux is subtracted from the sky subtracted mean.
-
-@item --std
-The standard deviation of the pixels within the object or clump.
-For clumps, the river pixels are not subtracted because that is a constant (per pixel) value and should not affect the standard deviation.
-
-@item --median
-The median sky subtracted value of pixels within the object or clump.
-For clumps, the average river flux is subtracted from the sky subtracted median.
-
-@item --maximum
-The maximum value of pixels within the object or clump.
-When the label (object or clump) is larger than three pixels, the maximum is actually derived by the mean of the brightest three pixels, not the largest pixel value of the same label.
-This is because noise fluctuations can be very strong in the extreme values of the objects/clumps due to Poisson noise (which gets stronger as the mean gets higher).
-Simply using the maximum pixel value will create a strong scatter in results that depend on the maximum (for example, the @option{--fwhm} option also uses this value internally).
-
-@item --sigclip-number
-The number of elements/pixels in the dataset after sigma-clipping the object or clump.
-The sigma-clipping parameters can be set with the @option{--sigmaclip} option described in @ref{MakeCatalog inputs and basic settings}.
-For more on Sigma-clipping, see @ref{Sigma clipping}.
-
-@item --sigclip-median
-The sigma-clipped median value of the object of clump's pixel distribution.
-For more on sigma-clipping and how to define it, see @option{--sigclip-number}.
-
-@item --sigclip-mean
-The sigma-clipped mean value of the object of clump's pixel distribution.
-For more on sigma-clipping and how to define it, see @option{--sigclip-number}.
-
-@item --sigclip-std
-The sigma-clipped standard deviation of the object of clump's pixel distribution.
-For more on sigma-clipping and how to define it, see @option{--sigclip-number}.
-
-@item --sigclip-mean-sb
-Surface brightness (over 1 pixel's area in arcsec@mymath{^2}) of the sigma-clipped mean value of the pixel values distribution associated to each label (object or clump).
-This is useful in scenarios where your labels have approximately @emph{constant} surface brightness values @emph{after} after removing outliers: for example in a radial profile, see @ref{Invoking astscript-radial-profile}).
-
-In other scenarios it should be used with extreme care.
-For example over the full area of a galaxy/star the pixel distribution is not constant (or symmetric after adding noise), their pixel distributions are inherently skewed (with fewer pixels in the center, having a very large value and many pixels in the outer parts having lower values).
-Therefore, sigma-clipping is not meaningful for such objects!
-For more on the definition of the surface brightness, see @ref{Brightness flux magnitude}, for more on sigma-clipping, see @ref{Sigma clipping}.
-
-The error in this magnitude can be retrieved from the @option{--sigclip-mean-sb-error} column described below, and you can use the @option{--sigclip-std-sb} column to find when the magnitude has become noise-dominated (signal-to-noise ratio is roughly 1).
-See the description of these two options for more.
-
-@item --sigclip-mean-sb-err
-Error in the @option{--sigclip-mean-sb}.
-This is calculated using the equation in @ref{Surface brightness error of each detection}, where @mymath{\Delta{A}=0} (since sigma-clip is calculated per pixel and there is no error in a single pixel).
-Within the equation to derive @mymath{\Delta{M}} (the error in magnitude, derived in @ref{Magnitude measurement error of each detection}), the signal-to-noise ratio is defined by dividing the sigma-clipped mean by the sigma-clipped standard deviation.
-
-@item --sigclip-std-sb
-The surface brightness of the sigma-clipped standard deviation.
-This can be used to find the reliable (@mymath{1\sigma}) surface brightness for that label.
-In other words, if @option{--sigclip-mean-sb} is fainter than the value of this column, you know that noise is becoming significant.
-However, as described in @option{--sigclip-mean-sb}, the sigma-clipped measurements of MakeCatalog should only be used in certain situations like radial profiles, see the description there for more.
-
-@item -m
-@itemx --magnitude
-The magnitude of clumps or objects, see @option{--sum}.
-
-@item -e
-@itemx --magnitudeerr
-The magnitude error of clumps or objects.
-The magnitude error is calculated from the signal-to-noise ratio (see @option{--sn} and @ref{Quantifying measurement limits}).
-Note that until now this error assumes uncorrelated pixel values and also does not include the error in estimating the aperture (or error in generating the labeled image).
-
-For now these factors have to be found by other means.
-@url{https://savannah.gnu.org/task/index.php?14124, Task 14124} has been defined for work on adding these sources of error too.
-
-The returned value will be NaN when the label covers only NaN pixels in the values image, or a pixel is NaN in the @option{--instd} image, but non-NaN in the values image.
-The latter situation usually happens when there is a bug in the previous steps of your analysis, and is important because those pixels with a NaN in the @option{--instd} image may contribute significantly to the final error.
-If you want to ignore those pixels in the error measurement, set them to zero (which is a meaningful number in such scenarios).
-
-
-@item --clumpsmagnitude
-[Objects] The magnitude of all clumps in this object, see @option{--clumpssum}.
-
-@item --upperlimit
-The upper limit value (in units of the input image) for this object or clump.
-This is the sigma-clipped standard deviation of the random distribution, multiplied by the value of @option{--upnsigma}).
-See @ref{Quantifying measurement limits} and @ref{Upper-limit settings} for a complete explanation.
-This is very important for the fainter and smaller objects in the image where the measured magnitudes are not reliable.
-
-@item --upperlimitmag
-The upper limit magnitude for this object or clump.
-See @ref{Quantifying measurement limits} and @ref{Upper-limit settings} for a complete explanation.
-This is very important for the fainter and smaller objects in the image where the measured magnitudes are not reliable.
-
-@item --upperlimitsb
-The upper-limit surface brightness (in units of mag/arcsec@mymath{^2}) of this labeled region (object or clump).
-This is just a simple wrapper over lower-level columns: setting B and A as the value in the columns @option{--upperlimit} and @option{--areaarcsec2}, we fill this column by simply use the surface brightness equation of @ref{Brightness flux magnitude}.
-
-@item --upperlimitonesigma
-The @mymath{1\sigma} upper limit value (in units of the input image) for this object or clump.
-See @ref{Quantifying measurement limits} and @ref{Upper-limit settings} for a complete explanation.
-When @option{--upnsigma=1}, this column's values will be the same as @option{--upperlimit}.
-
-@item --upperlimitsigma
-The position of the label's sum measured within the distribution of randomly placed upperlimit measurements in units of the distribution's @mymath{\sigma} or standard deviation.
-See @ref{Quantifying measurement limits} and @ref{Upper-limit settings} for a complete explanation.
-
-@item --upperlimitquantile
-The position of the label's sum within the distribution of randomly placed upperlimit measurements as a quantile (value between 0 or 1).
-See @ref{Quantifying measurement limits} and @ref{Upper-limit settings} for a complete explanation.
-If the object is brighter than the brightest randomly placed profile, a value of @code{inf} is returned.
-If it is less than the minimum, a value of @code{-inf} is reported.
-
-@item --upperlimitskew
-@cindex Skewness
-This column contains the non-parametric skew of the @mymath{\sigma}-clipped random distribution that was used to estimate the upper-limit magnitude.
-Taking @mymath{\mu} as the mean, @mymath{\nu} as the median and @mymath{\sigma} as the standard deviation, the traditional definition of skewness is defined as: @mymath{(\mu-\nu)/\sigma}.
-
-This can be a good measure to see how much you can trust the random measurements, or in other words, how accurately the regions with signal have been masked/detected. If the skewness is strong (and to the positive), then you can tell that you have a lot of undetected signal in the dataset, and therefore that the upper-limit measurement (and other measurements) are not reliable.
-
-@item --riverave
-[Clumps] The average of the river pixel values around this clump.
-River pixels were defined in Akhlaghi and Ichikawa 2015.
-In short they are the pixels immediately outside of the clumps.
-This value is used internally to find the sum (or magnitude) and signal to noise ratio of the clumps.
-It can generally also be used as a scale to gauge the base (ambient) flux surrounding the clump.
-In case there was no river pixels, then this column will have the value of the Sky under the clump.
-So note that this value is @emph{not} sky subtracted.
-
-@item --rivernum
-[Clumps] The number of river pixels around this clump, see
-@option{--riverave}.
-
-@item -n
-@itemx --sn
-The Signal to noise ratio (S/N) of all clumps or objects.
-See Akhlaghi and Ichikawa (2015) for the exact equations used.
-
-The returned value will be NaN when the label covers only NaN pixels in the values image, or a pixel is NaN in the @option{--instd} image, but non-NaN in the values image.
-The latter situation usually happens when there is a bug in the previous steps of your analysis, and is important because those pixels with a NaN in the @option{--instd} image may contribute significantly to the final error.
-If you want to ignore those pixels in the error measurement, set them to zero (which is a meaningful number).
-
-@item --sky
-The sky flux (per pixel) value under this object or clump.
-This is actually the mean value of all the pixels in the sky image that lie on the same position as the object or clump.
-
-@item --skystd
-The sky value standard deviation (per pixel) for this clump or object.
-This is the square root of the mean variance under the object, or the root mean square.
-
-@item -C
-@itemx --numclumps
-[Objects] The number of clumps in this object.
-
-@item -a
-@itemx --area
-The raw area (number of pixels/voxels) in any clump or object independent of what pixel it lies over (if it is NaN/blank or unused for example).
-
-@item --areaarcsec2
-The used (non-blank in values image) area of the labeled region in units of arc-seconds squared.
-This column is just the value of the @option{--area} column, multiplied by the area of each pixel in the input image (in units of arcsec^2).
-Similar to the @option{--ra} or @option{--dec} columns, for this option to work, the objects extension used has to have a WCS structure.
-
-@item --areaminv
-The number of pixels that are equal to the minimum value of the labeled region (clump or object).
-
-@item --areamaxv
-The number of pixels that are equal to the maximum value of the labeled region (clump or object).
-
-@item --surfacebrightness
-The surface brightness (in units of mag/arcsec@mymath{^2}) of the labeled region (objects or clumps).
-For more on the definition of the surface brightness, see @ref{Brightness flux magnitude}.
-
-@item --sberror
-Error in measuring the surface brightness (the @option{--surfacebrightness} column).
-This column will use the value given to @option{--spatialresolution} in the processing (in pixels).
-For more on @option{--spatialresolution}, see @ref{MakeCatalog inputs and basic settings} and for the equation used to derive the surface brightness error, see @ref{Surface brightness error of each detection}.
-
-@item --areaxy
-@cindex IFU: Integral Field Unit
-@cindex Integral Field Unit
-Similar to @option{--area}, when the clump or object is projected onto the first two dimensions.
-This is only available for 3-dimensional datasets.
-When working with Integral Field Unit (IFU) datasets, this projection onto the first two dimensions would be a narrow-band image.
-
-@item --fwhm
-@cindex FWHM
-The full width at half maximum (in units of pixels, along the semi-major axis) of the labeled region (object or clump).
-The maximum value is estimated from the mean of the top-three pixels with the highest values, see the description under @option{--maximum}.
-The number of pixels that have half the value of that maximum are then found (value in the @option{--halfmaxarea} column) and a radius is estimated from the area.
-See the description under @option{--halfsumradius} for more on converting area to radius along major axis.
-
-Because of its non-parametric nature, this column is most reliable on clumps and should only be used in objects with great caution.
-This is because objects can have more than one clump (peak with true signal) and multiple peaks are not treated separately in objects, so the result of this column will be biased.
-
-Also, because of its non-parametric nature, this FWHM it does not account for the PSF, and it will be strongly affected by noise if the object is faint/diffuse
-So when half the maximum value (which can be requested using the @option{--maximum} column) is too close to the local noise level (which can be requested using the @option{--skystd} column), the value returned in this column is meaningless (its just noise peaks which are randomly distributed over the area).
-You can therefore use the @option{--maximum} and @option{--skystd} columns to remove, or flag, unreliable FWHMs.
-For example, if a labeled region's maximum is less than 2 times the sky standard deviation, the value will certainly be unreliable (half of that is @mymath{1\sigma}!).
-For a more reliable value, this fraction should be around 4 (so half the maximum is 2@mymath{\sigma}).
-
-@item --halfmaxarea
-The number of pixels with values larger than half the maximum flux within the labeled region.
-This option is used to estimate @option{--fwhm}, so please read the notes there for the caveats and necessary precautions.
-
-@item --halfmaxradius
-The radius of region containing half the maximum flux within the labeled region.
-This is just half the value reported by @option{--fwhm}.
-
-@item --halfmaxsum
-The sum of the pixel values containing half the maximum flux within the labeled region (or those that are counted in @option{--halfmaxarea}).
-This option uses the pixels within @option{--fwhm}, so please read the notes there for the caveats and necessary precautions.
-
-@item --halfmaxsb
-The surface brightness (in units of mag/arcsec@mymath{^2}) within the region that contains half the maximum value of the labeled region.
-For more on the definition of the surface brightness, see @ref{Brightness flux magnitude}.
-
-@item --halfsumarea
-The number of pixels that contain half the object or clump's total sum of pixels (half the value in the @option{--sum} column).
-To count this area, all the non-blank values associated with the given label (object or clump) will be sorted and summed in order (starting from the maximum), until the sum becomes larger than half the total sum of the label's pixels.
-
-This option is thus good for clumps (which are defined to have a single peak in their morphology), but for objects you should be careful: if the object includes multiple peaks/clumps at roughly the same level, then the area reported by this option will be distributed over all the peaks.
-
-@item --halfsumsb
-Surface brightness (in units of mag/arcsec@mymath{^2}) within the area that contains half the total sum of the label's pixels (object or clump).
-For more on the definition of the surface brightness, see @ref{Brightness flux magnitude}.
-
-This column just plugs in the values of half the value of the @option{--sum} column and the @option{--halfsumarea} column, into the surface brightness equation.
-Therefore please see the description in @option{--halfsumarea} to understand the systematics of this column and potential biases.
-
-@item --halfsumradius
-Radius (in units of pixels) derived from the area that contains half the total sum of the label's pixels (value reported by @option{--halfsumarea}).
-If the area is @mymath{A_h} and the axis ratio is @mymath{q}, then the value returned in this column is @mymath{\sqrt{A_h/({\pi}q)}}.
-This option is a good measure of the concentration of the @emph{observed} (after PSF convolution and noisy) object or clump,
-But as described below it underestimates the effective radius.
-Also, it should be used in caution with objects that may have multiple clumps.
-It is most reliable with clumps or objects that have one or zero clumps, see the note under @option{--halfsumarea}.
-
-@cindex Ellipse area
-@cindex Area, ellipse
-Recall that in general, for an ellipse with semi-major axis @mymath{a}, semi-minor axis @mymath{b}, and axis ratio @mymath{q=b/a} the area (@mymath{A}) is @mymath{A={\pi}ab={\pi}qa^2}.
-For a circle (where @mymath{q=1}), this simplifies to the familiar @mymath{A={\pi}a^2}.
-
-@cindex S@'ersic profile
-@cindex Effective radius
-This option should not be confused with the @emph{effective radius} for S@'ersic profiles, commonly written as @mymath{r_e}.
-For more on the S@'ersic profile and @mymath{r_e}, please see @ref{Galaxies}.
-Therefore, when @mymath{r_e} is meaningful for the target (the target is elliptically symmetric and can be parameterized as a S@'ersic profile), @mymath{r_e} should be derived from fitting the profile with a S@'ersic function which has been convolved with the PSF.
-But from the equation above, you see that this radius is derived from the raw image's labeled values (after convolution, with no parametric profile), so this column's value will generally be (much) smaller than @mymath{r_e}, depending on the PSF, depth of the dataset, the morphology, or if a fraction of the profile falls on the edge of the image.
-
-In other words, this option can only be interpreted as an effective radius if there is no noise and no PSF and the profile within the image extends to infinity (or a very large multiple of the effective radius) and it not near the edge of the image.
-
-@item --fracmaxarea1
-@itemx --fracmaxarea2
-Number of pixels brighter than the given fraction(s) of the maximum pixel value.
-For the maximum value, see the description of @option{--maximum} column.
-The fraction(s) are given through the @option{--fracmax} option (that can take two values) and is described in @ref{MakeCatalog inputs and basic settings}.
-Recall that in @option{--halfmaxarea}, the fraction is fixed to 0.5.
-Hence, added with these two columns, you can sample three parts of the profile area.
-
-@item --fracmaxsum1
-@itemx --fracmaxsum2
-Sum of pixels brighter than the given fraction(s) of the maximum pixel value.
-For the maximum value, see the description of @option{--maximum} column below.
-The fraction(s) are given through the @option{--fracmax} option (that can take two values) and is described in @ref{MakeCatalog inputs and basic settings}.
-Recall that in @option{--halfmaxsum}, the fraction is fixed to 0.5.
-Hence, added with these two columns, you can sample three parts of the profile's sum of pixels.
-
-@item --fracmaxradius1
-@itemx --fracmaxradius2
-Radius (in units of pixels) derived from the area that contains the given fractions of the maximum valued pixel(s) of the label's pixels (value reported by @option{--fracmaxarea1} or @option{--fracmaxarea2}).
-For the maximum value, see the description of @option{--maximum} column below.
-The fractions are given through the @option{--fracmax} option (that can take two values) and is described in @ref{MakeCatalog inputs and basic settings}.
-Recall that in @option{--fwhm}, the fraction is fixed to 0.5.
-Hence, added with these two columns, you can sample three parts of the profile's radius.
-
-@item --clumpsarea
-[Objects] The total area of all the clumps in this object.
-
-@item --weightarea
-The area (number of pixels) used in the flux weighted position calculations.
-
-@item --geoarea
-The area of all the pixels labeled with an object or clump.
-Note that unlike @option{--area}, pixel values are completely ignored in this column.
-For example, if a pixel value is blank, it will not be counted in @option{--area}, but will be counted here.
-
-@item --geoareaxy
-Similar to @option{--geoarea}, when the clump or object is projected onto the first two dimensions.
-This is only available for 3-dimensional datasets.
-When working with Integral Field Unit (IFU) datasets, this projection onto the first two dimensions would be a narrow-band image.
-
-@item -A
-@itemx --semimajor
-The pixel-value weighted root mean square (RMS) along the semi-major axis of the profile (assuming it is an ellipse) in units of pixels.
-See @ref{Measuring elliptical parameters}.
-
-@item -B
-@itemx --semiminor
-The pixel-value weighted root mean square (RMS) along the semi-minor axis of the profile (assuming it is an ellipse) in units of pixels.
-See @ref{Measuring elliptical parameters}.
-
-@item --axisratio
-The pixel-value weighted axis ratio (semi-minor/semi-major) of the object or clump.
-
-@item -p
-@itemx --positionangle
-The pixel-value weighted angle of the semi-major axis with the first FITS
-axis in degrees.
-See @ref{Measuring elliptical parameters}.
-
-@item --geosemimajor
-The geometric (ignoring pixel values) root mean square (RMS) along the semi-major axis of the profile, assuming it is an ellipse, in units of pixels.
-
-@item --geosemiminor
-The geometric (ignoring pixel values) root mean square (RMS) along the semi-minor axis of the profile, assuming it is an ellipse, in units of pixels.
-
-@item --geoaxisratio
-The geometric (ignoring pixel values) axis ratio of the profile, assuming
-it is an ellipse.
-
-@item --geopositionangle
-The geometric (ignoring pixel values) angle of the semi-major axis with the first FITS axis in degrees.
-
-@end table
-
-@cindex 3D data-cubes
-@cindex Cubes (3D data)
-@cindex IFU: Integral Field Unit
-@cindex Integral field unit (IFU)
-@cindex Spectrum (of astronomical source)
-Above, all of MakeCatalog's single-valued measurements were listed. As
-mentioned in the start of this section, MakeCatalog can also do
-multi-valued measurements per label. Currently the only such measurement is
-the creation of spectra from 3D data cubes as discussed below:
-
-@table @option
-@item --spectrum
-Generate a spectrum (measurement along the first two FITS dimensions) for
-each label when the input dataset is a 3D data cube. With this option, a
-seprate table/spectrum will be generated for every label. If the output is
-a FITS file, each label's spectrum will be written into an extension of
-that file with a standard name of @code{SPECTRUM_NN} (the label will be
-replaced with @code{NN}). If the output is a plain text file, each label's
-spectrum will be written into a separate file with the suffix
-@file{spec-NN.txt}. See @ref{MakeCatalog output} for more on specifying
-MakeCatalog's output file.
-
-The spectra will contain one row for every slice (third FITS dimension) of
-the cube. Since the physical nature of the third dimension is different,
-two types of spectra (along with their errors) are measured: 1) Sum of
-values in each slice that only have the requested label. 2) Sum of values
-on the 2D projection of the whole label (the area of this projection can be
-requested with the @option{--areaxy} column above).
-
-Labels can overlap when they are projected onto the first two FITS
-dimensions (the spatial domain). To help separate them, MakeCatalog does a
-third measurement on each slice: the area, sum of values and error of all
-pixels that belong to other labels but overlap with the 2D projection. This
-can be used to see how reliable the emission line measurement is (on the
-projected spectra) and also if multiple lines (labeled regions) belong to
-the same physical object.
-
-@item --inbetweenints
-Output will contain one row for all integers between 1 and the largest label in the input (irrespective of their existance in the input image).
-By default, MakeCatalog's output will only contain rows with integers that actually corresponded to at least one pixel in the input dataset.
-
-For example, if the input's only labeled pixel values are 11 and 13, MakeCatalog's default output will only have two rows.
-If you use this option, it will have 13 rows and all the columns corresponding to integer identifiers that did not correspond to any pixel will be 0 or NaN (depending on context).
-@end table
-
-
-
-@node MakeCatalog output,  , MakeCatalog measurements, Invoking astmkcatalog
+@node MakeCatalog output,  , Upper-limit settings, Invoking astmkcatalog
 @subsubsection MakeCatalog output
 After it has completed all the requested measurements (see @ref{MakeCatalog measurements}), MakeCatalog will store its measurements in table(s).
 If an output filename is given (see @option{--output} in @ref{Input output options}), the format of the table will be deduced from the name.
@@ -25900,7 +25976,7 @@ For more, see the description of @option{--spectrum} in @ref{MakeCatalog measure
 @cindex Limit, Surface brightness
 When possible, MakeCatalog will also measure the full input's noise level (also known as surface brightness limit, see @ref{Quantifying measurement limits}).
 Since these measurements are related to the noise and not any particular labeled object, they are stored as keywords in the output table.
-Furthermore, they are only possible when a standard deviation image has been loaded (done automatically for any column measurement that involves noise, for example, @option{--sn}, @option{--magnitudeerr} or @option{--skystd}).
+Furthermore, they are only possible when a standard deviation image has been loaded (done automatically for any column measurement that involves noise, for example, @option{--sn}, @option{--magnitude-error} or @option{--sky-std}).
 But if you just want the surface brightness limit and no noise-related column, you can use @option{--forcereadstd}.
 All these keywords start with @code{SBL} (for ``surface brightness limit'') and are described below:
 
@@ -28887,8 +28963,8 @@ $ astscript-radial-profile image.fits --center=44,37 --rmax=100 \
 ## Name the output table as `radial-profile.fits'
 $ astscript-radial-profile image.fits --mode=wcs \
                            --center=20.53751695,0.9454292263 \
-                           --rmax=88 --axisratio=0.32 \
-                           --positionangle=148 -oradial-profile.fits
+                           --rmax=88 --axis-ratio=0.32 \
+                           --position-angle=148 -oradial-profile.fits
 
 ## Generate the radial profile centered at RA=40.062675270971,
 ## DEC=-8.1511992735126, up to a radial distance of 20 pixels,
@@ -28937,7 +29013,7 @@ To do this, use @option{--keeptmp} to keep the temporary files, and compare @fil
 @cartouche
 @noindent
 @strong{Finding properties of your elliptical target: } you want to measure the radial profile of a galaxy, but do not know its exact location, position angle or axis ratio.
-To obtain these values, you can use @ref{NoiseChisel} to detect signal in the image, feed it to @ref{Segment} to do basic segmentation, then use @ref{MakeCatalog} to measure the center (@option{--x} and @option{--y} in MakeCatalog), axis ratio (@option{--axisratio}) and position angle (@option{--positionangle}).
+To obtain these values, you can use @ref{NoiseChisel} to detect signal in the image, feed it to @ref{Segment} to do basic segmentation, then use @ref{MakeCatalog} to measure the center (@option{--x} and @option{--y} in MakeCatalog), axis ratio (@option{--axis-ratio}) and position angle (@option{--position-angle}).
 @end cartouche
 
 @cartouche
@@ -29054,21 +29130,21 @@ For example, if a radial profile computed by default has 100 different radii (ap
 This option is good to measure over a larger number of pixels to improve the measurement.
 
 @item -Q FLT
-@itemx --axisratio=FLT
+@itemx --axis-ratio=FLT
 The axis ratio of the apertures (minor axis divided by the major axis in a 2D ellipse).
 By default (when this option is not given), the radial profile will be circular (axis ratio of 1).
 This parameter is used as the option @option{--qcol} in the generation of the apertures with @command{astmkprof}.
 
 @item -p FLT
-@itemx --positionangle=FLT
+@itemx --position-angle=FLT
 The position angle (in degrees) of the profiles relative to the first FITS axis (horizontal when viewed in SAO DS9).
-By default, it is @option{--positionangle=0}, which means that the semi-major axis of the profiles will be parallel to the first FITS axis.
+By default, it is @option{--position-angle=0}, which means that the semi-major axis of the profiles will be parallel to the first FITS axis.
 
 @item -a FLT,FLT
 @itemx --azimuth=FLT,FLT
 @cindex Wedge (radial profile)
 @cindex Azimuthal range (radial profile)
-Limit the profile to the given azimuthal angle range (two numbers given to this option, in degrees, from 0 to 360) from the major axis (defined by @option{--positionangle}).
+Limit the profile to the given azimuthal angle range (two numbers given to this option, in degrees, from 0 to 360) from the major axis (defined by @option{--position-angle}).
 The radial profile will therefore be created on a wedge-like shape, not the full circle/ellipse.
 The pixel containing the center of the profile will always be included in the profile (because it contains all azimuthal angles!).
 
@@ -29083,8 +29159,8 @@ For example, see the commands below (based on your target object, just change th
 @example
 ## Generate the radial profile
 $ astscript-radial-profile image.fits --center=1.234,6.789 \
-            --mode=wcs --rmax=50 --positionangle=20 \
-            --axisratio=0.8 --azimuth=95,150 --keeptmp \
+            --mode=wcs --rmax=50 --position-angle=20 \
+            --axis-ratio=0.8 --azimuth=95,150 --keeptmp \
             --tmpdir=radial-tmp
 
 ## Visually check the values and apertures used.
@@ -29878,15 +29954,15 @@ The final normalization value is saved into the header of the output image with 
 If no normalization is done, then the value is set to @code{1.0}.
 
 @item -Q FLT
-@itemx --axisratio=FLT
+@itemx --axis-ratio=FLT
 The axis ratio of the radial profiles for computing the normalization value.
 By default (when this option is not given), the radial profile will be circular (axis ratio of 1).
 This parameter is used directly in the @file{astscript-radial-profile} script.
 
 @item -p FLT
-@itemx --positionangle=FLT
+@itemx --position-angle=FLT
 The position angle (in degrees) of the profiles relative to the first FITS axis (horizontal when viewed in SAO DS9).
-By default, it is @option{--positionangle=0}, which means that the semi-major axis of the profiles will be parallel to the first FITS axis.
+By default, it is @option{--position-angle=0}, which means that the semi-major axis of the profiles will be parallel to the first FITS axis.
 This parameter is used directly in the @file{astscript-radial-profile} script.
 
 @item -s FLT,FLT
@@ -29941,8 +30017,8 @@ $ astscript-psf-unite outer.fits \
 ## ellipse (instead of a circle).
 $ astscript-psf-unite outer.fits \
            --core=inner.fits --scale=3 \
-           --radius=25 --axisratio=0.5 \
-           --positionangle=40 --output=joined.fits
+           --radius=25 --axis-ratio=0.5 \
+           --position-angle=40 --output=joined.fits
 
 @end example
 
@@ -29984,7 +30060,7 @@ We recommend doing that tutorial before starting to work on your own datasets.
 @itemx --radius=FLT
 Radius (in pixels) at which the junction of the images is done.
 All pixels in the outer image within this radius (from its center) will be replaced with the pixels of the inner image (that has been scaled).
-By default, a circle is assumed for the shape of the inner region, but this can be tweaked with @option{--axisratio} and @option{--positionangle} (see below).
+By default, a circle is assumed for the shape of the inner region, but this can be tweaked with @option{--axis-ratio} and @option{--position-angle} (see below).
 
 @item -Q FLT
 @itemx --axisratio=FLT
@@ -29997,9 +30073,9 @@ even if the PSF is non-circular, the inner and outer parts will both have the sa
 So if the scale factor is chosen accurately, using a circle to select which pixels from the inner image to use in the outer image will be irrelevant.
 
 @item -p FLT
-@itemx --positionangle=FLT
+@itemx --position-angle=FLT
 Position angle of the ellipse (in degrees) to define which central pixels of the outer image to replace with the scaled inner image.
-Similar to @option{--axisratio} (see above).
+Similar to @option{--axis-ratio} (see above).
 
 @item -t
 @itemx --tmpdir

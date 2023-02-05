@@ -675,8 +675,8 @@ else
 	qmatch=$tmpdir/axisratio-match.fits
 
 	# Measure axis ratios
-	astmkcatalog $segmented --ids --ra --dec --axisratio \
-                     --positionangle --fwhm --clumpscat \
+	astmkcatalog $segmented --ids --ra --dec --axis-ratio \
+                     --position-angle --fwhm --clumpscat \
                      --output=$qraw $quiet
 
 	# Match with downloaded catalog

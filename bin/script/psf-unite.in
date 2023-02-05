@@ -91,8 +91,8 @@ $scriptname options:
   -I, --innerhdu=STR      HDU/extension of the inner PSF image.
   -r, --radius=FLT        Radius at which the junction is done (in pixels).
   -s, --scale=FLT         Factor by which the inner PSF is multiplied.
-  -Q, --axisratio=FLT     Axis ratio for ellipse maskprofile (A/B).
-  -p, --positionangle=FLT Position angle for ellipse mask profile.
+  -Q, --axis-ratio=FLT    Axis ratio for ellipse maskprofile (A/B).
+  -p, --position-angle=FLT Position angle for ellipse mask profile.
 
  Output:
   -o, --output            Output table with the radial profile.
@@ -281,12 +281,12 @@ do
         -s|--scale)          scale="$2";                                check_v "$1" "$scale";  shift;shift;;
         -s=*|--scale=*)      scale="${1#*=}";                           check_v "$1" "$scale";  shift;;
         -s*)                 scale=$(echo "$1"  | sed -e's/-f//');      check_v "$1" "$scale";  shift;;
-        -Q|--axisratio)      axisratio="$2";                            check_v "$1" "$axisratio";  shift;shift;;
-        -Q=*|--axisratio=*)  axisratio="${1#*=}";                       check_v "$1" "$axisratio";  shift;;
+        -Q|--axis-ratio)     axisratio="$2";                            check_v "$1" "$axisratio";  shift;shift;;
+        -Q=*|--axis-ratio=*) axisratio="${1#*=}";                       check_v "$1" "$axisratio";  shift;;
         -Q*)                 axisratio=$(echo "$1"  | sed -e's/-Q//');  check_v "$1" "$axisratio";  shift;;
-        -p|--positionangle)     positionangle="$2";                            check_v "$1" "$positionangle";  shift;shift;;
-        -p=*|--positionangle=*) positionangle="${1#*=}";                       check_v "$1" "$positionangle";  shift;;
-        -p*)                    positionangle=$(echo "$1"  | sed -e's/-p//');  check_v "$1" "$positionangle";  shift;;
+        -p|--position-angle)     positionangle="$2";                            check_v "$1" "$positionangle";  shift;shift;;
+        -p=*|--position-angle=*) positionangle="${1#*=}";                       check_v "$1" "$positionangle";  shift;;
+        -p*)                     positionangle=$(echo "$1"  | sed -e's/-p//');  check_v "$1" "$positionangle";  shift;;
 
         # Output parameters
         -k|--keeptmp)     keeptmp=1; shift;;

@@ -70,7 +70,7 @@ export PATH="$progbdir:$PATH"
 # Create a catalog with appropiate parameters
 $check_with_program astmkcatalog $fits2name \
                     --ra --dec --magnitude \
-                    --axisratio --output=$fits3name
+                    --axis-ratio --output=$fits3name
 
 # Test the script: selecting good stars
 $check_with_program $execname $fits1name --hdu=1 \

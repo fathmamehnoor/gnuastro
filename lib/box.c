@@ -389,11 +389,11 @@ gal_box_border_rotate_around_center(long *fpixel, long *lpixel,
   */
 
   /* Update the first and last points. */
-  minx=bl[0];                    maxx=bl[0];
+  minx=bl[0];                      maxx=bl[0];
   if(br[0]<minx) {minx=br[0];}     if(br[0]>maxx) {maxx=br[0];}
   if(tl[0]<minx) {minx=tl[0];}     if(tl[0]>maxx) {maxx=tl[0];}
   if(tr[0]<minx) {minx=tr[0];}     if(tr[0]>maxx) {maxx=tr[0];}
-  miny=bl[1];                    maxy=bl[1];
+  miny=bl[1];                      maxy=bl[1];
   if(br[1]<miny) {miny=br[1];}     if(br[1]>maxy) {maxy=br[1];}
   if(tl[1]<miny) {miny=tl[1];}     if(tl[1]>maxy) {maxy=tl[1];}
   if(tr[1]<miny) {miny=tr[1];}     if(tr[1]>maxy) {maxy=tr[1];}
