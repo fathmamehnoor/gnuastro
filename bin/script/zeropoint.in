@@ -50,15 +50,15 @@ jobs=1
 quiet=""
 output=""
 tmpdir=""
-catalog=""
+refcat=""
 keeptmp=""
 keepzpap=""
-reference=""
+refimgs=""
 aperarcsec=""
-cataloghdu=""
+refcathdu=""
 racolumn="RA"
 referencezp=""
-referencehdu=""
+refimgshdu=""
 deccolumn="DEC"
 matchradius=0.2
 magnituderange=""
@@ -92,17 +92,17 @@ catalog.
 $scriptname options:
  Input:
   -h, --hdu=STR/INT            HDU/Extension name or number of the input file.
-  -c, --catalog=STR            Reference catalog considered as the reference.
-  -C, --cataloghdu=STR/INT     HDU/Extension name of number of the ref. catalog.
+  -c, --refcat=STR             Reference catalog considered as the reference.
+  -C, --refcathdu=STR/INT      HDU/Extension name of number of the ref. catalog.
   -r, --racolumn=STR           Right Ascension (R.A.) column name of the ref. catalog.
   -d, --deccolumn=STR          Declination (Dec) column name of the ref. catalog.
   -m, --magcolumn=STR          Magnitude column name of the ref. catalog.
   -M, --magnituderange=FLT,FLT Range of the magnitude to be considered.
   -s, --matchradius=FLT        Matching distance with the ref. catalog.
 
-  -R, --reference=STR[,STR]    Image(s) considered as the reference(s).
+  -R, --refimgs=STR[,STR]    Image(s) considered as the reference(s).
   -z, --referencezp=FLT[,FLT]  Zero point(s) of the reference image(s).
-  -H, --referencehdu=STR/INT   HDU/Extension name(s) or number(s) the ref. images.
+  -H, --refimgsdu=STR/INT   HDU/Extension name(s) or number(s) the ref. images.
   -a, --aperarcsec=FLT[,FLT]   Aperture radius (in arco seconds) for photometry.
   -K, --keepzpap               Keep the zero point from each aperture in a different HDU.
   -j, --jobs=INT               Number of threads; maximum jobs with no arg.
@@ -262,12 +262,12 @@ do
        -h|--hdu)                hdu="$2";                                     check_v "$1" "$hdu";  shift;shift;;
        -h=*|--hdu=*)            hdu="${1#*=}";                                check_v "$1" "$hdu";  shift;;
        -h*)                     hdu=$(echo "$1" | sed -e's/-h//');            check_v "$1" "$hdu";  shift;;
-       -c|--catalog)            catalog="$2";                                 check_v "$1" "$catalog";  shift;shift;;
-       -c=*|--catalog=*)        catalog="${1#*=}";                            check_v "$1" "$catalog";  shift;;
-       -c*)                     catalog=$(echo "$1" | sed -e's/-c//');        check_v "$1" "$catalog";  shift;;
-       -C|--cataloghdu)         cataloghdu="$2";                              check_v "$1" "$cataloghdu";  shift;shift;;
-       -C=*|--cataloghdu=*)     cataloghdu="${1#*=}";                         check_v "$1" "$cataloghdu";  shift;;
-       -C*)                     cataloghdu=$(echo "$1" | sed -e's/-C//');     check_v "$1" "$cataloghdu";  shift;;
+       -c|--refcat)             refcat="$2";                                  check_v "$1" "$refcat";  shift;shift;;
+       -c=*|--refcat=*)         refcat="${1#*=}";                             check_v "$1" "$refcat";  shift;;
+       -c*)                     refcat=$(echo "$1" | sed -e's/-c//');         check_v "$1" "$refcat";  shift;;
+       -C|--refcathdu)          refcathdu="$2";                               check_v "$1" "$refcathdu";  shift;shift;;
+       -C=*|--refcathdu=*)      refcathdu="${1#*=}";                          check_v "$1" "$refcathdu";  shift;;
+       -C*)                     refcathdu=$(echo "$1" | sed -e's/-C//');      check_v "$1" "$refcathdu";  shift;;
        -r|--racolumn)           racolumn="$2";                                check_v "$1" "$racolumn";  shift;shift;;
        -r=*|--racolumn=*)       racolumn="${1#*=}";                           check_v "$1" "$racolumn";  shift;;
        -r*)                     racolumn=$(echo "$1" | sed -e's/-r//');       check_v "$1" "$racolumn";  shift;;
@@ -284,15 +284,15 @@ do
        -M|--magnituderange)     magnituderange="$2";                          check_v "$1" "$magnituderange";  shift;shift;;
        -M=*|--magnituderange=*) magnituderange="${1#*=}";                     check_v "$1" "$magnituderange";  shift;;
        -M*)                     magnituderange=$(echo "$1" | sed -e's/-M//'); check_v "$1" "$magnituderange";  shift;;
-       -R|--reference)         reference="$2";                                check_v "$1" "$reference";  shift;shift;;
-       -R=*|--reference=*)     reference="${1#*=}";                           check_v "$1" "$reference";  shift;;
-       -R*)                    reference=$(echo "$1" | sed -e's/-R//');       check_v "$1" "$reference";  shift;;
+       -R|--refimgs)           refimgs="$2";                                  check_v "$1" "$refimgs";  shift;shift;;
+       -R=*|--refimgs=*)       refimgs="${1#*=}";                             check_v "$1" "$refimgs";  shift;;
+       -R*)                    refimgs=$(echo "$1" | sed -e's/-R//');         check_v "$1" "$refimgs";  shift;;
        -z|--referencezp)       referencezp="$2";                              check_v "$1" "$referencezp";  shift;shift;;
        -z=*|--referencezp=*)   referencezp="${1#*=}";                         check_v "$1" "$referencezp";  shift;;
        -z*)                    referencezp=$(echo "$1" | sed -e's/-z//');     check_v "$1" "$referencezp";  shift;;
-       -H|--referencehdu)      referencehdu="$2";                             check_v "$1" "$referencehdu";  shift;shift;;
-       -H=*|--referencehdu=*)  referencehdu="${1#*=}";                        check_v "$1" "$referencehdu";  shift;;
-       -H*)                    referencehdu=$(echo "$1" | sed -e's/-H//');    check_v "$1" "$referencehdu";  shift;;
+       -H|--refimgshdu)        refimgshdu="$2";                               check_v "$1" "$refimgshdu";  shift;shift;;
+       -H=*|--refimgsdu=*)     refimgshdu="${1#*=}";                          check_v "$1" "$refimgshdu";  shift;;
+       -H*)                    refimgshdu=$(echo "$1" | sed -e's/-H//');      check_v "$1" "$refimgshdu";  shift;;
        -a|--aperarcsec)        aperarcsec="$2";                               check_v "$1" "$aperarcsec";  shift;shift;;
        -a=*|--aperarcsec=*)    aperarcsec="${1#*=}";                          check_v "$1" "$aperarcsec";  shift;;
        -a*)                    aperarcsec=$(echo "$1" | sed -e's/-a//');      check_v "$1" "$aperarcsec";  shift;;
@@ -429,11 +429,11 @@ minrainput=$(echo $allradecinput  | awk '{print $1}')
 maxrainput=$(echo $allradecinput  | awk '{print $2}')
 mindecinput=$(echo $allradecinput | awk '{print $3}')
 maxdecinput=$(echo $allradecinput | awk '{print $4}')
-if [ x"$catalog" != x ]; then
+if [ x"$refcat" != x ]; then
 
     # Find the overlaping area between catalog and image.
     skycoverage=$tmpdir/skycoverage.fits
-    asttable $catalog --inpolygon=$racolumn,$deccolumn \
+    asttable $refcat --inpolygon=$racolumn,$deccolumn \
              --polygon="$minrainput,$mindecinput \
                         : $minrainput,$maxdecinput \
                         : $maxrainput,$mindecinput \
@@ -456,14 +456,14 @@ if [ x"$catalog" != x ]; then
 elif [ x"$reference" != x ]; then
 
     # Compute how many references images are used.
-    nums=$(echo $reference \
+    nums=$(echo $refimgs \
               | awk 'BEGIN{FS=","}{for(i=1;i<=NF;++i) printf "%s ", i}')
 
     for n in $nums; do
 
         # Extract the reference images name and their HDU.
-        img=$(echo $reference | awk 'BEGIN{FS=","}{printf "%s", $'$n'}')
-        hduimg=$(echo $referencehdu | awk 'BEGIN{FS=","}{printf "%s", $'$n'}')
+        img=$(echo $refimgs | awk 'BEGIN{FS=","}{printf "%s", $'$n'}')
+        hduimg=$(echo $refimgshdu | awk 'BEGIN{FS=","}{printf "%s", $'$n'}')
 
         # Find the overlaping area between the catalog and the image.
         skycoverage=$tmpdir/skycoverage-$n.fits
@@ -522,12 +522,12 @@ aper=$(echo $aperarcsec | sed 's|,| |g')
 echo "aper-arcsec = $aper" >> $config
 
 # If a catalog is provided as the reference.
-if [ x"$catalog" != x ]; then
+if [ x"$refcat" != x ]; then
 
     # Basic parameters.
     echo "reftype = cat" >> $config
-    echo "ref1 = $catalog" >> $config
-    echo "hduref1 = $cataloghdu" >> $config
+    echo "ref1 = $refcat" >> $config
+    echo "hduref1 = $refcathdu" >> $config
     echo "refnumber = 1" >> $config
     echo "ra = $racolumn" >> $config
     echo "dec = $deccolumn" >> $config
@@ -539,14 +539,14 @@ else
     echo "reftype = img" >> $config
 
     # Compute how many references images are used.
-    num=$(echo $reference \
+    num=$(echo $refimgs \
                | awk 'BEGIN{FS=","}{for(i=1;i<=NF;++i) printf "%s ", i}')
     echo "refnumber = $num" >> $config
 
     # For each image, write its variables.
     for n in $num; do
-        img=$(echo $reference | awk 'BEGIN{FS=","}{printf "%s", $'$n'}')
-        hdu=$(echo $referencehdu | awk 'BEGIN{FS=","}{printf "%s", $'$n'}')
+        img=$(echo $refimgs | awk 'BEGIN{FS=","}{printf "%s", $'$n'}')
+        hdu=$(echo $refimgshdu | awk 'BEGIN{FS=","}{printf "%s", $'$n'}')
         zp=$(echo $referencezp | awk 'BEGIN{FS=","}{printf "%s", $'$n'}')
         echo "ref$n = $img" >> $config
         echo "hduref$n = $hdu" >> $config

@@ -29698,10 +29698,10 @@ Keep only the essential options that are including the information of the input 
 @example
 $ astscript-zeropoint --help
 $ astscript-zeropoint zp/jplus-nc.fits --hdu=INPUT-NO-SKY \
-                      --reference=zp/sdss1.fits,zp/sdss2.fits \
+                      --refimgs=zp/sdss1.fits,zp/sdss2.fits \
                       --output=zp/jplus-zeropoint.fits \
                       --referencezp=22.5,22.5 \
-                      --referencehdu=0,0 \
+                      --refimgshdu=0,0 \
                       --aperarcsec=3
 @end example
 
@@ -29786,12 +29786,12 @@ Also, use the useful @option{--keepzpap} option to keep the result of matching t
 
 @example
 $ astscript-zeropoint zp/jplus-nc.fits --hdu=INPUT-NO-SKY \
-                      --reference=zp/sdss1.fits,zp/sdss2.fits \
+                      --refimgs=zp/sdss1.fits,zp/sdss2.fits \
                       --output=zp/jplus-zeropoint.fits
                       --referencezp=22.5,22.5 \
                       --aperarcsec=2,3,4,5,6 \
                       --magnituderange=16,18 \
-                      --referencehdu=0,0 \
+                      --refimgshdu=0,0 \
                       --keepzpap
 @end example
 
@@ -29833,12 +29833,12 @@ To see the final result for the zero point, please, re-run the script with the n
 
 @example
 $ astscript-zeropoint zp/jplus-nc.fits --hdu=INPUT-NO-SKY \
-                      --reference=zp/sdss1.fits,zp/sdss2.fits \
+                      --refimgs=zp/sdss1.fits,zp/sdss2.fits \
                       --output=zp/jplus-zeropoint.fits
                       --magnituderange=16.4,17.8 \
                       --referencezp=22.5,22.5 \
                       --aperarcsec=2,3,4,5,6 \
-                      --referencehdu=0,0 \
+                      --refimgshdu=0,0 \
                       --keepzpap
 @end example
 
@@ -29888,8 +29888,8 @@ In what follow, only the related options to the reference catalog will be shown.
 
 @example
 $ astscript-zeropoint zp/jplus-nc.fits --hdu=INPUT-NO-SKY \
-                      --catalog=zp/sdss-catalog.fits \
-                      --cataloghdu=1 \
+                      --refcat=zp/sdss-catalog.fits \
+                      --refcathdu=1 \
                       --magcolumn=rmag \
                       --racolumn=RA_ICRS \
                       --deccolumn=DE_ICRS \
@@ -29924,8 +29924,8 @@ We can select an interval with lower fluctuations for example around 16.8 to 17.
 
 @example
 $ astscript-zeropoint zp/jplus-nc.fits --hdu=INPUT-NO-SKY \
-                      --catalog=zp/sdss-catalog.fits \
-                      --cataloghdu=1 \
+                      --refcat=zp/sdss-catalog.fits \
+                      --refcathdu=1 \
                       --magcolumn=rmag \
                       --racolumn=RA_ICRS \
                       --deccolumn=DE_ICRS \
@@ -29969,8 +29969,8 @@ This script can be used with the following general template:
 ## Based on the reference images zero point of the input image will
    obtained.
 $ astscript-zeropoint image.fits --hdu=1 \
-                      --reference=ref-img1.fits,ref-img2.fits \
-                      --referencehdu=1,1 \
+                      --refimgs=ref-img1.fits,ref-img2.fits \
+                      --refimgshdu=1,1 \
                       --referencezp=22.5,22.5 \
                       --aperarcsec=1.5,2,2.5,3 \
                       --magnituderange=16,18 \
@@ -29981,8 +29981,8 @@ $ astscript-zeropoint image.fits --hdu=1 \
 ## Based on the catalog which has magnitude column zero point of the
    image will obtained.
 $ astscript-zeropoint image.fits --hdu=1 \
-                      --catalog=cat.fits \
-                      --cataloghdu=1 \
+                      --refcat=cat.fits \
+                      --refcathdu=1 \
                       --aperarcsec=1.5,2,2.5,3 \
                       --magnituderange=16,18 \
                       --output=output.fits
@@ -29997,12 +29997,12 @@ This script takes the following options:
 The HDU/extension of the input image to use.
 
 @item -c STR
-@itemx --catalog=STR
+@itemx --refcat=STR
 Reference catalog which based on it, the zeropoint of the input image will be estimated.
 This catalog should be have ra, dec and magnitude of the stars.
 
 @item -C STR/INT
-@itemx --cataloghdu=STR/INT
+@itemx --refcathdu=STR/INT
 The HDU/extension of the reference catalog will be calculated.
 
 @item -r STR
@@ -30018,7 +30018,7 @@ Declination column name of the reference catalog.
 Magnitude column name of the reference catalog.
 
 @item -R STR,[STR]
-@itemx --reference=STR,[STR]
+@itemx --refimgs=STR,[STR]
 Reference image or images which based on the zeropoint of the input image will be estimated.
 
 @item -s FLT
@@ -30033,7 +30033,7 @@ Zeropoint of the reference image or images.
 The number of this should be the same as the number of referene image(s).
 
 @item -H STR/INT
-@itemx --referencehdu=STR/INT
+@itemx --refimgshdu=STR/INT
 HDU/Extension name of number of the reference files.
 The number of this should be the same as the number of referene image(s).
 
