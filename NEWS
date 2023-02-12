@@ -8,6 +8,18 @@ See the end of the file for license conditions.
 
 ** New features
 
+   New program:
+   - astscript-zeropoint: this script is used for calibrating the pixel
+     values in one image (finding its "zero point") based on a reference
+     catalog or (any number of) reference image(s). The script allows for
+     checking many apertures in the same command to let you choose the
+     best; and will operate in parallel where necessary. The documentation
+     of this script contains two tutorials on how to optimally use it and
+     interpret its results; please read and run them once before using it.
+     This script was written as a team effort lead by Sepideh Eskandarlou
+     and including (in alphabetical order): Elham Saremi, Giulia Golini,
+     Raul Infante-Sainz, Samane Raji, Zahra Sharbaf, Zohreh Ghaffari.
+
    Arithmetic
    --writeall: Write all datasets on the stack as separate HDUs in the
      output; this is useful in debugging incomplete Arithmetic commands.

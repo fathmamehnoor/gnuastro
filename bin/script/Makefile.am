@@ -22,8 +22,9 @@
 
 
 
-# Desktop files (for graphic environments)
-pkgdata_DATA = astscript-fits-view.desktop
+# Data files (necessary for various components like desktop files for GUIs
+# or Makefiles that are called within scripts).
+pkgdata_DATA = astscript-fits-view.desktop zeropoint.mk
 astscript-fits-view.desktop: $(srcdir)/fits-view.desktop.in Makefile
 	sed -e 's|@PREFIX[@]|$(exec_prefix)|g' \
 	    $(srcdir)/fits-view.desktop.in > $@
@@ -39,6 +40,7 @@ astscript-fits-view.desktop: $(srcdir)/fits-view.desktop.in Makefile
 bin_SCRIPTS = astscript-fits-view \
               astscript-psf-unite \
               astscript-psf-stamp \
+              astscript-zeropoint \
               astscript-ds9-region \
               astscript-psf-subtract \
               astscript-sort-by-night \
@@ -49,6 +51,8 @@ bin_SCRIPTS = astscript-fits-view \
 EXTRA_DIST = fits-view.in \
              psf-unite.in \
              psf-stamp.in \
+             zeropoint.in \
+             zeropoint.mk \
              ds9-region.in \
              psf-subtract.in \
              sort-by-night.in \
@@ -65,8 +69,10 @@ CLEANFILES = $(bin_SCRIPTS) \
 
 
 ## Command to do basic substitutions (anything surrounded by an '@').
-do_subst = sed -e 's,[@]VERSION[@],$(VERSION),g' \
+do_subst = sed -e 's,[@]PREFIX[@],$(exec_prefix),g' \
+               -e 's,[@]VERSION[@],$(VERSION),g' \
                -e 's,[@]SCRIPT_NAME[@],$@,g'
+
 
 
 
@@ -79,6 +85,10 @@ astscript-fits-view: fits-view.in Makefile
 
 astscript-ds9-region: ds9-region.in Makefile
 	$(do_subst) < $(srcdir)/ds9-region.in > $@
+	chmod +x $@
+
+astscript-zeropoint: zeropoint.in Makefile
+	$(do_subst) < $(srcdir)/zeropoint.in > $@
 	chmod +x $@
 
 astscript-radial-profile: radial-profile.in Makefile

@@ -1,27 +1,36 @@
-# Estimate the zero point of an image
+# Estimate the zero point of an image from a reference (image or catalog)
 #
-# Original authors:
-# Copyright (C) 2022-2023 Sepideh Eskandarlou <sepideh.eskandarlou@gmail.com>
+# This Makefile should not be used independently. It will be called from
+# the Zeropoint script.
 #
-# Contributers:
-# Copyright (C) 2019-2023 Samane Raji <samaneraji@gmail.com>
-# Copyright (C) 2019-2023 Mohammad Akhlaghi <mohammad@akhlaghi.org>
-# Copyright (C) 2019-2023 Zahra sharbaf <zahra.sharbaf2@gmail.com>
-# Copyright (C) 2019-2023 Raul Infante-Sainz <infantesainz@gmail.com>
+# NOTE ON FORMAT OF RECIPES: Non-GNU implementations of Make don't have
+# '.ONESHELL', so without connecting the recipe lines with a '\', they will
+# be executed in separate shells (which will not preserve variable
+# values). Therefore, we cannot use comments in between the separate
+# commands.
 #
-# This Makefile is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# Current maintainer:
+#     2022-2023 Sepideh Eskandarlou <sepideh.eskandarlou@gmail.com>
+# Contributing authors:
+#     2019-2023 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+#     2019-2023 Raul Infante-Sainz <infantesainz@gmail.com>
+#     2019-2022 Samane Raji <samaneraji@gmail.com>
+#     2019-2022 Zahra sharbaf <zahra.sharbaf2@gmail.com>
+# Copyright (C) 2022-2023 Free Software Foundation, Inc.
 #
-# This Makefile is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This Makefile is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation, either version 3 of the License, or (at your
+# option) any later version.
 #
-# You should have received a copy of the GNU General Public License
-# along with this Makefile.  If not, see <http://www.gnu.org/licenses/>.
-# Set input & Final target
+# This Makefile is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
+# Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this Makefile.  If not, see <http://www.gnu.org/licenses/>.  Set
+# input & Final target
 
 
 
@@ -30,9 +39,6 @@
 
 # Final target.
 all: final
-
-# Make all the commands in the recipe in one shell.
-.ONESHELL:
 
 # Second expansion.
 .SECONDEXPANSION:
@@ -59,39 +65,46 @@ $(tmpdir):; mkdir $@
 #
 # Use Gaia catalog and only keep the objects with good parallax (to
 # confirm that they are stars).
-stars=$(tmpdir)/gaia.fits
-$(stars): $(input) \
-          | $(tmpdir)
+stars=$(tmpdir)/stars.fits
+$(stars): $(input) | $(tmpdir)
 
-#	Download from Gaia.
-#	Only keep stars (with good parallax).
-#	Clean up.
+# Recipe if 'starcat' is NOT given (get it from Gaia)
+ifeq ($(strip $(starcat)),)
 	raw=$(subst .fits,-raw.fits,$@); \
 	astquery gaia --dataset=dr3 \
 	         --overlapwith=$(input) \
 	         -csource_id -cra -cdec -cparallax \
-	         -cphot_g_mean_mag -cparallax_error \
-	         -cpmra -cpmdec --output=$$raw; \
-	asttable $$raw -cra,dec \
-	         -cphot_g_mean_mag --colinfoinstdout \
+	         -cparallax_error -cpmra -cpmdec --output=$$raw; \
+	asttable $$raw -cra,dec --colinfoinstdout \
 	         -c'arith parallax parallax abs \
 	                  parallax_error 3 x lt nan where ' \
-	         --colmetadata=4,PARALLAX,int32,"Stars with good parallax." \
-	         --noblankend=PARALLAX \
-	         | asttable -cra,dec -cphot_g_mean_mag \
-	                    --output=$@; \
+	         --colmetadata=3,GOODPLX,int32,"Stars with good parallax." \
+	         --noblankend=GOODPLX \
+	         | asttable -cra,dec --output=$@; \
 	rm $$raw
+
+# Recipe if 'starcat' is given (just use the 'ra' and 'dec'
+# columns). If the input doesn't have an 'ra' or 'dec' columns,
+# 'asttable' is going to complain directly. So there is no need to add
+# extra checks here.
+else
+	if [ "x$(starcathdu)" = x ]; then hdu=1; \
+	else hdu=$(starcathdu); fi; \
+	asttable $(starcat) --hdu=$$hdu --output=$@ \
+	         -c$(starcatra),$(starcatdec)
+endif
 
 
 
 
 
 # If the reference type is 'img', 'gencat' will be a list with many names
-# as the number of input images. If it is a catalog, prepare the single
-# reference catalog with desired columns
+# as the number of input images.
 ifeq ($(reftype),img)
 gencat=$(foreach i, $(refnumber), ref$(i))
 
+# The reference is a catalog, prepare the single reference catalog with
+# desired columns.
 else
 gencat=
 
@@ -125,15 +138,15 @@ zpinput=0
 aperture=$(foreach i,input $(gencat), \
           $(foreach a,$(aper-arcsec), \
            $(tmpdir)/$(i)-$(a)-cat.fits))
-$(aperture): $(tmpdir)/%-cat.fits: \
-             $(stars)
+$(aperture): $(tmpdir)/%-cat.fits: $(stars)
 
-#	Extract the names.
-#	Convert the aperture size (arcsec) to pixels.
-#	Make an aperture catalog by using aperture size in pixels
-#	Make an image of apertures.
-#	Build a catalog of this aperture image.
-#	Clean up.
+#	Brief summary of the steps done here:
+#	   - Extract the names.
+#	   - Convert the aperture size (arcsec) to pixels.
+#	   - Make an aperture catalog by using aperture size in pixels
+#	   - Make an image of apertures.
+#	   - Build a catalog of this aperture image.
+#	   - Clean up.
 	img=$($(word 1, $(subst -, ,$*))); \
 	zp=$(zp$(word 1, $(subst -, ,$*))); \
 	aperarcsec=$(word 2, $(subst -, ,$*)); \
@@ -224,7 +237,7 @@ $(aperzeropoint): $(tmpdir)/zeropoint-%.txt: \
 	zpstd=$$(asttable $$merged $$rangeopt -cMAG-DIFF \
 	                  | aststatistics --sigclip-median \
 	                                  --sigclip-std --quiet); \
-	 echo "$* $$zpstd" > $@
+	echo "$* $$zpstd" > $@
 
 
 
@@ -241,7 +254,8 @@ $(zeropoint): $(aperzeropoint)
 #	Obtain the zeropoint and zero point STD of each aperture.
 #	Find the best aperture; its zero point and STD.
 #	Auxiliary/temporary file
-#	If the user requested a certain magnitude range, add minmag and maxmag to header.
+#	If the user requested a certain magnitude range, add minmag and
+#       maxmag to header.
 #	   The 'bestaper' above is returned from 'asttable', that is saved
 #	   as a floating point, so the extra digits in reading floating
 #	   points
@@ -251,9 +265,10 @@ $(zeropoint): $(aperzeropoint)
 #	  plot for the whole aperture.
 #	Clean up.
 	zp=$(subst .fits,-tmp.txt,$@); \
-	echo "# Column 1: APERTURE  [arcsec,f32,]" > $$zp; \
-	echo "# Column 2: ZEROPOINT [mag,f32,]"  >> $$zp; \
-	echo "# Column 3: ZPSTD     [mag,f32,]"  >> $$zp; \
+	echo "# Column 1: APERTURE  [arcsec,f32,] Aperture used."       > $$zp; \
+	echo "# Column 2: ZEROPOINT [mag,   f32,] Zero point (sig-clip median)." >> $$zp; \
+	echo "# Column 3: ZPSTD     [mag,   f32,] Zero point Standard deviation." \
+	     >> $$zp; \
 	for a in $(aper-arcsec); do \
 	  cat $(tmpdir)/zeropoint-$$a.txt    >> $$zp; \
 	done; \
@@ -267,28 +282,31 @@ $(zeropoint): $(aperzeropoint)
 	bestaper=$$(asttable $$zp --sort=ZPSTD --head=1 --column=APERTURE); \
 	bestzp=$$(asttable $$zp --sort=ZPSTD --head=1  --column=ZEROPOINT); \
 	beststd=$$(asttable $$zp --sort=ZPSTD --head=1  --column=ZPSTD); \
-	astfits $@.fits --write=/,"Zeropoint properties"; \
-	astfits $@.fits --write=ZPAPER,"$$bestaper","Best aperture."; \
-	astfits $@.fits --write=ZPVALUE,"$$bestzp","Best zero point."; \
-	astfits $@.fits --write=ZPSTD,"$$beststd","Best standard deviation of zeropoint."; \
+	astfits $@.fits --update=EXTNAME,"ZEROPOINTS" \
+	                --write=/,"Zeropoint properties" \
+	                --write=ZPAPER,"$$bestaper","Best aperture." \
+	                --write=ZPVALUE,"$$bestzp","Best zero point." \
+	                --write=ZPSTD,"$$beststd","Best std. dev. of zeropoint."; \
 	if ! [ x"$(magrange)" = x ]; then \
-	  astfits $@.fits --write=MAGMIN,"$$magmin","Minimum magnitude for obtaining zeropoint."; \
-	  astfits $@.fits --write=MAGMAX,"$$magmax","Maximum magnitude for obtaining zeropoint."; \
+	  astfits $@.fits \
+	          --write=ZPMAGMIN,"$$magmin","Min mag for obtaining zeropoint."; \
+	  astfits $@.fits \
+	          --write=ZPMAGMAX,"$$magmax","Max mag for obtaining zeropoint."; \
 	fi; \
 	if [ x"$(keepzpap)" = x ]; then \
-	    for a in $(aper-arcsec); do \
-	        check=$$(echo $$a \
-	                      | awk -vb=$$bestaper \
-	                         '$$1>b-1e-6 && $$1<b+1e-6{print "yes"}'); \
-	         if [ x$$check = xyes ]; then bestaperstr=$$a; fi; \
-	    done; \
-	   astfits $(tmpdir)/zeropoint-$$bestaperstr-merged.fits --copy=1 -o$@.fits; \
-	   mv $@.fits $@; \
+	  for a in $(aper-arcsec); do \
+	    check=$$(echo $$a \
+	                  | awk -vb=$$bestaper \
+	                        '$$1>b-1e-6 && $$1<b+1e-6{print "yes"}'); \
+	    if [ x$$check = xyes ]; then bestaperstr=$$a; fi; \
+	  done; \
+	  astfits $(tmpdir)/zeropoint-$$bestaperstr-merged.fits --copy=1 -o$@.fits; \
+	  mv $@.fits $@; \
 	else \
-	    for a in $(aper-arcsec); do \
-	        astfits $(tmpdir)/zeropoint-$$a-merged.fits --copy=1 -o$@.fits; \
-	    done; \
-	    mv $@.fits $@; \
+	  for a in $(aper-arcsec); do \
+	      astfits $(tmpdir)/zeropoint-$$a-merged.fits --copy=1 -o$@.fits; \
+	  done; \
+	  mv $@.fits $@; \
 	fi; \
 	rm $$zp
 
