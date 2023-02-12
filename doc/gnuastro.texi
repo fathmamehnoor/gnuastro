@@ -6623,11 +6623,14 @@ After the stamps are created, we need to stack them together with a simple Arith
 The stack is done using the sigma-clipped mean operator that will preserve more of the signal, while rejecting outliers (more than @mymath{3\sigma} with a tolerance of @mymath{0.2}, for more on sigma-clipping see @ref{Sigma clipping}).
 Just recall that we need to specify the number of inputs into the stacking operators, so we are reading the list of images and counting them as separate variables before calling Arithmetic.
 
+@c We are not using something like 'ls' because on some systems, 'ls'
+@c always prints outputs on a one-file-per-line format and this will cause
+@c a problem in Arithmetic, see:
+@c https://lists.gnu.org/archive/html/bug-gnuastro/2023-01/msg00007.html
 @example
-$ imgs=outer/stamps/*.fits
-$ numimgs=$(echo $imgs | wc -w)
-$ astarithmetic $imgs $numimgs 3 0.2 sigclip-mean -g1 \
-                --output=outer/stack.fits  --wcsfile=none
+$ numimgs=$(echo outer/stamps/*.fits | wc -w)
+$ astarithmetic outer/stamps/*.fits $numimgs 3 0.2 sigclip-mean \
+                -g1 --output=outer/stack.fits --wcsfile=none
 @end example
 
 @noindent
@@ -6685,6 +6688,8 @@ Similar to before, let's build ready-to-stack crops of these stars.
 To get a better feeling of the normalization radii, follow the same steps of @ref{Building outer part of PSF} (setting @option{--tmpdir} and @option{--keeptmp}).
 In this case, since the stars are fainter, we can set a smaller size for the individual stamps, @option{--widthinpix=500,500}, to speed up the calculations:
 
+@c For 'numimgs' and the 'astarithmetic' commands, see the comments above
+@c the same step for the outer part.
 @example
 $ counter=1
 $ mkdir inner/stamps
@@ -6700,10 +6705,9 @@ $ asttable inner/67510-12-13.fits \
                counter=$((counter+1)); \
              done
 
-$ imgs=inner/stamps/*.fits
-$ numimgs=$(echo $imgs | wc -w)
-$ astarithmetic $imgs $numimgs 3 0.2 sigclip-mean -g1 \
-                --output=inner/stack.fits --wcsfile=none
+$ numimgs=$(echo inner/stamps/*.fits | wc -w)
+$ astarithmetic inner/stamps/*.fits $numimgs 3 0.2 sigclip-mean \
+                -g1 --output=inner/stack.fits --wcsfile=none
 $ astscript-fits-view inner/stack.fits inner/stamps/*.fits
 @end example
 
