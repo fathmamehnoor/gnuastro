@@ -207,6 +207,13 @@ See the end of the file for license conditions.
     --sum-error: new name for '--brightnesserr'.
     --clumps-sum: new name for '--clumpbrightness'.
     --sum-no-river: new name for '--brightnessnoriver'.
+  --checkuplim: now returns the center of each label's tile, not the first
+    pixel (the bottom-left pixel position of the tile). The old behavior to
+    return the first pixel was un-intuitive, would require several manual
+    steps (to measure the minimum and maximum positions of each tile,
+    measure the width along each dimension and add it), and could lead to
+    confusing results when ignored. See the updated documentation of this
+    option for more on custom usage in special situations.
   - Using a hyphen to help in readability and usability:
        Old name                         New name
        ========                         ========

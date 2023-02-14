@@ -5776,7 +5776,7 @@ asttable lab_upcheck.fits --noblank=RANDOM_SUM \
 ## Have a look at the regions in relation with NoiseChisel's
 ## detections.
 ds9 r_detected.fits[INPUT-NO-SKY] -regions load ds9.reg
-ds9 r_detected.fits[DETECTIONS] -regions load ds9.reg
+ds9 r_detected.fits[DETECTIONS]   -regions load ds9.reg
 @end example
 
 In this example, we were looking at a single-exposure image that has no correlated noise.
@@ -25949,12 +25949,20 @@ Print a table of positions and measured values for all the full random distribut
 If only one integer is given to this option, it is interpreted to be an object's label.
 If two values are given, the first is the object label and the second is the ID of requested clump within it.
 
-The output is a table with three columns (its type is determined with the @option{--tableformat} option, see @ref{Input output options}).
-The first two columns are the position of the first pixel in each random sampling of this particular object/clump.
+The output is a table with three columns (whether it is FITS or plain-text is determined with the @option{--tableformat} option, see @ref{Input output options}).
+The first two columns are the pixel X,Y positions of the center of each label's tile (see next paragraph), in each random sampling of this particular object/clump.
 The third column is the measured flux over that region.
 If the region overlapped with a detection or masked pixel, then its measured value will be a NaN (not-a-number).
-The total number of rows is thus unknown, but you can be sure that the number of rows with non-NaN measurements is the number given to the @option{--upnum} option.
+The total number of rows is thus unknown before running.
+However, if an upper-limit measurement was made in the main output of MakeCatalog, you can be sure that the number of rows with non-NaN measurements is the number given to the @option{--upnum} option.
 
+The ``tile'' of each label is defined by the minimum and maximum positions of each label: values of the @option{--min-x}, @option{--max-x}, @option{--min-y} and @option{--max-y} columns in the main output table for each label.
+Therefore, the tile center position that is recorded in the output of this column ignores the distribution of labeled pixels within the tile.
+
+Precise interpretation of the position is only relevant when the footprint of your label is highly un-symmetrical and you want to use this catalog to insert your object into the image.
+In such a case, you can also ask for @option{--min-x} and @option{--min-y} and manually calculate their difference with the following two positional measurements of your desired label: @option{--geo-x} and @option{--geo-y} (which report the label's ``geometric'' center; only using the label positions ignoring any ``values'') or @option{--x} and @option{--y} (which report the value-weighted center of the label).
+Adding the difference with the position reported by this column, will let you define alternative ``center''s for your label in particular situations (this will usually not be necessary!).
+For more on these positional columns, see @ref{Position measurements in pixels}.
 @end table
 
 

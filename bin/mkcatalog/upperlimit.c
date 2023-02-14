@@ -401,16 +401,17 @@ upperlimit_write_check(struct mkcatalogparams *p, gal_list_sizet_t *check_x,
 
 
   /* Write exactly what object/clump this table is for. */
-  gal_fits_key_list_title_add_end(&keylist, "Target for upper-limit check", 0);
+  gal_fits_key_list_title_add_end(&keylist, "Target for upper-limit "
+                                  "check", 0);
   mkcatalog_outputs_keys_numeric(&keylist, &p->checkuplim[0],
                                  GAL_TYPE_INT32, "UPCHKOBJ",
-                                 "Object label for upper-limit check target.",
-                                 NULL);
+                                 "Object label for upper-limit check "
+                                 "target.", NULL);
   if( p->checkuplim[1]!=GAL_BLANK_INT32 )
     mkcatalog_outputs_keys_numeric(&keylist, &p->checkuplim[1],
                                    GAL_TYPE_INT32, "UPCHKCLU",
-                                   "Clump label for upper-limit check target.",
-                                   NULL);
+                                   "Clump label for upper-limit check "
+                                   "target.", NULL);
 
 
   /* Write the basic info, and conclude the keywords. */
@@ -555,6 +556,7 @@ upperlimit_one_tile(struct mkcatalog_passparams *pp, gal_data_t *tile,
   float *V, *st_v, *uparr=pp->up_vals->array;
   size_t min[3], max[3], increment, num_increment;
   int32_t *O, *OO, *oO, *st_o, *st_oo, *st_oc, *oC=NULL;
+  size_t hw2, hw0=tile->dsize[0]/2, hw1=tile->dsize[1]/2;
   size_t maxfails = p->upnum * MKCATALOG_UPPERLIMIT_MAXFAILS_MULTIP;
   struct gal_list_sizet_t *check_x=NULL, *check_y=NULL, *check_z=NULL;
   size_t *rcoord=gal_pointer_allocate(GAL_TYPE_SIZE_T, ndim, 0, __func__,
@@ -579,6 +581,7 @@ upperlimit_one_tile(struct mkcatalog_passparams *pp, gal_data_t *tile,
   tarray=tile->array;
   gsl_rng_set(pp->rng, seed);
   pp->up_vals->flag &= ~GAL_DATA_FLAG_SORT_CH;
+  hw2 = tile->ndim==3 ? tile->dsize[2]/2 : GAL_BLANK_SIZE_T;
 
 
   /* Set the range of random values for this tile. */
@@ -603,7 +606,7 @@ upperlimit_one_tile(struct mkcatalog_passparams *pp, gal_data_t *tile,
       /* Set the tile's new starting pointer. */
       tile->array = gal_pointer_increment(p->objects->array,
                           gal_dimension_coord_to_index(ndim, dsize, rcoord),
-                                           p->objects->type);
+                                          p->objects->type);
 
       /* Starting and ending coordinates for this random position, note
          that in 'pp' we have the starting and ending coordinates of the
@@ -672,21 +675,23 @@ upperlimit_one_tile(struct mkcatalog_passparams *pp, gal_data_t *tile,
       else ++nfailed;
 
 
-      /* If a check is necessary, write in the values (in FITS
-         coordinates). */
+      /* If a check is necessary, put the center of the tile independent of
+         the values/labels (in FITS coordinates). Note that 'rcoord' is the
+         position of the first pixel of the tile, so we need to add half
+         the width of the tile (the 'hw*' variables). */
       if(writecheck)
         {
           switch(ndim)
             {
             case 2:
-              gal_list_sizet_add(&check_x, rcoord[1]+1);
-              gal_list_sizet_add(&check_y, rcoord[0]+1);
+              gal_list_sizet_add(&check_x, rcoord[1]+1 + hw1);
+              gal_list_sizet_add(&check_y, rcoord[0]+1 + hw0);
               break;
 
             case 3:
-              gal_list_sizet_add(&check_x, rcoord[2]+1);
-              gal_list_sizet_add(&check_y, rcoord[1]+1);
-              gal_list_sizet_add(&check_z, rcoord[0]+1);
+              gal_list_sizet_add(&check_x, rcoord[2]+1 + hw2);
+              gal_list_sizet_add(&check_y, rcoord[1]+1 + hw1);
+              gal_list_sizet_add(&check_z, rcoord[0]+1 + hw0);
               break;
 
             default:
