@@ -691,6 +691,75 @@ gal_statistics_unique(gal_data_t *input, int inplace)
 
 
 
+#define HAS_NEGATIVE(IT) {                                              \
+    IT b, *a=input->array, *af=a+input->size, *start;                   \
+    gal_blank_write(&b, input->type);                                   \
+                                                                        \
+    /* If this is a tile, not a full block. */                          \
+    if(input!=block)                                                    \
+      start=gal_tile_start_end_ind_inclusive(input, block, start_end_inc); \
+                                                                        \
+    /* Go over all the elements. */                                     \
+    while( start_end_inc[0] + increment <= start_end_inc[1] )           \
+      {                                                                 \
+        /* Necessary when we are on a tile. */                          \
+        if(input!=block)                                                \
+          af = ( a = start + increment ) + input->dsize[input->ndim-1]; \
+                                                                        \
+        /* Check for blank values (only for integers: b==b) */          \
+        if(b==b) do if(*a!=b  && *a<0) { hasneg=1; break; } while(++a<af); \
+        else     do if(*a==*a && *a<0) { hasneg=1; break; } while(++a<af); \
+                                                                        \
+        /* Necessary when we are on a tile. */                          \
+        if(input!=block)                                                \
+          increment += gal_tile_block_increment(block, input->dsize,    \
+                                                num_increment++, NULL); \
+        else break;                                                     \
+      }                                                                 \
+  }
+
+int
+gal_statistics_has_negative(gal_data_t *input)
+{
+  int hasneg=0;
+  size_t increment=0, num_increment=1;
+  gal_data_t *block=gal_tile_block(input);
+  size_t start_end_inc[2]={0,block->size-1}; /* -1: this is INCLUSIVE. */
+
+  /* An empty dataset doesn't have any negative values! */
+  if(input->size==0) return 0;
+
+  /* The operation depends on the type of the input. */
+  switch(input->type)
+    {
+    /* Unsigned integer types are always positive */
+    case GAL_TYPE_UINT8:
+    case GAL_TYPE_UINT16:
+    case GAL_TYPE_UINT32:
+    case GAL_TYPE_UINT64:
+      hasneg=0; break;
+
+    /* Types that can have negative values. */
+    case GAL_TYPE_INT8:     HAS_NEGATIVE(int8_t);  break;
+    case GAL_TYPE_INT16:    HAS_NEGATIVE(int16_t); break;
+    case GAL_TYPE_INT32:    HAS_NEGATIVE(int32_t); break;
+    case GAL_TYPE_INT64:    HAS_NEGATIVE(int64_t); break;
+    case GAL_TYPE_FLOAT32:  HAS_NEGATIVE(float);   break;
+    case GAL_TYPE_FLOAT64:  HAS_NEGATIVE(double);  break;
+
+    /* Non-numeric types. */
+    default:
+      error(EXIT_FAILURE, 0, "%s: type code '%d' not recognized",
+            __func__, input->type);
+    }
+
+  /* Return the result. */
+  return hasneg;
+}
+
+
+
+
 
 
 

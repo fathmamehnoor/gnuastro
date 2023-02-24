@@ -156,8 +156,10 @@ table_bring_to_top(gal_data_t *table, gal_data_t *rowids)
          pointers. */
       col->dsize[0] = rowids->size;
       col->size = col->dsize[0] * n;
-    }
 
+      /* If there is no elements, free 'array' and set it to NULL. */
+      if(col->size==0 && col->array) { free(col->array); col->array=NULL; }
+    }
 }
 
 
@@ -566,7 +568,8 @@ table_sort(struct tableparams *p)
   int (*qsortfn)(const void *, const void *)=NULL;
 
   /* In case there are no columns to sort, skip this function. */
-  if(p->table->size==0) return;
+  if(p->table->size==0 || p->table->array==NULL || p->table->dsize==NULL)
+    return;
 
   /* Allocate the permutation array and fill it. Note that we need 'dsize0'
      because the first column may be a vector column (which is 2D). */
@@ -707,7 +710,8 @@ table_select_by_position(struct tableparams *p)
   double *darr = p->rowrange ? p->rowrange->array : NULL;
 
   /* If the table is already empty, then don't bother continuing. */
-  if(p->table->array==NULL) return;
+  if(p->table->size==0 || p->table->array==NULL || p->table->dsize==NULL)
+    return;
 
   /* If the head or tail values are given and are larger than the number of
      rows, just set them to the number of rows (print the all the final

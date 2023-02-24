@@ -463,8 +463,8 @@ gal_blank_present(gal_data_t *input, int updateflag)
     /* String. */
     case GAL_TYPE_STRING:
       if(input!=block)
-        error(EXIT_FAILURE, 0, "%s: tile mode is currently not supported for "
-              "strings", __func__);
+        error(EXIT_FAILURE, 0, "%s: tile mode is currently not "
+              "supported for strings", __func__);
       strf = (str=input->array) + input->size;
       do
         if(*str==NULL || !strcmp(*str,GAL_BLANK_STRING)) return 1;

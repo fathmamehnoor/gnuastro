@@ -37,6 +37,7 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 #include <gnuastro/blank.h>
 #include <gnuastro/table.h>
 #include <gnuastro/pointer.h>
+#include <gnuastro/statistics.h>
 
 #include <gnuastro-internal/checkset.h>
 #include <gnuastro-internal/tableintern.h>
@@ -1649,14 +1650,21 @@ static void
 txt_fmts_for_printf_norm(gal_data_t *data, char *fmta, char *lng,
                          char *fmt, int leftadjust)
 {
+  /* Strings should be treated like  */
+  int hasneg = ( data->type==GAL_TYPE_STRING
+                 ? 0
+                 : gal_statistics_has_negative(data) );
+
   /* The space in the end of 'fmts[i*FMTS_COLS]' is to ensure that the
      columns don't merge, even if the printed string is larger than the
      expected width. */
   if(data->disp_precision == GAL_BLANK_INT)
-    sprintf(fmta, "%%+%s%d%s%s ", leftadjust ? "-" : "",
+    sprintf(fmta, hasneg ? "%% %s%d%s%s " : "%%%s%d%s%s ",
+            leftadjust ? "-" : "",
             data->disp_width, lng, fmt);
   else
-    sprintf(fmta, "%%+%s%d.%d%s%s ", leftadjust ? "-" : "",
+    sprintf(fmta, hasneg ? "%% %s%d.%d%s%s " : "%%%s%d.%d%s%s ",
+            leftadjust ? "-" : "",
             data->disp_width, data->disp_precision, lng, fmt);
 }
 
@@ -1665,13 +1673,20 @@ txt_fmts_for_printf_norm(gal_data_t *data, char *fmta, char *lng,
 
 
 static void
-txt_fmts_for_printf_last(int disp_precision, char *fmta, char *lng,
+txt_fmts_for_printf_last(gal_data_t *data, char *fmta, char *lng,
                          char *fmt)
 {
-  if(disp_precision == GAL_BLANK_INT)
-    sprintf(fmta, "%%+%s%s", lng, fmt);
+  /* Strings should be treated like  */
+  int hasneg = ( data->type==GAL_TYPE_STRING
+                 ? 0
+                 : gal_statistics_has_negative(data) );
+
+  /* See 'txt_fmts_for_printf_norm' */
+  if(data->disp_precision == GAL_BLANK_INT)
+    sprintf(fmta, hasneg ? "%% %s%s" : "%%%s%s", lng, fmt);
   else
-    sprintf(fmta, "%%+.%d%s%s", disp_precision, lng, fmt);
+    sprintf(fmta, hasneg ? "%% .%d%s%s" : "%%.%d%s%s",
+            data->disp_precision, lng, fmt);
 }
 
 
@@ -1754,13 +1769,11 @@ txt_fmts_for_printf(gal_data_t *datall, int leftadjust, int tab0_img1)
             {
               txt_fmts_for_printf_norm(data, fmts[i*FMTS_COLS], lng, fmt,
                                        leftadjust);
-              txt_fmts_for_printf_last(data->disp_precision,
-                                       fmts[i*FMTS_COLS+3], lng, fmt);
+              txt_fmts_for_printf_last(data, fmts[i*FMTS_COLS+3], lng, fmt);
             }
           else /* Last column is not a vector. */
             {
-              txt_fmts_for_printf_last(data->disp_precision, fmts[i*FMTS_COLS],
-                                       lng, fmt);
+              txt_fmts_for_printf_last(data, fmts[i*FMTS_COLS], lng, fmt);
               fmts[i*FMTS_COLS+3][0]='\0';
             }
         }

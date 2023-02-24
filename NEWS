@@ -153,6 +153,7 @@ See the end of the file for license conditions.
      datasets using an identification string (either counter or name).
    - gal_permutation_apply_onlydim0: When we have a 2D input, apply
      permutation for all the elements of each row (along dimension-0 in C).
+   - gal_statistics_has_negative: see if input has a negative value.
    - gal_table_col_vector_extract: extract the given elements of a vector
      column into separate columns.
    - gal_table_cols_to_vector: merge multiple columns into a vector column.

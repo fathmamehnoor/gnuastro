@@ -82,6 +82,11 @@ outdir=
 # script, and once for the utility. In such cases it might be easier to
 # just add the argument/option to the final script that runs the utility
 # rather than these variables.
+#
+# TEST ASTSCRIPTs: if the problem is in the compiled programs used within
+# the script, you have to add a line under the line below
+#    'if [ -f "$utility" ]; then rm "$utility"; fi'
+# that will delete that particualr program.
 utilname=
 arguments=
 options=
@@ -124,6 +129,11 @@ fi
 longprefix="${utilname:0:6}"
 if [ x"$longprefix" = x"script" ]; then
     execdir="script"
+
+    # We need to delete all the compiled programs so they are recompiled
+    # (for usage in the script, if this slows down your tests, comment it
+    # and only delete the particular program that is causing problems).
+    find "$builddir/bin" -type f -executable -exec rm "{}" \;
 else
     execdir="$utilname"
 fi
