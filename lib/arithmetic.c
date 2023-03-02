@@ -3259,6 +3259,8 @@ gal_arithmetic_set_operator(char *string, size_t *num_operands)
     { op=GAL_ARITHMETIC_OP_NOT;               *num_operands=1;  }
   else if (!strcmp(string, "isblank"))
     { op=GAL_ARITHMETIC_OP_ISBLANK;           *num_operands=1;  }
+  else if (!strcmp(string, "isnotblank"))
+    { op=GAL_ARITHMETIC_OP_ISNOTBLANK;        *num_operands=1;  }
   else if (!strcmp(string, "where"))
     { op=GAL_ARITHMETIC_OP_WHERE;             *num_operands=3;  }
 
@@ -3373,6 +3375,7 @@ gal_arithmetic_operator_string(int operator)
     case GAL_ARITHMETIC_OP_OR:              return "or";
     case GAL_ARITHMETIC_OP_NOT:             return "not";
     case GAL_ARITHMETIC_OP_ISBLANK:         return "isblank";
+    case GAL_ARITHMETIC_OP_ISNOTBLANK:      return "isnotblank";
     case GAL_ARITHMETIC_OP_WHERE:           return "where";
 
     case GAL_ARITHMETIC_OP_BITAND:          return "bitand";
@@ -3535,8 +3538,11 @@ gal_arithmetic(int operator, size_t numthreads, int flags, ...)
       break;
 
     case GAL_ARITHMETIC_OP_ISBLANK:
+    case GAL_ARITHMETIC_OP_ISNOTBLANK:
       d1 = va_arg(va, gal_data_t *);
-      out = gal_blank_flag(d1);
+      out = ( operator==GAL_ARITHMETIC_OP_ISBLANK
+              ? gal_blank_flag(d1)
+              : gal_blank_flag_not(d1) );
       if(flags & GAL_ARITHMETIC_FLAG_FREE) gal_data_free(d1);
       break;
 

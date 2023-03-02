@@ -17453,7 +17453,7 @@ But you can use @option{--onedasimage} or @option{--onedonstdout} to respectivel
 For example, with the command below, the non-blank pixel values of @file{cropped.fits} are printed on the command-line (the @option{--quiet} option is used to remove the extra information that Arithmetic prints as it reads the inputs, its version and its running time).
 
 @example
-$ astarithmetic cropped.fits nonblank --onedonstdout --quiet
+$ astarithmetic cropped.fits noblank --onedonstdout --quiet
 @end example
 
 @end table
@@ -18009,15 +18009,16 @@ $ astarithmetic image.fits set-i i -100 lt i 200 ge or
 @item not
 Logical NOT: returns 1 when the operand is 0 and 0 when the operand is non-zero.
 The operand can be an image or number, for an image, it is applied to each pixel separately.
-For example, if you want to know which pixels are not blank, you can use not on the output of the @command{isblank} operator described below:
+For example, if you want to know which pixels are not blank (and assuming that we didn't have the @code{isnotblank} operator), you can use this @code{not} operator on the output of the @command{isblank} operator described below:
 @example
 $ astarithmetic image.fits isblank not
 @end example
 
 @cindex Blank pixel
 @item isblank
-Test for a blank value (see @ref{Blank pixels}).
-In essence, this is very similar to the conditional operators: the output is either 1 or 0 (see the `less than' operator above).
+Test each pixel for being a blank value (see @ref{Blank pixels}).
+This is a conditional operator: the output has the same size and dimensions as the input, but has an unsigned 8-bit integer type with two possible values: either 1 (for a pixel that was blank) or 0 (for a pixel that was not blank).
+See the description of @code{lt} operator above).
 The difference is that it only needs one operand.
 For example:
 @example
@@ -18025,6 +18026,13 @@ $ astarithmetic image.fits isblank
 @end example
 Because of the definition of a blank pixel, a blank value is not even equal to itself, so you cannot use the equal operator above to select blank pixels.
 See the ``Blank pixels'' box below for more on Blank pixels in Arithmetic.
+
+In case you want to set non-blank pixels to an output pixel value of 1, it is better to use @code{isnotblank} instead of `@code{isblank not}' (for more, see the description of @code{isnotblank}).
+
+@item isnotblank
+The inverse of the @code{isblank} operator above (see that description for more).
+Therefore, if a pixel has a blank value, the output of this operator will have a 0 value for it.
+This operator is therefore similar to running `@option{isblank not}', but slightly more efficient (won't need the intermediate product of two operators).
 
 @item where
 Change the input (pixel) value @emph{where}/if a certain condition holds.

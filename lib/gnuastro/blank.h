@@ -128,6 +128,9 @@ gal_blank_number(gal_data_t *input, int updateflag);
 gal_data_t *
 gal_blank_flag(gal_data_t *data);
 
+gal_data_t *
+gal_blank_flag_not(gal_data_t *input);
+
 void
 gal_blank_flag_apply(gal_data_t *input, gal_data_t *flag);
 

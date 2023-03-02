@@ -12,6 +12,8 @@ See the end of the file for license conditions.
    --writeall: Write all datasets on the stack as separate HDUs in the
      output; this is useful in debugging incomplete Arithmetic commands.
    - New operators (also available in Table).
+     - isnotblank: same as 'isblank not', but slightly more efficient.
+       This was suggested by Sepideh Eskandarlou.
      - swap: swap the top two datasets on the stack of operands.
      - index: return dataset of same size, with pixel values that are
        integers starting from 0 and incrementing one by one. This operator

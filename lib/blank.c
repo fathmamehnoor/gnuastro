@@ -557,13 +557,13 @@ gal_blank_number(gal_data_t *input, int updateflag)
 #define FLAG_BLANK(IT) {                                                \
     IT b, *a=input->array;                                              \
     gal_blank_write(&b, input->type);                                   \
-    if(b==b) /* Blank value can be checked with the equal comparison */ \
-      do { *o = *a==b;  ++a; } while(++o<of);                           \
-    else     /* Blank value will fail with the equal comparison */      \
-      do { *o = *a!=*a; ++a; } while(++o<of);                           \
+    if(b==b) /* Blank value can be checked with the equal. */           \
+      do {*o = blank1_not0 ? *a==b  : *a!=b;  ++a;} while(++o<of);      \
+    else     /* Blank value will fail with the equal comparison. */     \
+      do {*o = blank1_not0 ? *a!=*a : *a==*a; ++a;} while(++o<of);      \
   }
-gal_data_t *
-gal_blank_flag(gal_data_t *input)
+static gal_data_t *
+blank_flag(gal_data_t *input, int blank1_not0)
 {
   uint8_t *o, *of;
   gal_data_t *out;
@@ -633,6 +633,26 @@ gal_blank_flag(gal_data_t *input)
 
   /* Return */
   return out;
+}
+
+
+
+
+
+gal_data_t *
+gal_blank_flag(gal_data_t *input)
+{
+  return blank_flag(input, 1);
+}
+
+
+
+
+
+gal_data_t *
+gal_blank_flag_not(gal_data_t *input)
+{
+  return blank_flag(input, 0);
 }
 
 
