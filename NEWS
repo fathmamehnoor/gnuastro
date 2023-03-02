@@ -149,6 +149,8 @@ See the end of the file for license conditions.
    - GAL_ARITHMETIC_OP_BOX_VERTICES_ON_SPHERE: calculate the coordinates of
      vertices of a rectable on a sphere from its center and width/height.
    - gal_binary_number_neighbors: num. non-zero neighbors of non-zero pixels.
+   - gal_blank_flag_not: binary dataset with 1 for those input pixels that
+     were blank.
    - gal_data_alloc_empty: Allocate an empty dataset with a given number of
      dimensions.
    - gal_list_f64_to_data: convert list of float64s to a 'gal_data_t'

@@ -32152,18 +32152,18 @@ input->flag &= ~GAL_DATA_FLAG_BLANK_CH;
 @end deftypefun
 
 @deftypefun size_t gal_blank_number (gal_data_t @code{*input}, int @code{updateflag})
-Return the number of blank elements in @code{input}. If
-@code{updateflag!=0}, then the dataset blank keyword flags will be
-updated. See the description of @code{gal_blank_present} (above) for more
-on these flags. If @code{input==NULL}, then this function will return
-@code{GAL_BLANK_SIZE_T}.
+Return the number of blank elements in @code{input}.
+If @code{updateflag!=0}, then the dataset blank keyword flags will beupdated.
+See the description of @code{gal_blank_present} (above) for more on these flags.
+If @code{input==NULL}, then this function will return @code{GAL_BLANK_SIZE_T}.
 @end deftypefun
 
-
 @deftypefun {gal_data_t *} gal_blank_flag (gal_data_t @code{*input})
-Find which elements in an array are blank. So, create a dataset of the
-same size as the input, but with an @code{uint8_t} type that
-has a value of 1 for data that are blank and 0 for those that are not.
+Return a ``flag'' dataset with the same size as the input, but with an @code{uint8_t} type that has a value of 1 for data elements that are blank and 0 for those that are not.
+@end deftypefun
+
+@deftypefun {gal_data_t *} gal_blank_flag_not (gal_data_t @code{*input})
+Return a ``flag'' dataset with the same size as the input, but with an @code{uint8_t} type that has a value of 1 for data elements that are @emph{not} blank and 0 for those that are blank.
 @end deftypefun
 
 @deftypefun void gal_blank_flag_apply (gal_data_t @code{*input}, gal_data_t @code{*flag})
