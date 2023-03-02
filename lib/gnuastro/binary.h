@@ -80,6 +80,12 @@ gal_binary_open(gal_data_t *input, size_t num, int connectivity,
 
 
 
+/*********************************************************************/
+/*****************            Neighbors           ********************/
+/*********************************************************************/
+gal_data_t *
+gal_binary_number_neighbors(gal_data_t *input, int connectivity, int inplace);
+
 
 
 /*********************************************************************/
@@ -100,6 +106,8 @@ gal_data_t *
 gal_binary_connected_adjacency_list(gal_list_sizet_t **listarr,
                                     size_t number, size_t minmapsize,
                                     int quietmmap, size_t *numconnected);
+
+
 
 /*********************************************************************/
 /*****************            Fill holes          ********************/

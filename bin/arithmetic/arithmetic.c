@@ -578,10 +578,13 @@ arithmetic_binary_sanity_checks(gal_data_t *in, gal_data_t *conn,
 
   /* Make sure the array has an unsigned 8-bit type. */
   if(in->type!=GAL_TYPE_UINT8)
-    error(EXIT_FAILURE, 0, "the second popped operand of '%s' doesn't "
-          "have an 8-bit unsigned integer type. It must be a binary "
-          "dataset (only being equal to zero is checked). You can use "
-          "the 'uint8' operator for type conversion", operator);
+    error(EXIT_FAILURE, 0, "the second popped operand of '%s' has a type "
+          "of %s. However, it must be a binary dataset (only being equal "
+          "to zero is checked). You can use the 'uint8' operator for type "
+          "conversion, alternatively, if all your values are positive "
+          "and floating point, you can use '0 gt', if you want non-blank "
+          "values you can use 'isblank not' and many other operators that "
+          "produce a binary output", operator, gal_type_name(in->type, 1));
 
   /* Clean up and return the integer value of 'conn'. */
   gal_data_free(conn);
@@ -614,6 +617,27 @@ arithmetic_erode_dilate(struct arithmeticparams *p, char *token, int op)
             "problem. The operator code %d not recognized", __func__,
             PACKAGE_BUGREPORT, op);
     }
+
+  /* Push the result onto the stack. */
+  operands_add(p, NULL, in);
+}
+
+
+
+
+
+static void
+arithmetic_number_neighbors(struct arithmeticparams *p, char *token, int op)
+{
+  int conn_int;
+
+  /* Pop the two necessary operands. */
+  gal_data_t *conn = operands_pop(p, token);
+  gal_data_t *in   = operands_pop(p, token);
+
+  /* Do the sanity checks and do the job. */
+  conn_int=arithmetic_binary_sanity_checks(in, conn, token);
+  in=gal_binary_number_neighbors(in, conn_int, 1);
 
   /* Push the result onto the stack. */
   operands_add(p, NULL, in);
@@ -1321,6 +1345,8 @@ arithmetic_set_operator(char *string, size_t *num_operands, int *inlib)
         { op=ARITHMETIC_OP_ERODE;                 *num_operands=0; }
       else if (!strcmp(string, "dilate"))
         { op=ARITHMETIC_OP_DILATE;                *num_operands=0; }
+      else if (!strcmp(string, "number-neighbors"))
+        { op=ARITHMETIC_OP_NUMBER_NEIGHBORS;      *num_operands=0; }
       else if (!strcmp(string, "connected-components"))
         { op=ARITHMETIC_OP_CONNECTED_COMPONENTS;  *num_operands=0; }
       else if (!strcmp(string, "fill-holes"))
@@ -1512,6 +1538,10 @@ arithmetic_operator_run(struct arithmeticparams *p, int operator,
         case ARITHMETIC_OP_ERODE:
         case ARITHMETIC_OP_DILATE:
           arithmetic_erode_dilate(p, operator_string, operator);
+          break;
+
+        case ARITHMETIC_OP_NUMBER_NEIGHBORS:
+          arithmetic_number_neighbors(p, operator_string, operator);
           break;
 
         case ARITHMETIC_OP_CONNECTED_COMPONENTS:

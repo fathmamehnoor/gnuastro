@@ -420,6 +420,69 @@ gal_binary_open(gal_data_t *input, size_t num, int connectivity,
 
 
 /*********************************************************************/
+/*****************            Neighbors           ********************/
+/*********************************************************************/
+/* This is a general erosion and dilation function. It is less efficient
+   than the more specialized cases above. */
+gal_data_t *
+gal_binary_number_neighbors(gal_data_t *input, int connectivity, int inplace)
+{
+  gal_data_t *out;
+  uint8_t n, *narr, *byt=input->array;
+  size_t i, *dinc=gal_dimension_increment(input->ndim, input->dsize);
+
+  /* Currently this only works on blocks. */
+  if(input->block)
+    error(EXIT_FAILURE, 0, "%s: currently only works on a fully "
+          "allocated block of memory, but the input is a tile (its 'block' "
+          "element is not NULL)", __func__);
+
+  /* The input must have a uint8 datatype. */
+  if(input->type!=GAL_TYPE_UINT8)
+    error(EXIT_FAILURE, 0, "%s: input must have an unsigned 8-bit "
+          "datatype but has a type of %s\n", __func__,
+          gal_type_name(input->type, 1));
+
+  /* Allocate the output dataset. */
+  out = ( inplace
+          ? input
+          : gal_data_alloc(NULL, GAL_TYPE_UINT8, input->ndim, input->dsize,
+                           input->wcs, 1, input->minmapsize, input->quietmmap,
+                           NULL, NULL, NULL) );
+  narr=out->array;
+
+  /* Go over the neighbors of each pixel. */
+  for(i=0;i<input->size;++i)
+    if(byt[i] && byt[i]!=GAL_BLANK_UINT8)
+      {
+        n=0;
+        GAL_DIMENSION_NEIGHBOR_OP(i, input->ndim, input->dsize, connectivity,
+                                  dinc, { n += byt[nind]>0; });
+        narr[i]=n;
+      }
+
+  /* Return the output dataset. */
+  return out;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*********************************************************************/
 /*****************      Connected components      ********************/
 /*********************************************************************/
 /* Find connected components in an intput dataset. */

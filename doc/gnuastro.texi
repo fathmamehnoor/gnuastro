@@ -18122,6 +18122,19 @@ The usage is similar to @code{erode}, for example:
 $ astarithmetic binary.fits 2 dilate -oout.fits
 @end example
 
+@item number-neighbors
+Return a dataset of the same size as the second popped operand, but where each non-zero and non-blank input pixel is replaced with the number of its non-zero and non-blank neighbors.
+The first popped operand is the connectivity (see above) and must be a single-value of an integer type.
+The dataset is assumed to be binary (having an unsigned, 8-bit dataset).
+
+For example with the command below, you can select all pixels above a value of 100 in your image with the ``greater-than'' or @code{gt} operator (see @ref{Conditional operators}).
+Recall that the output of all conditional operators is a binary output (having a value of 0 or 1).
+In the same command, we will then find how many neighboring pixels of each pixel (that was originally above the threshold) are also above the threshold.
+
+@example
+$ astarithmetic image.fits 100 gt 2 number-neighbors
+@end example
+
 @item connected-components
 @cindex Connected components
 Find the connected components in the input dataset (second popped operand).
@@ -37882,6 +37895,11 @@ foreground. In this implementation, @code{num} erosions are going to be
 applied on the dataset, then @code{num} dilations.
 @end deftypefun
 
+@deftypefun {gal_data_t *} gal_binary_number_neighbors (gal_data_t @code{*input}, int @code{connectivity}, int @code{inplace})
+Return an image of the same size as the input, but where each non-zero and non-blank input pixel is replaced with the number of its non-zero and non-blank neighbors.
+The input dataset is assumed to be binary (having an unsigned, 8-bit dataset).
+The neighbors are defined through the @code{connectivity} argument (see above) and if @code{inplace!=0}, then the output will be written into the input.
+@end deftypefun
 
 @deftypefun size_t gal_binary_connected_components (gal_data_t @code{*binary}, gal_data_t @code{**out}, int @code{connectivity})
 @cindex Breadth first search

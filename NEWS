@@ -34,6 +34,8 @@ See the end of the file for license conditions.
        vertices of a rectangle from its center and width along RA and
        Dec. This takes into account the curved nature of the coordinate
        system. Added after discussion with Martin Kuemmel.
+     - number-neighbors: Return the number of non-zero neighbors of each
+       non-zero pixel in a binary image.
    - New operators (only in the Arithmetic program):
      - interpolate-meanngb: interpolate blank values with mean of the
        requested number of nearest neighbors.
@@ -144,6 +146,7 @@ See the end of the file for license conditions.
    - GAL_ARITHMETIC_OP_NANOMAGGY_TO_COUNTS: convert nanomaggy to counts.
    - GAL_ARITHMETIC_OP_BOX_VERTICES_ON_SPHERE: calculate the coordinates of
      vertices of a rectable on a sphere from its center and width/height.
+   - gal_binary_number_neighbors: num. non-zero neighbors of non-zero pixels.
    - gal_data_alloc_empty: Allocate an empty dataset with a given number of
      dimensions.
    - gal_list_f64_to_data: convert list of float64s to a 'gal_data_t'
