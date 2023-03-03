@@ -2102,6 +2102,7 @@ Try the commands above again, but this time also use @key{<TAB>} to go to the li
 Then follow a few more links and go deeper into the book.
 To return to the previous page, press @key{l} (small L).
 If you are searching for a specific phrase in the whole book (for example, an option name), press @key{s} and type your search phrase and end it with an @key{<ENTER>}.
+Even though, you can return to the command line and quit info with pressing the @key{q}.
 
 You do not need to start from the top of the manual every time.
 For example, to get to @ref{Invoking astnoisechisel}, run the following command.
@@ -2248,7 +2249,7 @@ $ astcrop --mode=wcs -h0 --output=flat-ir/xdf-f160w.fits \
 Run the command below to have a look at the cropped images:
 
 @example
-$ astscript-fits-view flat-ir/xdf-f160w.fits
+$ astscript-fits-view flat-ir/*.fits
 @end example
 
 You only see the deep region now, does not the noise look much cleaner?
@@ -2819,7 +2820,11 @@ $ astwarp flat-ir/xdf-f160w.fits --rotate=20
 @end example
 
 @noindent
-Open the output (@file{xdf-f160w_rotated.fits}) and see how it is rotated.
+Open the output (@file{xdf-f160w_rotated.fits}) and input to see how it is rotated.
+
+@example
+$ astscript-fits-view flat-ir/xdf-f160w.fits xdf-f160w_rotated.fits
+@end example
 
 Warp can generally be used for many kinds of pixel grid manipulation (warping), not just rotations.
 For example, the outputs of the commands below will have larger pixels respectively (new resolution being one quarter the original resolution), get shifted by 2.8 (by sub-pixel), get a shear of 2, and be tilted (projected).
@@ -2830,6 +2835,7 @@ $ astwarp flat-ir/xdf-f160w.fits --scale=0.25
 $ astwarp flat-ir/xdf-f160w.fits --translate=2.8
 $ astwarp flat-ir/xdf-f160w.fits --shear=0.2
 $ astwarp flat-ir/xdf-f160w.fits --project=0.001,0.0005
+$ astscript-fits-view flat-ir/xdf-f160w.fits *.fits
 @end example
 
 @noindent
@@ -2906,9 +2912,10 @@ The ``versions and date'' group of keywords are present in all Gnuastro's FITS e
 Note that if a keyword name is larger than 8 characters, it is preceded by a @code{HIERARCH} keyword and that all keyword names are in capital letters.
 These are all part of the FITS standard and originate from its history.
 But in short, both can be ignored!
-For example, with the command below, let's see what the default value of the @option{--detgrowquant} option is (using the @option{-P} option described in @ref{Option management and configuration files}).
+For example, with the commands below, let's see at first what the default value are and then just check the value of @option{--detgrowquant} option (using the @option{-P} option described in @ref{Option management and configuration files}).
 
 @example
+$ astnoisechisle -P
 $ astnoisechisel -P | grep detgrowquant
 @end example
 
@@ -3042,7 +3049,7 @@ If you have read the paper, you will see why there are so many extensions in the
 
 @example
 $ astfits xdf-f160w_detcheck.fits
-$ ds9 -mecube xdf-f160w_detcheck.fits -zscale -zoom to fit
+$ astscript-fits-view xdf-f160w_detcheck.fits
 @end example
 
 In order to understand the parameters and their biases (especially as you are starting to use Gnuastro, or running it a new dataset), it is @emph{strongly} encouraged to play with the different parameters and use the respective check images to see which step is affected by your changes and how, for example, see @ref{Detecting large extended targets}.
