@@ -8134,6 +8134,7 @@ In that case use the following URL for the HTTP protocol instead (for Autoconf a
 
 @example
 $ DEVDIR=/home/yourname/Development
+$ mkdir $DEVDIR
 $ cd $DEVDIR
 $ git clone https://git.sv.gnu.org/git/gnulib.git
 $ git clone https://git.sv.gnu.org/git/autoconf-archive.git
