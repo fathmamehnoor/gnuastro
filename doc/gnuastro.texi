@@ -3335,6 +3335,15 @@ $ astmkcatalog seg/xdf-f160w.fits --ids --ra --dec --magnitude --sn \
 
 @noindent
 From the printed statements on the command-line, you see that MakeCatalog read all the extensions in Segment's output for the various measurements it needed.
+Let's look at to the output of above command.
+You will see that the output of the MakeCatalog has two extensions.
+
+@example
+$ astfits cat/xdf-f160w.fits
+@end example
+
+The first extension shows the information obtained from the @code{OBJECTS}, and the second extension shows the information obtained from the @code{CLUMPS}.
+
 To calculate colors, we also need magnitude measurements on the other filters.
 So let's repeat the command above on them, just changing the file names and zero point (which we got from the XDF survey web page):
 
