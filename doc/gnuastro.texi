@@ -18092,7 +18092,7 @@ $ astarithmetic image1.fits image2.fits lt
 If only one operand is an image, then all the pixels will be compared with the single value (number) of the other operand.
 For example:
 @example
-$ astaithmetic image1.fits 1000 lt
+$ astarithmetic image1.fits 1000 lt
 @end example
 Finally if both are numbers, then the output is also just one number (0 or 1).
 @example
@@ -18104,33 +18104,33 @@ $ astarithmetic 4 5 lt
 Less or equal: similar to @code{lt} (`less than' operator), but returning 1 when the second popped operand is smaller or equal to the first.
 For example
 @example
-$ astaithmetic image1.fits 1000 le
+$ astarithmetic image1.fits 1000 le
 @end example
 
 @item gt
 Greater than: similar to @code{lt} (`less than' operator), but returning 1 when the second popped operand is greater than the first.
 For example
 @example
-$ astaithmetic image1.fits 1000 gt
+$ astarithmetic image1.fits 1000 gt
 @end example
 
 @item ge
 Greater or equal: similar to @code{lt} (`less than' operator), but returning 1 when the second popped operand is larger or equal to the first.
 For example
 @example
-$ astaithmetic image1.fits 1000 ge
+$ astarithmetic image1.fits 1000 ge
 @end example
 
 @item eq
 Equality: similar to @code{lt} (`less than' operator), but returning 1 when the two popped operands are equal (to double precision floating point accuracy).
 @example
-$ astaithmetic image1.fits 1000 eq
+$ astarithmetic image1.fits 1000 eq
 @end example
 
 @item ne
 Non-Equality: similar to @code{lt} (`less than' operator), but returning 1 when the two popped operands are @emph{not} equal (to double precision floating point accuracy).
 @example
-$ astaithmetic image1.fits 1000 ne
+$ astarithmetic image1.fits 1000 ne
 @end example
 
 @item and
