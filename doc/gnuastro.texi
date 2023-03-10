@@ -8226,7 +8226,7 @@ Run `@command{tlmgr info missingfile}' to see the package(s) containing that fil
 To install all the necessary @TeX{} packages for a successful Gnuastro bootstrap, run this command:
 
 @example
-$ su
+$ sudo su
 # tlmgr install epsf jknapltx caption biblatex biber iftex \
                 etoolbox logreq xstring xkeyval pgf ms     \
                 xcolor pgfplots times rsfs ps2eps epspdf
@@ -9331,12 +9331,13 @@ Since all configured and built files are derivative files (not files that have b
 @cindex GNU build system
 The modern GNU C library (and thus the Linux kernel) defines the @file{/dev/shm} directory for this purpose in the RAM (POSIX shared memory).
 To build in it, you can use the GNU build system's ability to build in a separate directory (not necessarily in the source directory) as shown below.
-Just set @file{SRCDIR} as the address of Gnuastro's top source directory (for example, the unpacked tarball).
+Just set @file{SRCDIR} as the address of Gnuastro's top source directory (for example, where there is the unpacked tarball).
 
 @example
+$ SRCDIR=/home/username/gnuastro
 $ mkdir /dev/shm/tmp-gnuastro-build
 $ cd /dev/shm/tmp-gnuastro-build
-$ SRCDIR/configure --srcdir=SRCDIR
+$ $SRCDIR/configure --srcdir=$SRCDIR
 $ make
 @end example
 
@@ -9360,7 +9361,7 @@ It will make a directory under a given top-level directory (given to @option{--t
 It thus keeps the source completely separated from the built files.
 For easy access to the built files, it also makes a symbolic link to the built directory in the top source files called @file{build}.
 
-When run without any options, default values will be used for its configuration.
+When running the developer-build script without any options in the Gnuastro's top source directory, default values will be used for its configuration.
 As with Gnuastro's programs, you can inspect the default values with @option{-P} (or @option{--printparams}, the output just looks a little different here).
 The default top-level build directory is @file{/dev/shm}: the shared memory directory in RAM on GNU/Linux systems as described in @ref{Configure and build in RAM}.
 
