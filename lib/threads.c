@@ -91,7 +91,7 @@ pthread_barrier_init(pthread_barrier_t *b, pthread_barrierattr_t *attr,
    announced by another thread that succeeds the 'if'. After the thread no
    longer needs the condition variable, we increment 'b->condfinished' so
    'pthread_barrier_destroy' can know if it should wait (sleep) or
-   continue.*/
+   continue. */
 int
 pthread_barrier_wait(pthread_barrier_t *b)
 {
@@ -139,7 +139,7 @@ pthread_barrier_destroy(pthread_barrier_t *b)
   while( b->condfinished < b->limit )
     nanosleep(&request, &remaining);
 
-  /* Destroy the condition variable and mutex */
+  /* Destroy the condition variable and mutex. */
   pthread_cond_destroy(&b->cond);
   pthread_mutex_destroy(&b->mutex);
   return 0;
@@ -296,7 +296,7 @@ gal_threads_attr_barrier_init(pthread_attr_t *attr, pthread_barrier_t *b,
        {
 
            THE INDEX OF THE TARGET IS NOW AVAILABLE AS
-           'tprm->indexs[i]'. YOU CAN USE IT IN WHAT EVER MANNER YOU LIKE
+           'tprm->indexs[i]'. YOU CAN USE IT IN WHATEVER MANNER YOU LIKE
            ALONG WITH THE SET OF VARIABLES/ARRAYS in 'prm'.
 
        }
@@ -314,12 +314,15 @@ gal_threads_attr_barrier_init(pthread_attr_t *attr, pthread_barrier_t *b,
         struct my_params;
         size_t numthreads;
 
+        int quietmmap=1;
+        size_t minmapsize=-1;
+
         my_params.value1=value1;
         my_params.value2=value2;
         my_params.arary=array;
 
         gal_threads_spin_off(run_on_thread, &my_params, num_in_array,
-                             numthreads);
+                             numthreads, minmapsize, quietmmap);
 
         return 1;
      }
@@ -367,7 +370,7 @@ gal_threads_spin_off(void *(*worker)(void *), void *caller_params,
                                        quietmmap, &indexs, &thrdcols);
 
   /* Do the job: when only one thread is necessary, there is no need to
-     spin off one thread, just call the workerfunction directly (spinning
+     spin-off one thread, just call the workerfunction directly (spinning
      off threads is expensive). This is for the generic thread spinner
      function, not this simple function where 'numthreads' is a
      constant. */
@@ -382,13 +385,13 @@ gal_threads_spin_off(void *(*worker)(void *), void *caller_params,
   else
     {
       /* Initialize the attributes. Note that this running thread
-         (that spinns off the nt threads) is also a thread, so the
+         (that spins-off the nt threads) is also a thread, so the
          number the barriers should be one more than the number of
          threads spinned off. */
       numbarriers = (numactions<numthreads ? numactions : numthreads) + 1;
       gal_threads_attr_barrier_init(&attr, &b, numbarriers);
 
-      /* Spin off the threads: */
+      /* Spin-off the threads: */
       for(i=0;i<numthreads;++i)
         if(indexs[i*thrdcols]!=GAL_BLANK_SIZE_T)
           {

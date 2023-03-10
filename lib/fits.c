@@ -3564,6 +3564,11 @@ struct fits_tab_read_onecol_params
   gal_data_t       **colarray;  /* Array of pointers to all columns. */
   gal_list_sizet_t   *indexll;  /* Index of columns to read.         */
 };
+
+
+
+
+
 void *
 fits_tab_read_onecol(void *in_prm)
 {
@@ -3583,7 +3588,7 @@ fits_tab_read_onecol(void *in_prm)
   int isfloat, hdutype, anynul=0, status=0;
   size_t i, j, c, ndim, strw, repeat, indout, indin=GAL_BLANK_SIZE_T;
 
-  /* Open the FITS file */
+  /* Open the FITS file. */
   fptr=gal_fits_hdu_open_format(p->filename, p->hdu, 1);
 
   /* See if its a Binary or ASCII table (necessary for floating point
@@ -3660,7 +3665,7 @@ fits_tab_read_onecol(void *in_prm)
                defines blanks as NaN (same as almost any other software
                like Gnuastro). However if a blank value is specified,
                CFITSIO will convert other special numbers like 'inf' to NaN
-               also. We want to be able to distringuish 'inf' and NaN here,
+               also. We want to be able to distinguish 'inf' and NaN here,
                so for floating point types in binary tables, we won't
                define any blank value. In ASCII tables, CFITSIO doesn't
                read the 'NAN' values (that it has written itself) unless we
@@ -3713,7 +3718,7 @@ fits_tab_read_onecol(void *in_prm)
       p->colarray[indout]=col;
     }
 
-  /* Close the FITS file */
+  /* Close the FITS file. */
   status=0;
   fits_close_file(fptr, &status);
   gal_fits_io_error(status, NULL);
@@ -3836,7 +3841,7 @@ fits_string_fixed_alloc_size(gal_data_t *data)
     {
       /* Allocate (and clear) the space for the new string. We want it to
          be cleared, so when the strings are smaller, the rest of the space
-         is filled with '\0' (ASCII for 0) values.*/
+         is filled with '\0' (ASCII for 0) values. */
       errno=0;
       tmp=calloc(maxlen+1, sizeof *strarr[i]);
       if(tmp==NULL)
@@ -3845,7 +3850,7 @@ fits_string_fixed_alloc_size(gal_data_t *data)
 
       /* Put the old array into the newly allocated space. 'tmp' was
          cleared (all values set to '\0', so we don't need to set the final
-         one explicity after the copy.*/
+         one explicity after the copy. */
       for(j=0;strarr[i][j]!='\0';++j)
         tmp[j]=strarr[i][j];
 
@@ -3928,7 +3933,7 @@ fits_table_prepare_arrays(gal_data_t *cols, size_t numcols,
                 free(blank);
               }
 
-            /* Print the value to be used as TFORMn:  */
+            /* Print the value to be used as TFORMn: */
             switch(col->type)
               {
               case GAL_TYPE_STRING:
@@ -4282,7 +4287,7 @@ gal_fits_tab_write(gal_data_t *cols, gal_list_str_t *comments,
   size_t i, numrows=-1, thisnrows;
   int tbltype, numcols=0, status=0;
 
-  /* Make sure all the input columns have the same number of elements */
+  /* Make sure all the input columns have the same number of elements. */
   for(col=cols; col!=NULL; col=col->next)
     {
       thisnrows = col->dsize ? col->dsize[0] : 0;

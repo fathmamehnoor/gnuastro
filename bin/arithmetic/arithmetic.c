@@ -190,8 +190,6 @@ struct arithmetic_filter_p
   float      sclip_param;       /* Termination critera in sigma-cliping. */
   gal_data_t      *input;       /* Input dataset.                        */
   gal_data_t        *out;       /* Output dataset.                       */
-
-  int           hasblank;       /* If the dataset has blank values.      */
 };
 
 
@@ -481,9 +479,6 @@ wrapper_for_filter(struct arithmeticparams *p, char *token, int operator)
       printf("hpfsize: %zu, %zu\n", hpfsize[0], hpfsize[1]);
       */
 
-      /* See if the input has blank pixels. */
-      afp.hasblank=gal_blank_present(afp.input, 1);
-
 
       /* Set the type of the output dataset. */
       switch(operator)
@@ -523,7 +518,7 @@ wrapper_for_filter(struct arithmeticparams *p, char *token, int operator)
   /* Add the output to the top of the stack. */
   operands_add(p, NULL, afp.out);
 
-  /* Clean up and add the output on top of the stack */
+  /* Clean up and add the output on top of the stack. */
   gal_data_free(zero);
   gal_data_free(afp.input);
   gal_list_data_free(params_list);
@@ -686,7 +681,7 @@ arithmetic_fill_holes(struct arithmeticparams *p, char *token)
   /* Basic sanity checks. */
   conn_int=arithmetic_binary_sanity_checks(in, conn, token);
 
-  /* Fill the holes */
+  /* Fill the holes. */
   gal_binary_holes_fill(in, conn_int, -1);
 
   /* Push the result onto the stack. */
@@ -852,6 +847,7 @@ arithmetic_interpolate_region(struct arithmeticparams *p,
   */
 
   /* Clean up. */
+  free(dinc);
   gal_data_free(lab);
   gal_data_free(minmax);
   gal_data_free(connectivity);
@@ -870,7 +866,7 @@ arithmetic_interpolate(struct arithmeticparams *p, int operator, char *token)
   gal_data_t *interpolated;
   int num_int, interpop=GAL_ARITHMETIC_OP_INVALID;
 
-  /* First pop the number of nearby neighbors.*/
+  /* First pop the number of nearby neighbors. */
   gal_data_t *num = operands_pop(p, token);
 
   /* Then pop the actual dataset to interpolate. */

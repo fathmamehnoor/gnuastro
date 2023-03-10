@@ -92,18 +92,18 @@ convolve_tile_is_on_edge(size_t *h, size_t *start_end_coord, size_t *k,
 struct per_thread_spatial_prm
 {
   /* Internally stored/used values. */
-  size_t             id;     /* ID of tile being operatred on.           */
-  gal_data_t      *tile;     /* Tile this thread is working on.          */
-  gal_data_t *i_overlap;     /* Overlap tile over input dataset.         */
-  gal_data_t *k_overlap;     /* Overlap tile over kernel dataset.        */
-  size_t *overlap_start;     /* Starting coordinate of kernel overlap.   */
-  size_t  *kernel_start;     /* Kernel starting point.                   */
-  size_t    *host_start;     /* Starting coordinate of host.             */
+  size_t             id;     /* ID of tile being operatred on.            */
+  gal_data_t      *tile;     /* Tile this thread is working on.           */
+  gal_data_t *i_overlap;     /* Overlap tile over input dataset.          */
+  gal_data_t *k_overlap;     /* Overlap tile over kernel dataset.         */
+  size_t *overlap_start;     /* Starting coordinate of kernel overlap.    */
+  size_t  *kernel_start;     /* Kernel starting point.                    */
+  size_t    *host_start;     /* Starting coordinate of host.              */
   size_t           *pix;     /* 2*ndim: starting and ending of tile,
-                                Later, just the pixel being convolved.   */
-  int           on_edge;     /* If the tile is on the edge or not.       */
-  gal_data_t      *host;     /* Size of host (channel or block).         */
-  struct spatial_params *cprm; /* Link to main structure for all threads.*/
+                                Later, just the pixel being convolved.    */
+  int           on_edge;     /* If the tile is on the edge or not.        */
+  gal_data_t      *host;     /* Size of host (channel or block).          */
+  struct spatial_params *cprm; /* Link to main structure for all threads. */
 };
 
 
@@ -113,14 +113,14 @@ struct per_thread_spatial_prm
 struct spatial_params
 {
   /* Main input/output parameters. */
-  gal_data_t       *out;     /* Output data structure.                   */
-  gal_data_t     *tiles;     /* Tiles over the input image.              */
-  gal_data_t     *block;     /* Pointer to block for this tile.          */
-  gal_data_t    *kernel;     /* Kernel to convolve with input.           */
-  gal_data_t *tocorrect;     /* (possible) convolved image to correct.   */
-  int        convoverch;     /* Ignore channel edges in convolution.     */
-  int    edgecorrection;     /* Correct convolution's edge effects.      */
-  struct per_thread_spatial_prm *pprm; /* Array of per-thread parameters.*/
+  gal_data_t       *out;     /* Output data structure.                    */
+  gal_data_t     *tiles;     /* Tiles over the input image.               */
+  gal_data_t     *block;     /* Pointer to block for this tile.           */
+  gal_data_t    *kernel;     /* Kernel to convolve with input.            */
+  gal_data_t *tocorrect;     /* (possible) convolved image to correct.    */
+  int        convoverch;     /* Ignore channel edges in convolution.      */
+  int    edgecorrection;     /* Correct convolution's edge effects.       */
+  struct per_thread_spatial_prm *pprm; /* Array of per-thread parameters. */
 };
 
 
@@ -129,7 +129,7 @@ struct spatial_params
 
 /* Define the overlap of the kernel and image over this part of the image,
    the necessary input image parameters are stored in 'overlap' (its
-   'array' and 'dsize' elements).  */
+   'array' and 'dsize' elements). */
 static int
 convolve_spatial_overlap(struct per_thread_spatial_prm *pprm, int tocorrect)
 {
@@ -226,7 +226,7 @@ convolve_spatial_overlap(struct per_thread_spatial_prm *pprm, int tocorrect)
         }
 
       /* There is full overlap for this pixel or tile over this
-         dimension.  */
+         dimension. */
       if(dim_full_overlap)
         {
           /* Set the values. */
@@ -483,7 +483,7 @@ convolve_spatial_on_thread(void *inparam)
 
 
 /* General spatial convolve function. This function is called by both
-   'gal_convolve_spatial' and */
+   'gal_convolve_spatial' and 'gal_convolve_spatial_correct_ch_edge'. */
 static gal_data_t *
 gal_convolve_spatial_general(gal_data_t *tiles, gal_data_t *kernel,
                              size_t numthreads, int edgecorrection,
@@ -504,7 +504,7 @@ gal_convolve_spatial_general(gal_data_t *tiles, gal_data_t *kernel,
   /* It may happen that an input dataset is part of a linked list, but it
      is not actually a tile structure (the user wants to convolve the whole
      dataset without using tiles)! In that case, this function should break
-     beacuse a linked list is interpretted as a tile structure here.*/
+     beacuse a linked list is interpretted as a tile structure here. */
   if( tiles->block==NULL && tiles->next && tiles->next->block==NULL )
     error(EXIT_FAILURE, 0, "%s: the input is a linked list but not a "
           "tessellation (a list of tiles). This function is optimized to "
@@ -513,7 +513,7 @@ gal_convolve_spatial_general(gal_data_t *tiles, gal_data_t *kernel,
           __func__);
 
 
-  /* Set the output datastructure.  */
+  /* Set the output datastructure. */
   if(tocorrect) out=tocorrect;
   else
     {
@@ -566,7 +566,7 @@ gal_convolve_spatial_general(gal_data_t *tiles, gal_data_t *kernel,
    convolution can be greatly sped up if it is done on separate tiles over
    the image (on multiple threads). So as input, you can either give tile
    values or one full array. Just note that if you give a single array as
-   input, the 'next' element has to be 'NULL'.*/
+   input, the 'next' element has to be 'NULL'. */
 gal_data_t *
 gal_convolve_spatial(gal_data_t *tiles, gal_data_t *kernel,
                      size_t numthreads, int edgecorrection, int convoverch)

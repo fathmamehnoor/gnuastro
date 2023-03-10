@@ -401,7 +401,7 @@ dimension_collapse_sanity_check(gal_data_t *in, gal_data_t *weight,
   if(hasblank==0)
     *cnum=in->dsize[c_dim];
 
-  /* Weight sanity checks */
+  /* Weight sanity checks. */
   if(weight)
     {
       if( weight->ndim!=1 )
@@ -583,7 +583,7 @@ gal_dimension_collapse_sum(gal_data_t *in, size_t c_dim, gal_data_t *weight)
   sum=gal_data_alloc(NULL, GAL_TYPE_FLOAT64, outndim, outdsize, in->wcs,
                      1, in->minmapsize, in->quietmmap, NULL, NULL, NULL);
 
-  /* The number dataset (when there are blank values).*/
+  /* The number dataset (when there are blank values). */
   if(hasblank)
     num=gal_data_alloc(NULL, GAL_TYPE_INT8, outndim, outdsize, NULL,
                        1, in->minmapsize, in->quietmmap, NULL, NULL, NULL);
@@ -663,7 +663,7 @@ gal_dimension_collapse_mean(gal_data_t *in, size_t c_dim,
   if( weight )
     {
       /* There are blank values, so we'll need to keep the sums of the
-         weights for each collapsed dimension */
+         weights for each collapsed dimension. */
       if( hasblank )
         wsumarr=gal_pointer_allocate(GAL_TYPE_FLOAT64, sum->size, 1,
                                      __func__, "wsumarr");
@@ -994,7 +994,7 @@ dimension_collapse_sortbased_worker(void *in_prm)
       }
       */
 
-      /* Do the necessary satistical operation. */
+      /* Do the necessary statistical operation. */
       switch(p->operator)
         {
         case DIMENSION_COLLAPSE_MEDIAN:

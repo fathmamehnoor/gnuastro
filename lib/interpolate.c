@@ -471,7 +471,7 @@ gal_interpolate_neighbors(gal_data_t *input,
                                         "prm.thread_flags");
 
 
-  /* Spin off the threads. */
+  /* Spin-off the threads. */
   gal_threads_spin_off(interpolate_neighbors_on_thread, &prm,
                        input->size, numthreads, input->minmapsize,
                        input->quietmmap);
