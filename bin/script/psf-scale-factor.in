@@ -240,6 +240,13 @@ EOF
 }
 
 
+all_nan_warning() {
+    cat <<EOF
+$scriptname: WARNING: the cropped image could not be generated. Probably because it is out of the input image coverage. Therefore the output stamp will be all NaN. If you later use this stamp (among others) with any stack operator of 'astarithmetic' this image will effectively be ignored, so you can safely continue with stacking all the files
+EOF
+}
+
+
 
 
 
@@ -509,6 +516,31 @@ astcrop $inputs --hdu=$hdu --mode=img \
         --center=$xcenter,$ycenter \
         --width=$xwidthinpix,$ywidthinpix\
         --output=$cropped $quiet
+
+# If the cropped image is not generated, it may happen that it does not
+# overlap with the input image. Save a nan value as the output and
+# continue.
+if ! [ -f $cropped ]; then
+
+    multifactor=nan
+
+    # Let the user know what happened.
+    if [ x"$quiet" = x ]; then all_nan_warning; fi
+
+    # Print the multiplication factor in standard output or in a given file
+    if [ x"$output" = x ]; then echo $multifactor
+    else                        echo $multifactor > $output
+    fi
+
+    # If the user does not specify to keep the temporal files with the option
+    # `--keeptmp', then remove the whole directory.
+    if [ $keeptmp = 0 ]; then
+        rm -r $tmpdir
+    fi
+
+    exit 0
+
+fi
 
 
 
