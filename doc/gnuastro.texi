@@ -17265,9 +17265,9 @@ Therefore this operator will produce NaN for counts with a negative value.
 For example, with the commands below, we read the zero point from the image headers (assuming it is in the @code{ZPOINT} keyword), we calculate the pixel area from the image itself, and we call this operator to convert the image pixels (in counts) to surface brightness (mag/arcsec@mymath{^2}).
 
 @example
-$ zero point=$(astfits image.fits --keyvalue=ZPOINT -q)
+$ zeropoint=$(astfits image.fits --keyvalue=ZPOINT -q)
 $ pixarea=$(astfits image.fits --pixelareaarcsec2)
-$ astarithmetic image.fits $zero point $pixarea counts-to-sb \
+$ astarithmetic image.fits $zeropoint $pixarea counts-to-sb \
                 --output=image-sb.fits
 
 @end example

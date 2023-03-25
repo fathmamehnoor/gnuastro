@@ -612,13 +612,13 @@ gal_wcs_write(struct wcsprm *wcs, char *filename,
   fitsfile *fptr;
   long *naxes=NULL;
 
-  /* Small sanity checks */
+  /* Small sanity checks. */
   if(wcs==NULL)
     error(EXIT_FAILURE, 0, "%s: input WCS is NULL", __func__);
   if( gal_fits_file_recognized(filename)==0 )
     error(EXIT_FAILURE, 0, "%s: not a FITS suffix", filename);
 
-  /* Open the file for writing */
+  /* Open the file for writing. */
   fptr=gal_fits_open_to_write(filename);
 
   /* Create the FITS file. */
@@ -1281,7 +1281,7 @@ gal_wcs_distortion_convert(struct wcsprm *inwcs, int outdisptype,
           }
         break;
 
-      /* Input's distortion is not yet supported.. */
+      /* Input's distortion is not yet supported. */
       case GAL_WCS_DISTORTION_TPD:
       case GAL_WCS_DISTORTION_DSS:
       case GAL_WCS_DISTORTION_WAT:
@@ -1351,7 +1351,7 @@ gal_wcs_copy(struct wcsprm *wcs)
 
       /* Initialize the allocated WCS structure. The WCSLIB manual says "On
          the first invokation, and only the first invokation, wcsprm::flag
-         must be set to -1 to initialize memory management"*/
+         must be set to -1 to initialize memory management". */
       out->flag=-1;
       wcsini(1, wcs->naxis, out);
 
@@ -1653,7 +1653,7 @@ gal_wcs_warp_matrix(struct wcsprm *wcs)
     error(EXIT_FAILURE, 0, "%s: currently only PCi_ja and CDi_ja keywords "
           "are recognized", __func__);
 
-  /* Return the result */
+  /* Return the result. */
   return out;
 }
 
@@ -1946,14 +1946,14 @@ gal_wcs_pixel_scale(struct wcsprm *wcs)
         if(a[i*n+j]!=0.0) /* We aren't concerned with 0 valued elements. */
           {
             /* We have to use absolutes because in cases like RA, the
-               diagonal values in different rows may have different signs*/
+               diagonal values in different rows may have different signs. */
             if(fabs(a[i*n+j])<minrow) minrow=fabs(a[i*n+j]);
             if(fabs(a[i*n+j])>maxrow) maxrow=fabs(a[i*n+j]);
           }
 
       /* Do the check, print warning and make correction. */
       if(maxrow!=minrow
-         && maxrow/minrow>1e5    /* The difference between elements is large */
+         && maxrow/minrow>1e5 /* The difference between elements is large. */
          && maxrow/minrow<GAL_WCS_FLTERROR
          && warning_printed==0)
         {
@@ -2234,7 +2234,7 @@ gal_wcs_coverage(char *filename, char *hdu, size_t *ondim,
      dimension: this is usually the first WCS dimension, but it may happen
      that it isn't. Also, note that the WCS may not be celestial/spherical
      at all (hence why we are only doing this for pre-defined celestial
-     'CTYPE's).*/
+     'CTYPE's). */
   for(i=0;i<ndim;++i)
     if(   strncmp(wcs->ctype[i], "RA-",   3)==0 /* Equatorial */
        || strncmp(wcs->ctype[i], "GLON-", 5)==0 /* Galactic */
@@ -2523,7 +2523,7 @@ gal_wcs_img_to_world(gal_data_t *coords, struct wcsprm *wcs, int inplace)
 
   /* Use WCSLIB's wcsp2s for the conversion. We are ignoring the over-all
      status here, because later we will use the 'stat' array to set all bad
-     coordinates to NaN.*/
+     coordinates to NaN. */
   wcsp2s(wcs, ncoord, nelem, pixcrd, imgcrd, phi, theta, world, stat);
 
 
