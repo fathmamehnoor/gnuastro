@@ -365,6 +365,8 @@ See the end of the file for license conditions.
               by Nafiseh Sedighi.
   bug #63543: Programs delete input when it has same name as output.
               Reported by Faezeh Bidjarchian.
+  bug #63969: make distcheck error due to temporary files of
+              astscript-psf-select-stars. Reported by Siyang He.
 
 
 
