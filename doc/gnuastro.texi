@@ -12902,9 +12902,6 @@ Another (inconvenient) difference with the FITS standard is that keyword names a
 
 However, outside of astronomy, because of its support of different numeric data types, many fields use TIFF images for accurate (for example, 16-bit integer or floating point for example) imaging data.
 
-Currently ConvertType can only read TIFF images, if you are interested in
-writing TIFF images, please get in touch with us.
-
 @item EPS
 @cindex EPS
 @cindex PostScript
@@ -34843,6 +34840,11 @@ Note that the directories start counting from zero.
 Read the @code{dir} directory within the TIFF file @code{filename} and return the contents of that TIFF directory as @code{gal_data_t}.
 If the directory's image contains multiple channels, the output will be a list (see @ref{List of gal_data_t}).
 @end deftypefun
+
+@deftypefun {void} gal_tiff_write (gal_data_t @code{*in}, char @code{*filename}, int @code{widthinpx}, int @code{heightinpix}, int @code{bitspersample}, int @code{numimg})
+Write the given dataset (@code{in}) into @file{filename} (a TIFF file) with the specified image width in pixels (@code{widthinpix}),height in pixels (@code{heightinpix}), bits per sample (@code{bitspersample}), and number of images (@code{numimg}).
+@end deftypefun
+
 
 
 
