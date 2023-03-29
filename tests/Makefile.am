@@ -74,7 +74,7 @@ endif
 if COND_CONVERTT
   MAYBE_CONVERTT_TESTS = convertt/fitstotxt.sh convertt/fitstojpeg.sh	\
   convertt/blankch.sh convertt/jpegtotxt.sh convertt/fitstojpegcmyk.sh	\
-  convertt/jpegtofits.sh convertt/fitstopdf.sh
+  convertt/jpegtofits.sh convertt/fitstopdf.sh convertt/fitstotiff.sh 
 
   convertt/fitstotxt.sh: mkprof/mosaic1.sh.log
   convertt/fitstojpeg.sh: mkprof/mosaic1.sh.log
@@ -83,6 +83,8 @@ if COND_CONVERTT
   convertt/fitstojpegcmyk.sh: mkprof/mosaic1.sh.log
   convertt/jpegtofits.sh: convertt/blankch.sh.log
   convertt/fitstopdf.sh: crop/section.sh.log
+  convertt/fitstotiff.sh: mkprof/mosaic1.sh.log
+
 endif
 if COND_CONVOLVE
   MAYBE_CONVOLVE_TESTS = convolve/spatial.sh convolve/frequency.sh \

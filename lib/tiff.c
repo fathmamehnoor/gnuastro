@@ -37,6 +37,8 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 #include <gnuastro/tiff.h>
 #include <gnuastro/pointer.h>
 
+#include <gnuastro-internal/checkset.h>
+
 
 
 
@@ -151,7 +153,7 @@ gal_tiff_dir_string_read(char *string)
 
 
 /*************************************************************
- **************        Read a JPEG image        **************
+ **************        Read a TIFF image        **************
  *************************************************************/
 #ifdef HAVE_LIBTIFF
 static void
@@ -626,4 +628,125 @@ gal_tiff_read(char *filename, size_t dir, size_t minmapsize, int quietmmap)
   tiff_error_no_litiff(__func__);
   return NULL;
 #endif  /* HAVE_LIBTIFF */
+}
+
+
+
+/*************************************************************
+ ****************    Write into a TIFF file   ****************
+ *************************************************************/
+
+/* Write image data into a TIFF file using libtiff library*/
+#ifdef HAVE_LIBTIFF
+static int
+tiff_img_write(TIFF *tif, gal_data_t *in, char *filename, int widthinpx, 
+              int heightinpx, size_t numch, int bitspersample, int numimg) 
+{
+    
+    size_t c;
+    int i, out;
+    uint32_t stripoffset, stripcount;
+    size_t bytespersample = bitspersample / 8;
+    uint32_t stripsize = TIFFDefaultStripSize(tif, widthinpx * numch 
+                                              * bytespersample);
+    uint32_t rowsperstrip = stripsize / (widthinpx * numch * bytespersample);
+  
+    /*Make sure rowspwerstrip is not 0*/
+    if (rowsperstrip == 0) {
+        rowsperstrip = 1;
+    }
+
+    /*Recalculate stripsize based on the rowsperstrip*/
+    stripsize = rowsperstrip * widthinpx * numch * bytespersample;
+    
+    /*Set TIFF tags that define image properties for image data*/
+    TIFFSetField(tif, TIFFTAG_IMAGEWIDTH, widthinpx);
+    TIFFSetField(tif, TIFFTAG_IMAGELENGTH, heightinpx);
+    TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, numch);
+    TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE, bitspersample);
+    TIFFSetField(tif, TIFFTAG_ROWSPERSTRIP, rowsperstrip);
+    TIFFSetField(tif, TIFFTAG_PLANARCONFIG, PLANARCONFIG_SEPARATE);
+    
+    /*For each number of image and channel, write the data into the TIFF file*/
+    for (i = 0; i < numimg; i++) {
+        for (c = 0; c < numch; c++) {
+            /*Calculate the offset of current strip*/
+            stripoffset = i * rowsperstrip * widthinpx * numch;
+
+            /*Calculate the number of rows per each strip while making sure 
+            that it does not exceed the image height*/
+            stripcount = heightinpx - stripoffset * rowsperstrip;
+            if (stripcount > rowsperstrip) {
+                stripcount = rowsperstrip;
+            }
+
+            /*Write the data of the current strip into the TIFF file*/
+            out = TIFFWriteEncodedStrip(tif, c, (void*)((char*)in + 
+                                       (stripoffset * widthinpx * numch + c)
+                                        * bytespersample), stripsize * stripcount);
+
+            /*If there is an error writing into TIFF file close the file and
+            return -1 */
+            if (out < 0) {
+                TIFFClose(tif);
+                return -1;
+            }
+        }
+
+        /*Write the TIFF directory for current image*/
+        TIFFWriteDirectory(tif);
+    }
+    /*return success*/
+    return 0;
+    
+    
+}
+#endif
+
+
+
+
+
+void
+gal_tiff_write(gal_data_t *in, char *filename, int widthinpx, int heightinpx,
+              int bitspersample, int numimg)
+{
+  #ifdef HAVE_LIBTIFF
+
+  int out;
+  size_t numch=gal_list_data_number(in);
+ 
+  /*Open the TIFF file*/
+  TIFF* tif = TIFFOpen(filename, "w");
+  if (tif==NULL) {
+    error(EXIT_FAILURE, 0, "%s: '%s' couldn't be opened for writing",
+          __func__, filename);
+  }
+
+  /*Check if input parameters have valid values*/
+  if( widthinpx <=0 || bitspersample <= 0 || numch <= 0){
+    error(EXIT_FAILURE, 0, "%s: '%s', widthinpx=%d, bitspersample=%d,"
+        "numch=%zu, values should be greater than 0",
+        __func__, filename, widthinpx, bitspersample, numch);
+  }
+
+  /*Check if the file already exists or has write permissions*/
+  if( gal_checkset_writable_notexist(filename)==0 )
+    error(EXIT_FAILURE, 0, "%s: already exists or its directory doesn't "
+          "write permssion. ", filename);
+
+  /*Write to TIFF file*/
+  out = tiff_img_write(tif, in, filename, widthinpx, heightinpx,
+                       numch, bitspersample, numimg);
+  if(out < 0){
+    error(EXIT_FAILURE, 0, "%s: problem in writing to %s",__func__, filename);
+    
+  }
+  /*Close file*/
+  TIFFClose(tif);
+
+  #else
+  tiff_error_no_litiff(__func__);
+  return NULL;
+  #endif /*HAVE_LIBTIFF*/
 }
