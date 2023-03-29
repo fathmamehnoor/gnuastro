@@ -1165,9 +1165,12 @@ ui_set_output(struct converttparams *p)
 
   /* TIFF */
   else if( gal_tiff_name_is_tiff(cp->output) )
-      error(EXIT_FAILURE, 0, "writing TIFF files is not yet supported, "
-            "please get in touch with us at %s so we implement it",
-            PACKAGE_BUGREPORT);
+    {
+      p->outformat=OUT_FORMAT_TIFF;
+       if( gal_tiff_suffix_is_tiff(cp->output) )
+          ui_add_dot_use_automatic_output(p);
+    }
+
 
   /* EPS */
   else if(gal_eps_name_is_eps(cp->output))

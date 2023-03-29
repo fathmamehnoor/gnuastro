@@ -34,6 +34,7 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 #include <gnuastro/txt.h>
 #include <gnuastro/fits.h>
 #include <gnuastro/jpeg.h>
+#include <gnuastro/tiff.h>
 #include <gnuastro/arithmetic.h>
 
 #include <gnuastro-internal/timing.h>
@@ -361,6 +362,14 @@ convertt(struct converttparams *p)
       gal_pdf_write(p->chll, p->cp.output, p->widthincm, p->borderwidth,
                     p->bordercolor, p->forcemin || p->forcemax, p->marks);
       break;
+
+    /* TIFF */
+    case OUT_FORMAT_TIFF:
+      if(p->colormap) color_map_prepare(p); else convertt_scale_to_uchar(p);
+      gal_tiff_write(p->chll, p->cp.output, p->widthinpx, p->heightinpx, 
+                    p->bitspersample, p->numch);
+      break;
+      
 
     /* Not recognized. */
     default:

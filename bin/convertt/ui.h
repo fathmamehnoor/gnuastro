@@ -43,8 +43,8 @@ enum program_args_groups
 
 /* Available letters for short options:
 
-   a d e f j k l n p s t v y z
-   E G J Q R W X Y
+   a d e f j k n s t v y z
+   E G J Q R X Y
 */
 enum option_keys_enum
 {
@@ -64,6 +64,9 @@ enum option_keys_enum
   UI_KEY_INVERT              = 'i',
   UI_KEY_MODE                = 'O',
   UI_KEY_MARKCOORDS          = 'r',
+  UI_KEY_WIDTHINPX           = 'W',
+  UI_KEY_HEIGHTINPX          = 'l',
+  UI_KEY_BITSPERSAMPLE       = 'p',
 
   /* Only with long version (start with a value 1000, the rest will be set
      automatically). */
