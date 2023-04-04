@@ -130,6 +130,7 @@ libgnuastro_la_SOURCES = \
   permutation.c \
   pointer.c \
   polygon.c \
+  pool.c \
   qsort.c \
   dimension.c \
   speclines.c \
@@ -182,6 +183,7 @@ pkginclude_HEADERS = gnuastro/config.h \
   $(headersdir)/permutation.h \
   $(headersdir)/pointer.h \
   $(headersdir)/polygon.h \
+  $(headersdir)/pool.h \
   $(headersdir)/qsort.h \
   $(headersdir)/speclines.h \
   $(headersdir)/statistics.h \

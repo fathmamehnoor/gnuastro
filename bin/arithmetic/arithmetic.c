@@ -1507,16 +1507,46 @@ arithmetic_operator_run(struct arithmeticparams *p, int operator,
                 PACKAGE_BUGREPORT, num_operands, operator_string);
         }
 
-      /* Meta operators (where only the information about the pixels is
-         relevant, not the pixel values themselves, like the 'index'
-         operator). For these (that only accept one operand), we should add
-         the first popped operand back on the stack, then  */
+      /* Operators with special attention. */
       switch(operator)
         {
+         /* Meta operators (where only the information about the pixels is
+            relevant, not the pixel values themselves, like the 'index'
+            operator). For these (that only accept one operand), we should
+            add the first popped operand back on the stack. */
         case GAL_ARITHMETIC_OP_INDEX:
         case GAL_ARITHMETIC_OP_COUNTER:
           operands_add(p, NULL, d1);
           d1=arithmetic_prepare_meta(d1, d2, d3);
+          break;
+
+        /* Operators that need/modify the WCS. */
+        case GAL_ARITHMETIC_OP_POOLMAX:
+        case GAL_ARITHMETIC_OP_POOLMIN:
+        case GAL_ARITHMETIC_OP_POOLSUM:
+        case GAL_ARITHMETIC_OP_POOLMEAN:
+        case GAL_ARITHMETIC_OP_POOLMEDIAN:
+
+          /* Print warning in case of existing WCS. */
+          if(p->refdata.wcs)
+            {
+              if(p->cp.quiet==0)
+                error(EXIT_SUCCESS, 0, "WARNING: the WCS is not currently "
+                      "supported for the pooling operators (the output "
+                      "will not contain WCS). If it is necessary in your "
+                      "usage, please get in touch with us at '%s'. You "
+                      "can suppress this warning with the '--quiet' option",
+                      PACKAGE_BUGREPORT);
+              gal_wcs_free(p->refdata.wcs);
+              p->refdata.wcs=NULL;
+            }
+
+          /* In case you want to pass the WCS to the library function ...
+
+          d1->wcs=gal_wcs_copy(p->refdata.wcs);
+
+          ... uncomment the line above and comment the whole
+          'if(p->refdata.wcs)' check above (so the wcs is not freed).*/
           break;
         }
 
@@ -1527,6 +1557,7 @@ arithmetic_operator_run(struct arithmeticparams *p, int operator,
          arguments will be ignored. */
       operands_add(p, NULL, gal_arithmetic(operator, p->cp.numthreads,
                                            flags, d1, d2, d3, d4));
+
     }
 
   /* No need to call the arithmetic library, call the proper wrappers

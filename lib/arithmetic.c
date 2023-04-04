@@ -5,6 +5,7 @@ This is part of GNU Astronomy Utilities (Gnuastro) package.
 Corresponding author:
      Mohammad Akhlaghi <mohammad@akhlaghi.org>
 Contributing author(s):
+     Faezeh Bidjarchian <fbidjarchian@gmail.com>
      Pedram Ashofteh-Ardakani <pedramardakani@pm.me>
 Copyright (C) 2016-2023 Free Software Foundation, Inc.
 
@@ -39,6 +40,7 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 #include <gnuastro/box.h>
 #include <gnuastro/wcs.h>
 #include <gnuastro/list.h>
+#include <gnuastro/pool.h>
 #include <gnuastro/blank.h>
 #include <gnuastro/units.h>
 #include <gnuastro/qsort.h>
@@ -2947,6 +2949,64 @@ arithmetic_constant(gal_data_t *input, gal_data_t *constant, int operator,
 
 
 
+static gal_data_t *
+arithmetic_pool(gal_data_t *input, gal_data_t *psize, int operator,
+                size_t numthreads, int flags)
+{
+  gal_data_t *out=NULL;
+  size_t *psizearr;
+
+  /* Sanity check. */
+  if(psize->size!=1)
+    error(EXIT_FAILURE, 0, "%s: the pooling operand should only contain "
+          "a single element.", __func__);
+
+  /* This function is only for a integer operand, so make sure the user
+     has given an integer type. */
+  if(psize->type==GAL_TYPE_FLOAT32 || psize->type==GAL_TYPE_FLOAT64)
+    error(EXIT_FAILURE, 0, "lengths of pooling along dimensions "
+          "must be integer values, not floats. The given length "
+          "along dimension %zu is a float.", psize->dsize[0]);
+
+  /* Convert psize to size_t. */
+  psize=gal_data_copy_to_new_type_free(psize, GAL_TYPE_SIZE_T);
+  psizearr=psize->array;
+
+  /* Call the separate functions. */
+  switch(operator)
+    {
+    case GAL_ARITHMETIC_OP_POOLMAX:
+      out=gal_pool_max(input, psizearr[0], numthreads);
+      break;
+    case GAL_ARITHMETIC_OP_POOLMIN:
+      out=gal_pool_min(input, psizearr[0], numthreads);
+      break;
+    case GAL_ARITHMETIC_OP_POOLSUM:
+      out=gal_pool_sum(input, psizearr[0], numthreads);
+      break;
+    case GAL_ARITHMETIC_OP_POOLMEAN:
+      out=gal_pool_mean(input, psizearr[0], numthreads);
+      break;
+    case GAL_ARITHMETIC_OP_POOLMEDIAN:
+      out=gal_pool_median(input, psizearr[0], numthreads);
+      break;
+    default:
+      error(EXIT_FAILURE, 0, "%s: a bug! please contact us at "
+            "'%s' to fix the problem. The value '%d' to "
+            "'operator' is not recognized", __func__,
+            PACKAGE_BUGREPORT, operator);
+    }
+
+  /* Clean up and return. */
+  if(out!=input && (flags & GAL_ARITHMETIC_FLAG_FREE))
+    gal_data_free(input);
+  return out;
+}
+
+
+
+
+
 gal_data_t *
 gal_arithmetic_load_col(char *str, int searchin, int ignorecase,
                         size_t minmapsize, int quietmmap)
@@ -3344,6 +3404,18 @@ gal_arithmetic_set_operator(char *string, size_t *num_operands)
   else if (!strcmp(string, "constant"))
     { op=GAL_ARITHMETIC_OP_CONSTANT;          *num_operands=2;  }
 
+  /* Pooling operators. */
+  else if (!strcmp(string, "pool-max"))
+    { op=GAL_ARITHMETIC_OP_POOLMAX;           *num_operands=2;  }
+  else if (!strcmp(string, "pool-min"))
+    { op=GAL_ARITHMETIC_OP_POOLMIN;           *num_operands=2;  }
+  else if (!strcmp(string, "pool-sum"))
+    { op=GAL_ARITHMETIC_OP_POOLSUM;           *num_operands=2;  }
+  else if (!strcmp(string, "pool-mean"))
+    { op=GAL_ARITHMETIC_OP_POOLMEAN;          *num_operands=2;  }
+  else if (!strcmp(string, "pool-median"))
+    { op=GAL_ARITHMETIC_OP_POOLMEDIAN;        *num_operands=2;  }
+
   /* Operator not defined. */
   else
     { op=GAL_ARITHMETIC_OP_INVALID; *num_operands=GAL_BLANK_INT; }
@@ -3492,6 +3564,12 @@ gal_arithmetic_operator_string(int operator)
     case GAL_ARITHMETIC_OP_INDEXONLY:       return "indexonly";
     case GAL_ARITHMETIC_OP_COUNTERONLY:     return "counteronly";
     case GAL_ARITHMETIC_OP_MAKENEW:         return "makenew";
+
+    case GAL_ARITHMETIC_OP_POOLMAX:         return "pool-max";
+    case GAL_ARITHMETIC_OP_POOLMIN:         return "pool-min";
+    case GAL_ARITHMETIC_OP_POOLSUM:         return "pool-sum";
+    case GAL_ARITHMETIC_OP_POOLMEAN:        return "pool-mean";
+    case GAL_ARITHMETIC_OP_POOLMEDIAN:      return "pool-median";
 
     default:                                return NULL;
     }
@@ -3766,6 +3844,17 @@ gal_arithmetic(int operator, size_t numthreads, int flags, ...)
       d1 = va_arg(va, gal_data_t *);
       d2 = va_arg(va, gal_data_t *);
       out=arithmetic_constant(d1, d2, operator, flags);
+      break;
+
+      /* Pooling operators. */
+    case GAL_ARITHMETIC_OP_POOLMAX:
+    case GAL_ARITHMETIC_OP_POOLMIN:
+    case GAL_ARITHMETIC_OP_POOLSUM:
+    case GAL_ARITHMETIC_OP_POOLMEAN:
+    case GAL_ARITHMETIC_OP_POOLMEDIAN:
+      d1 = va_arg(va, gal_data_t *);
+      d2 = va_arg(va, gal_data_t *);
+      out=arithmetic_pool(d1, d2, operator, numthreads, flags);
       break;
 
     /* When the operator is not recognized. */

@@ -368,7 +368,7 @@ gal_data_t *
 gal_statistics_median(gal_data_t *input, int inplace)
 {
   size_t dsize=1;
-  gal_data_t *nbs=gal_statistics_no_blank_sorted(input, inplace);;
+  gal_data_t *nbs=gal_statistics_no_blank_sorted(input, inplace);
   gal_data_t *out=gal_data_alloc(NULL, nbs->type, 1, &dsize, NULL, 1, -1,
                                  1, NULL, NULL, NULL);
 

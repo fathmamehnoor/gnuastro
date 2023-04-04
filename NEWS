@@ -25,6 +25,25 @@ See the end of the file for license conditions.
     the different configuration files of different instances of the same
     program without overwriting them. See the example in the book.
 
+  Arithmetic:
+  - New operators:
+    - pool-min: Min-pooling to reduce the size of the input by calculating
+                the minimum of a the pixels within the pooling window. See
+                the new "Pooling opeators" section of the book for
+                more. This and the rest of the pooling operators introduced
+                here were implemented by Faezeh Bidjarchian.
+    - pool-max: Similar to 'pool-min' but using maximum.
+    - pool-sum: Similar to 'pool-min' but using sum.
+    - pool-mean: Similar to 'pool-min' but using mean.
+    - pool-median: Similar to 'pool-min' but using median.
+
+  Library:
+  -gal_pool_min: min-pooling function, see 'pool-min' above.
+  -gal_pool_max: max-pooling function, see 'pool-min' above.
+  -gal_pool_sum: sum-pooling function, see 'pool-min' above.
+  -gal_pool_mean: mean-pooling function, see 'pool-min' above.
+  -gal_pool_median: median-pooling function, see 'pool-min' above.
+
 ** Removed features
 
 ** Changed features

@@ -5,6 +5,7 @@ This is part of GNU Astronomy Utilities (Gnuastro) package.
 Original author:
      Mohammad Akhlaghi <mohammad@akhlaghi.org>
 Contributing author(s):
+     Faezeh Bidjarchian <fbidjarchian@gmail.com>
 Copyright (C) 2017-2023 Free Software Foundation, Inc.
 
 Gnuastro is free software: you can redistribute it and/or modify it
@@ -220,6 +221,14 @@ enum gal_arithmetic_operators
   GAL_ARITHMETIC_OP_COUNTERONLY,  /* New with the index (counting from 1). */
   GAL_ARITHMETIC_OP_SWAP,         /* Swap the top two operands.            */
 
+  /* Pooling operators. */
+  GAL_ARITHMETIC_OP_POOLMAX,      /* The pool-max of desired pixels.       */
+  GAL_ARITHMETIC_OP_POOLMIN,      /* The pool-min of desired pixels.       */
+  GAL_ARITHMETIC_OP_POOLSUM,      /* The pool-sum of desired pixels.       */
+  GAL_ARITHMETIC_OP_POOLMEAN,     /* The pool-mean of desired pixels.      */
+  GAL_ARITHMETIC_OP_POOLMEDIAN,   /* The pool-median of desired pixels.    */
+
+  /* Counter for number of operators. */
   GAL_ARITHMETIC_OP_LAST_CODE,    /* Last code of the library operands.    */
 };
 
