@@ -1,5 +1,6 @@
 Alphabetically ordered list to acknowledge in the next release.
 
+Bharat Bhandari
 Faezeh Bidjarchian
 Alejandro Serrano Borlaff
 Fernando Buitrago

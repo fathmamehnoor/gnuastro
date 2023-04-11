@@ -91,10 +91,10 @@
                            {rounded corners=0.8mm, to path={|-
                            (\tikztotarget)}} }
 \usetikzlibrary{external}
-\tikzset{external/system call={latex \tikzexternalcheckshellescape -halt-on-error
--interaction=batchmode -jobname "\image" "\texsource";
-dvips -o "\image".ps "\image".dvi;
-ps2eps "\image.ps"}}
+%% This has to be in one line. Otherwise on some systems the commands in
+%% the broken lines will not be executed and the final EPS file will not be
+%% created.
+\tikzset{external/system call={latex \tikzexternalcheckshellescape -halt-on-error -interaction=batchmode -jobname "\image" "\texsource" && dvips -o "\image".ps "\image".dvi && ps2eps "\image.ps"}}
 \tikzexternalize
 
 
