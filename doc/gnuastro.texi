@@ -25290,8 +25290,8 @@ The latter situation usually happens when there is a bug in the previous steps o
 If you want to ignore those pixels in the error measurement, set them to zero (which is a meaningful number in such scenarios).
 
 @item --clumps-sum
-[Objects] The total sum of the clumps within an object.
-This is simply the sum of the pixels associated with clumps in the object.
+[Objects] The total sum of the pixels covered by clumps (before subtracting the river) within each object.
+This is simply the sum of @option{--sum-no-river} in the clumps catalog (see below).
 If no usable pixels are present over the clump or object (for example, they are all blank), the stored value will be NaN (note that zero is meaningful).
 
 @item --sum-no-river
