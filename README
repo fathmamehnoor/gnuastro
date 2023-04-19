@@ -152,6 +152,10 @@ very similarly (with minor differences, as explained in the book).
     coordinates of a star in the image, do sub-pixel re-positioning of the
     PSF, scale it to the star and subtract it from the image.
 
+  - astscript-zeropoint: Estimate the zero point (to calibrate pixel
+    values) of an input image using a reference image or a reference
+    catalog.
+
 All the programs share the same basic command-line user interface and a set
 of common options for the comfort of both the users and
 developers. Gnuastro is written to comply fully with the GNU coding

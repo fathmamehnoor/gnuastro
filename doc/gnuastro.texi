@@ -1123,6 +1123,9 @@ The object can be at any location in the image, using various measures (median, 
 @item astscript-sort-by-night
 (See @ref{Sort FITS files by night}) Given a list of FITS files, and a HDU and keyword name (for a date), this script separates the files in the same night (possibly over two calendar days).
 
+@item astscript-zeropoint
+(see @ref{Zero point estimation}) Estimate the zero point (to calibrate pixel values) of an input image using a reference image or a reference catalog.
+
 @item astscript-psf-*
 The following scripts are used to estimate the extended PSF estimation and subtraction as described in the tutorial @ref{Building the extended PSF}:
 
