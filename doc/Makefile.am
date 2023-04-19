@@ -157,7 +157,7 @@ dist_man_MANS = $(MAYBE_ARITHMETIC_MAN) $(MAYBE_BUILDPROG_MAN) \
   man/astscript-psf-scale-factor.1 man/astscript-psf-select-stars.1 \
   man/astscript-psf-stamp.1 man/astscript-psf-subtract.1 \
   man/astscript-psf-unite.1 man/astscript-radial-profile.1 \
-  man/astscript-sort-by-night.1
+  man/astscript-sort-by-night.1 man/astscript-zeropoint.1
 
 
 ## See if help2man is present or not. When help2man doesn't exist, we don't
@@ -297,3 +297,8 @@ man/astscript-sort-by-night.1: $(top_srcdir)/bin/script/sort-by-night.in   \
                                $(ALLMANSDEP)
 	$(MAYBE_HELP2MAN) -n "Sort input FITS files by night"              \
 	                  --libtool $(toputildir)/script/astscript-sort-by-night
+
+man/astscript-zeropoint.1: $(top_srcdir)/bin/script/zeropoint.in   \
+                           $(ALLMANSDEP)
+	$(MAYBE_HELP2MAN) -n "Estimate zero point of an image" \
+	                  --libtool $(toputildir)/script/astscript-zeropoint

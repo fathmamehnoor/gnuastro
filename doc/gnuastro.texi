@@ -17297,8 +17297,8 @@ This is the inverse operation of the @code{counts-to-jy}, see there for usage ex
 
 @item counts-to-nanomaggy
 @cindex Nanomaggy
-Convert counts to Nanomaggy (with fixed zeropoint of 22.5, used as the pixel units of many surveys like SDSS).
-For example if your image has a zeropoint of 24.93, you can convert it to Nanomaggies with the command below:
+Convert counts to Nanomaggy (with fixed zero point of 22.5, used as the pixel units of many surveys like SDSS).
+For example if your image has a zero point of 24.93, you can convert it to Nanomaggies with the command below:
 
 @example
 $ astarithmetic image.fits 24.93 counts-to-nanomaggy
@@ -17307,8 +17307,8 @@ $ astarithmetic image.fits 24.93 counts-to-nanomaggy
 @item nanomaggy-to-counts
 @cindex Nanomaggy
 Convert Nanomaggy to counts.
-Nanomaggy is defined to have a fixed zeropoint of 22.5 and is the pixel units of many surveys like SDSS.
-For example if you would like to convert an image in units of Nanomaggy (for example from SDSS) to the counts of a camera with a zeropoint of 25.92, you can use the command below:
+Nanomaggy is defined to have a fixed zero point of 22.5 and is the pixel units of many surveys like SDSS.
+For example if you would like to convert an image in units of Nanomaggy (for example from SDSS) to the counts of a camera with a zero point of 25.92, you can use the command below:
 
 @example
 $ astarithmetic image.fits 25.92 nanomaggy-to-counts
@@ -29619,7 +29619,7 @@ The zero point is therefore an important calibration of pixel values (as astrome
 The fundamental concepts behind the zero point are described in @ref{Brightness flux magnitude}.
 We will therefore not go deeper into the basics here and stick to the practical aspects of it.
 
-The purpose of Gnuastro’s @command{astscript-zeropoint} script is to obtain the zero point of an image by considering another image (where the zeropoint is already known), or a catalog.
+The purpose of Gnuastro’s @command{astscript-zeropoint} script is to obtain the zero point of an image by considering another image (where the zero point is already known), or a catalog.
 In the
 The operation involves multiple lower-level programs in a standard series of steps.
 For example, when using another image, the script will take the following steps:
@@ -29630,7 +29630,7 @@ Download the Gaia catalog that overlaps with the input image using Gnuastro’s 
 This is done to determine the stars within the image@footnote{Stars have an almost identical shape in the image (as opposed to galaxies for example), using confirmed stars will produce a more reliable result.}.
 @item
 Perform aperture photometry@footnote{For a complete tutorial on aperture photometry, see @ref{Aperture photometry}.} with @ref{MakeProfiles} @ref{MakeCatalog}.
-We will assume a zeropoint of 0 for the input image.
+We will assume a zero point of 0 for the input image.
 If the reference is an image, then we should perform aperture photometry also in that image.
 @item
 Match the two catalogs@footnote{For a tutorial on matching catalogs, see @ref{Matching catalogs}).} with @ref{Match}.
@@ -29920,7 +29920,7 @@ $ astscript-fits-view jplus-zeropoint.fits --hdu=APER-3
 After @code{TOPCAT} opens, you can select the ``Graphics'' menu and then ``Plain plot''.
 This will show a plot with the SDSS (reference image) magnitude on the horizontal axis and the difference of magnitudes between the the input and reference (the zero point) on the vertical axis.
 
-In an ideal world, the zeropoint should be independent of the magnitude of the different stars that were used.
+In an ideal world, the zero point should be independent of the magnitude of the different stars that were used.
 Therefore, this plot should be a horizontal line (with some scatter as we go to fainter stars).
 But as you can see in the plot, in the real world, this expected behavior is seen only for stars with magnitudes about 16 to 19 in the reference SDSS images.
 The stars that are brighter than 16 are saturated in one (or both) surveys@footnote{To learn more about saturated pixels and recognition of the saturated level of the image, please see @ref{Saturated pixels and Segment's clumps}}.
@@ -29955,7 +29955,7 @@ The script will compare the result for several aperture sizes and choose the one
 Let's re-run the script with the following changes:
 @itemize
 @item
-Using @option{--magnituderange} to limit the stars used for estimating the zeropoint.
+Using @option{--magnituderange} to limit the stars used for estimating the zero point.
 @item
 Giving more values for aperture size to find the best for these two images as explained above.
 @item
@@ -30013,7 +30013,7 @@ In the bottom-right panel, infront of ``Table:'', select any other extension.
 This will plot the same two columns of that extension as blue points.
 Zoom-in to the region of the horizontal line to see/compare the differerent scatters.
 
-Change the HDU given to ``Table:'' and see the distribution of zeropoints for the different apertures.
+Change the HDU given to ``Table:'' and see the distribution of zero points for the different apertures.
 @end enumerate
 
 The manual/visual operation above is critical if this is your first time with a new dataset (it shows all kinds of systematic biases (like the Sky issue above)!
@@ -30032,7 +30032,7 @@ $ asttable jplus-zeropoint.fits -O -Y
 6.000          26.466         0.056
 @end example
 
-The most accurate zeropoint is the one where @code{ZPSTD} is the smallest.
+The most accurate zero point is the one where @code{ZPSTD} is the smallest.
 In this case, minimum of @code{ZPSTD} is with radii of 2 and 3 arcseconds.
 Run the @command{astscript-fits-view} command above again to open TOPCAT.
 Let's focus on the magnitude plots in these two apertures and determine a more accurate range of magnitude.
@@ -30057,7 +30057,7 @@ $ asttable jplus-zeropoint.fits -Y
 4.000          26.449         0.044
 @end example
 
-The aperture with the least scatter is therefore the 2.5 arcsec radius aperture, giving a zeropoint of 26.425 magnitudes for this image.
+The aperture with the least scatter is therefore the 2.5 arcsec radius aperture, giving a zero point of 26.425 magnitudes for this image.
 However, you can see that the scatter for the 3 arcsec aperture is also acceptable.
 Actually, the @code{ZPSTD} for of the 2.5 and 3 arcsec apertures only have a difference of @mymath{3\%} (@mymath{= (0.034−0.0333)/0.033\times100}).
 So simply choosing the minimum is just a first-order approximation (which is accurate within @mymath{26.436−26.425=0.011} magnitudes)
@@ -30066,7 +30066,7 @@ Note that in aperture photometry, the PSF plays an important role (because the a
 The aperture with the least scatter should also account for the differing PSFs.
 Overall, please, always check the different and intermediate steps to make sure the parameters are the good so the estimation of the zero point is correct.
 
-If you are happy with the minimum, you don't have to search for the minimum aperture or its corresponding zeropoint yourself.
+If you are happy with the minimum, you don't have to search for the minimum aperture or its corresponding zero point yourself.
 This script has written it in @code{ZPVALUE} keyword of the table.
 With the first command, we also see the name of the file also, (you can use this on many files for example).
 With the second command, we are only printing the number by adding the @option{-q} (or @option{--quiet}) option (this is useful in a script where you want to write the value in a shell variable to use later).
@@ -30204,7 +30204,7 @@ In any case, it is mandatory to identify at least one aperture for aperture phot
 If reference image(s) is(are) given, it is mandatory to specify its(their) zero point(s) using the @option{--refimgszp} option (it can take a separate value for each reference image).
 When a catalog is gien, it should already contain the magntiudes of the object (you can specify which column to use).
 
-This script will not estimate the zeropoint based on all the objects in the reference image or catalog.
+This script will not estimate the zero point based on all the objects in the reference image or catalog.
 It will first query Gaia database and only select objects have a significant parallax (because Gaia's algorithms sometimes confuse galaxies and stars based on pure morphology).
 You can bypass this step (which needs internet connection and can only be used on real data, not simulations) using the @option{--starcat} option described in @ref{zero point options}.
 This script will then match the catalog of stars (either through Gaia or @option{--starcat}) with the reference catalog and only use them.
@@ -30289,7 +30289,7 @@ If a reference image is used, the same aperture radii will be used for aperture 
 @itemx --magnituderange=FLT,FLT
 Range of the magnitude for finding the best aperture and zero point.
 Very bright stars get saturated and fainter stars are affected too much by noise.
-Therefore, it is important to limit the range of magnitudes used in estimating the zeropoint.
+Therefore, it is important to limit the range of magnitudes used in estimating the zero point.
 A full tutorial is given in @ref{Zero point tutorial with reference image}.
 
 @item -S STR
@@ -30366,13 +30366,13 @@ The number of values given to this option should be the same as the number of re
 
 @item -z FLT,[FLT]
 @itemx --refimgszp=FLT,[FLT]
-Zeropoint of the reference image(s).
+Zero point of the reference image(s).
 The number of values given to this should be the same as the number of names given to @option{--refimgs}.
 
 @item -K
 @itemx --keepzpap
 Keep the table of separate zero points found for each star for all apertures.
-By default, this table is only present for the aperture that had the least standard deviation in the estimated zeropoint.
+By default, this table is only present for the aperture that had the least standard deviation in the estimated zero point.
 
 @item -t
 @itemx --tmpdir
@@ -39742,11 +39742,11 @@ For the conversion equation, see the description of @code{au-to-pc} operator in 
 @deftypefun double gal_units_counts_to_nanomaggy (double @code{counts}, double @code{zeropoint_ab})
 @cindex Nanomaggy
 @cindex Magnitude (nanomaggy)
-Convert counts to Nanomaggy (with fixed zeropoint of 22.5) through an AB magnitude-based zero point.
+Convert counts to Nanomaggy (with fixed zero point of 22.5) through an AB magnitude-based zero point.
 @end deftypefun
 
 @deftypefun double gal_units_nanomaggy_to_counts (double @code{counts}, double @code{zeropoint_ab})
-Convert Nanomaggy (with fixed zeropoint of 22.5) to counts through an AB magnitude-based zero point.
+Convert Nanomaggy (with fixed zero point of 22.5) to counts through an AB magnitude-based zero point.
 @end deftypefun
 
 @deftypefun double gal_units_pc_to_au (double @code{pc})
