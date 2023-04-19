@@ -29345,9 +29345,9 @@ $ asttable table.fits --range=MAG,18:20 --column=RA,DEC \
 ## objects with a magnitude between 28 to 29 as a green region and
 ## show both.
 $ asttable cat.fits --range=MAG_F160W,25:26 -cRA,DEC \
-      | ./astscript-ds9-region -c1,2 --color=red -obright.reg
+      | astscript-ds9-region -c1,2 --color=red -obright.reg
 $ asttable cat.fits --range=MAG_F160W,28:29 -cRA,DEC \
-      | ./astscript-ds9-region -c1,2 --color=green \
+      | astscript-ds9-region -c1,2 --color=green \
                     --command="ds9 image.fits -regions bright.reg"
 @end example
 
