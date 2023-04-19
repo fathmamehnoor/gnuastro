@@ -29669,7 +29669,7 @@ In this case, both images that we are using were taken with the SDSS @emph{r} fi
 @strong{Same filters and SVO filter database:} It is very important that both your images are taken with the same filter.
 When looking at filter names, don't forget that different filter systems sometimes have the same names for one filter, such as the name ``R''; which is used in both the Johnson and SDSS filter systems.
 Hence if you confront an image in the ``R'' or ``r'' filter, double check to see exactly which filter system it corresponds to.
-If you know which observatory your data came from, you can use the @url{https://svo.cab.inta-csic.es/main/index.php, SVO database} to confirm the similarity of the transmission curves of the filters of your input and reference images.
+If you know which observatory your data came from, you can use the @url{http://svo2.cab.inta-csic.es/theory/fps, SVO database} to confirm the similarity of the transmission curves of the filters of your input and reference images.
 SVO contains the filter data for many of the observatories world-wide.
 @end cartouche
 
