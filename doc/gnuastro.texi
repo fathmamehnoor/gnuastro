@@ -29644,7 +29644,7 @@ This does not hold when the stars are saturated in one/both the images (giving u
 Since a zero point of 0 was used for the input image, the magnitude difference above (in the reliable magnitude range) is the zero point of the input image.
 @end enumerate
 
-In the sections below we have prepared two totrials on the use of this script.
+In the sections below we have prepared two tutorials on the use of this script.
 The first uses an image as a reference (@ref{Zero point tutorial with reference image}) and the second uses a catalog (@ref{Zero point tutorial with reference catalog}).
 Afterwards, in @ref{Invoking astscript-zeropoint}, the details of all the options and how to run this script are provided.
 
@@ -29714,7 +29714,7 @@ $ astscript-fits-view sdss1.fits sdss2.fits jplus-crop.fits \
 The test above showed that the three images are already astrometrically calibrated (the coverage of the pixel positions on the sky is correct in both).
 To confirm, you can zoom-in to a certain object and confirm it on a pixel level.
 It is always good to do the visual check above when you are confronted with new images (and may not be confident about the accuracy of the astrometry).
-Do not forget that The goal here is to find the calibration of pixel values; and that we assume pixel positions are already calibrated (the image already has a good astrometry).
+Do not forget that the goal here is to find the calibration of pixel values; and that we assume pixel positions are already calibrated (the image already has a good astrometry).
 
 The SDSS images are Sky subtracted, while this single-exposure J-PLUS image still contains the counts related to the Sky emission within them.
 In the J-PLUS survey, the sky-level in each pixel is kept in a separate @code{BACKGROUND_MODEL} HDU of @file{jplus.fits.fz}; this allows you to use a different sky if you like.
@@ -29869,7 +29869,7 @@ In this case, we only gave one aperture, so it is the same.
 If you give multiple apertures, only the one with least scatter will be present by default.
 In the @code{MAG-REF} column you see the magnitudes within each aperture on the reference (SDSS) image(s).
 The @code{MAG-DIFF} column contains the difference of the input (J-PLUS) and reference (SDSS) magnitudes for each aperture (see @ref{Zero point estimation}).
-The two catalogs created by the aperture photometry from the SDSS images are merged into one so that there are more stars to compare.
+The two catalogs, created by the aperture photometry from the SDSS images, are merged into one so that there are more stars to compare.
 Therefore, no matter how many reference images you provide, there will only be a single table here.
 If the two SDSS images overlapped, each object in the overlap region would have two rows (one row for the measurement from one SDSS image, and another from the measurement from the other).
 
@@ -30226,7 +30226,7 @@ The @option{--keeptmp} option can be used to stop the deletion of that directory
 @end menu
 
 @node zero point output, zero point options, Invoking astscript-zeropoint, Invoking astscript-zeropoint
-@subsubsection @code{astscript-zeropoint} output
+@subsubsection astscript-zeropoint output
 
 The output will be a multi-extension FITS table.
 The first table in the output gives the zero point and its standard deviation for all the requested apertures.
@@ -30263,7 +30263,7 @@ $ astfits jplus-zeropoint.fits -h1 --keyvalue=ZPVALUE
 @end example
 
 @node zero point options,  , zero point output, Invoking astscript-zeropoint
-@subsubsection @code{astscript-zeropoint} options
+@subsubsection astscript-zeropoint options
 
 All the operating phases of the this script can be customized through the options below.
 
