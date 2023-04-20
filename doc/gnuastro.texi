@@ -2102,7 +2102,7 @@ Try the commands above again, but this time also use @key{<TAB>} to go to the li
 Then follow a few more links and go deeper into the book.
 To return to the previous page, press @key{l} (small L).
 If you are searching for a specific phrase in the whole book (for example, an option name), press @key{s} and type your search phrase and end it with an @key{<ENTER>}.
-Even though, you can return to the command line and quit info with pressing the @key{q}.
+Finally, you can return to the command line and quit Info by pressing the @key{q} key.
 
 You do not need to start from the top of the manual every time.
 For example, to get to @ref{Invoking astnoisechisel}, run the following command.
@@ -2813,16 +2813,12 @@ Fortunately, Gnuastro has Warp program for warping the pixel grid (see @ref{Warp
 Warping to a different/matched pixel grid is commonly needed before higher-level analysis especially when you are using datasets from different instruments.
 The XDF datasets we are using here are already aligned to the same pixel grid.
 But let's have a look at some of Gnuastro's linear warping features here.
-For example, try rotating one of the images by 20 degrees:
+For example, try rotating one of the images by 20 degrees with the first command below.
+With the second command, open the output and input to see how it is rotated.
 
 @example
 $ astwarp flat-ir/xdf-f160w.fits --rotate=20
-@end example
 
-@noindent
-Open the output (@file{xdf-f160w_rotated.fits}) and input to see how it is rotated.
-
-@example
 $ astscript-fits-view flat-ir/xdf-f160w.fits xdf-f160w_rotated.fits
 @end example
 
@@ -2912,7 +2908,7 @@ The ``versions and date'' group of keywords are present in all Gnuastro's FITS e
 Note that if a keyword name is larger than 8 characters, it is preceded by a @code{HIERARCH} keyword and that all keyword names are in capital letters.
 These are all part of the FITS standard and originate from its history.
 But in short, both can be ignored!
-For example, with the commands below, let's see at first what the default value are and then just check the value of @option{--detgrowquant} option (using the @option{-P} option described in @ref{Option management and configuration files}).
+For example, with the commands below, let's see at first what the default values are, and then just check the value of @option{--detgrowquant} option (using the @option{-P} option described in @ref{Option management and configuration files}).
 
 @example
 $ astnoisechisle -P
@@ -3335,14 +3331,14 @@ $ astmkcatalog seg/xdf-f160w.fits --ids --ra --dec --magnitude --sn \
 
 @noindent
 From the printed statements on the command-line, you see that MakeCatalog read all the extensions in Segment's output for the various measurements it needed.
-Let's look at to the output of above command.
-You will see that the output of the MakeCatalog has two extensions.
+Let's look at the output of the command above:
 
 @example
 $ astfits cat/xdf-f160w.fits
 @end example
 
-The first extension shows the information obtained from the @code{OBJECTS}, and the second extension shows the information obtained from the @code{CLUMPS}.
+You will see that the output of the MakeCatalog has two extensions.
+The first extension shows the measurements over the @code{OBJECTS}, and the second extension shows the measurements over the clumps @code{CLUMPS}.
 
 To calculate colors, we also need magnitude measurements on the other filters.
 So let's repeat the command above on them, just changing the file names and zero point (which we got from the XDF survey web page):
@@ -8126,15 +8122,15 @@ The @file{bootstrap} script can automatically clone Gnulib (as a @file{gnulib/} 
 
 The recommended way to bootstrap Gnuastro is to first clone Gnulib and the Autoconf archives (see below) into a local directory outside of Gnuastro.
 Let's call it @file{DEVDIR}@footnote{If you are not a developer in Gnulib or Autoconf archives, @file{DEVDIR} can be a directory that you do not backup.
-In this way the large number of files in these projects will not slow down your backup process or take bandwidth (if you backup to a remote server).}  (which you can set to any directory).
+In this way the large number of files in these projects will not slow down your backup process or take bandwidth (if you backup to a remote server).}  (which you can set to any directory; preferentially where you keep your other development projects).
 Currently in Gnuastro, both Gnulib and Autoconf archives have to be cloned in the same top directory@footnote{If you already have the Autoconf archives in a separate directory, or cannot clone it in the same directory as Gnulib, or you have it with another directory name (not @file{autoconf-archive/}), you can follow this short step.
 Set @file{AUTOCONFARCHIVES} to your desired address.
 Then define a symbolic link in @file{DEVDIR} with the following command so Gnuastro's bootstrap script can find it:@*@command{$ ln -s $AUTOCONFARCHIVES $DEVDIR/autoconf-archive}.} like the case here@footnote{If your internet connection is active, but Git complains about the network, it might be due to your network setup not recognizing the git protocol.
 In that case use the following URL for the HTTP protocol instead (for Autoconf archives, replace the name): @command{http://git.sv.gnu.org/r/gnulib.git}}:
 
 @example
-$ DEVDIR=/home/yourname/Development
-$ mkdir $DEVDIR
+$ DEVDIR=/home/yourname/Development  ## Select any location.
+$ mkdir $DEVDIR                      ## If it doesn't exist!
 $ cd $DEVDIR
 $ git clone https://git.sv.gnu.org/git/gnulib.git
 $ git clone https://git.sv.gnu.org/git/autoconf-archive.git
