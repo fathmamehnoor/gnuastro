@@ -1745,7 +1745,7 @@ ui_preparations_upperlimit(struct mkcatalogparams *p)
     }
 
   /* Check the number of random samples. */
-  if( p->upnum < MKCATALOG_UPPERLIMIT_MINIMUM_NUM )
+  if( p->upnum < MKCATALOG_UPPERLIMIT_MINIMUM_NUM && p->cp.quiet==0 )
     error(EXIT_SUCCESS, 0, "WARNING: %zu (value given to '--upnum') will "
           "produce unreliable upper-limit measurements. This warning will "
           "be printed for '--upnum' values less than %d. You can suppress "
