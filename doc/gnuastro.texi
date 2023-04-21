@@ -382,6 +382,7 @@ Command-line
 * Common options::              Options that are shared between all programs.
 * Shell TAB completion::        Customized TAB completion in Gnuastro.
 * Standard input::              Using output of another program as input.
+* Shell tips::                  Useful tips and tricks for program usage.
 
 Arguments and options
 
@@ -393,6 +394,10 @@ Common options
 * Input output options::        Common input/output options.
 * Processing options::          Options for common processing steps.
 * Operating mode options::      Common operating mode options.
+
+Shell tips
+
+* Separate shell variables for multiple outputs::  When you get values from one command.
 
 Configuration files
 
@@ -9770,6 +9775,7 @@ Afterwards, in @ref{Common options}, we will go into the detailed list of all th
 * Common options::              Options that are shared between all programs.
 * Shell TAB completion::        Customized TAB completion in Gnuastro.
 * Standard input::              Using output of another program as input.
+* Shell tips::                  Useful tips and tricks for program usage.
 @end menu
 
 @node Arguments and options, Common options, Command-line, Command-line
@@ -10474,7 +10480,7 @@ Therefore as a side-effect of TAB completion, your commands will be far more hum
 @end cartouche
 
 
-@node Standard input,  , Shell TAB completion, Command-line
+@node Standard input, Shell tips, Shell TAB completion, Command-line
 @subsection Standard input
 
 @cindex Standard input
@@ -10542,6 +10548,120 @@ Currently Standard input only works for plain text inputs like the example above
 We will later allow FITS files into the programs through standard input also.
 @end cartouche
 
+
+@node Shell tips,  , Standard input, Command-line
+@subsection Shell tips
+
+Gnuastro's programs are primarily meant to be run on the command-line shell environment.
+In this section, we will review some useful tips and tricks that can be helpful in the pipelines that you run.
+
+@menu
+* Separate shell variables for multiple outputs::  When you get values from one command.
+@end menu
+
+@node Separate shell variables for multiple outputs,  , Shell tips, Shell tips
+@subsubsection Separate shell variables for multiple outputs
+
+Sometimes your commands print multiple values and you want to use them as different shell variables.
+Let's describe the problem (shown in the box below) with an example (that you can reproduce without any external data).
+
+With the commands below, we'll first make a noisy (@mymath{\sigma=5}) image (@mymath{100\times100} pixels) using @ref{Arithmetic}.
+Then, we'll measure@footnote{The actual printed values by @command{aststatistics} may slightly differ for you.
+This is because of a different random number generator seed used in @command{astarithmetic}.
+To get an exactly reproducible result, see @ref{Generating random numbers}} its mean and standard deviation using @ref{Statistics}.
+
+@example
+$ astarithmetic 100 100 2 makenew 5 mknoise-sigma -oimg.fits
+
+$ aststatistics img.fits --mean --std
+-3.10938611484039e-03 4.99607077069093e+00
+@end example
+
+@cartouche
+@noindent
+@strong{THE PROBLEM:} you want the first number printed above to be stored in a shell variable called @code{my_mean} and the second number to be stored as the @code{my_std} shell variable (you are free to choose any name!).
+@end cartouche
+
+@noindent
+The first thing that may come to mind is to run Statistics two times, and write the output into separate variables like below:
+
+@example
+$ my_std=$(aststatistics img.fits --std)           ## NOT SOLUTION! ##
+$ my_mean=$(aststatistics img.fits --mean)         ## NOT SOLUTION! ##
+@end example
+
+@cindex Global warming
+@cindex Carbon footprint
+But this is not a good solution because as @file{img.fits} becomes larger (more pixels), the time it takes for Statistics to simply load the data into memory can be significant.
+This will slow down your pipeline and besides wasting your time, it contributes to global warming (by spending energy on an un-necessary action; take this seriously because your pipeline may scale up to involve thousands of large datasets)!
+Furthermore, besides loading of the input data, Statistics (and Gnuastro in general) is designed to do multiple measurements in one pass over the data as much as possible (to further decrease Gnuastro's carbon footprint).
+So when given @option{--mean --std}, it will measure both in one pass over the pixels (not two passes!).
+In other words, in this case, you get the two measurements for the cost of one.
+
+How do you separate the values from the first @command{aststatistics} command above?
+One ugly way is to write the two-number output string into a single shell variable and then separate, or tokenize, the string with two subsequet commands like below:
+
+@c Note that the comments aren't aligned in the Texinfo source because of
+@c the '@' characters before the braces of AWK. In the output, they are
+@c aligned.
+@example
+$ meanstd=$(aststatistics img.fits --mean --std)   ## NOT SOLUTION! ##
+$ my_mean=$(echo $meanstd | awk '@{print $1@}')      ## NOT SOLUTION! ##
+$ my_std=$(echo $meanstd | awk '@{print $2@}')       ## NOT SOLUTION! ##
+@end example
+
+@cartouche
+@noindent
+@cindex Evaluate string as command (@command{eval})
+@cindex @command{eval} to evalulate string as command
+@strong{SOLUTION:} The solution is to formatted-print (@command{printf}) the numbers as shell variables definitions in a string, and evaluate (@command{eval}) that string as a command:
+
+@example
+$ eval "$(aststatistics img.fits --mean --std \
+                        | xargs printf "my_mean=%s; my_std=%s")"
+@end example
+@end cartouche
+
+@noindent
+Let's review the solution (in more detail):
+
+@enumerate
+@item
+@cindex Standard input
+@cindex @command{xargs} (extended arguments)
+We pipe the output into the @option{xargs}@footnote{For more on @command{xargs}, see @url{https://en.wikipedia.org/wiki/Xargs}. In short @command{xargs} will take the standard input (from the pipe in this scenario) and put it as arguments of the next program.
+In other words, it is good for programs that don't take input from standard input (@command{printf} in this case; but also includes others like @command{cp}, @command{rm}, or @command{echo}).} (extended arguments).
+@command{xargs} puts the two numbers it gets from the pipe, as arguments for @command{printf} (formatted print) because @command{printf} doesn't take input from pipes.
+@item
+Within the @command{printf} call, we write the values after putting a variable name and equal-sign, and in between them we put a @key{;} (as if it was a shell command).
+The @code{%s} tells @command{printf} to print each input as a string (not to interpret it as a number and loose precision).
+Here is the output of this phase:
+
+@example
+$ aststatistics img.fits --mean --std \
+                      | xargs printf "my_mean=%s; my_std=%s"
+my_mean=-3.10938611484039e-03; my_std=4.99607077069093e+00
+@end example
+
+@item
+But the output above is a string! To evaluate this string as a command, we give it to the eval command like above.
+@end enumerate
+
+@noindent
+After the solution above, you will have the two @code{my_mean} and @code{my_std} variables to use separately in your pipeline:
+
+@example
+$ echo $my_mean
+-3.10938611484039e-03
+$ echo $my_std
+4.99607077069093e+00
+@end example
+
+@cindex Zsh shell
+@cindex Dash shell
+@cindex Portable script
+This @command{eval}-based solution has been tested in in GNU Bash, Dash and Zsh and it works nicely in them (is ``portable'').
+This is because the constructs used here are pretty low-level (and widely available).
 
 @node Configuration files, Getting help, Command-line, Common program behavior
 @section Configuration files

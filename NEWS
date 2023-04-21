@@ -20,6 +20,12 @@ See the end of the file for license conditions.
      and including (in alphabetical order): Elham Saremi, Giulia Golini,
      Raul Infante-Sainz, Samane Raji, Zahra Sharbaf, Zohreh Ghaffari.
 
+   Book:
+   - New "Shell tips" sub-section added (under the "Command-line" section
+     of the "Common program behavior" chapter). This sub-section contains
+     useful shell tips and tricks that can be useful when using Gnuastro's
+     programs.
+
    Arithmetic
    --writeall: Write all datasets on the stack as separate HDUs in the
      output; this is useful in debugging incomplete Arithmetic commands.
