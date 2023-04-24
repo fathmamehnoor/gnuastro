@@ -51,6 +51,9 @@ endif
 if COND_HASLIBJPEG
   MAYBE_HASLIBJPEG = "yes"
 endif
+if COND_HASLIBTIFF
+  MAYBE_HASLIBTIFF = "yes"
+endif
 if COND_HASCXX
   MAYBE_CXX_PROGS    = versioncxx
   MAYBE_CXX_TESTS    = lib/versioncxx.sh
@@ -74,7 +77,7 @@ endif
 if COND_CONVERTT
   MAYBE_CONVERTT_TESTS = convertt/fitstotxt.sh convertt/fitstojpeg.sh	\
   convertt/blankch.sh convertt/jpegtotxt.sh convertt/fitstojpegcmyk.sh	\
-  convertt/jpegtofits.sh convertt/fitstopdf.sh convertt/fitstotiff.sh 
+  convertt/jpegtofits.sh convertt/fitstopdf.sh convertt/fitstotiff.sh
 
   convertt/fitstotxt.sh: mkprof/mosaic1.sh.log
   convertt/fitstojpeg.sh: mkprof/mosaic1.sh.log
@@ -240,6 +243,7 @@ export progbdir=programs-built; \
 export topsrc=$(abs_top_srcdir); \
 export topbuild=$(abs_top_builddir); \
 export haslibjpeg=$(MAYBE_HASLIBJPEG); \
+export haslibtiff=$(MAYBE_HASLIBTIFF); \
 export hasghostscript=$(MAYBE_HASGHOSTSCRIPT); \
 export check_with_program=$(MAYBE_CHECK_WITH_PROGRAM);
 
