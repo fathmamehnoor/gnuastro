@@ -286,6 +286,7 @@ AC_MSG_RESULT( $path_warning )
 has_gsl=yes
 has_libgit2=1
 has_cmath=yes
+with_python=no
 has_wcslib=yes
 has_cfitsio=yes
 has_libtiff=yes
@@ -768,9 +769,9 @@ AS_IF([test "x$has_topcat" = "xno"], [anywarnings=yes])
 #       all the following checks in the venv.
 AC_ARG_WITH([python],
             [AS_HELP_STRING([--with-python],
-                            [disable support for python])],
-            [], [with_python=no])
-AS_IF([test "x$with_python" != xno],
+                            [enable support for python])],
+            [with_python=yes], [])
+AS_IF([test "x$with_python" == xyes],
       [
         # Variables to simplify commands below.
         py_check_cmd='from sysconfig import get_paths; \
