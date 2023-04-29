@@ -1,23 +1,6 @@
 Alphabetically ordered list to acknowledge in the next release.
 
-Bharat Bhandari
-Faezeh Bidjarchian
-Alejandro Serrano Borlaff
-Fernando Buitrago
-Paola Dimauro
-Sepideh Eskandarlou
-Zohreh Ghaffari
-Giulia Golini
-Siyang He
-Leslie Hunt
-Martin Kuemmel
-Teet Kuutma
-Samane Raji
-Elham Saremi
-Nafiseh Sedighi
-Zahra Sharbaf
-Michael Stein
-Peter Teuben
+
 
 
 

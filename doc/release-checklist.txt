@@ -60,7 +60,7 @@ all the commits needed for this release have been completed.
        $ git log --oneline --graph --decorate --all   # For a visual check.
 
 
- - [STABLE] Update the versions in the NEWS file.
+ - [STABLE] Update the versions in the NEWS file and do a spell-check.
 
 
  - Check if README includes all the recent updates and important features.

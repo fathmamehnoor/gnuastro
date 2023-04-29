@@ -4,7 +4,7 @@ Copyright (C) 2015-2023 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
-* Noteworthy changes in release 0.XX (library XX.0.0) (YYYY-MM-DD)
+* Noteworthy changes in release 0.20 (library 18.0.0) (2023-04-23)
 
 ** New features
 
@@ -97,7 +97,7 @@ See the end of the file for license conditions.
    - Book: with the increasing number of possible measurements the
      "MakeCatalog measurements" section of the Gnuastro book has been
      broken into separate sub-section and contextually similar measurements
-     are grouped separartely there.
+     are grouped separately there.
    --sigclip-mean-sb: surface brightness (over one pixel's area in
      arcsec^2) of the sigma-clipped mean of the values. This is useful in
      scenarios where you want to compare surface brightness values
@@ -147,7 +147,7 @@ See the end of the file for license conditions.
    - Vector columns with multiple values per column are now supported. The
      following features have been added to help working on vector columns:
      - Book: a new "Vector columns" section has been added under the Table
-       program which descibes the core concepts and usage examples of the
+       program which describes the core concepts and usage examples of the
        options below.
      --information: also identifies vector columns (a column with more than
        one value), by placing an '(N)' after the type. Where 'N' is the
@@ -181,7 +181,7 @@ See the end of the file for license conditions.
        custom profile).
 
    astscript-radial-profile:
-   --precision: sample the radial profile at precisions less than one
+   --precision: sample the radial profile at precision less than one
      pixel. This is useful when you need to sample the profile within the
      central few pixels more accurately than integer pixels. See the
      documentation of this option in the book for a complete explanation
@@ -196,7 +196,7 @@ See the end of the file for license conditions.
    - GAL_ARITHMETIC_OP_COUNTS_TO_NANOMAGGY: convert counts to nanomaggy.
    - GAL_ARITHMETIC_OP_NANOMAGGY_TO_COUNTS: convert nanomaggy to counts.
    - GAL_ARITHMETIC_OP_BOX_VERTICES_ON_SPHERE: calculate the coordinates of
-     vertices of a rectable on a sphere from its center and width/height.
+     vertices of a rectangle on a sphere from its center and width/height.
    - gal_binary_number_neighbors: num. non-zero neighbors of non-zero pixels.
    - gal_blank_flag_not: binary dataset with 1 for those input pixels that
      were blank.
@@ -216,7 +216,7 @@ See the end of the file for license conditions.
    - gal_units_counts_to_nanomaggy: Convert counts to nanomaggy.
    - gal_units_nanomaggy_to_counts: Convert nanomaggy to counts.
    - gal_wcs_box_vertices_from_center: calculate the coordinates of
-     vertices of a rectable on a sphere from its center and width/height.
+     vertices of a rectangle on a sphere from its center and width/height.
 
 ** Removed features
 
@@ -264,7 +264,7 @@ See the end of the file for license conditions.
     --sum: new name for the old '--brightness' column. "Brightness" has a
       specific meaning in astronomy/physics and has units of
       energy/time. However, astronomical images aren't in this unit, they
-      are usually in counts, or can have an arbitray units (like
+      are usually in counts, or can have an arbitrary units (like
       nanomaggy). The new name is derived from what this column does (sum
       of pixel values) to avoid confusions.
     --sum-error: new name for '--brightnesserr'.
@@ -418,7 +418,7 @@ See the end of the file for license conditions.
               Elham Saremi.
   bug #63345: WCS coordinate change not accounting for new equinox (only
               relevant for equatorial outputs). Reported by Alejandro
-              Serrano Borlaff.
+              Serrano Borlaug.
   bug #63399: Table's '--noblank' or '--noblankend' crashing when input
               has no rows. Reported by Elham Saremi.
   bug #63485: Oversampling in radial profile has incorrect center. Reported
