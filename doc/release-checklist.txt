@@ -171,11 +171,20 @@ all the commits needed for this release have been completed.
     $ git push --follow-tags
 
 
- - Prepare the announcement, this command will calculate the checksums and
-   also make the links ready. You just have to add a starting and ending
-   similar to previous announcements in a text editor. In the 'XXXX', put
-   'stable' or 'alpha' and in YYYY, put 'ftp' for a stable, and 'alpha' for
-   an alpha release.
+ - Prepare the announcement:
+
+   - To run the command of the step below, you will need the following
+     temporary changes (from the top source directory). Replace 'XXXX' with
+     the old version and 'YYYY' with the new version.
+
+     $ cp build/gnuastro-0.20.tar.* ./
+     $ git tag -a vXXXX gnuastro_vXXXX^{}
+     $ git tag -a vYYYY gnuastro_vYYYY^{}
+
+   - The command below will calculate the checksums and also make the links
+     ready. You just have to add a starting and ending similar to previous
+     announcements in a text editor. In the 'XXXX', put 'stable' or 'alpha'
+     and in YYYY, put 'ftp' for a stable, and 'alpha' for an alpha release.
 
      $ cd build
      $ /path/to/gnulib/build-aux/announce-gen --release-type=XXXX          \
@@ -183,6 +192,12 @@ all the commits needed for this release have been completed.
               --current-version=0.2 --gpg-key-id=$mykeyid                  \
               --url-directory=https://YYYY.gnu.org/gnu/gnuastro            \
               > ~/announcement.txt
+
+   - Delete the temporary tags and files:
+
+     $ rm gnuastro-0.20.tar.*
+     $ git tag -d vXXXX
+     $ git tag -d vYYYY
 
 
  - Based on previous announcements, add an intro, the NEWS file and the
