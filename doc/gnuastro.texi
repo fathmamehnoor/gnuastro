@@ -7809,8 +7809,8 @@ This type of data is generically (also outside of astronomy) known as Hyperspect
 For example high-level data products of Integral Field Units (IFUs) like MUSE@footnote{@url{https://en.wikipedia.org/wiki/Multi-unit_spectroscopic_explorer}} in the optical, ACIS@footnote{@url{https://en.wikipedia.org/wiki/Advanced_CCD_Imaging_Spectrometer}} in the X-ray, or in the radio where most data are 3D cubes.
 
 @cindex Abell 370 galaxy cluster
-In this tutorial, we'll use a small crop of a reduced deep MUSE cube centered on the @url{https://en.wikipedia.org/wiki/Abell_370, Abell 360} galaxy cluster from the Pilot-WINGS survey; see @url{https://arxiv.org/abs/2202.04663, Lagattuta et al. 2022}.
-Abell 360 has a spiral galaxy in its background that is stretched due to the cluster's gravitational potential to create a beautiful arch.
+In this tutorial, we'll use a small crop of a reduced deep MUSE cube centered on the @url{https://en.wikipedia.org/wiki/Abell_370, Abell 370} galaxy cluster from the Pilot-WINGS survey; see @url{https://arxiv.org/abs/2202.04663, Lagattuta et al. 2022}.
+Abell 370 has a spiral galaxy in its background that is stretched due to the cluster's gravitational potential to create a beautiful arch.
 If you haven't seen it yet, have a look at some of its images in the Wikipedia link above before continuing.
 
 The Pilot-WINGS survey data are available in its webpage@footnote{@url{https://astro.dur.ac.uk/~hbpn39/pilot-wings.html}}.
