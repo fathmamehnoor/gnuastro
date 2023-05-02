@@ -399,8 +399,6 @@ if [ $jobs = 0 ]; then
         jobs=$(sysctl -a | awk '/^hw\.ncpu/{print $2}')
         if [ x"$jobs" = x ]; then jobs=1; fi
     fi
-else
-    jobs=1
 fi
 
 
