@@ -13,6 +13,8 @@ See the end of the file for license conditions.
 ** Changed features
 
 ** Bugs fixed
+  bug #64138: Arithmetic's mknoise-poisson only using first pixel value.
+              Reported by Irene Pintos Castro.
 
 
 

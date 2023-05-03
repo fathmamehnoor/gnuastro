@@ -875,7 +875,7 @@ arithmetic_mknoise(int operator, int flags, gal_data_t *in,
           d[i] += gsl_ran_gaussian(rng, arg_v);
           break;
         case GAL_ARITHMETIC_OP_MKNOISE_POISSON:
-          d[i] += arg_v + gsl_ran_gaussian(rng, sqrt( arg_v + *d ));
+          d[i] += arg_v + gsl_ran_gaussian(rng, sqrt( arg_v + d[i] ));
           break;
         case GAL_ARITHMETIC_OP_MKNOISE_UNIFORM:
           d[i] += ( (gsl_rng_uniform(rng)*arg_v) - (arg_v/2) );
