@@ -3318,6 +3318,11 @@ columns_fill(struct mkcatalog_passparams *pp)
             ((float *)colarr)[cind] = MKC_SB(ci[ CCOL_SIGCLIPMEAN ], 1);
             break;
 
+          case UI_KEY_SIGCLIPMEANSBDELTA:
+            ((float *)colarr)[cind] = SCLIP_SBERR(ci[ CCOL_SIGCLIPMEAN ],
+                                                  ci[ CCOL_SIGCLIPSTD ]);
+            break;
+
           case UI_KEY_SIGCLIPSTDSB:
             ((float *)colarr)[cind] = MKC_SB(ci[ CCOL_SIGCLIPSTD ], 1);
             break;

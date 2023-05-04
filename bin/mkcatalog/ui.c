@@ -1111,6 +1111,7 @@ ui_necessary_inputs(struct mkcatalogparams *p, int *values, int *sky,
           case CCOL_NUM:              *values        = 1;          break;
           case CCOL_NUMXY:            *values        = 1;          break;
           case CCOL_SUM:              *values        = 1;          break;
+          case CCOL_SUMP2:            *values        = 1;          break;
           case CCOL_SUM_VAR:          *values = *std = 1;          break;
           case CCOL_SUM_VAR_NUM:      *values = *std = 1;          break;
           case CCOL_MEDIAN:           *values        = 1;          break;

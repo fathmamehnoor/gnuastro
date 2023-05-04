@@ -15,6 +15,9 @@ See the end of the file for license conditions.
 ** Bugs fixed
   bug #64138: Arithmetic's mknoise-poisson only using first pixel value.
               Reported by Irene Pintos Castro.
+  bug #64148: MakeCatalog crash when using the options '--std' and/or
+              'sigclip-mean-sb-delta' for clumps catalog. Reported by Raul
+              Infante-Sainz.
 
 
 
