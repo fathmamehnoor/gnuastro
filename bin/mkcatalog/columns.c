@@ -1331,7 +1331,7 @@ columns_define_alloc(struct mkcatalogparams *p)
           break;
 
         case UI_KEY_SIGCLIPNUMBER:
-          name           = "SIGCLIP-NUMBER";
+          name           = "SIGCLIP_NUMBER";
           unit           = "counter";
           ocomment       = "Number of pixels in Sigma-clipped object";
           ccomment       = "Number of pixels in Sigma-clipped clump.";
@@ -1347,7 +1347,7 @@ columns_define_alloc(struct mkcatalogparams *p)
           break;
 
         case UI_KEY_SIGCLIPMEDIAN:
-          name           = "SIGCLIP-MEDIAN";
+          name           = "SIGCLIP_MEDIAN";
           unit           = MKCATALOG_NO_UNIT;
           ocomment       = "Sigma-clipped median of object pixels.";
           ccomment       = "Sigma-clipped median of clump pixels.";
@@ -1363,7 +1363,7 @@ columns_define_alloc(struct mkcatalogparams *p)
           break;
 
         case UI_KEY_SIGCLIPMEAN:
-          name           = "SIGCLIP-MEAN";
+          name           = "SIGCLIP_MEAN";
           unit           = MKCATALOG_NO_UNIT;
           ocomment       = "Sigma-clipped mean of object pixels.";
           ccomment       = "Sigma-clipped mean of clump pixels.";
@@ -1379,7 +1379,7 @@ columns_define_alloc(struct mkcatalogparams *p)
           break;
 
         case UI_KEY_SIGCLIPSTD:
-          name           = "SIGCLIP-STD";
+          name           = "SIGCLIP_STD";
           unit           = MKCATALOG_NO_UNIT;
           ocomment       = "Sigma-clipped standard deviation of object "
                             "pixels.";
@@ -1397,7 +1397,7 @@ columns_define_alloc(struct mkcatalogparams *p)
           break;
 
         case UI_KEY_SIGCLIPMEANSB:
-          name           = "SIGCLIP-MEAN-SB";
+          name           = "SIGCLIP_MEAN_SB";
           unit           = "mag/arcsec^2";
           ocomment       = "Surface brightness (over one pixel) of "
                            "sig-clip mean of pixels.";
@@ -1414,7 +1414,7 @@ columns_define_alloc(struct mkcatalogparams *p)
           break;
 
         case UI_KEY_SIGCLIPMEANSBDELTA:
-          name           = "SIGCLIP-MEAN-SB-ERR";
+          name           = "SIGCLIP_MEAN_SB_DELTA";
           unit           = "mag/arcsec^2";
           ocomment       = "Error in SB (over one pixel) of "
                            "sig-clip mean of pixels.";
@@ -1432,7 +1432,7 @@ columns_define_alloc(struct mkcatalogparams *p)
           break;
 
         case UI_KEY_SIGCLIPSTDSB:
-          name           = "SIGCLIP-STD-SB";
+          name           = "SIGCLIP_STD_SB";
           unit           = "mag/arcsec^2";
           ocomment       = "Surface brightness of sigma-clipped "
                            "standard deviation.";

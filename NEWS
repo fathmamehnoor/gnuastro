@@ -12,9 +12,27 @@ See the end of the file for license conditions.
 
 ** Changed features
 
+  MakeCatalog:
+  - The dash in the column names of the following measurement names has
+    been replced by underscore to conform with the general stardard of
+    using underscores between words in column names (reported by Raul
+    Infante-Sainz). Also, in the case of '--sigclip-mean-sb-delta' the
+    column name didn't correspond to the option name.
+    --------------------------------------------------------------
+    Option                  Column name            Old column name
+    --------------------------------------------------------------
+    --sigclip-mean          SIGCLIP_MEAN           SIGCLIP-MEAN
+    --sigclip-median        SIGCLIP_MEDIAN         SIGCLIP-MEDIAN
+    --sigclip-number        SIGCLIP_NUMBER         SIGCLIP-NUMBER
+    --sigclip-std           SIGCLIP_STD            SIGCLIP-STD
+    --sigclip-mean-sb       SIGCLIP_MEAN_SB        SIGCLIP-MEAN-SB
+    --sigclip-mean-sb-delta SIGCLIP_MEAN_SB_DELTA  SIGCLIP-MEAN-SB-ERR
+
 ** Bugs fixed
   bug #64138: Arithmetic's mknoise-poisson only using first pixel value.
               Reported by Irene Pintos Castro.
+  bug #64146: SIGCLIP column names contain dashes instead of
+              underlines. Reported by Raul Infante-Sainz.
   bug #64148: MakeCatalog crash when using the options '--std' and/or
               'sigclip-mean-sb-delta' for clumps catalog. Reported by Raul
               Infante-Sainz.
