@@ -653,7 +653,8 @@ MakeCatalog
 
 Quantifying measurement limits
 
-* Magnitude measurement error of each detection::  Derivation of mag error equation
+* Standard deviation vs. error::  The std is not a measure of the error.
+* Magnitude measurement error of each detection::  Error in measuring magnitude.
 * Surface brightness error of each detection::  Error in measuring the Surface brightness.
 * Completeness limit of each detection::  Possibility of detecting similar objects?
 * Upper limit magnitude of each detection::  How reliable is your magnitude?
@@ -25763,7 +25764,8 @@ In astronomy, it is common to use the magnitude (a unit-less scale) and physical
 Therefore the measurements discussed here are commonly used in units of magnitudes.
 
 @menu
-* Magnitude measurement error of each detection::  Derivation of mag error equation
+* Standard deviation vs. error::  The std is not a measure of the error.
+* Magnitude measurement error of each detection::  Error in measuring magnitude.
 * Surface brightness error of each detection::  Error in measuring the Surface brightness.
 * Completeness limit of each detection::  Possibility of detecting similar objects?
 * Upper limit magnitude of each detection::  How reliable is your magnitude?
@@ -25772,7 +25774,175 @@ Therefore the measurements discussed here are commonly used in units of magnitud
 * Upper limit magnitude of image::  Measure the noise-level for a certain aperture.
 @end menu
 
-@node Magnitude measurement error of each detection, Surface brightness error of each detection, Quantifying measurement limits, Quantifying measurement limits
+@node Standard deviation vs. error, Magnitude measurement error of each detection, Quantifying measurement limits, Quantifying measurement limits
+@subsubsection Standard deviation vs. error
+The error and the standard deviation are sometimes confused with each other.
+Therefore, before continuing with the various measurement limits below, let's review these two fundamental concepts.
+Instead of going into the theoretical defitions of the two (which you can see in their resepctive Wikipedia pages), we'll discuss the concepts in a hands-on and practical way here.
+
+Let's simulate an observation of the sky, but without any astronomical sources!
+In other words, where we only a background flux level (from the sky emission).
+With the first command below, let's make an image called @file{1.fits} that contains @mymath{200\times200} pixels that are filled with random noise from a Poisson distribution with a mean of 100 counts (the flux from the background sky).
+Recall that the Poisson distribution is equal to a normal distribution for larger mean values (as in this case).
+
+The standard deviation (@mymath{\sigma}) of the Poisson distribution is the square root of the mean, see @ref{Photon counting noise}.
+With the second command, we'll have a look at the image.
+Note that due to the random nature of the noise, the values reported in the next steps on your computer will be very slightly different.
+To reproducible exactly the same values in different runs, see @ref{Generating random numbers}, and for more on the first command, see @ref{Arithmetic}.
+
+@example
+$ astarithmetic 200 200 2 makenew 100 mknoise-poisson \
+                --output=1.fits
+
+$ astscript-fits-view 1.fits
+@end example
+
+Each pixel shows the result of one sampling from the Poisson distribution.
+In other words, assuming the sky emission in our simulation is constant over our field of view, each pixel's value shows one measurement of the sky emission.
+Statistically speaking, a ``measurement'' is a sampling from an underlying distribution of values.
+Through our measurements, we aim to identfy that underlying distribution (the ``truth'')!
+With the command below, let's look at the pixel statistics of @file{1.fits} (output is shown immediately under it).
+
+@c If you change this output, replace the standard deviation (10.09) below
+@c in the text.
+@example
+$ aststatistics 1.fits
+Statistics (GNU Astronomy Utilities) @value{VERSION}
+-------
+Input: 1.fits (hdu: 1)
+-------
+  Number of elements:                      40000
+  Minimum:                                 -4.72824245470431e+01
+  Maximum:                                 4.24861780263050e+01
+  Mode:                                    0.09274776246
+  Mode quantile:                           0.5004125103
+  Median:                                  8.36190404450713e-02
+  Mean:                                    0.098637593
+  Standard deviation:                      10.09065298
+-------
+Histogram:
+ |                                  * ****
+ |                                *********
+ |                               ************
+ |                              **************
+ |                             *****************
+ |                           ********************
+ |                         ***********************
+ |                        **************************
+ |                      ******************************
+ |                  **************************************
+ |*    * *********************************************************** * *
+ |----------------------------------------------------------------------
+@end example
+
+As expected, you see that the ASCII histogram nicely resembles a normal distribution.
+The measured mean and standard deviation (@mymath{\sigma_x}) are also very similar to the input (mean of 100, standard deviation of @mymath{\sigma=10}).
+But the measured mean (and standard deviation) aren't exactly equal to the input!
+
+Every time we make a different simulated image from the same distribution, the measured mean and standrad deviation will slightly differ.
+With the second command below, let's build 500 images like above and measure their mean and standard deviation.
+The outputs will be written into a file (@file{mean-stds.txt}; in the first command we are deleting it to make sure we write into an empty file within the loop).
+With the third command, let's view the top 10 rows:
+
+@example
+$ rm -f mean-stds.txt
+$ for i in $(seq 500); do \
+      astarithmetic 200 200 2 makenew 100 mknoise-poisson \
+                    --output=$i.fits --quiet; \
+      aststatistics $i.fits --mean --std >> mean-stds.txt; \
+      echo "$i: complete"; \
+  done
+
+$ asttable mean-stds.txt -Y --head=10
+99.989381               9.936407
+100.036622              10.059997
+100.006054              9.985470
+99.944535               9.960069
+100.050318              9.970116
+100.002718              9.905395
+100.067555              9.964038
+100.027167              10.018562
+100.051951              9.995859
+100.000212              9.970293
+@end example
+
+From this table, you see that each simulation has produced a slightly different measured mean and measured standard deviation (@mymath{\sigma_x}) that are just fluctuating around the input mean (which was 100) and input standard deviation (@mymath{\sigma=10}).
+Let's have a look at the distribution of mean measurements:
+
+@example
+$ aststatistics mean-stds.txt -c1
+Statistics (GNU Astronomy Utilities) @value{VERSION}
+-------
+Input: mean-stds.txt
+Column: 1
+-------
+  Number of elements:                      500
+  Minimum:                                 9.98183528700191e+01
+  Maximum:                                 1.00146490891332e+02
+  Mode:                                    99.99709739
+  Mode quantile:                           0.49498998
+  Median:                                  9.99977393190436e+01
+  Mean:                                    99.99891826
+  Standard deviation:                      0.04901635275
+-------
+Histogram:
+ |                                       *
+ |                                   *   **
+ |                               ****** **** * *
+ |                               ****** **** * *    *
+ |                          *  * ************* *    *
+ |                          *  ******************   **
+ |                   *      *********************  ***   *
+ |                   *   ***************************** ***
+ |                   *** **********************************      *
+ |             ***  *******************************************  **
+ |           * ************************************************* **    *
+ |----------------------------------------------------------------------
+@end example
+
+@cindex Standard error of mean
+The standard deviation of the various mean measurements above shows the scatter in measuring the mean with an image of this size from this underlying distribution.
+This is therefore defined as the @emph{standard error of the mean}, or ``error'' for short (since most measurements are actually the mean of a population) and shown with @mymath{\widehat\sigma_{\bar{x}}}.
+
+From the example above, you see that the error is smaller than the standard deviation (smaller when you have a larger sample).
+In fact, @url{https://en.wikipedia.org/wiki/Standard_error#Derivation, it can be shown} that this ``error of the mean'' (@mymath{\sigma_{\bar{x}}}) is related to the distribution standard deviation (@mymath{\sigma}) through the following equation.
+Where @mymath{N} is the number of points used to measure the mean in one sample (@mymath{200\times200=40000} in this case).
+Note that the @mymath{10.09} below was reported as ``standard deviation'' in the first run of @code{aststatistics} on @file{1.fits} above):
+
+@c The 10.09 depends on the 'aststatistics 1.fits' command above.
+@dispmath{\sigma_{\bar{x}}=\frac{\sigma}{\sqrt{N}} \quad\quad {\rm or} \quad\quad \widehat\sigma_{\bar{x}}\approx\frac{\sigma_x}{\sqrt{N}} = \frac{10.09}{200} = 0.05}
+
+@noindent
+Taking the considerations above into account, we should clearly distinguish the following concepts when talking about the standard deviation or error:
+
+@table @asis
+@item Standard deviation of population
+This is the standard deviation of the underlying distribution (10 in the example above), and shown by @mymath{\sigma}.
+This is something you can never measure, and is just the ideal value.
+
+@item Standard deviation of mean
+Ideal error of measuring the mean (assuming we know @mymath{\sigma}).
+
+@item Standard deviation of sample (i.e., @emph{Standard deviation})
+Measured Standard deviation from a sampling of the ideal distribution.
+This is the second column of @file{mean-stds.txt} above and is shown with @mymath{\sigma_x} above.
+In astronomical literature, this is simply referred to as the ``standard deviation''.
+
+In other words, the standard deviation is computed on the input itself and MakeCatalog just needs a ``values'' file.
+For example, when measuring the standard deviation of an astronomical object using MakeCatalog it is computed directly from the input values.
+
+@item Standard error (i.e., @emph{error})
+Measurable scatter of measuring the mean (@mymath{\widehat\sigma_{\bar{x}}}) that can be estimated from the size of the sample and the measured standard deviation (@mymath{\sigma_x}).
+In astronomical literature, this is simply referred to as the ``error''.
+
+In other words, when asking for an ``error'' measurement with MakeCatalog, a separate standard deviation dataset should be always provided.
+This dataset should take into account all sources of scatter.
+For example, during the reduction of an image, the standard deviation dataset should take into account the dispersion of each pixel that cames from the bias, dark, flat fielding, etc.
+If this image is not available, it is possible to use the  @code{SKY_STD} extension from NoiseChisel as an estimation.
+For more see @ref{NoiseChisel output}.
+@end table
+
+@node Magnitude measurement error of each detection, Surface brightness error of each detection, Standard deviation vs. error, Quantifying measurement limits
 @subsubsection Magnitude measurement error of each detection
 The raw error in measuring the magnitude is only meaningful when the object's magnitude is brighter than the upper-limit magnitude (see below).
 As discussed in @ref{Brightness flux magnitude}, the magnitude (@mymath{M}) of an object with brightness @mymath{B} and zero point magnitude @mymath{z} can be written as:

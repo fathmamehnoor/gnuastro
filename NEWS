@@ -8,6 +8,12 @@ See the end of the file for license conditions.
 
 ** New features
 
+  Book:
+  - New "Standard deviation vs. error" sub-section added under the
+    MakeCatalog section. It uses real examples to clearly show the
+    fundamental difference between the two (which are sometimes confused
+    with each other). This was written with the help of Raul Infante-Sainz.
+
   Configuration files
   - To separate the option name and value, you can now also use the '='
     character. This allows your custom configuration files to also be
