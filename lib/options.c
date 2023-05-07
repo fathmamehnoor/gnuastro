@@ -2495,7 +2495,7 @@ options_read_name_arg(char *line, char *filename, size_t lineno,
   do
     switch(*line)
       {
-      case ' ': case '\t': case '\v': case '\n': case '\r':
+      case ' ': case '=': case '\t': case '\v': case '\n': case '\r':
         if(inword) /* Only considered in a word, not in a quote*/
           {
             inword=0;

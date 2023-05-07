@@ -11600,7 +11600,7 @@ When you download the source code, you can find them in the same directory as th
 Any line in the configuration file whose first non-white character is a @key{#} is considered to be a comment and is ignored.
 An empty line is also similarly ignored.
 The long name of the option should be used as an identifier.
-The parameter name and parameter value have to be separated by any number of `white-space' characters: space, tab or vertical tab.
+The option name and option value should be separated by any number of `white-space' characters (space, tab or vertical tab) or an equal (@key{=}).
 By default several space characters are used.
 If the value of an option has space characters (most commonly for the @option{hdu} option), then the full value can be enclosed in double quotation signs (@key{"}, similar to the example in @ref{Arguments and options}).
 If it is an option without a value in the @option{--help} output (on/off option, see @ref{Options}), then the value should be @option{1} if it is to be `on' and @option{0} otherwise.

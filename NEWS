@@ -8,6 +8,13 @@ See the end of the file for license conditions.
 
 ** New features
 
+  Configuration files
+  - To separate the option name and value, you can now also use the '='
+    character. This allows your custom configuration files to also be
+    loaded into a shell (with 'source') or Make (with 'include'). Until
+    now, only white-space characters were allowed as separators of option
+    names and values.
+
 ** Removed features
 
 ** Changed features
