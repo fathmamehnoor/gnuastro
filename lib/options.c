@@ -2577,7 +2577,8 @@ options_set_from_name(char *name, char *arg,  struct argp_option *options,
   for(i=0;1;++i)
     {
       /* Check if the key corresponds to this option. */
-      if( options[i].name && !strcmp(options[i].name, name) )
+      if( gal_checkset_noprefix_isequal(name, cp->configprefix,
+                                        options[i].name) )
         {
           /* Ignore this option and its value. This can happen in several
              situations:

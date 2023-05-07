@@ -11220,6 +11220,41 @@ Only options that are parsed after this option are printed, so to see the parsin
 @cindex Debug
 This is a very good option to confirm where the value of each option is has been defined in scenarios where there are multiple configuration files (for debugging).
 
+@item --config-prefix=STR
+Accept option names in configuration files that start with the given prefix and ignore the prefix when comparing options within the configuration file with the program's option names.
+This gives unique features to Gnuastro's configuration files, especially in large pipelines.
+
+Since order matters when reading custom configuration files, this option should be called @strong{before} the @option{--config} option(s).
+
+Let's demonstrate this with the simple scenario below.
+You have multiple configuration files for different instances of one program (let's assume @file{nc-a.conf} and @file{nc-b.conf}).
+At the same time, want to load all the option names/values into your shell as environment variables (for example with @code{source nc-*.conf}).
+This happens when you want to use the options value in other parts of the your script also.
+
+If you don't use @code{--config-prefix}, the shell will over-write the common option values between the configuration files.
+But thanks to @code{--config-prefix}, you can give a different prefix to the different instances of the same option in different configuration files.
+
+@example
+$ cat nc-a.conf
+a_tilesize=20,20
+
+$ cat nc-b.conf
+b_tilesize=40,40
+
+## Load configuration files as shell scripts (to define the
+## option name and values as shell variables with values).
+## Just note that 'source' only takes one file at a time.
+$ for c in nc-*.conf; do source $c; done
+
+$ astnoisechisel img.fits \
+                 --config=nc-a.conf --config-prefix=a_
+$ echo "NoiseChisel run with --tilesize=$a_tilesize"
+
+$ astnoisechisel img.fits \
+                 --config=nc-b.conf --config-prefix=b_
+$ echo "NoiseChisel run with --tilesize=$b_tilesize"
+@end example
+
 @item -S
 @itemx --setdirconf
 Update the current directory configuration file for the Gnuastro program and quit.

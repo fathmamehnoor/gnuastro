@@ -97,6 +97,9 @@ gal_checkset_dataset_name(char *filename, char *hdu);
 char *
 gal_checkset_timestamp(char *filename, char *newext);
 
+int
+gal_checkset_noprefix_isequal(char *string, char *prefix,
+                              const char *tocompare);
 
 
 /**************************************************************/

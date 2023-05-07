@@ -450,6 +450,19 @@ struct argp_option gal_commonopts_options[] =
       gal_options_check_config
     },
     {
+      "config-prefix",
+      GAL_OPTIONS_KEY_CONFIGPREFIX,
+      "STR",
+      0,
+      "Custom prefix of option names config files.",
+      GAL_OPTIONS_GROUP_OPERATING_MODE,
+      &cp->configprefix,
+      GAL_TYPE_STRING,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
+    },
+    {
       "setdirconf",
       GAL_OPTIONS_KEY_SETDIRCONF,
       0,

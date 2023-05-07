@@ -14,6 +14,10 @@ See the end of the file for license conditions.
     loaded into a shell (with 'source') or Make (with 'include'). Until
     now, only white-space characters were allowed as separators of option
     names and values.
+  --config-prefix=STR: Given string can be a prefix of options in
+    configuration files. Added with the point above, this allows loading
+    the different configuration files of different instances of the same
+    program without overwriting them. See the example in the book.
 
 ** Removed features
 

@@ -446,6 +446,41 @@ gal_checkset_dataset_name(char *filename, char *hdu)
 
 
 
+/* Remove the given prefix from the name, then compare. If the prefix is
+   NULL, then this becomes a basic string comparison '!strcmp(a,b)'. */
+int
+gal_checkset_noprefix_isequal(char *string, char *prefix,
+                              const char *tocompare)
+{
+  size_t plen;
+
+  /* If the input string is empty, then this option has nothing to do
+     (should return false): like NaN in math, two NULLs are not equal in
+     this scenario. */
+  if(string==NULL) return 0;
+  if(tocompare==NULL) return 0;
+
+  /* Do the comparison. */
+  if(prefix)
+    {
+      /* Check if 'string' starts with 'prefix'. When it does start with
+         the prefix, then do the comparison for the string after the
+         prefix. */
+      plen=strlen(prefix);
+      if( !strncmp(string, prefix, plen) )
+        return !strcmp(string+plen, tocompare);
+    }
+
+  /* If a prefix wasn't given, OR the string didn't start with the given
+     prefix, then ignore the prefix and simply compare the full input
+     string and the 'tocompare' string. */
+  return !strcmp(string, tocompare);
+}
+
+
+
+
+
 
 
 
