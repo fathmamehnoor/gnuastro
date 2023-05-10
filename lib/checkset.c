@@ -60,12 +60,12 @@ gal_checkset_gsl_rng(uint8_t envseed_bool, const char **name,
   /* Let GSL read the environment and convert the type name (as string) to
      'gsl_rng_type'. After this function, 'gsl_rng_default' contains the
      generator's type and 'gsl_rng_default_seed' contains the (possibly)
-     given seed.*/
+     given seed. */
   gsl_rng_env_setup();
 
   /* Allocate the random number generator based on the requested type and
      save its name. If no 'GSL_RNG_TYPE' is set, then use a fixed
-     generator.*/
+     generator. */
   rng=gsl_rng_alloc(secure_getenv("GSL_RNG_TYPE")
                     ? gsl_rng_default
                     : gsl_rng_ranlxs1);
@@ -223,7 +223,7 @@ gal_checkset_ram_available(int quietmmap)
         error(EXIT_FAILURE, errno, "%s: allocating %zu bytes for line",
               __func__, linelen*sizeof *line);
 
-      /* Read it line-by-line until you find the key.  */
+      /* Read it line-by-line until you find the key. */
       while( getline(&line, &linelen, file) != -1
              && (ma == GAL_BLANK_SIZE_T || mf == GAL_BLANK_SIZE_T) )
         {
@@ -530,14 +530,14 @@ gal_checkset_dir_part(char *filename)
 
 /* Given a file name, keep the non-directory part. Note that if there
    is no forward slash in the input name, the full input name is
-   considered to be the notdir output.*/
+   considered to be the notdir output. */
 char *
 gal_checkset_not_dir_part(char *filename)
 {
   size_t i, l;
   char *out, *tmp=filename;
 
-  /* Find the first '/' to identify the directory */
+  /* Find the first '/' to identify the directory. */
   l=strlen(filename);
   for(i=l;i!=0;--i)
     if(filename[i]=='/')
@@ -597,7 +597,7 @@ gal_checkset_suffix_separate(char *name, char **outsuffix)
 /* Given a reference filename, add a format of AAAAA-XXXXXX.CCCC where
    'AAAAA' is the base name of the 'reference' argument, 'XXXXX' is a
    random/unique sequence of characters, and 'YYYYY' is the string given to
-   'suffix'. If 'suffix' is NULL, the suffix of 'reference' will be used.*/
+   'suffix'. If 'suffix' is NULL, the suffix of 'reference' will be used. */
 char *
 gal_checkset_make_unique_suffix(char *reference, char *suffix)
 {
@@ -850,20 +850,20 @@ gal_checkset_dir_0_file_1(struct gal_options_common_params *cp, char *name,
             }
           else
             error(EXIT_FAILURE, errno, "%s", name);
-          return 1;                    /* It is a file name, GOOD */
+          return 1;                    /* It is a file name, GOOD. */
         }
-      else                             /* Some strange condition, ABORT */
+      else                             /* Some strange condition, ABORT. */
         error(EXIT_FAILURE, errno, "%s", name);
     }
 
-  if(S_ISDIR(nameinfo.st_mode))        /* It is a directory, BAD */
+  if(S_ISDIR(nameinfo.st_mode))        /* It is a directory, BAD. */
     return 0;
   else if (S_ISREG(nameinfo.st_mode))  /* It is a file, GOOD. */
     {
       gal_checkset_writable_remove(name, basename, cp->keep, cp->dontdelete);
       return 1;
     }
-  else                                 /* Not a file or a dir, ABORT */
+  else                                 /* Not a file or a dir, ABORT. */
     error(EXIT_FAILURE, 0, "%s not a file or a directory", name);
 
   error(EXIT_FAILURE, 0, "%s: a bug! The process should not reach the end "
@@ -887,14 +887,14 @@ gal_checkset_automatic_output(struct gal_options_common_params *cp,
   size_t i, l, offset=0;
 
   /* Merge the contents of the input name and suffix name (while also
-     allocating the necessary space).*/
+     allocating the necessary space). */
   out=gal_checkset_malloc_cat(inname, suffix);
 
   /* If there is actually a suffix, replace it with the (possibly) existing
      suffix. */
   if(suffix)
     {
-      /* Start from the end of the input array*/
+      /* Start from the end of the input array. */
       l=strlen(inname);
       for(i=l-1;i!=0;--i)
         {
@@ -920,7 +920,7 @@ gal_checkset_automatic_output(struct gal_options_common_params *cp,
           /* The input file names can be compressed names (for example
              '.fits.gz'). Currently the only compressed formats
              (decompressed within CFITSIO) are listed in
-             'gal_fits_name_is_fits' and 'gal_fits_suffix_is_fits'.*/
+             'gal_fits_name_is_fits' and 'gal_fits_suffix_is_fits'. */
           else if(out[i]=='.' && !( ( out[i+1]=='g' && out[i+2]=='z' )
                                     || (out[i+1]=='f' && out[i+2]=='z' )
                                     || out[i+1]=='Z' ) )
@@ -1002,7 +1002,7 @@ checkset_directory_writable(char *dirname)
 
 /* Check if dirname is actually a real directory and that we can
    actually write inside of it. To insure all conditions an actual
-   file will be made */
+   file will be made. */
 void
 gal_checkset_check_dir_write_add_slash(char **dirname)
 {
@@ -1099,7 +1099,7 @@ gal_checkset_timestamp(char *filename, char *newext)
   strftime(suffix, 20, "_%H-%M-%S", now);
 
   /* If parsing a filename, take care of its parent directory and
-     update the extension */
+     update the extension. */
   top=gal_checkset_dir_part(filename);
   rawname=gal_checkset_not_dir_part(filename);
   filename=gal_checkset_suffix_separate(rawname, &oldext);

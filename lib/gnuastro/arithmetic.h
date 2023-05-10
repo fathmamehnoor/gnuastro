@@ -25,7 +25,7 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 #define __GAL_ARITHMETIC_H__
 
 /* Include other headers if necessary here. Note that other header files
-   must be included before the C++ preparations below */
+   must be included before the C++ preparations below. */
 #include <gnuastro/data.h>
 
 
@@ -36,7 +36,7 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
    programs, this information is kept in 'gnuastro/config.h'. Note that all
    '.c' files must start with the inclusion of 'config.h' and that
    'gnuastro/config.h' is only created at installation time (not present
-   during the building of Gnuastro).*/
+   during the building of Gnuastro). */
 #ifndef IN_GNUASTRO_BUILD
 #include <gnuastro/config.h>
 #endif
@@ -212,17 +212,17 @@ enum gal_arithmetic_operators
   GAL_ARITHMETIC_OP_TO_FLOAT64,   /* Convert to float64.                   */
 
   GAL_ARITHMETIC_OP_BOX_AROUND_ELLIPSE, /* Width/Height of box over ellipse*/
-  GAL_ARITHMETIC_OP_BOX_VERTICES_ON_SPHERE, /* Vert. from center and width*/
+  GAL_ARITHMETIC_OP_BOX_VERTICES_ON_SPHERE, /* Vert. from center and width */
 
   /* Meta operators */
+  GAL_ARITHMETIC_OP_SIZE,         /* Size of the dataset along an axis.    */
   GAL_ARITHMETIC_OP_MAKENEW,      /* Build a new dataset, containing zeros.*/
-  GAL_ARITHMETIC_OP_CONSTANT,     /* Make a row with given constant. */
-  GAL_ARITHMETIC_OP_SIZE,         /* Size of the dataset along an axis     */
   GAL_ARITHMETIC_OP_INDEX,        /* New with the index (counting from 0). */
   GAL_ARITHMETIC_OP_COUNTER,      /* New with the index (counting from 0). */
   GAL_ARITHMETIC_OP_INDEXONLY,    /* New with the index (counting from 0). */
   GAL_ARITHMETIC_OP_COUNTERONLY,  /* New with the index (counting from 1). */
   GAL_ARITHMETIC_OP_SWAP,         /* Swap the top two operands.            */
+  GAL_ARITHMETIC_OP_CONSTANT,     /* Make a row with given constant.       */
 
   /* Pooling operators. */
   GAL_ARITHMETIC_OP_POOLMAX,      /* The pool-max of desired pixels.       */

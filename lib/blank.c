@@ -48,7 +48,7 @@ gal_blank_write(void *ptr, uint8_t type)
 {
   switch(type)
     {
-    /* Numeric types */
+    /* Numeric types. */
     case GAL_TYPE_UINT8:   *(uint8_t  *)ptr = GAL_BLANK_UINT8;    break;
     case GAL_TYPE_INT8:    *(int8_t   *)ptr = GAL_BLANK_INT8;     break;
     case GAL_TYPE_UINT16:  *(uint16_t *)ptr = GAL_BLANK_UINT16;   break;
@@ -65,7 +65,7 @@ gal_blank_write(void *ptr, uint8_t type)
       gal_checkset_allocate_copy(GAL_BLANK_STRING, ptr);
       break;
 
-    /* Complex types */
+    /* Complex types. */
     case GAL_TYPE_COMPLEX32:
     case GAL_TYPE_COMPLEX64:
       error(EXIT_FAILURE, 0, "%s: complex types are not yet supported",
@@ -130,7 +130,7 @@ gal_blank_initialize(gal_data_t *input)
 
 
 
-/* Initialize an array to the given type's blank values.*/
+/* Initialize an array to the given type's blank values. */
 void
 gal_blank_initialize_array(void *array, size_t size, uint8_t type)
 {
@@ -340,7 +340,7 @@ gal_blank_is(void *pointer, uint8_t type)
   /* Do the checks based on the type. */
   switch(type)
     {
-    /* Numeric types */
+    /* Numeric types. */
     case GAL_TYPE_UINT8:     return *(uint8_t  *)pointer==GAL_BLANK_UINT8;
     case GAL_TYPE_INT8:      return *(int8_t   *)pointer==GAL_BLANK_INT8;
     case GAL_TYPE_UINT16:    return *(uint16_t *)pointer==GAL_BLANK_UINT16;
@@ -356,7 +356,7 @@ gal_blank_is(void *pointer, uint8_t type)
     case GAL_TYPE_STRING:
       if(!strcmp(pointer,GAL_BLANK_STRING)) return 1; else return 0;
 
-    /* Complex types */
+    /* Complex types. */
     case GAL_TYPE_COMPLEX32:
     case GAL_TYPE_COMPLEX64:
       error(EXIT_FAILURE, 0, "%s: complex types are not yet supported",
@@ -449,7 +449,7 @@ gal_blank_present(gal_data_t *input, int updateflag)
   /* Go over the pixels and check: */
   switch(block->type)
     {
-    /* Numeric types */
+    /* Numeric types. */
     case GAL_TYPE_UINT8:     HAS_BLANK( uint8_t  );    break;
     case GAL_TYPE_INT8:      HAS_BLANK( int8_t   );    break;
     case GAL_TYPE_UINT16:    HAS_BLANK( uint16_t );    break;
@@ -472,13 +472,13 @@ gal_blank_present(gal_data_t *input, int updateflag)
       while(++str<strf);
       break;
 
-    /* Complex types */
+    /* Complex types. */
     case GAL_TYPE_COMPLEX32:
     case GAL_TYPE_COMPLEX64:
       error(EXIT_FAILURE, 0, "%s: complex types are not yet supported",
             __func__);
 
-    /* Bit */
+    /* Bit. */
     case GAL_TYPE_BIT:
       error(EXIT_FAILURE, 0, "%s: bit type datasets are not yet supported",
             __func__);
@@ -596,7 +596,7 @@ blank_flag(gal_data_t *input, int blank1_not0)
       /* Go over the pixels and set the output values. */
       switch(input->type)
         {
-        /* Numeric types */
+        /* Numeric types. */
         case GAL_TYPE_UINT8:     FLAG_BLANK( uint8_t  );    break;
         case GAL_TYPE_INT8:      FLAG_BLANK( int8_t   );    break;
         case GAL_TYPE_UINT16:    FLAG_BLANK( uint16_t );    break;
@@ -1227,7 +1227,7 @@ blank_remove_in_list_merge_flags(gal_data_t *thisdata, gal_data_t *flag,
   static int warningprinted=0;
 
   /* Ignore the dataset if it has more than one dimension and 'onlydim0' is
-     called*/
+     called. */
   if(onlydim0 && thisdata->ndim>1 && warningprinted==0)
     {
       warningprinted=1;

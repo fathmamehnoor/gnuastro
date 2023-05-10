@@ -29,7 +29,7 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 
 #include <gnuastro/git.h>
 
-/* Return the result of Git describe and  */
+/* Return the result of Git describe. */
 char *
 gal_git_describe(void)
 {

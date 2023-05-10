@@ -120,7 +120,7 @@ gal_data_initialize(gal_data_t *data, void *array, uint8_t type,
 
   /* Do the simple copying cases. For the display elements, set them all to
      impossible (negative) values so if not explicitly set by later steps,
-     the default values are used if/when printing.*/
+     the default values are used if/when printing. */
   data->flag       = 0;
   data->status     = 0;
   data->disp_width = -1;
@@ -175,7 +175,7 @@ gal_data_initialize(gal_data_t *data, void *array, uint8_t type,
 
           /* Print a warning if the size in this dimension is too
              large. May happen when the user (mistakenly) writes a negative
-             value in this dimension.. */
+             value in this dimension. */
           if (dsize[i] >= data_size_limit / 2)
             fprintf(stderr, "%s: WARNING: dsize[%zu] value %zu is probably "
                     "a mistake: it exceeds the limit %zu", __func__, i,

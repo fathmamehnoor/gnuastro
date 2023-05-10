@@ -2222,7 +2222,7 @@ In this tutorial, we will just use these three filters.
 Later, you may need to download more filters.
 To do that, you can use the shell's @code{for} loop to download them all in series (one after the other@footnote{Note that you only have one port to the internet, so downloading in parallel will actually be slower than downloading in series.}) with one command like the one below for the WFC3 filters.
 Put this command instead of the three @code{wget} commands above.
-Recall that all the extra spaces, back-slashes (@code{\}), and new lines can be ignored if you are typing on the lines on the terminal.
+Recall that all the extra spaces, backslashes (@code{\}), and new lines can be ignored if you are typing on the lines on the terminal.
 
 @example
 $ for f in f105w f125w f140w f160w; do \
@@ -19227,8 +19227,8 @@ You now have a stack of two dishes on the table in front of you.
 @item
 @command{/} (division) is a binary operator, so pull out the top two elements of the stack (top-most is @command{2}, then @command{11}) and divide the second one by the first.
 In the kitchen metaphor, the @command{/} operator can be visualized as a microwave that takes two dishes.
-But unlike the oven (@code{+} operator) before, the order of inputs matters (they are on top of each other: with the top dish holder being the nominator and the bottom one being the denominator).
-Again, you look to your stack of dishes on the table.
+But unlike the oven (@code{+} operator) before, the order of inputs matters (they are on top of each other: with the top dish holder being the numerator and the bottom one being the denominator).
+Again, you look at your stack of dishes on the table.
 
 You pick up the top one (with value 2 inside of it) and put it in the microwave's bottom (denominator) dish holder.
 Then you go back to your stack of dishes on the table and pick up the top dish (with value 11 inside of it) and put that in the top (nominator) dish holder.
@@ -35081,6 +35081,8 @@ When space cannot be allocated, this function will abort the program with a mess
 @code{funcname} (name of the function calling this function) and @code{varname} (name of variable that needs this space) will be used in this error message if they are not @code{NULL}.
 In most modern compilers, you can use the generic @code{__func__} variable for @code{funcname}.
 In this way, you do not have to manually copy and paste the function name or worry about it changing later (@code{__func__} was standardized in C99).
+To use this function effectively and avoid memory leaks, make sure to free the allocated array after you are done with it.
+Also, be mindful of any functions that make use of this function as they should also free any allocated arrays to maintain memory management and prevent issues with the system.
 @end deftypefun
 
 @deftypefun {void *} gal_pointer_allocate_ram_or_mmap (uint8_t @code{type}, size_t @code{size}, int @code{clear}, size_t @code{minmapsize}, char @code{**mmapname}, int @code{quietmmap}, const char @code{*funcname}, const char @code{*varname})
@@ -36048,14 +36050,14 @@ If @code{freevalue} is not zero, also free the string within the nodes.
 
 @deftypefun {gal_list_str_t *} gal_list_str_extract (char @code{*string})
 Extract space-separated components of the input string.
-If any space element should be kept (and not considered as a delimiter between two tokens), precede it with a back-slash (@code{\}).
+If any space element should be kept (and not considered as a delimiter between two tokens), precede it with a backslash (@code{\}).
 @end deftypefun
 
 @deftypefun {char *} gal_list_str_cat (gal_list_str_t @code{*list}, char @code{delimiter})
 Concatenate (append) the input list of strings into a single string where each node is separated from the next with the given @code{delimiter}.
 The space for the output string is allocated by this function and should be freed when you have finished with it.
 
-If there is any delimiter characters are present in any of the elements, a back-slash (@code{\}) will be printed before the SPACE character.
+If there is any delimiter characters are present in any of the elements, a backslash (@code{\}) will be printed before the SPACE character.
 This is necessary, otherwise, a function like @code{gal_list_str_extract} will not be able to extract the elements back into separate elements in a list.
 @end deftypefun
 
@@ -42958,7 +42960,7 @@ By default Gnuastro will compile with the @option{-O3} optimization flag.
 @cindex Buffers (Emacs)
 @cindex Emacs buffers
 @item
-All Gnuastro hand-written text files (C source code, Texinfo documentation source, and version control commit messages) should not exceed @strong{75} characters per line.
+All Gnuastro hand-written text files (C source code, Texinfo documentation source, and version control commit messages) should normally be no more than @strong{75} characters per line.
 Monitors today are certainly much wider, but with this limit, reading the functions becomes much more easier.
 Also for the developers, it allows multiple files (or multiple views of one file) to be displayed beside each other on wide monitors.
 

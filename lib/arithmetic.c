@@ -57,7 +57,7 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 /* Headers for each binary operator. Since they heavily involve macros,
    their compilation can be very large if they are in a single function and
    file. So there is a separate C source and header file for each of these
-   functions.*/
+   functions. */
 #include <gnuastro-internal/arithmetic-lt.h>
 #include <gnuastro-internal/arithmetic-le.h>
 #include <gnuastro-internal/arithmetic-gt.h>
@@ -255,7 +255,7 @@ arithmetic_bitwise_not(int flags, gal_data_t *in)
      empty (we can have tables and images with 0 rows or pixels!). */
   if(in->size==0 || in->array==NULL) return in;
 
-  /* Check the type */
+  /* Check the type. */
   switch(in->type)
     {
     case GAL_TYPE_FLOAT32:
@@ -357,7 +357,7 @@ arithmetic_abs(int flags, gal_data_t *in)
 
     /* For the signed types, we actually have to go over the data and
        calculate the absolute value. There are unique functions for
-       different types, so we will be using them.*/
+       different types, so we will be using them. */
     case GAL_TYPE_INT8:    ARITHMETIC_ABS_SGN( int8_t,  abs   );  break;
     case GAL_TYPE_INT16:   ARITHMETIC_ABS_SGN( int16_t, abs   );  break;
     case GAL_TYPE_INT32:   ARITHMETIC_ABS_SGN( int32_t, labs  );  break;
@@ -369,7 +369,7 @@ arithmetic_abs(int flags, gal_data_t *in)
             __func__, in->type);
     }
 
-  /* Clean up and return */
+  /* Clean up and return. */
   if( (flags & GAL_ARITHMETIC_FLAG_FREE) && out!=in)
     gal_data_free(in);
   return out;
@@ -550,14 +550,14 @@ arithmetic_function_unary(int operator, int flags, gal_data_t *in)
   int inplace=0;
   gal_data_t *o;
 
-  /* The dataset may be empty. In this case, the output should also be empty
-     (we can have tables and images with 0 rows or pixels!). */
+  /* The dataset may be empty. In this case, the output should also be
+     empty (we can have tables and images with 0 rows or pixels!). */
   if(in->size==0 || in->array==NULL) return in;
 
   /* See if the operation should be done in place. The output of these
      operators is defined in the floating point space. So even if the input
-     is integer type and user requested inplace opereation, if its not a
-     floating point type, it will not be in-place. */
+     is an integer type and user requested in place operation, if it's not
+     a floating point type, it will not be in place. */
   if( (flags & GAL_ARITHMETIC_FLAG_INPLACE)
       && ( in->type==GAL_TYPE_FLOAT32 || in->type==GAL_TYPE_FLOAT64 )
       && ( operator != GAL_ARITHMETIC_OP_RA_TO_DEGREE
@@ -574,7 +574,7 @@ arithmetic_function_unary(int operator, int flags, gal_data_t *in)
     }
   else
     {
-      /* Check for operators which have fixed output types */
+      /* Check for operators which have fixed output types. */
       if(         operator == GAL_ARITHMETIC_OP_RA_TO_DEGREE
                || operator == GAL_ARITHMETIC_OP_DEC_TO_DEGREE )
         otype = GAL_TYPE_FLOAT64;
@@ -778,7 +778,7 @@ arithmetic_gsl_initialize(int flags, const char **rng_name,
   /* Setup the random number generator. For 'envseed', we want to pass a
      boolean value: either 0 or 1. However, when we say 'flags &
      GAL_ARITHMETIC_ENVSEED', the returned value is the integer positioning
-     of the envseed bit (for example if its on the fourth bit, the value
+     of the envseed bit (for example if it's on the fourth bit, the value
      will be 8). This can cause problems if it is on the 8th bit (or any
      multiple of 8). So to avoid issues with the bit-positioning of the
      'ENVSEED', we will return the conditional to see if the result of the
@@ -787,7 +787,7 @@ arithmetic_gsl_initialize(int flags, const char **rng_name,
                             rng_name, rng_seed);
 
   /* If '--envseed' was called, we need to add the column counter to the
-     requested seed (so its not the same for all columns. */
+     requested seed (so it is not the same for all columns. */
   if(flags & GAL_ARITHMETIC_FLAG_ENVSEED)
     {
       *rng_seed += colcounter++;
@@ -802,7 +802,7 @@ arithmetic_gsl_initialize(int flags, const char **rng_name,
       printf("   - Random number generator seed: %lu\n", *rng_seed);
     }
 
-  /* Return the GSL random number generator */
+  /* Return the GSL random number generator. */
   return rng;
 }
 
@@ -920,7 +920,7 @@ arithmetic_mknoise(int operator, int flags, gal_data_t *in,
 
 
 
-/* Sanity checks for 'random_from_hist' */
+/* Sanity checks for 'random_from_hist'. */
 static void
 arithmetic_random_from_hist_sanity(gal_data_t **inhist, gal_data_t **inbinc,
                                    gal_data_t *in, int operator)
@@ -961,7 +961,7 @@ arithmetic_random_from_hist_sanity(gal_data_t **inhist, gal_data_t **inbinc,
   binc=*inbinc=gal_data_copy_to_new_type_free(binc, GAL_TYPE_FLOAT64);
 
   /* For the 'random-from-hist' operator, we will need to assume that the
-     bins are equally spaced and that they are ascending.*/
+     bins are equally spaced and that they are ascending. */
   if(operator==GAL_ARITHMETIC_OP_RANDOM_FROM_HIST)
     {
       d=binc->array;
@@ -1010,7 +1010,7 @@ arithmetic_random_from_hist(int operator, int flags, gal_data_t *in,
      empty (we can have tables and images with 0 rows or pixels!). */
   if(in->size==0 || in->array==NULL) return in;
 
-  /* Basic sanity checks */
+  /* Basic sanity checks. */
   arithmetic_random_from_hist_sanity(&hist, &binc, in,
                                      GAL_ARITHMETIC_OP_RANDOM_FROM_HIST);
 
@@ -1116,7 +1116,7 @@ arithmetic_size(int operator, int flags, gal_data_t *in, gal_data_t *arg)
     }
 
 
-  /* Sanity checks on the value of the given argument.*/
+  /* Sanity checks on the value of the given argument. */
   if(arg_val>in->ndim)
     error(EXIT_FAILURE, 0, "%s: size operator's dimension argument "
           "(given %zu) cannot be larger than the dimensions of the "
@@ -1136,7 +1136,7 @@ arithmetic_size(int operator, int flags, gal_data_t *in, gal_data_t *arg)
   *(size_t *)(out->array)=in->dsize[in->ndim-arg_val];
 
 
-  /* Clean up and return */
+  /* Clean up and return. */
   if(flags & GAL_ARITHMETIC_FLAG_FREE)
     gal_data_free(in);
   return out;
@@ -1198,7 +1198,7 @@ arithmetic_stitch_sanity_check(gal_data_t *list, gal_data_t *fdim)
   dim = list->ndim - fitsdim[0];
 
   /* Go through the list of datasets and make sure the dimensionality is
-     fine.*/
+     fine. */
   c=0;
   for(tmp=list; tmp!=NULL; tmp=tmp->next)
     {
@@ -1327,7 +1327,7 @@ arithmetic_stitch(int flags, gal_data_t *list, gal_data_t *fdim)
             list->ndim);
     }
 
-  /* Clean up and return */
+  /* Clean up and return. */
   if(flags & GAL_ARITHMETIC_FLAG_FREE)
     gal_list_data_free(list);
   return out;
@@ -1766,7 +1766,7 @@ struct multioperandparams
         /* Read the necessay values from each input. */                 \
         for(i=0;i<p->dnum;++i) pixs[n++]=a[i][j];                       \
                                                                         \
-        /* If there are any elements, measure the  */                   \
+        /* If there are any elements, do the measurement. */            \
         if(n)                                                           \
           {                                                             \
             /* Calculate the quantile and put it in the output. */      \
@@ -1812,7 +1812,7 @@ struct multioperandparams
         /* Read the necessay values from each input. */                 \
         for(i=0;i<p->dnum;++i) pixs[n++]=a[i][j];                       \
                                                                         \
-        /* If there are any usable elements, measure the  */            \
+        /* If there are any usable elements, do the measurement. */     \
         if(n)                                                           \
           {                                                             \
             /* Calculate the sigma-clip and write it in. */             \
@@ -2052,7 +2052,7 @@ arithmetic_multioperand(int operator, int flags, gal_data_t *list,
     }
 
 
-  /* Set the output dataset type */
+  /* Set the output dataset type. */
   switch(operator)
     {
     case GAL_ARITHMETIC_OP_MIN:            otype=list->type;       break;
@@ -2149,7 +2149,7 @@ arithmetic_multioperand(int operator, int flags, gal_data_t *list,
    don't need to be checked (the floating point standard will do the job
    for us). It is also not necessary to check blanks in bitwise operators,
    but bitwise operators have their own macro
-   ('BINARY_OP_INCR_OT_RT_LT_SET') which doesn' use 'checkblanks'.*/
+   ('BINARY_OP_INCR_OT_RT_LT_SET') which doesn' use 'checkblanks'. */
 int
 gal_arithmetic_binary_checkblank(gal_data_t *l, gal_data_t *r)
 {
@@ -2272,7 +2272,7 @@ arithmetic_binary(int operator, int flags, gal_data_t *l, gal_data_t *r)
     }
 
 
-  /* Simple sanity check on the input sizes */
+  /* Simple sanity check on the input sizes. */
   if( !( (flags & GAL_ARITHMETIC_FLAG_NUMOK) && (l->size==1 || r->size==1))
       && gal_dimension_is_different(l, r) )
     error(EXIT_FAILURE, 0, "%s: the non-number inputs to '%s' don't "
@@ -2292,7 +2292,7 @@ arithmetic_binary(int operator, int flags, gal_data_t *l, gal_data_t *r)
      efficient memory and CPU usage. Since the number of operators without
      a fixed output type (like the conditionals) is less, by 'default' we
      will set the output type to 'unsigned char', and if any of the other
-     operatrs are given, it will be chosen based on the input types.*/
+     operatrs are given, it will be chosen based on the input types. */
   otype=arithmetic_binary_out_type(operator, l, r);
 
 
@@ -2303,7 +2303,7 @@ arithmetic_binary(int operator, int flags, gal_data_t *l, gal_data_t *r)
 
 
   /* If we want inplace output, set the output pointer to one input. Note
-     that the output type can be different from both inputs.  */
+     that the output type can be different from both inputs. */
   if(flags & GAL_ARITHMETIC_FLAG_INPLACE)
     {
       if     (l->type==otype && out_size==l->size)   o = l;
@@ -2449,7 +2449,7 @@ arithmetic_function_binary_flt(int operator, int flags, gal_data_t *il,
     }
 
 
-  /* Simple sanity check on the input sizes */
+  /* Simple sanity check on the input sizes. */
   if( !( (flags & GAL_ARITHMETIC_FLAG_NUMOK) && (il->size==1 || ir->size==1))
       && gal_dimension_is_different(il, ir) )
     error(EXIT_FAILURE, 0, "%s: the input datasets don't have the same "
@@ -2476,7 +2476,7 @@ arithmetic_function_binary_flt(int operator, int flags, gal_data_t *il,
 
 
   /* If we want inplace output, set the output pointer to one input. Note
-     that the output type can be different from both inputs.  */
+     that the output type can be different from both inputs. */
   if(flags & GAL_ARITHMETIC_FLAG_INPLACE)
     {
       if     (l->type==final_otype && out_size==l->size)   o = l;
@@ -2880,7 +2880,7 @@ arithmetic_makenew(gal_data_t *sizes)
   dsize=gal_pointer_allocate(GAL_TYPE_SIZE_T, ndim, 1, __func__, "dsize");
   while(tmp!=NULL)
     {
-      /* Set the next pointer and conver this one to size_t.  */
+      /* Set the next pointer and conver this one to size_t. */
       ttmp=tmp->next;
       tmp=gal_data_copy_to_new_type_free(tmp, GAL_TYPE_SIZE_T);
 
@@ -3082,7 +3082,7 @@ gal_arithmetic_load_col(char *str, int searchin, int ignorecase,
   /* This is the shortest possible string (with each component being given
      a one character value). Recall that in C, simply putting literal
      strings after each other, will merge them together into one literal
-     string.*/
+     string. */
   char *checkstr = ( GAL_ARITHMETIC_OPSTR_LOADCOL_PREFIX   "a"
                      GAL_ARITHMETIC_OPSTR_LOADCOL_FILE "a" );
 
@@ -3117,7 +3117,7 @@ gal_arithmetic_load_col(char *str, int searchin, int ignorecase,
              function. */
           if(filename || hdu) { free(copy); return NULL; };
 
-          /* Set the current position to '\0' (to end the column name) */
+          /* Set the current position to '\0' (to end the column name). */
           *c='\0';
 
           /* Set the HDU's starting pointer. */
@@ -3254,7 +3254,7 @@ gal_arithmetic_set_operator(char *string, size_t *num_operands)
   else if( !strcmp(string, "atanh"))
     { op=GAL_ARITHMETIC_OP_ATANH;             *num_operands=1; }
 
-  /* Units conversion functions */
+  /* Units conversion functions. */
   else if (!strcmp(string, "ra-to-degree"))
     { op=GAL_ARITHMETIC_OP_RA_TO_DEGREE;      *num_operands=1;  }
   else if (!strcmp(string, "dec-to-degree"))
@@ -3457,20 +3457,20 @@ gal_arithmetic_set_operator(char *string, size_t *num_operands)
     { op=GAL_ARITHMETIC_OP_BOX_VERTICES_ON_SPHERE; *num_operands=4; }
 
   /* Size and position operators. */
-  else if (!strcmp(string, "swap"))
-    { op=GAL_ARITHMETIC_OP_SWAP;              *num_operands=2;  }
-  else if (!strcmp(string, "index"))
-    { op=GAL_ARITHMETIC_OP_INDEX;             *num_operands=1;  }
-  else if (!strcmp(string, "indexonly"))
-    { op=GAL_ARITHMETIC_OP_INDEXONLY;         *num_operands=1;  }
-  else if (!strcmp(string, "counter"))
-    { op=GAL_ARITHMETIC_OP_COUNTER;           *num_operands=1;  }
-  else if (!strcmp(string, "counteronly"))
-    { op=GAL_ARITHMETIC_OP_COUNTERONLY;       *num_operands=1;  }
-  else if (!strcmp(string, "makenew"))
-    { op=GAL_ARITHMETIC_OP_MAKENEW;           *num_operands=-1; }
   else if (!strcmp(string, "size"))
     { op=GAL_ARITHMETIC_OP_SIZE;              *num_operands=2;  }
+  else if (!strcmp(string, "makenew"))
+    { op=GAL_ARITHMETIC_OP_MAKENEW;           *num_operands=-1; }
+  else if (!strcmp(string, "index"))
+    { op=GAL_ARITHMETIC_OP_INDEX;             *num_operands=1;  }
+   else if (!strcmp(string, "counter"))
+    { op=GAL_ARITHMETIC_OP_COUNTER;           *num_operands=1;  }
+  else if (!strcmp(string, "indexonly"))
+    { op=GAL_ARITHMETIC_OP_INDEXONLY;         *num_operands=1;  }
+  else if (!strcmp(string, "counteronly"))
+    { op=GAL_ARITHMETIC_OP_COUNTERONLY;       *num_operands=1;  }
+  else if (!strcmp(string, "swap"))
+    { op=GAL_ARITHMETIC_OP_SWAP;              *num_operands=2;  }
   else if (!strcmp(string, "constant"))
     { op=GAL_ARITHMETIC_OP_CONSTANT;          *num_operands=2;  }
 
@@ -3601,9 +3601,6 @@ gal_arithmetic_operator_string(int operator)
     case GAL_ARITHMETIC_OP_RANDOM_FROM_HIST:return "random-from-hist";
     case GAL_ARITHMETIC_OP_RANDOM_FROM_HIST_RAW:return "random-from-hist-raw";
 
-    case GAL_ARITHMETIC_OP_SIZE:            return "size";
-    case GAL_ARITHMETIC_OP_TRIM:            return "trim";
-    case GAL_ARITHMETIC_OP_TO1D:            return "to-1d";
     case GAL_ARITHMETIC_OP_STITCH:          return "stitch";
 
     case GAL_ARITHMETIC_OP_TO_UINT8:        return "uchar";
@@ -3630,13 +3627,14 @@ gal_arithmetic_operator_string(int operator)
     case GAL_ARITHMETIC_OP_BOX_AROUND_ELLIPSE: return "box-around-ellipse";
     case GAL_ARITHMETIC_OP_BOX_VERTICES_ON_SPHERE: return "vertices-on-sphere";
 
-    case GAL_ARITHMETIC_OP_SWAP:            return "swap";
+    case GAL_ARITHMETIC_OP_SIZE:            return "size";
+    case GAL_ARITHMETIC_OP_MAKENEW:         return "makenew";
     case GAL_ARITHMETIC_OP_INDEX:           return "index";
-    case GAL_ARITHMETIC_OP_CONSTANT:        return "constant";
     case GAL_ARITHMETIC_OP_COUNTER:         return "counter";
     case GAL_ARITHMETIC_OP_INDEXONLY:       return "indexonly";
     case GAL_ARITHMETIC_OP_COUNTERONLY:     return "counteronly";
-    case GAL_ARITHMETIC_OP_MAKENEW:         return "makenew";
+    case GAL_ARITHMETIC_OP_SWAP:            return "swap";
+    case GAL_ARITHMETIC_OP_CONSTANT:        return "constant";
 
     case GAL_ARITHMETIC_OP_POOLMAX:         return "pool-max";
     case GAL_ARITHMETIC_OP_POOLMIN:         return "pool-min";

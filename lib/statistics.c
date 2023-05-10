@@ -94,7 +94,8 @@ gal_statistics_minimum(gal_data_t *input)
       /* Initialize the output with the maximum possible value. */
       gal_type_max(out->type, out->array);
 
-      /* Parse the full input. */
+      /* Parse the full input. A NaN value will always fail a conditional
+         (as if it was larger); so NaNs will not cause problems here.*/
       GAL_TILE_PARSE_OPERATE( input, out, 0, 1,
                               {*o = *i < *o ? *i : *o; ++n;} );
     }
@@ -123,7 +124,8 @@ gal_statistics_maximum(gal_data_t *input)
       /* Initialize the output with the minimum possible value. */
       gal_type_min(out->type, out->array);
 
-      /* Parse the full input. */
+      /* Parse the full input. A NaN value will always fail a conditional
+         (as if it was smaller); so NaNs will not cause problems here.*/
       GAL_TILE_PARSE_OPERATE(input, out, 0, 1,
                              {*o = *i > *o ? *i : *o; ++n;});
     }
