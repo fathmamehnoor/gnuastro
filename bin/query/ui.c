@@ -616,5 +616,7 @@ ui_free_report(struct queryparams *p, struct timeval *t1)
   /* Free the allocated arrays: */
   free(p->cp.hdu);
   free(p->cp.output);
+  free(p->datasetstr);
+  free(p->datasetuse);
   free(p->downloadname);
 }

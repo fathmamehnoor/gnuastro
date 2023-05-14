@@ -70,35 +70,19 @@ gaia_sanity_checks(struct queryparams *p)
   if(p->datasetstr)
     {
       if( !strcmp(p->datasetstr, "dr3") )
-        {
-          free(p->datasetstr);
-          gal_checkset_allocate_copy("gaiadr3.gaia_source", &p->datasetstr);
-        }
+        gal_checkset_allocate_copy("gaiadr3.gaia_source", &p->datasetuse);
       else if( !strcmp(p->datasetstr, "edr3") )
-        {
-          free(p->datasetstr);
-          gal_checkset_allocate_copy("gaiaedr3.gaia_source", &p->datasetstr);
-        }
+        gal_checkset_allocate_copy("gaiaedr3.gaia_source", &p->datasetuse);
       else if( !strcmp(p->datasetstr, "dr2") )
-        {
-          free(p->datasetstr);
-          gal_checkset_allocate_copy("gaiadr2.gaia_source", &p->datasetstr);
-        }
+        gal_checkset_allocate_copy("gaiadr2.gaia_source", &p->datasetuse);
       else if( !strcmp(p->datasetstr, "dr1") )
-        {
-          free(p->datasetstr);
-          gal_checkset_allocate_copy("gaiadr1.gaia_source", &p->datasetstr);
-        }
+        gal_checkset_allocate_copy("gaiadr1.gaia_source", &p->datasetuse);
       else if( !strcmp(p->datasetstr, "hipparcos") )
-        {
-          free(p->datasetstr);
-          gal_checkset_allocate_copy("public.hipparcos", &p->datasetstr);
-        }
+        gal_checkset_allocate_copy("public.hipparcos", &p->datasetuse);
       else if( !strcmp(p->datasetstr, "tycho2") )
-        {
-          free(p->datasetstr);
-          gal_checkset_allocate_copy("public.tycho2", &p->datasetstr);
-        }
+        gal_checkset_allocate_copy("public.tycho2", &p->datasetuse);
+      else
+        gal_checkset_allocate_copy(p->datasetstr, &p->datasetuse);
     }
 
   /* Currently we assume GAIA only uses TAP. */

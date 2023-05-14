@@ -46,17 +46,17 @@ ned_sanity_checks(struct queryparams *p)
     {
       /* Correct the dataset name if 'objdir' is given. */
       if( !strcmp(p->datasetstr, "objdir") )
-        {
-          free(p->datasetstr);
-          gal_checkset_allocate_copy("NEDTAP.objdir", &p->datasetstr);
-        }
+        gal_checkset_allocate_copy("NEDTAP.objdir", &p->datasetuse);
+      else
+        gal_checkset_allocate_copy(p->datasetstr, &p->datasetuse);
+
 
       /* Database-specific checks. For example, if we should use TAP or
          not. Note that the user may give 'NEDTAP.objdir', so we can't use
          the 'if' above (for expanding summarized names). */
-      if( !strcmp(p->datasetstr, "NEDTAP.objdir") )
+      if( !strcmp(p->datasetuse, "NEDTAP.objdir") )
         p->usetap=1;
-      else if( !strcmp(p->datasetstr, "extinction") )
+      else if( !strcmp(p->datasetuse, "extinction") )
         {
           /* Crash for options that are not compatible with extinction. */
           if( p->radius || p->width || p->range || p->noblank || p->columns
@@ -89,8 +89,8 @@ ned_sanity_checks(struct queryparams *p)
   /* Currently NED only has a single table for TAP access, so warn the
      users about this if they ask for any other table. */
   if( p->usetap
-      && ( p->datasetstr==NULL
-           || strcmp(p->datasetstr, "NEDTAP.objdir") ) )
+      && ( p->datasetuse==NULL
+           || strcmp(p->datasetuse, "NEDTAP.objdir") ) )
     error(EXIT_FAILURE, 0, "NED currently only supports a single "
           "dataset with the TAP protocol called 'NEDTAP.objdir' "
           "(which you can also call in Query with '--dataset=objdir'). "
@@ -155,7 +155,7 @@ ned_extinction(struct queryparams *p)
 void
 ned_non_tap(struct queryparams *p)
 {
-  if( !strcmp(p->datasetstr, "extinction") )
+  if( !strcmp(p->datasetuse, "extinction") )
     ned_extinction(p);
 }
 

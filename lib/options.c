@@ -1671,9 +1671,9 @@ gal_options_parse_name_and_values(struct argp_option *option, char *arg,
                   PACKAGE_BUGREPORT, GAL_OPTIONS_STATIC_MEM_FOR_VALUES);
           switch(str0_f641_sz2)
             {
-            case 0: nc += sprintf(sstr+nc, "%s,",  strarr[i]);
-            case 1: nc += sprintf(sstr+nc, "%g,",  darray[i]);
-            case 2: nc += sprintf(sstr+nc, "%zu,", sizarr[i]);
+            case 0: nc += sprintf(sstr+nc, "%s,",  strarr[i]); break;
+            case 1: nc += sprintf(sstr+nc, "%g,",  darray[i]); break;
+            case 2: nc += sprintf(sstr+nc, "%zu,", sizarr[i]); break;
             } /* No default necessary: valid value confirmed above. */
         }
 

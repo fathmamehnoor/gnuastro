@@ -58,7 +58,7 @@ tap_sanity_checks(struct queryparams *p)
 
       /* If no dataset is explicitly given, let the user know that a
          catalog reference is necessary. */
-      if( p->information==0 && p->datasetstr==NULL )
+      if( p->information==0 && p->datasetuse==NULL )
         error(EXIT_FAILURE, 0, "no '--dataset' specified! To get the "
               "list of available datasets (tables) in this database, "
               "please run with '--information' (or '-i'). Note that some "
@@ -89,18 +89,18 @@ tap_dataset_quote_if_necessary(struct queryparams *p)
   char *c, *quoted;
 
   /* Parse the string for bad characters */
-  for(c=p->datasetstr; *c!='\0'; ++c)
+  for(c=p->datasetuse; *c!='\0'; ++c)
     if(*c=='/') { quote=1; break; }
 
   /* Add quotes around the database string. */
   if(quote)
     {
       /* Allocate the new string with quotes. */
-      if( asprintf(&quoted, "\"%s\"", p->datasetstr)<0 )
+      if( asprintf(&quoted, "\"%s\"", p->datasetuse)<0 )
         error(EXIT_FAILURE, 0, "%s: asprintf allocation ('quoted')",
               __func__);
     }
-  else quoted=p->datasetstr;
+  else quoted=p->datasetuse;
 
   /* Return the possibly quoted string. */
   return quoted;
@@ -118,10 +118,10 @@ tap_query_construct_meta(struct queryparams *p)
 
   /* If a dataset is given, build the query to download the metadata of
      that dataset. Otherwise, get the metadata of the full database. */
-  if(p->datasetstr)
+  if(p->datasetuse)
     {
       if( asprintf(&querystr,  "\"SELECT * FROM TAP_SCHEMA.columns "
-                   "WHERE table_name = '%s'\"", p->datasetstr)<0 )
+                   "WHERE table_name = '%s'\"", p->datasetuse)<0 )
         error(EXIT_FAILURE, 0, "%s: asprintf allocation ('querystr')",
               __func__);
     }
@@ -331,12 +331,12 @@ tap_query_construct_data(struct queryparams *p)
 {
   char *sortstr=NULL;
   char *headstr=NULL, allcols[]="*";
-  char *datasetstr, *valuelimitstr=NULL;
+  char *datasetuse, *valuelimitstr=NULL;
   char *querystr, *columns, *spatialstr=NULL;
 
   /* If the dataset has special characters (like a slash) it needs to
      be quoted. */
-  datasetstr=tap_dataset_quote_if_necessary(p);
+  datasetuse=tap_dataset_quote_if_necessary(p);
 
   /* If certain columns have been requested use them, otherwise
      download all existing columns.*/
@@ -365,7 +365,7 @@ tap_query_construct_data(struct queryparams *p)
   if( asprintf(&querystr,  "'SELECT %s %s FROM %s %s %s %s %s %s'",
                headstr ? headstr : "",
                columns,
-               datasetstr,
+               datasetuse,
                ( valuelimitstr || spatialstr ? "WHERE" : ""),
                valuelimitstr ? valuelimitstr : "",
                ( valuelimitstr && spatialstr ? "AND"   : "" ),
@@ -375,8 +375,10 @@ tap_query_construct_data(struct queryparams *p)
           __func__);
 
   /* Clean up and return. */
-  if(datasetstr!=p->datasetstr) free(datasetstr);
+  if(datasetuse!=p->datasetuse) free(datasetuse);
+  if(valuelimitstr) free(valuelimitstr);
   if(columns!=allcols) free(columns);
+  if(spatialstr) free(spatialstr);
   return querystr;
 }
 
@@ -437,4 +439,7 @@ tap_download(struct queryparams *p)
 
   /* Keep the executed command (to put in the final file's meta-data). */
   p->finalcommand=command;
+
+  /* Clean up. */
+  if(querystr!=p->query) free(querystr);
 }

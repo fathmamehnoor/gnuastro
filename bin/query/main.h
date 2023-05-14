@@ -63,6 +63,7 @@ struct queryparams
   gal_list_str_t      *columns;  /* Columns to extract from database.  */
 
   /* Internal variables. */
+  char             *datasetuse;  /* Used dataset string.               */
   char            *databasestr;  /* Name of input database.            */
   char           *downloadname;  /* Temporary output name.             */
   size_t       outtableinfo[2];  /* To print in output.                */

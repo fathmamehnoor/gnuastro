@@ -38,6 +38,7 @@ See the end of the file for license conditions.
     --sigclip-std           SIGCLIP_STD            SIGCLIP-STD
     --sigclip-mean-sb       SIGCLIP_MEAN_SB        SIGCLIP-MEAN-SB
     --sigclip-mean-sb-delta SIGCLIP_MEAN_SB_DELTA  SIGCLIP-MEAN-SB-ERR
+    --------------------------------------------------------------
 
 ** Bugs fixed
   bug #64138: Arithmetic's mknoise-poisson only using first pixel value.
@@ -49,6 +50,10 @@ See the end of the file for license conditions.
               Infante-Sainz.
   bug #64153: astscript-ds9-region: '--namecol' gives a constant zero in
               image-mode. Reported by Zahra Sharbaf.
+  bug #64186: Query: core dump when custom name given to '--dataset'. First
+              reported by Zohreh Ghaffari as a problem in
+              'astscript-select-stars' (sr #110874) and identified as a
+              problem in Query by Sepideh Eskandarlou.
 
 
 

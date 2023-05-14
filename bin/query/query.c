@@ -230,7 +230,7 @@ query_output_meta_dataset(struct queryparams *p)
 
       /* Print the basic information. */
       printf("\n--------\ndatabase: %s (URL: %s)\ndataset: %s\n",
-             p->databasestr, p->urls->v, p->datasetstr);
+             p->databasestr, p->urls->v, p->datasetuse);
       gal_table_print_info(allcols, numcols, GAL_BLANK_SIZE_T);
     }
   else
@@ -245,7 +245,7 @@ query_output_meta_dataset(struct queryparams *p)
             "command below (put any search word or phrase in 'SEARCH' to "
             "find your dataset more easily):\n\n"
             "   astquery %s --information --limitinfo=\"SEARCH\"\n\n",
-            p->datasetstr, p->databasestr, p->databasestr);
+            p->datasetuse, p->databasestr, p->databasestr);
     }
 
   /* Clean up and return. */
@@ -314,7 +314,7 @@ query_output_finalize(struct queryparams *p)
       /* Prepare the output dataset. */
       if(p->information)
         {
-          if(p->datasetstr)  query_output_meta_dataset(p);
+          if(p->datasetuse)  query_output_meta_dataset(p);
           else               query_output_meta_database(p);
         }
       else if(isxml==0)      query_output_data(p);

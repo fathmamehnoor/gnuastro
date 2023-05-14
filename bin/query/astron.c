@@ -45,10 +45,9 @@ astron_sanity_checks(struct queryparams *p)
   if(p->datasetstr)
     {
       if( !strcmp(p->datasetstr, "tgssadr") )
-        {
-          free(p->datasetstr);
-          gal_checkset_allocate_copy("tgssadr.main", &p->datasetstr);
-        }
+        gal_checkset_allocate_copy("tgssadr.main", &p->datasetuse);
+      else
+        gal_checkset_allocate_copy(p->datasetstr, &p->datasetuse);
     }
 
   /* Currently we assume ASTRON only uses TAP. */

@@ -56,97 +56,57 @@ vizier_sanity_checks(struct queryparams *p)
   /* Set the summarized names. */
   if(p->datasetstr)
     {
+      /* Check if the dataset name is a known summary. */
       if( !strcmp(p->datasetstr, "2mass") )
-        {
-          free(p->datasetstr);
-          gal_checkset_allocate_copy("II/246/out", &p->datasetstr);
-        }
+        gal_checkset_allocate_copy("II/246/out", &p->datasetuse);
       else if( !strcmp(p->datasetstr, "akarifis") )
-        {
-          free(p->datasetstr);
-          gal_checkset_allocate_copy("II/298/fis", &p->datasetstr);
-        }
+        gal_checkset_allocate_copy("II/298/fis", &p->datasetuse);
       else if( !strcmp(p->datasetstr, "allwise") )
-        {
-          free(p->datasetstr);
-          gal_checkset_allocate_copy("II/328/allwise", &p->datasetstr);
-        }
+        gal_checkset_allocate_copy("II/328/allwise", &p->datasetuse);
       else if( !strcmp(p->datasetstr, "apass9") )
-        {
-          free(p->datasetstr);
-          gal_checkset_allocate_copy("II/336/apass9", &p->datasetstr);
-        }
+        gal_checkset_allocate_copy("II/336/apass9", &p->datasetuse);
+      else if( !strcmp(p->datasetstr, "des1") )
+        gal_checkset_allocate_copy("II/357/des_dr1", &p->datasetuse);
+      else if( !strcmp(p->datasetstr, "gaiaedr3") )
+        gal_checkset_allocate_copy("I/350/gaiaedr3", &p->datasetuse);
+      else if( !strcmp(p->datasetstr, "gaiadr3") )
+        gal_checkset_allocate_copy("I/355/gaiadr3", &p->datasetuse);
+      else if( !strcmp(p->datasetstr, "galex5") )
+        gal_checkset_allocate_copy("II/312/ais", &p->datasetuse);
+      else if( !strcmp(p->datasetstr, "nomad") )
+        gal_checkset_allocate_copy("I/297/out", &p->datasetuse);
+      else if( !strcmp(p->datasetstr, "panstarrs1") )
+        gal_checkset_allocate_copy("II/349/ps1", &p->datasetuse);
+      else if( !strcmp(p->datasetstr, "pmx1") )
+        gal_checkset_allocate_copy("I/317/sample", &p->datasetuse);
+      else if( !strcmp(p->datasetstr, "usnob1") )
+        gal_checkset_allocate_copy("I/284/out", &p->datasetuse);
+      else if( !strcmp(p->datasetstr, "ucac5") )
+        gal_checkset_allocate_copy("I/340/ucac5", &p->datasetuse);
+      else if( !strcmp(p->datasetstr, "unwise") )
+        gal_checkset_allocate_copy("II/363/unwise", &p->datasetuse);
       else if( !strcmp(p->datasetstr, "catwise") )
         {
-          free(p->datasetstr);
           if(p->ra_name==NULL) p->ra_name="RA_ICRS";
           if(p->dec_name==NULL) p->dec_name="DE_ICRS";
-          gal_checkset_allocate_copy("II/365/catwise", &p->datasetstr);
-        }
-      else if( !strcmp(p->datasetstr, "des1") )
-        {
-          free(p->datasetstr);
-          gal_checkset_allocate_copy("II/357/des_dr1", &p->datasetstr);
+          gal_checkset_allocate_copy("II/365/catwise", &p->datasetuse);
         }
       else if( !strcmp(p->datasetstr, "gaiadr2") )
         {
-          free(p->datasetstr);
           if(p->ra_name==NULL) p->ra_name="ra_epoch2000";
           if(p->dec_name==NULL) p->dec_name="dec_epoch2000";
-          gal_checkset_allocate_copy("I/345/gaia2", &p->datasetstr);
-        }
-      else if( !strcmp(p->datasetstr, "gaiaedr3") )
-        {
-          free(p->datasetstr);
-          gal_checkset_allocate_copy("I/350/gaiaedr3", &p->datasetstr);
-        }
-      else if( !strcmp(p->datasetstr, "gaiadr3") )
-        {
-          free(p->datasetstr);
-          gal_checkset_allocate_copy("I/355/gaiadr3", &p->datasetstr);
-        }
-      else if( !strcmp(p->datasetstr, "galex5") )
-        {
-          free(p->datasetstr);
-          gal_checkset_allocate_copy("II/312/ais", &p->datasetstr);
-        }
-      else if( !strcmp(p->datasetstr, "nomad") )
-        {
-          free(p->datasetstr);
-          gal_checkset_allocate_copy("I/297/out", &p->datasetstr);
-        }
-      else if( !strcmp(p->datasetstr, "panstarrs1") )
-        {
-          free(p->datasetstr);
-          gal_checkset_allocate_copy("II/349/ps1", &p->datasetstr);
-        }
-      else if( !strcmp(p->datasetstr, "pmx1") )
-        {
-          free(p->datasetstr);
-          gal_checkset_allocate_copy("I/317/sample", &p->datasetstr);
+          gal_checkset_allocate_copy("I/345/gaia2", &p->datasetuse);
         }
       else if( !strcmp(p->datasetstr, "sdss12") )
         {
-          free(p->datasetstr);
           if(p->ra_name==NULL) p->ra_name="RA_ICRS";
           if(p->dec_name==NULL) p->dec_name="DE_ICRS";
-          gal_checkset_allocate_copy("V/147/sdss12", &p->datasetstr);
+          gal_checkset_allocate_copy("V/147/sdss12", &p->datasetuse);
         }
-      else if( !strcmp(p->datasetstr, "usnob1") )
-        {
-          free(p->datasetstr);
-          gal_checkset_allocate_copy("I/284/out", &p->datasetstr);
-        }
-      else if( !strcmp(p->datasetstr, "ucac5") )
-        {
-          free(p->datasetstr);
-          gal_checkset_allocate_copy("I/340/ucac5", &p->datasetstr);
-        }
-      else if( !strcmp(p->datasetstr, "unwise") )
-        {
-          free(p->datasetstr);
-          gal_checkset_allocate_copy("II/363/unwise", &p->datasetstr);
-        }
+
+      /* The given dataset is not a known summary. */
+      else
+        gal_checkset_allocate_copy(p->datasetstr, &p->datasetuse);
     }
 
   /* Currently we assume VizieR only uses TAP. */
