@@ -2,7 +2,9 @@ Alphabetically ordered list to acknowledge in the next release.
 
 Irene Pintos Castro
 Raul Infante-Sainz
+Sepideh Eskandarlou
 Zahra Sharbaf
+Zohreh Ghaffari
 
 
 
