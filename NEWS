@@ -60,6 +60,8 @@ See the end of the file for license conditions.
               reported by Zohreh Ghaffari as a problem in
               'astscript-select-stars' (sr #110874) and identified as a
               problem in Query by Sepideh Eskandarlou.
+  bug #64199: info astscript-zeropoint not working. Reported by Zahra
+              Sharbaf.
 
 
 

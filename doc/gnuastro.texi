@@ -118,6 +118,7 @@ A copy of the license is included in the section entitled ``GNU Free Documentati
 * astscript-psf-unite: (gnuastro)Invoking astscript-psf-unite. Options to this script
 * astscript-psf-scale-factor: (gnuastro)Invoking astscript-psf-scale-factor. Options to this script
 * astscript-psf-subtract: (gnuastro)Invoking astscript-psf-subtract. Options to this script
+* astscript-zeropoint: (gnuastro)Invoking astscript-zeropoint. Options to this script
 @end direntry
 
 
