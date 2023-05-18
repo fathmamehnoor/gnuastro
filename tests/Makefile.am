@@ -192,15 +192,17 @@ if COND_STATISTICS
   statistics/fitting-polynomial-robust.sh: prepconf.sh.log
 endif
 if COND_TABLE
-  MAYBE_TABLE_TESTS = table/txt-to-fits-binary.sh		\
-  table/fits-binary-to-txt.sh table/txt-to-fits-ascii.sh	\
-  table/fits-ascii-to-txt.sh table/sexagesimal-to-deg.sh
+  MAYBE_TABLE_TESTS = table/txt-to-fits-binary.sh \
+  table/fits-binary-to-txt.sh table/txt-to-fits-ascii.sh \
+  table/fits-ascii-to-txt.sh table/sexagesimal-to-deg.sh \
+  table/arith-img-to-wcs.sh
 
   table/txt-to-fits-binary.sh: prepconf.sh.log
   table/fits-binary-to-txt.sh: table/txt-to-fits-binary.sh.log
   table/txt-to-fits-ascii.sh: prepconf.sh.log
   table/fits-ascii-to-txt.sh: table/txt-to-fits-ascii.sh.log
   table/sexagesimal-to-deg.sh: prepconf.sh.log
+  table/arith-img-to-wcs.sh: mknoise/addnoise.sh.log
 endif
 if COND_WARP
   MAYBE_WARP_TESTS = warp/warp_scale.sh warp/homographic.sh
@@ -212,6 +214,7 @@ endif
 # Script tests.
 SCRIPT_TESTS = script/psf-unite.sh \
                script/psf-stamp.sh \
+               script/zeropoint.sh \
                script/psf-subtract.sh \
                script/sort-by-night.sh \
                script/radial-profile.sh \
@@ -225,8 +228,8 @@ script/psf-subtract.sh: mkprof/mosaic1.sh.log
 script/radial-profile.sh: mkprof/mosaic2.sh.log
 script/psf-scale-factor.sh: mkprof/mosaic1.sh.log
 script/psf-select-stars.sh: segment/segment.sh.log
+script/zeropoint.sh: table/arith-img-to-wcs.sh.log
 script/sort-by-night.sh: mkcatalog/aperturephot.sh.log
-
 
 # Environment variables for the test scripts.
 AM_TESTS_ENVIRONMENT = \
