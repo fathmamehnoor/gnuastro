@@ -100,6 +100,7 @@ $scriptname options:
       --starcathdu=STR/INT     HDU of table in '--starcat'.
       --starcatra=STR/INT      Column in '--starcat' that contains RA.
       --starcatdec=STR/INT     Column in '--starcat' that contains DEC.
+      --mksrc=STR              Makefile (for developers when debugging).
 
  Output:
   -o, --output                 Output file name.
@@ -296,6 +297,8 @@ do
         -H|--refimgshdu)         refimgshdu="$2";                              check_v "$1" "$refimgshdu";  shift;shift;;
         -H=*|--refimgshdu=*)     refimgshdu="${1#*=}";                         check_v "$1" "$refimgshdu";  shift;;
         -H*)                     refimgshdu=$(echo "$1" | sed -e's/-H//');     check_v "$1" "$refimgshdu";  shift;;
+        --mksrc)                 mksrc="$2";                                   check_v "$1" "$mksrc";  shift;shift;;
+        --mksrc=*)               mksrc="${1#*=}";                              check_v "$1" "$mksrc";  shift;;
 
         # Parameters.
         -M|--magnituderange)     magnituderange="$2";                          check_v "$1" "$magnituderange";  shift;shift;;
@@ -634,9 +637,7 @@ fi
 
 #
 # Here, Makefile is invoked.
-if [ x$installdir = x ]; then
-    mksrc=zeropoint.mk
-else
+if [ x$mksrc = x ]; then
     mksrc=$installdir/zeropoint.mk
 fi
 make -f $mksrc tmpdir=$tmpdir --jobs=$numthreads

@@ -79,24 +79,12 @@ do_subst = sed -e 's,[@]PREFIX[@],$(exec_prefix),g' \
 
 
 ## Rules to install the scripts.
-astscript-fits-view: fits-view.in Makefile
-	$(do_subst) < $(srcdir)/fits-view.in > $@
-	chmod +x $@
-
 astscript-ds9-region: ds9-region.in Makefile
 	$(do_subst) < $(srcdir)/ds9-region.in > $@
 	chmod +x $@
 
-astscript-zeropoint: zeropoint.in Makefile
-	$(do_subst) < $(srcdir)/zeropoint.in > $@
-	chmod +x $@
-
-astscript-radial-profile: radial-profile.in Makefile
-	$(do_subst) < $(srcdir)/radial-profile.in > $@
-	chmod +x $@
-
-astscript-sort-by-night: sort-by-night.in Makefile
-	$(do_subst) < $(srcdir)/sort-by-night.in > $@
+astscript-fits-view: fits-view.in Makefile
+	$(do_subst) < $(srcdir)/fits-view.in > $@
 	chmod +x $@
 
 astscript-psf-unite: psf-unite.in Makefile
@@ -117,4 +105,16 @@ astscript-psf-select-stars: psf-select-stars.in Makefile
 
 astscript-psf-subtract: psf-subtract.in Makefile
 	$(do_subst) < $(srcdir)/psf-subtract.in > $@
+	chmod +x $@
+
+astscript-radial-profile: radial-profile.in Makefile
+	$(do_subst) < $(srcdir)/radial-profile.in > $@
+	chmod +x $@
+
+astscript-sort-by-night: sort-by-night.in Makefile
+	$(do_subst) < $(srcdir)/sort-by-night.in > $@
+	chmod +x $@
+
+astscript-zeropoint: zeropoint.in Makefile
+	$(do_subst) < $(srcdir)/zeropoint.in > $@
 	chmod +x $@

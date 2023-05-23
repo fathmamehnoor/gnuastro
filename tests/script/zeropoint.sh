@@ -84,6 +84,7 @@ $check_with_program $execname \
                     --refcatdec=DEC \
                     --refcat=$intable \
                     --starcat=$intable \
-                    --aperarcsec=0.09,0.13 \
                     --refcatmag=Magnitude \
-                    --output=zeropoint-cat.fits
+                    --aperarcsec=0.09,0.13 \
+                    --output=zeropoint-cat.fits \
+                    --mksrc=$topsrc/bin/script/zeropoint.mk

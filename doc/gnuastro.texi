@@ -31721,6 +31721,12 @@ However, if you would like to keep the intermediate files, you can use the @opti
 @itemx --keeptmp
 Its recommended to not remove the temporary directory (see description of @option{--keeptmp}).
 This option is useful for debugging and checking the outputs of internal steps.
+
+@item --mksrc=STR
+Use a non-standard Makefile for the Makefile to call.
+This option is primarily useful during the development of this script and its Makefile, not for a normal user.
+So if you are not developing this script, you can safely ignore this option.
+When this option is given, the default installed Makefile will not be used: the file given to this option will be read by @command{make} (within the script) instead.
 @end table
 
 
