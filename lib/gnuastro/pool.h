@@ -1,6 +1,6 @@
 /*********************************************************************
-Pool - Pool input data and create a new dataset.
-Pool is part of GNU Astronomy Utilities (Gnuastro) package.
+Pool -- Pool input data and create a new dataset.
+This is part of GNU Astronomy Utilities (Gnuastro) package.
 
 Original author:
      Faezeh Bidjarchian <fbidjarchian@gmail.com>
@@ -46,19 +46,24 @@ __BEGIN_C_DECLS  /* From C++ preparations */
 
 
 gal_data_t *
-gal_pool_max(gal_data_t *input, size_t psize, size_t numthreads);
+gal_pool_max(gal_data_t *input, size_t psize, size_t stride,
+             size_t numthreads);
 
 gal_data_t *
-gal_pool_min(gal_data_t *input, size_t psize, size_t numthreads);
+gal_pool_min(gal_data_t *input, size_t psize, size_t stride,
+             size_t numthreads);
 
 gal_data_t *
-gal_pool_sum(gal_data_t *input, size_t psize, size_t numthreads);
+gal_pool_sum(gal_data_t *input, size_t psize, size_t stride,
+             size_t numthreads);
 
 gal_data_t *
-gal_pool_mean(gal_data_t *input, size_t psize, size_t numthreads);
+gal_pool_mean(gal_data_t *input, size_t psize, size_t stride,
+              size_t numthreads);
 
 gal_data_t *
-gal_pool_median(gal_data_t *input, size_t psize, size_t numthreads);
+gal_pool_median(gal_data_t *input, size_t psize, size_t stride,
+                size_t numthreads);
 
 
 __END_C_DECLS    /* From C++ preparations */

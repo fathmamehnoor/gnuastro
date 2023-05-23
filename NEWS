@@ -46,10 +46,10 @@ See the end of the file for license conditions.
       dimensions it has. Suggested by Faezeh Bidjarchian.
     - trim: remove all fully-blank outer regions of the input dataset.
     - pool-min: Min-pooling to reduce the size of the input by calculating
-                the minimum of a the pixels within the pooling window. See
-                the new "Pooling opeators" section of the book for
-                more. This and the rest of the pooling operators introduced
-                here were implemented by Faezeh Bidjarchian.
+      the minimum of a the pixels within the pooling window (accounting for
+      a stride). See the new "Pooling opeators" section of the book for
+      more. The pooling operators were all implemented by Faezeh
+      Bidjarchian.
     - pool-max: Similar to 'pool-min' but using maximum.
     - pool-sum: Similar to 'pool-min' but using sum.
     - pool-mean: Similar to 'pool-min' but using mean.

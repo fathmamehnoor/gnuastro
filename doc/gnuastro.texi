@@ -20408,20 +20408,26 @@ Pooling is one way of reducing the complexity of the input image by grouping mul
 As a result, the output image has fewer pixels (less complexity).
 In Computer Vision, Pooling is commonly used in @url{https://en.wikipedia.org/wiki/Convolutional_neural_network, Convolutional Neural Networks} (CNNs).
 
-In pooling, the inputs are an image (e.g., a FITS file) and a square window pixel size (known as a pooling window).
-The window has to be smaller than the input's number of pixels in both dimensions and its width is called the pool size.
-This window slides over all pixels in the input from the top-left corner to the bottom-right corner (covering each input pixel only once).
-Currently the ``stride'' (or spacing between the windows as they slide over the input) is equal to the window-size in Arithmetic.
+@cindex Stride
+In pooling, the inputs are an image (e.g., a FITS file) and a square window pixel size that is known as a pooling window.
+The window has to be smaller than the input's number of pixels in both dimensions and its width is called the ``pool size''.
+The pooling window starts at the top-left corner pixel of the input and calculates statistical operations on the pixels that overlap with it.
+It slides forward by the ``stride'' pixels, moving over all pixels in the input from the top-left corner to the bottom-right corner, and repeats the same calculation for the overlapping pixels in each position.
+
+Usually, the stride (or spacing between the windows as they slide over the input) is equal to the window-size.
 In other words, in pooling, the separate ``windows'' do not overlap with each other on the input.
+However, you can choose any size for the stride.
+Remember this, It's crucial to ensure that the stride size is less than the pool size.
+If not, some pixels may be missed during the pooling process.
 Therefore there are two major differences with @ref{Spatial domain convolution} or @ref{Filtering operators}, but pooling has some similarities to the @ref{Warp}.
 @itemize
 @item
 In convolution or filtering the input and output sizes are the same.
-However, the output of pooling has fewer pixels.
+However, when the stride is larger than 1 then, the output of pooling must have fewer pixels.
 @item
-In convolution or filters, the kernels slide of the input in a pixel-by-pixel manner.
+In convolution or filters, the kernels slide over the input in a pixel-by-pixel manner.
 As a result, the same pixel's value will be used in many of the output pixels.
-However, in pooling each input pixel is only used in a single output pixel.
+However, in pooling each input pixel may be only used in a single output pixel (if the stride and the pool size are the same).
 @item
 Special cases of Warping an image are similar to pooling.
 For example calling @code{pool-sum} with pool size of 2 will give the same pixel values (except the outer edges) as giving the same image to @command{astwarp} with @option{--scale=1/2 --centeroncorner}.
@@ -20436,12 +20442,12 @@ Please inform us of your interest in having it, by contacting us at @command{bug
 If you need @code{pool-sum}, you can use @ref{Warp} (which also modifies the WCS, see note above).
 @end cartouche
 
-If the width or height of input is not divisible by the pool size, the pool window will go beyond the input pixel grid.
+If the width or height of input is not divisible by the stride size, the pool window will go beyond the input pixel grid.
 In this case, the window pixels that do not overlap with the input are given a blank value (and thus ignored in the calculation of the desired statistical operation).
 
 The simple ASCII figure below shows the pooling operation where the input is a @mymath{3\times3} pixel image with a pool size of 2 pixels.
 In the center of the second row, you see the intermediate input matrix that highlights how the input and output pixels relate with each other.
-Since the input is @mymath{3\times3} and we have a pool size of 2, as mentioned above blank pseudo-pixels are added with a value of @code{B} (for blank).
+Since the input is @mymath{3\times3} and we have a stride size of 2, as mentioned above blank pseudo-pixels are added with a value of @code{B} (for blank).
 
 @example
         Pool window:                             Input:
@@ -20472,14 +20478,15 @@ Below, the various pool operators of arithmetic are listed:
 
 @item pool-max
 Apply max-pooling on the input dataset.
-This operator takes two operands: the first popped operand is the width of the square pooling window (which should be a single integer), and the second should be the input image.
+This operator takes three operands: the first popped operand is the stride and the second is the width of the square pooling window (which should be a single integer).
+Also, The third operand should be the input image.
 Within the pooling window, this operator will place the largest value in the output pixel (any blank pixels will be ignored).
 
 See the ASCII diagram above for a demonstration of how max-pooling works.
 Here is an example of using this operator:
 
 @example
-$ astarithmetic image.fits 2 pool-max
+$ astarithmetic image.fits 2 2 pool-max
 @end example
 
 Max-pooling retains the largest value of the input window in the output, so the returned image is sharper where you have strong signal-to-noise ratio and more noisy in regions with no significant signal (only noise).
@@ -20487,7 +20494,8 @@ It is therefore useful when the background of the image is dark and we are inter
 
 @item pool-min
 Apply min-pooling on the input dataset.
-This operator takes two operands: the first popped operand is the width of the square pooling window (which should be a single integer), and the second should be the input image.
+This operator takes three operands: the first popped operand is the stride and the second is the width of the square pooling window (which should be a single integer).
+Also, The third operand should be the input image.
 Except the used statistical measurement, this operator is similar to @code{pool-max}, see the description there for more.
 
 Min-pooling is mostly used when the image has a high signal-to-noise ratio and a light background: min-pooling will select darker (lower-valued) pixels.
@@ -20495,14 +20503,16 @@ For low signal-to-noise regions, this operator will increase the noise level (si
 
 @item pool-sum
 Apply sum-pooling to the input dataset.
-This operator takes two operands: the first popped operand is the width of the square pooling window (which should be a single integer), and the second should be the input image.
+This operator takes three operands: the first popped operand is the stride and the second is the width of the square pooling window (which should be a single integer).
+Also, The third operand should be the input image.
 Except the used statistical measurement, this operator is similar to @code{pool-max}, see the description there for more.
 
 Sum-pooling will increase the signal-to-noise ratio at the cost of having a smoother output (less resolution).
 
 @item pool-mean
 Apply mean pooling on the input dataset.
-This operator takes two operands: the first popped operand is the width of the square pooling window (which should be a single integer), and the second should be the input image.
+This operator takes three operands: the first popped operand is the stride and the second is the width of the square pooling window (which should be a single integer).
+Also, The third operand should be the input image.
 Except the used statistical measurement, this operator is similar to @code{pool-max}, see the description there for more.
 
 The mean pooling method smooths out the image and hence the sharp features may not be identified when this pooling method is used.
@@ -20511,7 +20521,8 @@ Mean is often used where a more accurate representation of the input is required
 
 @item pool-median
 Apply median pooling on the input dataset.
-This operator takes two operands: the first popped operand is the width of the square pooling window (which should be a single integer), and the second should be the input image.
+This operator takes three operands: the first popped operand is the stride and the second is the width of the square pooling window (which should be a single integer).
+Also, The third operand should be the input image.
 Except the used statistical measurement, this operator is similar to @code{pool-max}, see the description there for more.
 
 In general, the mean is mathematically easier to interpret and more susceptible to outliers, while the median outputs as being less subject to the influence of outliers compared to the mean so we have a smoother image.

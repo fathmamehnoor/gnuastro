@@ -1,6 +1,6 @@
 /*********************************************************************
-Pool - Pool input data and create a new dataset.
-Pool is part of GNU Astronomy Utilities (Gnuastro) package.
+Pool -- Pool input data and create a new dataset.
+This is part of GNU Astronomy Utilities (Gnuastro) package.
 
 Original author:
      Faezeh Bidjarchian <fbidjarchian@gmail.com>
@@ -68,6 +68,7 @@ struct pooling
 {
   int       operator;     /* The type of pooling.             */
   size_t    poolsize;     /* The size of pooling.             */
+  size_t     pstride;     /* The stride of pooling.           */
   size_t      *osize;     /* The output size.                 */
   gal_data_t  *input;     /* Dataset to print values of.      */
   gal_data_t    *out;     /* Output data structure.           */
@@ -81,13 +82,14 @@ struct pooling
 
    Current assumptions:
 
-   - The size of pooling can be every single number (the pooling window is
-     a square).
+   - The size of pooling can be every single number (the pooling window
+     is a square).
    - The width and height of the input are not necessarily divisible
      by the size of the pooling. In other words, the image can be both
      square and rectangular.
-   - We apply the pooling to our input with a stride of poolsize. So,
-     for example the stride is 2 when poolsize is equal to 2. */
+   - We apply pooling to our input with any stride length that may be
+     differ from the poolsize. Remember that, the size of the poolsize
+     must be greater than the stride size. */
 static void *
 pool_type_on_thread(void *in_prm)
 {
@@ -95,10 +97,10 @@ pool_type_on_thread(void *in_prm)
   struct pooling *pp=(struct pooling *)tprm->params;
   gal_data_t *input=pp->input;
 
-  size_t pools= pp->poolsize;
+  size_t strd=pp->pstride;
   size_t ndim=input->ndim;
+  size_t pools=pp->poolsize;
   size_t w=input->dsize[1], wr;
-  size_t h=input->dsize[0], hr;
   gal_data_t *statv=NULL, *result=NULL;
   size_t i, a, b, oind, iind, vc, numpixs, coord[POOLING_DIM], index;
 
@@ -114,7 +116,7 @@ pool_type_on_thread(void *in_prm)
   /* Go over all the pixels that were assigned to this thread. */
   for(i=0; tprm->indexs[i] != GAL_BLANK_SIZE_T; ++i)
     {
-      /* For easy reading, put the index in 'ind'. */
+      /* For easy reading, put the index in 'oind'. */
       oind=tprm->indexs[i];
 
       /* Get the coordinate of the pixel. */
@@ -122,15 +124,14 @@ pool_type_on_thread(void *in_prm)
 
       /* Convert the pixel coordinate to the desired pixel that we must
          select to set the pooling's starting pointer. */
-      iind=pools*w*coord[0]+pools*coord[1];
-      hr=iind%h;
+      iind=strd*w*coord[0]+strd*coord[1];
       wr=iind%w;
 
       /* In some cases, the pooling window doesn't cover a whole squared
          window and only has maybe one pixel. So since we initialize the
          statv by Null (=0 in C), some of these values fill with input
          values and others remain zero. So these zeros will affect the
-         outputs.  Therefore we initialize the statv by blank value. */
+         outputs. Therefore we initialize the statv by blank value. */
       gal_blank_initialize(statv);
 
       /* Set the sorted and blank check flags to 0 so the statistical
@@ -141,7 +142,7 @@ pool_type_on_thread(void *in_prm)
 	 and fill the temporary 'values' array. Then we do the required
          operation on them. */
       vc=0;
-      for(a=0;a<pools && hr+a<=input->dsize[0];++a)
+      for(a=0;a<pools;++a)
 	for(b=0;b<pools && wr+b<input->dsize[1];++b)
 	  {
 	    index=iind + a*w + b;
@@ -197,28 +198,40 @@ pool_type_on_thread(void *in_prm)
 
 
 static gal_data_t *
-pool_generic(gal_data_t *input, size_t psize, int operator, size_t numthreads)
+pool_generic(gal_data_t *input, size_t psize, size_t stride, int operator,
+             size_t numthreads)
 {
   struct pooling pp={0};
 
   int otype=GAL_TYPE_INVALID;
   size_t outndim=input->ndim, i, r, diff;
 
-  /* Print a warning if the psize has a wrong value. It happens when the
-     user writes a negative value for the poolsize. */
+  /* Print a warning if the psize or the stride have a wrong value. It
+     happens when the user writes a negative value for them. */
   if(psize>(size_t)(-1)/2 || psize==0)
     error(EXIT_FAILURE, 0, "the value of poolsize must be positive, and "
           "non zero)");
+  if(stride>(size_t)(-1)/2 || stride==0)
+    error(EXIT_FAILURE, 0, "the value of stride must be positive, and "
+          "non zero)");
 
   /* Make sure the given poolsize is lower than the input's width or
-     hight. */
-  if(psize>input->dsize[0] || psize>input->dsize[1])
+     height. */
+  if(psize>input->dsize[0] && psize>input->dsize[1])
     error(EXIT_FAILURE, 0, "%s: the pool size along dimension must be "
-         "greater than the input's width or hight in that dimension",
+         "lower than the input's width or height in that dimension",
          __func__);
+
+  /* Make sure the size of the stride is lower than the poolsize. If not,
+     some pixels may not be considered during the pooling process. */
+  if(stride>psize)
+    error(EXIT_FAILURE, 0, "%s: the size of the stride must be lower "
+          "than the poolsize. Otherwise, there are some pixels that are "
+          "not in any of the pooling windows.", __func__);
 
   /* Set the pointers in the structure of the parameter. */
   pp.input=input;
+  pp.pstride=stride;
   pp.poolsize=psize;
   pp.operator=operator;
 
@@ -235,9 +248,9 @@ pool_generic(gal_data_t *input, size_t psize, int operator, size_t numthreads)
          dimension to the output dimension for these remaining pixels. */
       for(i=0;i<input->ndim;++i)
         {
-          r=(input->dsize[i])%psize;
+          r=(input->dsize[i])%stride;
           diff=((r==0)?0:1);
-          pp.osize[i]=(input->dsize[i]/psize)+diff;
+          pp.osize[i]=(input->dsize[i]/stride)+diff;
         }
 
       /* Set the type of the output dataset. */
@@ -298,9 +311,10 @@ pool_generic(gal_data_t *input, size_t psize, int operator, size_t numthreads)
 
 
 gal_data_t *
-gal_pool_max(gal_data_t *input, size_t psize, size_t numthreads)
+gal_pool_max(gal_data_t *input, size_t psize, size_t stride,
+             size_t numthreads)
 {
-  return pool_generic(input, psize, POOL_MAX, numthreads);
+  return pool_generic(input, psize, stride, POOL_MAX, numthreads);
 }
 
 
@@ -308,9 +322,10 @@ gal_pool_max(gal_data_t *input, size_t psize, size_t numthreads)
 
 
 gal_data_t *
-gal_pool_min(gal_data_t *input, size_t psize, size_t numthreads)
+gal_pool_min(gal_data_t *input, size_t psize, size_t stride,
+             size_t numthreads)
 {
-  return pool_generic(input, psize, POOL_MIN, numthreads);
+  return pool_generic(input, psize, stride, POOL_MIN, numthreads);
 }
 
 
@@ -318,9 +333,10 @@ gal_pool_min(gal_data_t *input, size_t psize, size_t numthreads)
 
 
 gal_data_t *
-gal_pool_sum(gal_data_t *input, size_t psize, size_t numthreads)
+gal_pool_sum(gal_data_t *input, size_t psize, size_t stride,
+             size_t numthreads)
 {
-  return pool_generic(input, psize, POOL_SUM, numthreads);
+  return pool_generic(input, psize, stride, POOL_SUM, numthreads);
 }
 
 
@@ -328,9 +344,10 @@ gal_pool_sum(gal_data_t *input, size_t psize, size_t numthreads)
 
 
 gal_data_t *
-gal_pool_mean(gal_data_t *input, size_t psize, size_t numthreads)
+gal_pool_mean(gal_data_t *input, size_t psize, size_t stride,
+              size_t numthreads)
 {
-  return pool_generic(input, psize, POOL_MEAN, numthreads);
+  return pool_generic(input, psize, stride, POOL_MEAN, numthreads);
 }
 
 
@@ -338,7 +355,8 @@ gal_pool_mean(gal_data_t *input, size_t psize, size_t numthreads)
 
 
 gal_data_t *
-gal_pool_median(gal_data_t *input, size_t psize, size_t numthreads)
+gal_pool_median(gal_data_t *input, size_t psize, size_t stride,
+                size_t numthreads)
 {
-  return pool_generic(input, psize, POOL_MEDIAN, numthreads);
+  return pool_generic(input, psize, stride, POOL_MEDIAN, numthreads);
 }

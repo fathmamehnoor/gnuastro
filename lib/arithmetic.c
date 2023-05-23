@@ -3013,45 +3013,61 @@ arithmetic_constant(gal_data_t *input, gal_data_t *constant, int operator,
 
 
 static gal_data_t *
-arithmetic_pool(gal_data_t *input, gal_data_t *psize, int operator,
-                size_t numthreads, int flags)
+arithmetic_pool(gal_data_t *input, gal_data_t *psize, gal_data_t *stride,
+                int operator, size_t numthreads, int flags)
 {
   gal_data_t *out=NULL;
-  size_t *psizearr;
+  size_t *pstrarr, *psizearr;
 
-  /* Sanity check. */
+
+  /* The pool size and the stride must have a single element. */
   if(psize->size!=1)
-    error(EXIT_FAILURE, 0, "%s: the pooling operand should only contain "
-          "a single element.", __func__);
+    error(EXIT_FAILURE, 0, "%s: the pooling operand should only "
+          "contain a single element.", __func__);
+  if(stride->size!=1)
+    error(EXIT_FAILURE, 0, "%s: the stride operand should only "
+        "contain a single element.", __func__);
 
   /* This function is only for a integer operand, so make sure the user
-     has given an integer type. */
+     has given an integer type for the poolsize and the stride. */
   if(psize->type==GAL_TYPE_FLOAT32 || psize->type==GAL_TYPE_FLOAT64)
     error(EXIT_FAILURE, 0, "lengths of pooling along dimensions "
           "must be integer values, not floats. The given length "
           "along dimension %zu is a float.", psize->dsize[0]);
+  if(stride->type==GAL_TYPE_FLOAT32 || stride->type==GAL_TYPE_FLOAT64)
+    error(EXIT_FAILURE, 0, "the stride of pooling along dimensions "
+          "must be integer values, not floats. The given value is a "
+          "float.");
 
-  /* Convert psize to size_t. */
-  psize=gal_data_copy_to_new_type_free(psize, GAL_TYPE_SIZE_T);
+  /* Convert the type of the poolsize and the stride into size_t. */
+  psize=( psize->type==GAL_TYPE_SIZE_T
+        ? psize
+        : gal_data_copy_to_new_type_free(psize, GAL_TYPE_SIZE_T) );
+  stride=( stride->type==GAL_TYPE_SIZE_T
+        ? stride
+        : gal_data_copy_to_new_type_free(stride, GAL_TYPE_SIZE_T) );
+
+
   psizearr=psize->array;
+  pstrarr=stride->array;
 
   /* Call the separate functions. */
   switch(operator)
     {
     case GAL_ARITHMETIC_OP_POOLMAX:
-      out=gal_pool_max(input, psizearr[0], numthreads);
+      out=gal_pool_max(input, psizearr[0], pstrarr[0], numthreads);
       break;
     case GAL_ARITHMETIC_OP_POOLMIN:
-      out=gal_pool_min(input, psizearr[0], numthreads);
+      out=gal_pool_min(input, psizearr[0], pstrarr[0], numthreads);
       break;
     case GAL_ARITHMETIC_OP_POOLSUM:
-      out=gal_pool_sum(input, psizearr[0], numthreads);
+      out=gal_pool_sum(input, psizearr[0], pstrarr[0], numthreads);
       break;
     case GAL_ARITHMETIC_OP_POOLMEAN:
-      out=gal_pool_mean(input, psizearr[0], numthreads);
+      out=gal_pool_mean(input, psizearr[0], pstrarr[0], numthreads);
       break;
     case GAL_ARITHMETIC_OP_POOLMEDIAN:
-      out=gal_pool_median(input, psizearr[0], numthreads);
+      out=gal_pool_median(input, psizearr[0], pstrarr[0], numthreads);
       break;
     default:
       error(EXIT_FAILURE, 0, "%s: a bug! please contact us at "
@@ -3476,15 +3492,15 @@ gal_arithmetic_set_operator(char *string, size_t *num_operands)
 
   /* Pooling operators. */
   else if (!strcmp(string, "pool-max"))
-    { op=GAL_ARITHMETIC_OP_POOLMAX;           *num_operands=2;  }
+    { op=GAL_ARITHMETIC_OP_POOLMAX;           *num_operands=3;  }
   else if (!strcmp(string, "pool-min"))
-    { op=GAL_ARITHMETIC_OP_POOLMIN;           *num_operands=2;  }
+    { op=GAL_ARITHMETIC_OP_POOLMIN;           *num_operands=3;  }
   else if (!strcmp(string, "pool-sum"))
-    { op=GAL_ARITHMETIC_OP_POOLSUM;           *num_operands=2;  }
+    { op=GAL_ARITHMETIC_OP_POOLSUM;           *num_operands=3;  }
   else if (!strcmp(string, "pool-mean"))
-    { op=GAL_ARITHMETIC_OP_POOLMEAN;          *num_operands=2;  }
+    { op=GAL_ARITHMETIC_OP_POOLMEAN;          *num_operands=3;  }
   else if (!strcmp(string, "pool-median"))
-    { op=GAL_ARITHMETIC_OP_POOLMEDIAN;        *num_operands=2;  }
+    { op=GAL_ARITHMETIC_OP_POOLMEDIAN;        *num_operands=3;  }
 
   /* Operator not defined. */
   else
@@ -3925,7 +3941,7 @@ gal_arithmetic(int operator, size_t numthreads, int flags, ...)
       out=arithmetic_constant(d1, d2, operator, flags);
       break;
 
-      /* Pooling operators. */
+    /* Pooling operators. */
     case GAL_ARITHMETIC_OP_POOLMAX:
     case GAL_ARITHMETIC_OP_POOLMIN:
     case GAL_ARITHMETIC_OP_POOLSUM:
@@ -3933,7 +3949,8 @@ gal_arithmetic(int operator, size_t numthreads, int flags, ...)
     case GAL_ARITHMETIC_OP_POOLMEDIAN:
       d1 = va_arg(va, gal_data_t *);
       d2 = va_arg(va, gal_data_t *);
-      out=arithmetic_pool(d1, d2, operator, numthreads, flags);
+      d3 = va_arg(va, gal_data_t *);
+      out=arithmetic_pool(d1, d2, d3, operator, numthreads, flags);
       break;
 
     /* When the operator is not recognized. */
