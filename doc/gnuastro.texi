@@ -44320,7 +44320,7 @@ $ ./ds9
 @item
 If the command above opened DS9 with no error, you can safely install it with this command:
 @example
-$ sudo mv ds9 /usr/local/bin
+$ sudo mv ds9* /usr/local/bin
 @end example
 @item
 Go to your home directory and try running DS9 with the two commands below.
