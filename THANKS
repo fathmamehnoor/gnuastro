@@ -18,125 +18,126 @@ The following people provided valuable feedback (suggestions, ideas) to the
 authors of Gnuastro. We hereby gratefully acknowledge their help and
 support in Gnuastro. The list is ordered alphabetically (by family name).
 
-    Valentina Abril-melgarejo            valentina.abril@lam.fr
-    Marjan Akbari                        mrjakbari@gmail.com
-    Carlos Allende Prieto                callende@iac.es
-    Hamed Altafi                         hamed.altafi2@gmail.com
-    Roland Bacon                         roland.bacon@univ-lyon1.fr
-    Roberto Baena Gallé                  rbaena@iac.es
-    Zahra Bagheri                        bagheri.zahra87@gmail.com
-    Karl Berry                           karl@gnu.org
-    Faezeh Bidjarchian                   fbidjarchian@gmail.com
-    Leindert Boogaard                    boogaard@strw.leidenuniv.nl
-    Nicolas Bouché                       nicolas.bouche@irap.omp.eu
-    Hilderic Browne                      hilderic@storm.ca
-    Stefan Brüns                         stefan.bruens@rwth-aachen.de
-    Fernando Buitrago                    fbuitrago@oal.ul.pt
-    Adrian Bunk                          bunk@debian.org
-    Rosa Calvi                           rcalvi@iac.es
-    Mark Calabretta                      mcalabre@atnf.csiro.au
-    Nushkia Chamba                       chamba@iac.es
-    Sergio Chueca Urzay                  chueca@cefca.es
-    Tamara Civera Lorenzo                tcivera@cefca.es
-    Benjamin Clement                     benjamin.clement@univ-lyon1.fr
-    Nima Dehdilani                       nimadehdilani@gmail.com
-    Andrés Del Pino Molina               adelpino@cefca.es
-    Antonio Diaz Diaz                    antonio@gnu.org
-    Paola Dimauro                        paola.dimauro@inaf.it
-    Alexey Dokuchaev                     danfe@freebsd.org
-    Pierre-Alain Duc                     pierre-alain.duc@astro.unistra.fr
-    Alessandro Ederoclite                aederocl@gmail.com
-    Elham Eftekhari                      elhamea@iac.es
-    Paul Eggert                          eggert@cs.ucla.edu
-    Sepideh Eskandarlou                  sepideh.eskandarlou@gmail.com
-    Sílvia Farras                        silvia.farras1@gmail.com
-    Juan Antonio Fernández Ontiveros     jafernandez@cefca.es
-    Gaspar Galaz                         ggalaz@astro.puc.cl
-    Andrés García-Serra Romero           alu0101451923@ull.edu.es
-    Zohreh Ghaffari                      zoh.ghaffari@gmail.com
-    Thérèse Godefroy                     godef.th@free.fr
-    Giulia Golini                        giulia.golini@gmail.com
-    Craig Gordon                         craig.a.gordon@nasa.gov
-    Martin Guerrero Roncel               mar@iaa.es
-    Madusha Gunawardhana                 gunawardhana@strw.leidenuniv.nl
-    Bruno Haible                         bruno@clisp.org
-    Stephen Hamer                        stephen.hamer@univ-lyon1.fr
-    Siyang He                            siyang.he.uw@gmail.com
-    Zahra Hosseini                       2hs.zahra@gmail.com
-    Leslie Hunt                          leslie.hunt@inaf.it
-    Takashi Ichikawa                     ichikawa@astr.tohoku.ac.jp
-    Raúl Infante Sainz                   infantesainz@gmail.com
-    Brandon Invergo                      brandon@gnu.org
-    Oryna Ivashtenko                     arinaivashtenko@gmail.com
-    Aurélien Jarno                       aurelien.jarno@univ-lyon1.fr
-    Lee Kelvin                           lee.s.kelvin@gmail.com
-    Brandon Kelly                        b.k.kelly@2017.ljmu.ac.uk
-    Mohammad-Reza Khellat                moha.khe@gmail.com
-    Johan Knapen                         jhk@iac.es
-    Geoffry Krouchi                      geoffrey.krouchi@etu.univ-lyon1.fr
-    Martin Kuemmel                       mkuemmel@usm.lmu.de
-    Teet Kuutma                          tkuutma@cefca.es
-    Clotilde Laigle                      laigle@iap.fr
-    Floriane Leclercq                    floriane.leclercq@univ-lyon1.fr
-    Alan Lefor                           alefor@astr.tohoku.ac.jp
-    Javier Licandro                      jlicandr@iac.es
-    Jeremy Lim                           jjlim@hku.hk
-    Alejandro Lumbreras Calle            alumbreras@cefca.es
-    Sebastián Luna Valero                sluna@iaa.es
-    Alberto Madrigal                     brt.madrigal@gmail.com
-    Guillaume Mahler                     guillaume.mahler@univ-lyon1.fr
-    Joseph Mazzarella                    mazz@ipac.caltech.edu
-    Juan Miro                            miro.juan@gmail.com
-    Alireza Molaeinezhad                 amolaei@gmail.com
-    Javier Moldon                        jmoldon@iaa.es
-    Juan Molina Tobar                    juan.a.molina.t@gmail.com
-    Francesco Montanari                  francesco.montanari@openmailbox.org
-    Raphael Morales                      rmorales@iaa.es
-    Carlos Morales Socorro               cmorsoc@gmail.com
-    Sylvain Mottet                       mottet@iap.fr
-    Dmitrii Oparin                       doparin2@gmail.com
-    Bertrand Pain                        bertrand.pain@inserm.fr
-    William Pence                        william.pence@nasa.gov
-    Irene Pintos Castro                  ipintos@cefca.es
-    Mamta Pommier                        mamta.pommier@univ-lyon1.fr
-    Marcel Popescu                       mpopescu@iac.es
-    Bob Proulx                           bob@proulx.com
-    Joseph Putko                         josephputko@gmail.com
-    Samane Raji                          samaneraji@gmail.com
-    Agata Rożek                          a.rozek@ed.ac.uk
-    Ignacio Ruiz Cejudo                  igruiz04@ucm.es
-    Francois Ochsenbein                  francois.ochsenbein@gmail.com
-    Teymoor Saifollahi                   teymur.saif@gmail.com
-    Joanna Sakowska                      js01093@surrey.ac.uk
-    Elham Saremi                         saremi@ipm.ir
-    Nafise Sedighi                       sedighinafise94@gmail.com
-    Markus Schaney                       markus@riseup.net
-    Yahya Sefidbakht                     y.sefidbakht@gmail.com
-    Alejandro Serrano Borlaff            asborlaff@ucm.es
-    Zahra Sharbaf                        samaeh.sharbaf2@yahoo.com
-    David Shupe                          shupe@ipac.caltech.edu
-    Jenny Sorce                          jenny.sorce@univ-lyon1.fr
-    Manuel Sánchez-Benavente             manuelsb93@gmail.com
-    Lee Spitler                          lee.spitler@mq.edu.au
-    Richard Stallman                     rms@gnu.org
-    Michael Stein                        mstein@astro.rub.de
-    Ole Streicher                        olebole@debian.org
-    Alfred M. Szmidt                     ams@gnu.org
-    Michel Tallon                        mtallon@obs.univ-lyon1.fr
-    Juan C. Tello                        jtello@iaa.es
-    Vincenzo Testa                       vincenzo.testa@inaf.it
-    Éric Thiébaut                        eric.thiebaut@univ-lyon1.fr
-    Ignacio Trujillo                     trujillo@iac.es
-    Peter Teuben                         teuben@umd.edu
-    David Valls-Gabaud                   david.valls-gabaud@obspm.fr
-    Jesús Varela                         jvarela@cefca.es
     Aaron Watkins                        aaron.watkins@oulu.fi
-    Richard Wilbur                       richard.wilbur@gmail.com
-    Michael H.F. Wilkinson               m.h.f.wilkinson@gmail.com
+    Adrian Bunk                          bunk@debian.org
+    Agata Rożek                          a.rozek@ed.ac.uk
+    Alan Lefor                           alefor@astr.tohoku.ac.jp
+    Alberto Madrigal                     brt.madrigal@gmail.com
+    Alejandro Lumbreras Calle            alumbreras@cefca.es
+    Alejandro Serrano Borlaff            asborlaff@ucm.es
+    Alessandro Ederoclite                aederocl@gmail.com
+    Alexey Dokuchaev                     danfe@freebsd.org
+    Alfred M. Szmidt                     ams@gnu.org
+    Alireza Molaeinezhad                 amolaei@gmail.com
+    Andrés Del Pino Molina               adelpino@cefca.es
+    Andrés García-Serra Romero           alu0101451923@ull.edu.es
+    Antonio Diaz Diaz                    antonio@gnu.org
+    Aurélien Jarno                       aurelien.jarno@univ-lyon1.fr
+    Benjamin Clement                     benjamin.clement@univ-lyon1.fr
+    Bertrand Pain                        bertrand.pain@inserm.fr
+    Bob Proulx                           bob@proulx.com
+    Brandon Invergo                      brandon@gnu.org
+    Brandon Kelly                        b.k.kelly@2017.ljmu.ac.uk
+    Bruno Haible                         bruno@clisp.org
+    Carlos Allende Prieto                callende@iac.es
+    Carlos Morales Socorro               cmorsoc@gmail.com
     Christopher Willmer                  cnaw@as.arizona.edu
-    Xiuqin Wu                            xiuqin@ipac.caltech.edu
-    Sara Yousefi Taemeh                  s.yousefi.t@gmail.com
+    Clotilde Laigle                      laigle@iap.fr
+    Craig Gordon                         craig.a.gordon@nasa.gov
+    David Shupe                          shupe@ipac.caltech.edu
+    David Valls-Gabaud                   david.valls-gabaud@obspm.fr
+    Dmitrii Oparin                       doparin2@gmail.com
+    Elham Eftekhari                      elhamea@iac.es
+    Elham Saremi                         saremi@ipm.ir
+    Eric Thiébaut                        eric.thiebaut@univ-lyon1.fr
+    Faezeh Bidjarchian                   fbidjarchian@gmail.com
+    Fernando Buitrago                    fbuitrago@oal.ul.pt
+    Floriane Leclercq                    floriane.leclercq@univ-lyon1.fr
+    Francesco Montanari                  francesco.montanari@openmailbox.org
+    Francois Ochsenbein                  francois.ochsenbein@gmail.com
+    Gaspar Galaz                         ggalaz@astro.puc.cl
+    Geoffry Krouchi                      geoffrey.krouchi@etu.univ-lyon1.fr
+    Giulia Golini                        giulia.golini@gmail.com
+    Guillaume Mahler                     guillaume.mahler@univ-lyon1.fr
+    Hamed Altafi                         hamed.altafi2@gmail.com
+    Hilderic Browne                      hilderic@storm.ca
+    Ignacio Ruiz Cejudo                  igruiz04@ucm.es
+    Ignacio Trujillo                     trujillo@iac.es
+    Irene Pintos Castro                  ipintos@cefca.es
+    Javier Licandro                      jlicandr@iac.es
+    Javier Moldon                        jmoldon@iaa.es
+    Jenny Sorce                          jenny.sorce@univ-lyon1.fr
+    Jeremy Lim                           jjlim@hku.hk
+    Jesús Varela                         jvarela@cefca.es
+    Joanna Sakowska                      js01093@surrey.ac.uk
+    Johan Knapen                         jhk@iac.es
     Johannes Zabl                        johannes.zabl@irap.omp.eu
+    Joseph Mazzarella                    mazz@ipac.caltech.edu
+    Joseph Putko                         josephputko@gmail.com
+    Juan Antonio Fernández Ontiveros     jafernandez@cefca.es
+    Juan C. Tello                        jtello@iaa.es
+    Juan Miro                            miro.juan@gmail.com
+    Juan Molina Tobar                    juan.a.molina.t@gmail.com
+    Karl Berry                           karl@gnu.org
+    Lee Kelvin                           lee.s.kelvin@gmail.com
+    Lee Spitler                          lee.spitler@mq.edu.au
+    Leindert Boogaard                    boogaard@strw.leidenuniv.nl
+    Leslie Hunt                          leslie.hunt@inaf.it
+    Madusha Gunawardhana                 gunawardhana@strw.leidenuniv.nl
+    Mamta Pommier                        mamta.pommier@univ-lyon1.fr
+    Manuel Sánchez-Benavente             manuelsb93@gmail.com
+    Marcel Popescu                       mpopescu@iac.es
+    Marjan Akbari                        mrjakbari@gmail.com
+    Mark Calabretta                      mcalabre@atnf.csiro.au
+    Markus Schaney                       markus@riseup.net
+    Martin Guerrero Roncel               mar@iaa.es
+    Martin Kuemmel                       mkuemmel@usm.lmu.de
+    Michael H.F. Wilkinson               m.h.f.wilkinson@gmail.com
+    Michael Stein                        mstein@astro.rub.de
+    Michel Tallon                        mtallon@obs.univ-lyon1.fr
+    Mohammad-Reza Khellat                moha.khe@gmail.com
+    Nafise Sedighi                       sedighinafise94@gmail.com
+    Nicolas Bouché                       nicolas.bouche@irap.omp.eu
+    Nima Dehdilani                       nimadehdilani@gmail.com
+    Nushkia Chamba                       chamba@iac.es
+    Ole Streicher                        olebole@debian.org
+    Oryna Ivashtenko                     arinaivashtenko@gmail.com
+    Paola Dimauro                        paola.dimauro@inaf.it
+    Paul Eggert                          eggert@cs.ucla.edu
+    Peter Teuben                         teuben@umd.edu
+    Pierre-Alain Duc                     pierre-alain.duc@astro.unistra.fr
+    Raphael Morales                      rmorales@iaa.es
+    Rashid Yaaqib                        r.yaaqib@gmail.com
+    Raúl Infante Sainz                   infantesainz@gmail.com
+    Richard Stallman                     rms@gnu.org
+    Richard Wilbur                       richard.wilbur@gmail.com
+    Roberto Baena Gallé                  rbaena@iac.es
+    Roland Bacon                         roland.bacon@univ-lyon1.fr
+    Rosa Calvi                           rcalvi@iac.es
+    Samane Raji                          samaneraji@gmail.com
+    Sara Yousefi Taemeh                  s.yousefi.t@gmail.com
+    Sebastián Luna Valero                sluna@iaa.es
+    Sepideh Eskandarlou                  sepideh.eskandarlou@gmail.com
+    Sergio Chueca Urzay                  chueca@cefca.es
+    Siyang He                            siyang.he.uw@gmail.com
+    Stefan Brüns                         stefan.bruens@rwth-aachen.de
+    Stephen Hamer                        stephen.hamer@univ-lyon1.fr
+    Sylvain Mottet                       mottet@iap.fr
+    Sílvia Farras                        silvia.farras1@gmail.com
+    Takashi Ichikawa                     ichikawa@astr.tohoku.ac.jp
+    Tamara Civera Lorenzo                tcivera@cefca.es
+    Teet Kuutma                          tkuutma@cefca.es
+    Teymoor Saifollahi                   teymur.saif@gmail.com
+    Thérèse Godefroy                     godef.th@free.fr
+    Valentina Abril-melgarejo            valentina.abril@lam.fr
+    Vincenzo Testa                       vincenzo.testa@inaf.it
+    William Pence                        william.pence@nasa.gov
+    Xiuqin Wu                            xiuqin@ipac.caltech.edu
+    Yahya Sefidbakht                     y.sefidbakht@gmail.com
+    Zahra Bagheri                        bagheri.zahra87@gmail.com
+    Zahra Hosseini                       2hs.zahra@gmail.com
+    Zahra Sharbaf                        samaeh.sharbaf2@yahoo.com
+    Zohreh Ghaffari                      zoh.ghaffari@gmail.com
 
 
 Teams

@@ -44303,13 +44303,28 @@ DS9 is also already pre-compiled for many common operating systems in the downlo
 @enumerate
 @item
 Find your operating system in @url{https://ds9.si.edu/download}.
-Note that many GNU/Linux operating systems are compatible with Debian or Fedora, so if you don't find your operating system's name, probably the latest Debian or Fedora will also work for you.
+Here are some tips when trying to find the proper directory:
+@itemize
+@item
+Many GNU/Linux operating systems are compatible with Debian or Fedora, so if you don't find your operating system's name, probably the latest Debian or Fedora will also work for you.
+@item
+macOS uses the low-level ``Darwin'' kernel.
+Therefore, if you have a macOS, also consider those directories that start with @code{darwin}.
+@item
+The CPU architectures (as suffixes) at the end of the directory names can be classified like this:
+@table @code
+@item @code{x86}
+Intel CPUs.
+@item @code{arm64}
+Apple's M1 CPUs.
+@end table
+@end itemize
 @item
 With the operating system directories, you will find a compressed tarball that you need to download (choose the latest one).
 @item
 Unpack the tarball with a command like below:
 @example
-$ tar -xf ds9.debian11.X.X.X.tar.gz
+$ tar -xf ds9.XXXXXXX.X.X.X.tar.gz
 @end example
 @item
 This should produce a simple @file{ds9} file.
@@ -44320,6 +44335,7 @@ $ ./ds9
 @item
 If the command above opened DS9 with no error, you can safely install it with this command:
 @example
+$ rm ds9*.tar.gz
 $ sudo mv ds9* /usr/local/bin
 @end example
 @item
