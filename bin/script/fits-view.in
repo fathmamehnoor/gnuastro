@@ -360,131 +360,127 @@ else
     # Select the first input.
     input1=$(echo $inputs | awk '{print $1}')
 
-    # Make sure we are dealing with a FITS file. We are using shell
-    # redirection here to make sure that nothing is printed in the
-    # terminal (to standard output when we have a FITS file, or to
-    # standard error when we don't). Since we've used redirection,
-    # we'll also have to echo the return value of `astfits'.
-    check=$(astfits $input1 -h0 > /dev/null 2>&1; echo $?)
+    # Do the tests only if the given file exists.
+    if [ -f $input1 ]; then
 
-    # If the first input existed and was a FITS file, then `check' will be
-    # 0 ('astfits' was successful).
-    if [ "$check" = 0 ]; then
+        # If the first input exists. Continue if it is also a FITS file.
+        if astfits $input1 -h0 > /dev/null 2>&1; then
 
-        # Input is image or table.
-        type=$(astfits $input1 --hasimagehdu)
+            # Input is image or table.
+            type=$(astfits $input1 --hasimagehdu)
 
-        # If the file was a image, then  `check` will be 1.
-        if [ "$type" = 1 ]; then
+            # If the file was a image, then  `check` will be 1.
+            if [ "$type" = 1 ]; then
 
-            # If a HDU is given, add it to all the input file names (within
-            # square brackets for DS9).
-            if [ x"$hdu" = x ]; then
+                # If a HDU is given, add it to all the input file names (within
+                # square brackets for DS9).
+                if [ x"$hdu" = x ]; then
+                    inwithhdu="$inputs"
+                else
+                    inwithhdu=""
+                    for i in $inputs; do inwithhdu="$inwithhdu $i[$hdu]"; done
+                fi
+
+                # Read the number of dimensions.
+                n0=$(astfits $input1 -h0 | awk '$1=="NAXIS"{print $3}')
+
+                # Find the number of dimensions.
+                if [ "$n0" = 0 ]; then
+                    ndim=$(astfits $input1 -h1 | awk '$1=="NAXIS"{print $3}')
+                else
+                    ndim=$n0
+                fi;
+
+                # If multiple colorbars should be used.
+                if [ x"$ds9colorbarmulti" = x ]; then multicolorbars=no;
+                else                                  multicolorbars=yes;
+                fi
+
+                # Open DS9 based on the number of dimension.
+                if [ "$ndim" = 2 ]; then
+
+                    # If a HDU is specified, ignore other HDUs (recall that
+                    # with '-mecube' we are viewing all the HDUs as a single
+                    # cube.
+                    if [ x"$hdu" = x ]; then mecube="-mecube";
+                    else                     mecube="";
+                    fi
+
+                    # 2D multi-extension file: use the "Cube" window to
+                    # flip/slide through the extensions.
+                    execom="$ds9exec $ds9scaleopt \
+                                     $ds9geoopt \
+                                     $mecube \
+                                     $inwithhdu \
+                                     -zoom to fit \
+                                     -wcs degrees \
+                                     -cmap sls \
+                                     -match frame image \
+                                     -match frame colorbar \
+                                     -frame lock image \
+                                     -colorbar lock yes \
+                                     -view multi $multicolorbars \
+                                     -lock slice image \
+                                     $ds9pan \
+                                     $ds9extra"
+                else
+
+                    # If a HDU is given, don't use multi-frame.
+                    if [ x"$hdu" = x ]; then mframe="-multiframe";
+                    else                     mframe="";
+                    fi
+
+                    # 3D multi-extension file: The "Cube" window will slide
+                    # between the slices of a single extension. To flip
+                    # through the extensions (not the slices), press the
+                    # top row "frame" button and from the last four buttons
+                    # of the bottom row ("first", "previous", "next" and
+                    # "last") can be used to switch through the extensions
+                    # (while keeping the same slice).
+                    execom="$ds9exec $ds9scaleopt \
+                                     $ds9geoopt -wcs degrees \
+                                     $mframe \
+                                     $inwithhdu \
+                                     -lock slice image \
+                                     -lock frame image \
+                                     -zoom to fit \
+                                     -cmap sls \
+                                     -match frame colorbar \
+                                     -colorbar lock yes \
+                                     -view multi $multicolorbars \
+                                     $ds9pan \
+                                     $ds9extra"
+                fi
+
+            # When input was table.
+            else
+
+                # If a HDU is given, add it to all the input file names
+                # (with a '#' between the filename and HDU in TOPCAT).
+                if [ x"$hdu" = x ]; then
                 inwithhdu="$inputs"
-            else
-                inwithhdu=""
-                for i in $inputs; do inwithhdu="$inwithhdu $i[$hdu]"; done
-            fi
-
-            # Read the number of dimensions.
-            n0=$(astfits $input1 -h0 | awk '$1=="NAXIS"{print $3}')
-
-            # Find the number of dimensions.
-            if [ "$n0" = 0 ]; then
-                ndim=$(astfits $input1 -h1 | awk '$1=="NAXIS"{print $3}')
-            else
-                ndim=$n0
-            fi;
-
-            # If multiple colorbars should be used.
-            if [ x"$ds9colorbarmulti" = x ]; then multicolorbars=no;
-            else                                  multicolorbars=yes;
-            fi
-
-            # Open DS9 based on the number of dimension.
-            if [ "$ndim" = 2 ]; then
-
-                # If a HDU is specified, ignore other HDUs (recall that
-                # with '-mecube' we are viewing all the HDUs as a single
-                # cube.
-                if [ x"$hdu" = x ]; then mecube="-mecube";
-                else                     mecube="";
+                else
+                    inwithhdu=""
+                    for i in $inputs; do inwithhdu="$inwithhdu $i#$hdu"; done
                 fi
 
-                # 2D multi-extension file: use the "Cube" window to
-                # flip/slide through the extensions.
-                execom="$ds9exec $ds9scaleopt \
-                                 $ds9geoopt \
-                                 $mecube \
-                                 $inwithhdu \
-                                 -zoom to fit \
-                                 -wcs degrees \
-                                 -cmap sls \
-                                 -match frame image \
-                                 -match frame colorbar \
-                                 -frame lock image \
-                                 -colorbar lock yes \
-                                 -view multi $multicolorbars \
-                                 -lock slice image \
-                                 $ds9pan \
-                                 $ds9extra"
-            else
-
-                # If a HDU is given, don't use multi-frame.
-                if [ x"$hdu" = x ]; then mframe="-multiframe";
-                else                     mframe="";
-                fi
-
-                # 3D multi-extension file: The "Cube" window will slide
-                # between the slices of a single extension. To flip through
-                # the extensions (not the slices), press the top row
-                # "frame" button and from the last four buttons of the
-                # bottom row ("first", "previous", "next" and "last") can
-                # be used to switch through the extensions (while keeping
-                # the same slice).
-                execom="$ds9exec $ds9scaleopt \
-                                 $ds9geoopt -wcs degrees \
-                                 $mframe \
-                                 $inwithhdu \
-                                 -lock slice image \
-                                 -lock frame image \
-                                 -zoom to fit \
-                                 -cmap sls \
-                                 -match frame colorbar \
-                                 -colorbar lock yes \
-                                 -view multi $multicolorbars \
-                                 $ds9pan \
-                                 $ds9extra"
+                # TOPCAT command.
+                execom="$topcatexec $inwithhdu"
             fi
 
-        # When input was table.
+            # Run the final command and print it if not in '--quiet' mode.
+            if [ $quiet = 0 ]; then
+                echo "Running: $(echo $execom | sed 's|* | |')";
+            fi
+            $execom
+
+            # 'astfits' couldn't open the file.
         else
-
-            # If a HDU is given, add it to all the input file names (with a
-            # '#' between the filename and HDU in TOPCAT).
-            if [ x"$hdu" = x ]; then
-                inwithhdu="$inputs"
-            else
-                inwithhdu=""
-                for i in $inputs; do inwithhdu="$inwithhdu $i#$hdu"; done
-            fi
-
-            # TOPCAT command.
-            execom="$topcatexec $inwithhdu"
+            echo "$scriptname:$input1: not a FITS file"
         fi
 
-        # Run the final command and print it if not in '--quiet' mode.
-        if [ $quiet = 0 ]; then
-            echo "Running: $(echo $execom | sed 's|* | |')";
-        fi
-        $execom
-
-    # 'astfits' couldn't open the file.
+    # File does not exist.
     else
-        if [ -f "$input1" ]; then
-            echo "'$input1' isn't a FITS file."
-        else
-            echo "'$input1' doesn't exist."
-        fi
+        echo "$scriptname:$input1: does not exist"
     fi
 fi
