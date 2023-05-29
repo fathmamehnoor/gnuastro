@@ -324,7 +324,7 @@ do
        -M=*|--mindistdeg=*)    mindistdeg="${1#*=}";                         check_v "$1" "$mindistdeg";  shift;;
        -M*)                    mindistdeg=$(echo "$1" | sed -e's/-M//');     check_v "$1" "$mindistdeg";  shift;;
 
-# Output parameters
+   # Output parameters
        -k|--keeptmp)           keeptmp=1; shift;;
        -k*|--keeptmp=*)        on_off_option_error --keeptmp -k;;
        -t|--tmpdir)            tmpdir="$2";                                  check_v "$1" "$tmpdir";  shift;shift;;

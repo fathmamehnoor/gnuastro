@@ -2,6 +2,7 @@ Alphabetically ordered list to acknowledge in the next release.
 
 Agata Rożek
 Irene Pintos Castro
+Rashid Yaaqib
 Raul Infante-Sainz
 Ryan Begley
 Sepideh Eskandarlou

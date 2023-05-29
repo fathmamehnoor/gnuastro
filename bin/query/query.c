@@ -147,20 +147,27 @@ query_output_meta_database(struct queryparams *p)
 
 
 
+/* Note that these types in TAP are not case-sensitive. */
 static uint8_t
 query_type_from_tap(char *typestr)
 {
   uint8_t type;
-  if(      !strcmp(typestr,"BOOLEAN")  ) type=GAL_TYPE_UINT8;
-  else if( !strcmp(typestr,"BIGINT")   ) type=GAL_TYPE_INT64;
-  else if( !strcmp(typestr,"REAL")     ) type=GAL_TYPE_FLOAT32;
-  else if( !strcmp(typestr,"DOUBLE")   ) type=GAL_TYPE_FLOAT64;
-  else if( !strcmp(typestr,"SMALLINT")
-           || !strcmp(typestr,"INTEGER") ) type=GAL_TYPE_INT32;
-  else if( !strcmp(typestr,"VARCHAR")
-           || !strcmp(typestr,"STRING")
-           || !strncmp(typestr, "CHAR", 4) ) type=GAL_TYPE_STRING;
-  else type=GAL_TYPE_INVALID;
+  if(      !strcasecmp(typestr,"BOOLEAN")  ) type=GAL_TYPE_INT8;
+  else if( !strcasecmp(typestr,"BIGINT")
+           || !strcasecmp(typestr,"LONG") )  type=GAL_TYPE_INT64;
+  else if( !strcasecmp(typestr,"REAL")
+           || !strcasecmp(typestr,"FLOAT") ) type=GAL_TYPE_FLOAT32;
+  else if( !strcasecmp(typestr,"DOUBLE")   ) type=GAL_TYPE_FLOAT64;
+  else if( !strcasecmp(typestr,"SMALLINT")
+           || !strcasecmp(typestr,"SHORT")
+           || !strcasecmp(typestr,"INTEGER") ) type=GAL_TYPE_INT32;
+  else if( !strcasecmp(typestr,"VARCHAR")
+           || !strcasecmp(typestr,"STRING")
+           || !strncasecmp(typestr, "CHAR", 4) ) type=GAL_TYPE_STRING;
+  else
+    error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at '%s' to fix "
+          "the problem. The string '%s' is not a recognized type for "
+          "this function", __func__, PACKAGE_BUGREPORT, typestr);
   return type;
 }
 
@@ -221,6 +228,7 @@ query_output_meta_dataset(struct queryparams *p)
       allcols=gal_data_array_calloc(numcols);
       for(i=0;i<numcols;++i)
         {
+          allcols[i].minmapsize=1; /* The "repeat" for vectors. */
           allcols[i].type=query_type_from_tap(type[i]);
           gal_checkset_allocate_copy(name[i], &allcols[i].name);
           gal_checkset_allocate_copy(desc[i], &allcols[i].comment);
@@ -292,7 +300,7 @@ query_output_finalize(struct queryparams *p)
   fitsfile *fptr;
   int gooddownload=0, status=0;
 
-  /* See if its a FITS file or a VOTable. */
+  /* See if it is a FITS file or a VOTable. */
   len=strlen(p->downloadname);
   if( !strcmp(&p->downloadname[len-4], ".xml") )
     { isxml=1; gooddownload=1; }
