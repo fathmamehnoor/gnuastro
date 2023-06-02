@@ -485,6 +485,7 @@ mkprof_build(void *inparam)
 {
   struct mkonthread *mkp=(struct mkonthread *)inparam;
   struct mkprofparams *p=mkp->p;
+
   size_t i, id, ndim=p->ndim;
   struct builtqueue *ibq, *fbq=NULL;
   double center[3], semiaxes[3], euler_deg[3];
@@ -505,18 +506,23 @@ mkprof_build(void *inparam)
       id=ibq->id=mkp->indexs[i];
       if(fbq==NULL) fbq=ibq;
 
-
       /* Write the necessary parameters for this profile into 'mkp'.*/
       oneprofile_set_prof_params(mkp);
 
-
       /* Find the bounding box size (NOT oversampled). */
       if( p->f[id] == PROFILE_POINT )
-        mkp->width[0]=mkp->width[1]=1;
+        {
+          mkp->width[0]=mkp->width[1]=1;
+          if(ndim==3) mkp->width[2]=1;
+        }
       else if( p->f[id] == PROFILE_CUSTOM_IMG )
         {
           mkp->width[0]=mkp->customimg->dsize[1]; /* 'width' is in */
           mkp->width[1]=mkp->customimg->dsize[0]; /* FITS order not C. */
+          if(ndim==3)
+            error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at "
+                  "'%s' to fix the problem. Custom images are not yet "
+                  "supported for 3D inputs", __func__, PACKAGE_BUGREPORT);
         }
       else
         switch(ndim)
@@ -790,7 +796,8 @@ mkprof(struct mkprofparams *p)
      ignore it. */
   if(p->out)
     {
-      onaxes=gal_pointer_allocate(GAL_TYPE_LONG, ndim, 0, __func__, "onaxes");
+      onaxes=gal_pointer_allocate(GAL_TYPE_LONG, ndim, 0, __func__,
+                                  "onaxes");
       for(fi=0; fi < ndim; ++fi)
         {
           i=ndim-fi-1;
@@ -820,10 +827,11 @@ mkprof(struct mkprofparams *p)
 
       /* Initialize the condition variable and mutex. */
       err=pthread_mutex_init(&p->qlock, NULL);
-      if(err) error(EXIT_FAILURE, 0, "%s: mutex not initialized", __func__);
-      err=pthread_cond_init(&p->qready, NULL);
-      if(err) error(EXIT_FAILURE, 0, "%s: condition variable not initialized",
+      if(err) error(EXIT_FAILURE, 0, "%s: mutex not initialized",
                     __func__);
+      err=pthread_cond_init(&p->qready, NULL);
+      if(err) error(EXIT_FAILURE, 0, "%s: condition variable not "
+                    "initialized", __func__);
 
       /* Spin off the threads: */
       for(i=0;i<nt;++i)

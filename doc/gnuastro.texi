@@ -28727,7 +28727,7 @@ Read it as `t-unit-in-p' for `truncation unit in pixels'.
 
 @item -f
 @itemx --mforflatpix
-When making fixed value profiles (flat and circumference, see `@option{--fcol}'), do not use the value in the column specified by `@option{--mcol}' as the magnitude.
+When making fixed value profiles (``flat'', ``circumference'' or ``point'' profiles, see `@option{--fcol}'), do not use the value in the column specified by `@option{--mcol}' as the magnitude.
 Instead use it as the exact value that all the pixels of these profiles should have.
 This option is irrelevant for other types of profiles.
 This option is very useful for creating masks, or labeled regions in an image.

@@ -377,7 +377,7 @@ oneprofile_pix_by_pix(struct mkonthread *mkp)
   /* If this is a point source, just fill that one pixel and leave this
      function. */
   if(mkp->func==PROFILE_POINT)
-    { array[p]=1; return; }
+    { array[p] = mkp->fixedvalue; return; }
 
   /* Allocate the 'byt' array. It is used as a flag to make sure that we
      don't re-calculate the profile value on a pixel more than once. */
@@ -692,9 +692,17 @@ oneprofile_set_prof_params(struct mkonthread *mkp)
 
 
     case PROFILE_POINT:
-      mkp->correction       = 1;
-      mkp->fixedvalue       = 1.0f;
       mkp->profile          = &profiles_flat;
+      if(p->mforflatpix)
+        {
+          mkp->correction   = 0;
+          mkp->fixedvalue   = p->m[id];
+        }
+      else
+        {
+          mkp->correction   = 1;
+          mkp->fixedvalue   = 1.0f;
+        }
       break;
 
 
@@ -741,8 +749,6 @@ oneprofile_set_prof_params(struct mkonthread *mkp)
       mkp->truncr           = tp ? p->t[id] : p->t[id]*p->r[id];
       mkp->correction       = 0;
       break;
-
-
 
 
 
@@ -808,11 +814,9 @@ oneprofile_make(struct mkonthread *mkp)
   float *f, *ff;
   size_t i, dsize[3], ndim=p->ndim;
 
-
   /* Find the profile center in the over-sampled image in C
      coordinates. IMPORTANT: width must not be oversampled.*/
   oneprofile_center_oversampled(mkp);
-
 
   /* If a custom image is provided, there is no need to build a new
      dataset. */
@@ -828,13 +832,11 @@ oneprofile_make(struct mkonthread *mkp)
           dsize[ndim-i-1] = mkp->width[i];
         }
 
-
       /* Allocate and clear the array for this one profile. */
       mkp->ibq->image=gal_data_alloc(NULL, GAL_TYPE_FLOAT32, ndim, dsize,
                                      NULL, 1, p->cp.minmapsize,
                                      p->cp.quietmmap, "MOCK",
                                      "counts", NULL);
-
 
       /* Build the profile in the image. */
       oneprofile_pix_by_pix(mkp);
