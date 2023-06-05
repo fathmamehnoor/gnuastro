@@ -103,7 +103,6 @@ install-sh
 aclocal.m4
 confdefs.h
 conftest.c
-gnuastro-*
 .bootstrap*
 Makefile.in
 astconvertt
@@ -129,6 +128,7 @@ tests/simpleio
 astsubtractsky
 autom4te.cache
 lib/gnuastro.pc
+gnuastro-*.tar*
 doc/gnuastro.cps
 doc/gnuastro.vrs
 tests/versioncxx
