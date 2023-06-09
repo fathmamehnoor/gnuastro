@@ -23137,9 +23137,15 @@ Let's use the easier case:
 @example
 $ aststatistics noisy.fits -cX,Y,Yerr --fit=polynomial-weighted \
                 --fitmaxpower=2 --fitestimate=self --output=est.fits
+
+...[[truncated; same as above]]...
+
+Requested estimation:
+  Written to: est.fits
 @end example
 
-You will see a new line printed in the output, saying that the estimation was written in @file{est.fits}.
+The first lines of the printed text are the same as before.
+Afterwards, you will see a new line printed in the output, saying that the estimation was written in @file{est.fits}.
 You can now inspect the two tables with TOPCAT again with the command below.
 After TOPCAT opens, plot both scatter plots:
 
@@ -23156,7 +23162,8 @@ Another useful point with the estimated output file is that it contains all the 
 
 @example
 $ astfits est.fits -h1
-...
+...[[truncated]]...
+
                       / Fit results
 FITTYPE = 'polynomial-weighted' / Functional form of the fitting.
 FITMAXP =                    2 / Maximum power of polynomial.
@@ -23179,7 +23186,8 @@ FCOV23  =  -0.0138030778380786 / Covariance matrix element (2,3).
 FCOV31  =  0.00283673901863388 / Covariance matrix element (3,1).
 FCOV32  =  -0.0138030778380786 / Covariance matrix element (3,2).
 FCOV33  =   0.0128129806394559 / Covariance matrix element (3,3).
-...
+
+...[[truncated]]...
 @end example
 
 In scenarios were you don't want the estimation, but only the fitted parameters, all that verbose, human-friendly text or FITS keywords can be an annoying extra step.
@@ -23211,12 +23219,32 @@ $ asttable noisy.fits --catrowfile=outliers.txt \
 
 $ aststatistics with-outlier.fits -cX,Y,Yerr --fit=polynomial-weighted \
                 --fitmaxpower=2 --fitestimate=self \
-                --output=est-out.fits --quiet
--13.6446036899 +66.8463258547 -30.8746303591
-+0.0007889160        -0.0027706310        +0.0022208939
--0.0027706310        +0.0113922468        -0.0100306732
-+0.0022208939        -0.0100306732        +0.0094087226
-+4501.8356719150
+                --output=est-out.fits
+
+Statistics (GNU Astronomy Utilities) @value{VERSION}
+-------
+Fitting results (remove extra info with '--quiet' or '-q)
+  Input file:    with-outlier.fits (hdu: 1) with 193 non-blank rows.
+  X      column: X
+  Y      column: Y
+  Weight column: Yerr    [Standard deviation of Y in each row]
+
+Fit function: Y = c0 + (c1 * X^1) + (c2 * X^2) + ... (cN * X^N)
+  N:  2
+  c0:  -13.6446036899
+  c1:  +66.8463258547
+  c2:  -30.8746303591
+
+Covariance matrix:
+  +0.0007889160        -0.0027706310        +0.0022208939
+  -0.0027706310        +0.0113922468        -0.0100306732
+  +0.0022208939        -0.0100306732        +0.0094087226
+
+Reduced chi^2 of fit:
+  +4501.8356719150
+
+Requested estimation:
+  Written to: est-out.fit
 @end example
 
 We see that the coefficient values have changed significantly and that @mymath{\chi_{red}^2} has increased to @mymath{4501}!
@@ -23231,17 +23259,17 @@ $ astscript-fits-view with-outlier.fits est-out.fits
 
 For such cases, GSL has @url{https://www.gnu.org/software/gsl/doc/html/lls.html#robust-linear-regression, Robust linear regression}.
 In Gnuastro's Statistics, you can access it with @option{--fit=polynomial-robust}, like the example below.
-Just note that the robust method doesn't take an error column (because it estimates the errors internally while rejecting outliers, based on the method):
+Just note that the robust method doesn't take an error column (because it estimates the errors internally while rejecting outliers, based on the method).
 
 @example
 $ aststatistics with-outlier.fits -cX,Y --fit=polynomial-robust \
                 --fitmaxpower=2 --fitestimate=self \
                 --output=est-out.fits --quiet
-+1.2042269119 -4.4779253576 +7.8498615369
-+0.0237588085        -0.0468869673        +0.0193819707
--0.0468869673        +0.1126156328        -0.0507842538
-+0.0193819707        -0.0507842538        +0.0241623033
-+0.3428106540
+
+$ astfits est-out.fits -h1 | grep ^FITC
+FITC0   =     1.20422691185238 / C0: multiple of x^0 in polynomial
+FITC1   =     -4.4779253576348 / C1: multiple of x^1 in polynomial
+FITC2   =     7.84986153686548 / C2: multiple of x^2 in polynomial
 
 $ astscript-fits-view with-outlier.fits est-out.fits
 @end example
@@ -23250,6 +23278,10 @@ It is clear that the coefficients are very similar to the no-outlier scenario ab
 GSL provides many methods to reject outliers.
 For their full list, see the description of @option{--fitrobust} in @ref{Fitting options}.
 For a description of the outlier rejection methods, see the @url{https://www.gnu.org/software/gsl/doc/html/lls.html#c.gsl_multifit_robust_workspace, GSL manual}.
+
+You may have noticed that unlike the cases before the last Statistics command above didn't print anything on the standard output.
+This is becasue @option{--quiet} and @option{--fitestimate} were called together.
+In this case, because all the fitting parameters are written as FITS keywords, because of the @option{--quiet} option, they are no longer printed on standard output.
 
 @node Sky value, Invoking aststatistics, Least squares fitting, Statistics
 @subsection Sky value
