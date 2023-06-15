@@ -91,6 +91,8 @@ See the end of the file for license conditions.
   bug #64250: astscript-fits-view: no message printed when input file did
               not exist. Reported by Ryan Begley.
   bug #64274: MakeProfiles crash for points in 3D. Found by Teet Kuumta.
+  bug #64303: Statistics fit --fitestimate crash when covariance matrix has
+              NaN. Reported Sepideh Eskandarlou.
 
 
 

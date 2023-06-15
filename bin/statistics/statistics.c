@@ -1179,6 +1179,8 @@ print_sigma_clip(struct statisticsparams *p)
 /*******************************************************************/
 /**************                Fitting               ***************/
 /*******************************************************************/
+/* 'redchisq' is taken as a pointer so we don't need to allocate it here
+   when the FITS file gets written. */
 static struct gal_fits_list_key_t *
 statistics_fit_params_to_keys(struct statisticsparams *p, gal_data_t *fit,
                               char *whtnat, double *redchisq)

@@ -24167,10 +24167,15 @@ When nothing is given to @option{--output}, the independent column and the estim
 @item
 If a file name is given to @option{--output}, the estimated table above is saved in that file.
 It can have any of the formats in @ref{Recognized table formats}.
-As a FITS file, all the fitted numbers (coefficients, covariance matrix and reduced @mymath{\chi^2} are kept as FITS keywords in the same HDU of the estimated table.
+As a FITS file, all the fit outputs (coefficients, covariance matrix and reduced @mymath{\chi^2}) are kept as FITS keywords in the same HDU of the estimated table.
 For a complete example, see @ref{Least squares fitting}.
+
+When the covariance matrix (and thus the @mymath{\chi^2}) cannot be calculated (for example if you only have two rows!), the printed values on the terminal will be NaN.
+However, the FITS standard does not allow NaN values in keyword values!
+Therefore, when writing the @mymath{\chi^2} and covariance matrix elements into the output FITS keywords, the largest value of the 64-bit floating point type will be written: @mymath{1.79769313486232\times10^{308}}; see @ref{Numeric data types}.
+
 @item
-When @option{--quiet} is given with @option{--fitestimate}, the fitted parameters are no longer printed on the standard output (they will be available as FITS keywords in the file given to @option{--output}).
+When @option{--quiet} is given with @option{--fitestimate}, the fitted parameters are no longer printed on the standard output; they are available as FITS keywords in the file given to @option{--output}.
 @end itemize
 
 @item --fitestimatehdu=STR/INT

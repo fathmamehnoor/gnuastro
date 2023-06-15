@@ -2042,9 +2042,10 @@ gal_fits_key_write(gal_fits_list_key_t **keylist, char *title,
 /* Fits doesn't allow NaN values, so if the type of float or double, we'll
    just check to see if its NaN or not and let the user know the keyword
    name (to help them fix it). */
-static void
+static void *
 gal_fits_key_write_in_ptr_nan_check(gal_fits_list_key_t *tmp)
 {
+  void *out=NULL;
   int nanwarning=0;
 
   /* Check the value. */
@@ -2060,9 +2061,21 @@ gal_fits_key_write_in_ptr_nan_check(gal_fits_list_key_t *tmp)
 
   /* Print the warning. */
   if(nanwarning)
-    error(EXIT_SUCCESS, 0, "%s: (WARNING) value of '%s' is NaN "
-          "and FITS doesn't recognize a NaN key value", __func__,
-          tmp->keyname);
+    {
+      out=gal_pointer_allocate(tmp->type, 1, 0, __func__, "out");
+      gal_type_max(tmp->type, out);
+      error(EXIT_SUCCESS, 0, "%s: (WARNING) value of '%s' is NaN "
+            "and FITS doesn't recognize a NaN key value; instead, "
+            "the following value (largest value of the %d-bit "
+            "floating point type) will be written: %g", __func__,
+            tmp->keyname, tmp->type==GAL_TYPE_FLOAT32 ? 32 : 64,
+            ( tmp->type==GAL_TYPE_FLOAT32
+              ? ((float  *)(out))[0]
+              : ((double *)(out))[0] ) );
+    }
+
+  /* Return the allocated array.*/
+  return out;
 }
 
 
@@ -2076,6 +2089,7 @@ void
 gal_fits_key_write_in_ptr(gal_fits_list_key_t **keylist, fitsfile *fptr)
 {
   int status=0;
+  void *ifnan=NULL;
   gal_fits_list_key_t *tmp, *ttmp;
 
   tmp=*keylist;
@@ -2099,14 +2113,15 @@ gal_fits_key_write_in_ptr(gal_fits_list_key_t **keylist, fitsfile *fptr)
           if(tmp->value)
             {
               /* Print a warning if the value is NaN. */
-              gal_fits_key_write_in_ptr_nan_check(tmp);
+              ifnan=gal_fits_key_write_in_ptr_nan_check(tmp);
 
               /* Write/Update the keyword value. */
               if( fits_update_key(fptr,
                                   gal_fits_type_to_datatype(tmp->type),
-                                  tmp->keyname, tmp->value, tmp->comment,
-                                  &status) )
+                                  tmp->keyname, ifnan?ifnan:tmp->value,
+                                  tmp->comment, &status) )
                 gal_fits_io_error(status, NULL);
+              if(ifnan) free(ifnan);
             }
           else
             {
