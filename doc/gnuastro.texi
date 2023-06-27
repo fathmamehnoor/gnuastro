@@ -19021,6 +19021,69 @@ Every pixel in this 2D image will have the flux of the sum of the 100 slices.
 
 @table @command
 
+@item to-1d
+Convert the input operand into a 1D array; irrespective of the number of dimensions it has.
+This operator only takes a single operand (the input array) and just updates the metadata.
+Therefore it does not change the layout of the array contents in memory and is very fast.
+
+If no further operation is requested on the 1D array, recall that Arithmetic will write a 1D array as a table column by default.
+In case you want the output to be saved as a 1D image, or to see it on the standard output, please use the @code{--onedasimage} or @code{--onedonstdout} options respectively (see @ref{Invoking astarithmetic}).
+
+This operator is useful in scenarios where after some operations on a 2D image or 3D cube, the dimensionality is no longer relevant for you and you just care about the values.
+In the example below, we will first make a simple 2D image from a plain-text file, then convert it to a 1D array:
+
+@example
+## Contents of 'a.txt' to start with.
+$ cat a.txt
+# Image 1: DEMO [counts, uint8] An example image
+1 2 3
+4 5 6
+7 8 9
+
+## Convert the text image into a FITS image.
+$ astconvertt a.txt -o a.fits
+
+## Convert it into a table column (1D):
+$ astarithmetic a.fits to-1d -o table.fits
+
+## Convert it into a 1D image:
+$ astarithmetic a.fits to-1d -o table.fits --onedasimage
+@end example
+
+@cindex Flattening (CNNs)
+A more real-world example would be the following: assume you want to ``flatten'' two images into a single 1D array (as commonly done in convolutional neural networks, or CNNs@footnote{@url{https://en.wikipedia.org/wiki/Convolutional_neural_network}}).
+First, we show the contents of a new @mymath{2\times2} image in plain-text image, then convert it to a 2D FITS image (@file{b.fits}).
+We will then use arithmetic to make both @file{a.fits} (from the example above) and @file{b.fits} into a 1D array and stitch them together into a single 1D image with one call to Arithmetic.
+For a description of the @code{stitch} operator, see below (same section).
+
+@example
+## Contents of 'b.txt':
+$ cat b.txt
+# Image 1: DEMO [counts, uint8] An example image
+10 11
+12 13
+
+## Convert the text image into a FITS image.
+$ astconvertt b.txt -o b.fits
+
+# Flatten the two images into a single 1D image:
+$ astarithmetic a.fits to-1d b.fits to-1d 2 1 stitch -g1 \
+                --onedonstdout --quiet
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+@end example
+
 @item stitch
 Stitch (connect) any number of given images together along the given dimension.
 The output has the same number of dimensions as the input, but the number of pixels along the requested dimension will be different from the inputs.

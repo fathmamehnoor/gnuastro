@@ -1126,6 +1126,26 @@ arithmetic_size(int operator, int flags, gal_data_t *in, gal_data_t *arg)
 
 
 
+/* Stitch multiple operands along a given dimension. */
+static gal_data_t *
+arithmetic_to_1d(int operator, int flags, gal_data_t *input)
+{
+  size_t i;
+
+  /* Set absurd value to cause a crash if values that shouldn't be used are
+     used! */
+  for(i=1;i<input->ndim;++i) input->dsize[i]=GAL_BLANK_UINT64;
+
+  /* Reset the metadata and return.*/
+  input->ndim=1;
+  input->dsize[0]=input->size;
+  return input;
+}
+
+
+
+
+
 static size_t
 arithmetic_stitch_sanity_check(gal_data_t *list, gal_data_t *fdim)
 {
@@ -1134,7 +1154,7 @@ arithmetic_stitch_sanity_check(gal_data_t *list, gal_data_t *fdim)
   size_t c, dim, otherdim;
 
   /* Currently we only have the stitch operator for 2D datasets. */
-  if(list->ndim!=2)
+  if(list->ndim>2)
     error(EXIT_FAILURE, 0, "currently the 'stitch' operator only "
           "works with 2D datasets (images) but you have given a "
           "%zu dimensional dataset. Please get in touch with us "
@@ -1208,7 +1228,7 @@ arithmetic_stitch(int operator, int flags, gal_data_t *list,
   void *oarr;
   gal_data_t *tmp, *out;
   uint8_t type=list->type;
-  size_t i, dim, sum, dsize[2];
+  size_t i, dim, sum, dsize[2]={GAL_BLANK_SIZE_T, GAL_BLANK_SIZE_T};
 
   /* In case we are dealing with a single-element list, just return it! */
   if(list->next==NULL) return list;
@@ -1218,8 +1238,8 @@ arithmetic_stitch(int operator, int flags, gal_data_t *list,
 
   /* Find the size of the final output dataset. */
   sum=0; for(tmp=list; tmp!=NULL; tmp=tmp->next) sum+=tmp->dsize[dim];
-  dsize[0] = dim==0 ? sum            : list->dsize[0];
-  dsize[1] = dim==0 ? list->dsize[1] : sum;
+  dsize[0] = dim==0 ? sum : list->dsize[0];
+  if(list->ndim>1) dsize[1] = dim==0 ? list->dsize[1] : sum;
 
   /* Allocate the output dataset. */
   out=gal_data_alloc(NULL, list->type, list->ndim, dsize, list->wcs,
@@ -1229,39 +1249,63 @@ arithmetic_stitch(int operator, int flags, gal_data_t *list,
   /* Write the individual datasets into the output. Note that 'dim' is the
      dimension counter of the C standard. */
   oarr=out->array;
-  for(tmp=list; tmp!=NULL; tmp=tmp->next)
+  switch(list->ndim)
     {
-      switch(dim)
+    case 1: /* 1D stitching. */
+      sum=0;
+      for(tmp=list; tmp!=NULL; tmp=tmp->next)
         {
-
-        /* Vertical stitching (second FITS axis is the vertical axis). */
-        case 0:
-          memcpy(oarr,tmp->array, gal_type_sizeof(type)*tmp->size);
-          oarr += gal_type_sizeof(type)*tmp->size;
-          break;
-
-        /* Horizontal stitching (first FITS axis is the horizontal axis) */
-        case 1:
-
-          /* Copy row-by-row. */
-          for(i=0;i<dsize[0];++i)
-            memcpy(gal_pointer_increment(oarr,       i*dsize[1],      type),
-                   gal_pointer_increment(tmp->array, i*tmp->dsize[1], type),
-                   gal_type_sizeof(type)*tmp->dsize[1]);
-
-          /* Copying has finished, increment the start for the next
-             image. Note that in this scenario, the starting pixel for the
-             next image is on the first row, but tmp->dsize[1] pixels
-             away. */
-          oarr += gal_type_sizeof(type)*tmp->dsize[1];
-          break;
-
-        default:
-          error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at '%s' "
-                "to find and fix the problem. The value of 'dim' is "
-                "'%zu' is not understood", __func__, PACKAGE_BUGREPORT,
-                dim);
+          memcpy(gal_pointer_increment(oarr, sum, type),
+                 tmp->array, gal_type_sizeof(type)*tmp->size);
+          sum+=tmp->size;
         }
+      break;
+
+    case 2: /* 2D stitching. */
+      for(tmp=list; tmp!=NULL; tmp=tmp->next)
+        {
+          switch(dim)
+            {
+
+            /* Vertical stitching (second FITS axis is the vertical
+               axis). */
+            case 0:
+              memcpy(oarr,tmp->array, gal_type_sizeof(type)*tmp->size);
+              oarr += gal_type_sizeof(type)*tmp->size;
+              break;
+
+            /* Horizontal stitching (first FITS axis is the horizontal
+               axis) */
+            case 1:
+
+              /* Copy row-by-row. */
+              for(i=0;i<dsize[0];++i)
+                memcpy(gal_pointer_increment(oarr, i*dsize[1], type),
+                       gal_pointer_increment(tmp->array, i*tmp->dsize[1],
+                                             type),
+                       gal_type_sizeof(type)*tmp->dsize[1]);
+
+              /* Copying has finished, increment the start for the next
+                 image. Note that in this scenario, the starting pixel for the
+                 next image is on the first row, but tmp->dsize[1] pixels
+                 away. */
+              oarr += gal_type_sizeof(type)*tmp->dsize[1];
+              break;
+
+            default:
+              error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at '%s' "
+                    "to find and fix the problem. The value of 'dim' is "
+                    "'%zu' is not understood", __func__, PACKAGE_BUGREPORT,
+                    dim);
+            }
+        }
+      break;
+
+    default:
+      error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at '%s' to "
+            "fix the problem. The value %zu of 'ndim' should have been "
+            "checked before this point!", __func__, PACKAGE_BUGREPORT,
+            list->ndim);
     }
 
   /* Clean up and return */
@@ -3294,7 +3338,9 @@ gal_arithmetic_set_operator(char *string, size_t *num_operands)
   else if (!strcmp(string, "random-from-hist-raw"))
     { op=GAL_ARITHMETIC_OP_RANDOM_FROM_HIST_RAW; *num_operands=3; }
 
-  /* Stitching */
+  /* Dimensionality changing */
+  else if (!strcmp(string, "to-1d"))
+    { op=GAL_ARITHMETIC_OP_TO1D;              *num_operands=1;  }
   else if (!strcmp(string, "stitch"))
     { op=GAL_ARITHMETIC_OP_STITCH;            *num_operands=-1; }
 
@@ -3531,6 +3577,7 @@ gal_arithmetic_operator_string(int operator)
     case GAL_ARITHMETIC_OP_RANDOM_FROM_HIST_RAW:return "random-from-hist-raw";
 
     case GAL_ARITHMETIC_OP_SIZE:            return "size";
+    case GAL_ARITHMETIC_OP_TO1D:            return "to-1d";
     case GAL_ARITHMETIC_OP_STITCH:          return "stitch";
 
     case GAL_ARITHMETIC_OP_TO_UINT8:        return "uchar";
@@ -3767,7 +3814,11 @@ gal_arithmetic(int operator, size_t numthreads, int flags, ...)
         out=arithmetic_mknoise(operator, flags, d1, d2);
       break;
 
-    /* Stitch multiple datasets. */
+    /* Dimensionality changing operators. */
+    case GAL_ARITHMETIC_OP_TO1D:
+      d1 = va_arg(va, gal_data_t *);
+      out=arithmetic_to_1d(operator, flags, d1);
+      break;
     case GAL_ARITHMETIC_OP_STITCH:
       d1 = va_arg(va, gal_data_t *);
       d2 = va_arg(va, gal_data_t *);

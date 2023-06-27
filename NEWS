@@ -27,6 +27,8 @@ See the end of the file for license conditions.
 
   Arithmetic:
   - New operators:
+    - to-1d: convert the input operand into a 1D array, no matter how many
+      dimensions it has. Suggested by Faezeh Bidjarchian.
     - pool-min: Min-pooling to reduce the size of the input by calculating
                 the minimum of a the pixels within the pooling window. See
                 the new "Pooling opeators" section of the book for

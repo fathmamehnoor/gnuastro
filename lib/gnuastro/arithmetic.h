@@ -196,6 +196,7 @@ enum gal_arithmetic_operators
   GAL_ARITHMETIC_OP_RANDOM_FROM_HIST_RAW,/* Randoms from a histogram (raw).*/
 
   GAL_ARITHMETIC_OP_STITCH,       /* Stitch multiple datasets together.    */
+  GAL_ARITHMETIC_OP_TO1D,         /* Make they output into a 1D array.     */
 
   GAL_ARITHMETIC_OP_TO_UINT8,     /* Convert to uint8_t.                   */
   GAL_ARITHMETIC_OP_TO_INT8,      /* Convert to int8_t.                    */
