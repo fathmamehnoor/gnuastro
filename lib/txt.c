@@ -280,12 +280,10 @@ txt_info_from_comment(char *in_line, gal_data_t **datall, char *comm_start,
       if(*tailptr!='\0' || index<=0) return;
 
 
-      /* If there was no name (the line is just '# Column N:'), then ignore
-         the line. Relying on the column count from the first line is more
-         robust and less prone to human error, for example typing a number
-         larger than the total number of columns.  */
+      /* Read the column name. If no name is given (which is perfectly
+         fine: for example '# Column 4: [abc, f32] description'), then
+         'name' will be NULL. */
       name=gal_txt_trim_space(name);
-      if(name==NULL) return;
 
 
       /* If this is a repeated index, ignore it. */
