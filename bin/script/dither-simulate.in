@@ -26,18 +26,20 @@ export LC_NUMERIC=C
 
 # Default values.
 img=""
+hdu=1
 cat=""
 width=""
 imghdu=1
 center=""
 keeptmp=0
-output=""
 racol="RA"
 deccol="DEC"
 widthinpix=0
+numthreads=0
 version=@VERSION@
 scriptname=@SCRIPT_NAME@
-output=dither-check.fits
+output=dither-simulate.fits
+installdir=@PREFIX@/share/gnuastro
 
 
 
@@ -66,6 +68,7 @@ $scriptname options:
   -C, --center=FLT,FLT    Center of output stack (in RA,Dec).
   -w, --width=FLT,FLT     Width of output stack (in WCS).
       --widthinpix        Interpret '--width' values in pixels.
+      --mksrc=STR         Makefile (for developers when debugging).
 
  Output:
   -o, --output=STR        Name of finally stacked image.
@@ -74,6 +77,7 @@ $scriptname options:
 
  Operating mode:
   -h, --help              Print this help.
+  -N, --numthreads=INT    Number of threads; maximum if not given.
       --cite              BibTeX citation for this program.
   -q, --quiet             Don't print any extra information in stdout.
   -V, --version           Print program version.
@@ -90,7 +94,7 @@ EOF
 print_version() {
      cat <<EOF
 $scriptname (GNU Astronomy Utilities) $version
-Copyright (C) 2020-2023 Free Software Foundation, Inc.
+Copyright (C) 2023-2023 Free Software Foundation, Inc.
 License GPLv3+: GNU General public license version 3 or later.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
@@ -167,9 +171,9 @@ EOF
 
 
 
+
 # Read the command-line options
-# Separate command-line arguments from options and put the option values
-# into the respective variables.
+# -----------------------------
 #
 # OPTIONS WITH A VALUE:
 #
@@ -220,8 +224,11 @@ do
     -w|--width)      width="$2";                                  check_v "$1" "$width";  shift;shift;;
     -w=*|--width=*)  width="${1#*=}";                             check_v "$1" "$width";  shift;;
     -w*)             width=$(echo "$1" | sed -e's/-w//');         check_v "$1" "$width";  shift;;
+    --mksrc)         mksrc="$2";                                  check_v "$1" "$mksrc";  shift;shift;;
+    --mksrc=*)       mksrc="${1#*=}";                             check_v "$1" "$mksrc";  shift;;
     --widthinpix)    widthinpix=1;                                                        shift;;
     --widthinpix=*)  on_off_option_error --quiet -q;;
+
 
    # Output parameters
    -k|--keeptmp)           keeptmp=1; shift;;
@@ -242,6 +249,9 @@ do
     -V*|--version=*)        on_off_option_error --version -V;;
     --cite)                 print_citation; exit 0;;
     --cite=*)               on_off_option_error --cite;;
+    -N|--numthreads)        numthreads="$2";                          check_v "$1" "$numthreads";  shift;shift;;
+    -N=*|--numthreads=*)    numthreads="${1#*=}";                     check_v "$1" "$numthreads";  shift;;
+    -N*)                    numthreads=$(echo "$1" | sed -e's/-N//'); check_v "$1" "$numthreads";  shift;;
 
     # Unrecognized option:
     -*) echo "$scriptname: unknown option '$1'"; exit 1;;
@@ -261,7 +271,11 @@ done
 
 
 
-# Necessary options.
+# Sanity checks
+# -------------
+#
+# The following options are necessary (the script will not work without
+# them).
 if [ x"$cat" = x ]; then
     echo "$scriptname: no argument (position catalog) given"; exit 1
 fi
@@ -278,12 +292,26 @@ fi
 
 
 
-# Set the temporary directory name and delete its contents if there is
-# any.
+
+# Temporary directory
+# -------------------
+#
+# The directory to keep temporary files.
 if [ x"$tmpdir" = x ]; then
-    tmpdir=dither-visualize-tmp
+    namecnosuffix=${cat%.*}
+    namecnodir=$(echo ${namecnosuffix##*/})
+    nameinosuffix=${img%.*}
+    nameinodir=$(echo ${nameinosuffix##*/})
+    namewidth=$(echo $width | sed 's|,|-|')
+    namecenter=$(echo $center | sed 's|,|-|')
+    tmpdir=dither-tmp-$namecnodir-$nameinodir-$namecenter-$namewidth
 fi
-if [ -d $tmpdir ]; then rm -f $tmpdir/*
+if [ -d $tmpdir ]; then
+    #################################
+    ######## FOR DEVELOPMENT ########
+    rm -f $tmpdir/*
+    #echo NOT CLEANING TMPDIR
+    #################################
 else                    mkdir $tmpdir
 fi
 
@@ -291,47 +319,83 @@ fi
 
 
 
-# Simulate the image for each dither pattern.
-counter=1
-elist=$tmpdir/exp-list.txt
-const=$tmpdir/constant.fits
-icopy=$tmpdir/input-copy.fits
-rm -f $elist
-if [ $widthinpix = 0 ]; then wip=""; else wip="--widthinpix"; fi
-asttable $cat -c$racol,$deccol \
-    | while read r d; do
+# Configuration file
+# ------------------
+#
+# All the settings given by the user and data are passed to Make through
+# this configuration file (and the variables within it).
+counter=1;
+config=$tmpdir/dither-simulate.conf
+ndither=$(astfits $cat --hdu=$hdu --keyvalue=NAXIS2 --quiet)
+echo "img = $img" > $config
+echo "width = $width" >> $config
+echo "center = $center" >> $config
+echo "output = $output" >> $config
+echo "imghdu = $imghdu" >> $config
+echo "dithers = $(seq 24 | tr '\n' ' ')" >> $config
+if [ $widthinpix = 1 ]; then
+    echo "widthinpix = --widthinpix" >> $config
+else
+    echo "widthinpix = " >> $config
+fi
+asttable $cat -c$racol,$deccol | while read r d; do
 
-        # Copy the input image HDU into the temporary directory for
-        # modification.
-        astfits $img --copy=$imghdu --output=$icopy
-	astfits $icopy --update=CRVAL1,$r --update=CRVAL2,$d
+    # Add the RA and Dec of the center of each pointing.
+    echo "$counter-ra  = $r" >> $config
+    echo "$counter-dec = $d" >> $config
 
-	# Set all the pixel values to 1.
-	astarithmetic $icopy 1 uint8 constant --output=$const
-	rm $icopy
-
-	# Warp the image to the final pixel grid.
-	warped=$tmpdir/warped-$counter.fits
-	astwarp $const --center=$center --width=$width $wip \
-		--output=$warped
-	rm $const
-
-	# In this scenario, we do not care about the values, so set
-	# all the non-blank pixels to 1.
-	exp=$tmpdir/exp-$counter.fits
-	astarithmetic $warped isnotblank -o$exp
-	rm $warped
-
-	# Add this image to the list of images to add.
-	printf "%s " $exp >> $elist
-
-	# Increment the counter.
-        counter=$((counter+1))
+    # Increment the counter.
+    counter=$((counter+1))
 done
 
-# Stack all the exposure maps.
-astarithmetic $(cat $elist) $(wc $elist -w | awk '{print $1}') \
-	      sum -g1 --output=$output
+
+
+
+
+# If the user hasn't set the number threads, find it
+# --------------------------------------------------
+#
+# Note that on different operating systems, the command to read the number
+# of threads differs: for example in GNU/Linux based systems, it is
+# 'nproc', but in macOS is is a special case of 'sysctl'.
+if [ x"$numthreads" = x0 ]; then
+    if type nproc > /dev/null 2> /dev/null; then
+        numthreads=$(nproc --all);
+    else
+        numthreads=$(sysctl -a | awk '/^hw\.ncpu/{print $2}')
+        if [ x"$numthreads" = x ]; then numthreads=1; fi
+    fi
+fi
+
+
+
+
+
+# Call the Makefile
+# -----------------
+#
+# Here, Makefile is invoked.
+if [ x$mksrc = x ]; then
+    mksrc=$installdir/dither-simulate.mk
+fi
+make -f $mksrc tmpdir=$tmpdir --jobs=$numthreads
+
+
+
+
+
+# Remove temporary directory
+# --------------------------
+#
+# If user does not specify to keep the build file with the option of
+# --keeptmp', then the directory will be removed.
+if [ x"$keeptmp" = x ]; then
+   rm -r $tmpdir
+fi
+
+
+
+
 
 # Delete the temporary directory if necessary
 if [ "$keeptmp" = 0 ]; then

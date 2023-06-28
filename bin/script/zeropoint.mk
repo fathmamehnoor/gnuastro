@@ -53,13 +53,6 @@ include $(tmpdir)/zeropoint.conf
 
 
 
-# Build the main directory for saving the outputs.
-$(tmpdir):; mkdir $@
-
-
-
-
-
 # Catalog of stars
 # ----------------
 #

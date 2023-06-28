@@ -329,7 +329,7 @@ do
         # Operating mode options.
         -N|--numthreads)        numthreads="$2";                               check_v "$1" "$numthreads";  shift;shift;;
         -N=*|--numthreads=*)    numthreads="${1#*=}";                          check_v "$1" "$numthreads";  shift;;
-        -N*)                    numthreads=$(echo "$1" | sed -e's/-j//');      check_v "$1" "$numthreads";  shift;;
+        -N*)                    numthreads=$(echo "$1" | sed -e's/-N//');      check_v "$1" "$numthreads";  shift;;
         -q|--quiet)             quiet=" -q"; shift;;
         -q*|--quiet=*)          on_off_option_error --quiet -q;;
         -?|--help)              print_help; exit 0;;
@@ -634,7 +634,6 @@ fi
 
 # Call the Makefile
 # -----------------
-
 #
 # Here, Makefile is invoked.
 if [ x$mksrc = x ]; then
