@@ -45,6 +45,7 @@ bin_SCRIPTS = astscript-fits-view \
               astscript-psf-subtract \
               astscript-sort-by-night \
               astscript-radial-profile \
+              astscript-dither-simulate \
               astscript-psf-scale-factor \
               astscript-psf-select-stars
 
@@ -57,6 +58,7 @@ EXTRA_DIST = fits-view.in \
              psf-subtract.in \
              sort-by-night.in \
              radial-profile.in \
+             dither-simulate.in \
              psf-select-stars.in \
              psf-scale-factor.in \
              fits-view.desktop.in
@@ -79,6 +81,10 @@ do_subst = sed -e 's,[@]PREFIX[@],$(exec_prefix),g' \
 
 
 ## Rules to install the scripts.
+astscript-dither-simulate: dither-simulate.in Makefile
+	$(do_subst) < $(srcdir)/dither-simulate.in > $@
+	chmod +x $@
+
 astscript-ds9-region: ds9-region.in Makefile
 	$(do_subst) < $(srcdir)/ds9-region.in > $@
 	chmod +x $@
