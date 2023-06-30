@@ -749,6 +749,7 @@ Installed scripts
 * SAO DS9 region files from table::  Create ds9 region file from a table.
 * Viewing FITS file contents with DS9 or TOPCAT::  Open DS9 (images/cubes) or TOPCAT (tables).
 * Zero point estimation::       Zero point of an image from reference catalog or image(s).
+* Dithering pattern simulation::  Simulate a stack with a certain dithering pattern.
 * PSF construction and subtraction::  Set of scripts to create extended PSF of an image.
 
 Sort FITS files by night
@@ -777,6 +778,10 @@ Invoking astscript-zeropoint
 
 * zero point output::           Format of the output.
 * zero point options::          List and details of options.
+
+Dithering pattern simulation
+
+* Invoking astscript-dither-simulate::  Options and running mode.
 
 PSF construction and subtraction
 
@@ -26003,7 +26008,7 @@ If you need to warp or convolve the image, do it @emph{before} the conversion.
 @node Quantifying measurement limits, Measuring elliptical parameters, Brightness flux magnitude, MakeCatalog
 @subsection Quantifying measurement limits
 
-@cindex Depth
+@cindex Depth of data
 @cindex Clump magnitude limit
 @cindex Object magnitude limit
 @cindex Limit, object/clump magnitude
@@ -30215,6 +30220,7 @@ If you do confront such strange errors, please submit a bug report so we fix it 
 * SAO DS9 region files from table::  Create ds9 region file from a table.
 * Viewing FITS file contents with DS9 or TOPCAT::  Open DS9 (images/cubes) or TOPCAT (tables).
 * Zero point estimation::       Zero point of an image from reference catalog or image(s).
+* Dithering pattern simulation::  Simulate a stack with a certain dithering pattern.
 * PSF construction and subtraction::  Set of scripts to create extended PSF of an image.
 @end menu
 
@@ -31077,7 +31083,7 @@ With this option, you can have separate color bars under each image.
 
 @c Update the ``previous'' and next items: C-c C-u C-e
 @c Update the menu:                        C-u C-c C-u m
-@node Zero point estimation, PSF construction and subtraction, Viewing FITS file contents with DS9 or TOPCAT, Installed scripts
+@node Zero point estimation, Dithering pattern simulation, Viewing FITS file contents with DS9 or TOPCAT, Installed scripts
 @section Zero point estimation
 
 @cindex Zero point
@@ -31396,7 +31402,7 @@ The stars that are brighter than 16 are saturated in one (or both) surveys@footn
 Therefore, they do not have the correct magnitude or mag-diff.
 You can check some of these stars visually by using the blinking command above and zooming into some of the brighter stars in the SDSS images.
 
-@cindex Depth
+@cindex Depth of data
 On the other hand, it is natural that we cannot measure accurate magnitudes for the fainter stars because the noise level (or ``depth'') of each image is limited.
 As a result, the horizontal line becomes wider (scattered) as we go to the right (fainter magnitudes on the horizontal axis).
 So, let's limit the range of used magnitudes from the SDSS catalog to calculate a more accurate zero point for the J-PLUS image.
@@ -31863,7 +31869,87 @@ When this option is given, the default installed Makefile will not be used: the 
 @end table
 
 
-@node PSF construction and subtraction,  , Zero point estimation, Installed scripts
+@node Dithering pattern simulation, PSF construction and subtraction, Zero point estimation, Installed scripts
+@section Dithering pattern simulation
+
+@cindex Depth of data
+Astronomical images are often composed of many single exposures.
+When the science topic does not depend on the time of observation (for example galaxy evolution), after completing the observations, we stack those single exposures into one ``deep'' image.
+Designing the strategy to take those single exposures is therefore a very important aspect of planning your astronomical observation.
+There are many reasons for taking many short exposures instead of one long exposure:
+
+@itemize
+@item
+Modern astronomical telescopes have very high precision (with pixels that are often much smaller than an arc-second or 1/3600 degrees.
+However, the Earth is orbiting the Sun at a very high speed of roughly 15 degrees every hour!
+Keeping the (often very large!) telescopes in track with this fast moving sky is not easy; such that most cannot continue accurate tracking more than 10 minutes.
+@item
+@cindex Seeing
+For ground-based observations, the turbulance of the atmosphere changes very fast (on the scale of minutes!).
+So if you plan to observe at 10 minutes and at the start of your observations the seeing is good, it may happen that on the 8th minute, it becomes bad.
+This will affect the quality of your final exposure!
+@item
+@cindex Vignetting
+When an exposure is taken, the instrument/environment imprint a lot of artifacts on it.
+One common example that we also see in normal cameras is @url{https://en.wikipedia.org/wiki/Vignetting, vignetting}; where the center receives a larger fraction of the incoming light than the periphery).
+In order to characterize and remove such artifacts (which depend on many factors at the precision that we need in astronomy!), we need to take many exposures of our science target.
+@item
+By taking many exposures we can build a stack that has a higher resolution; this is often done in under-sampled data, like those in the hubble space telescope or JWST.
+@item
+The scientific target can be larger than the field of view of your telescope and camera.
+@end itemize
+
+@cindex Pointing
+In the jargon of observational astronomers, each exposure is also known as a ``dither'' (literally/generally meaning ``trembling'' or ``vibration'').
+This name was chosen because two exposures are not usually taken on exactly the same position of the sky (known as ``pointing'').
+In order to improve all the item above, we often move the center of the field of view from one exposure to the next.
+In most cases this movement is small compared to the field of view, so most of the central part of the final stack has a fixed depth, but the edges are shallower (conveying a sence of vibration).
+
+@cindex Exposure map
+For example see Figures 3 and 4 of @url{https://arxiv.org/pdf/1305.1931.pdf, Illingworth et al. 2013} which show the exposures that went into the XDF survey.
+The dither pattern can also be large compared to the field of view, for example see Figure 1 of @url{https://arxiv.org/pdf/2109.07478.pdf, Trujillo et al. 2021}, which show the dithering strategy for the LIGHTS survey.
+These types of images (where each pixel contains the number of exposures, or time, that were used in it)
+
+The dithering pattern therefore is strongly defined by the science case (high-level purpose of the observation) and your telescope's field of view.
+For example in the XDF survey is focused on very high redshift (most distant!) galaxies.
+These are very small objects and within that small footprint (of just 1 arcmin) we have thousands of them.
+However, the LIGHTS survey is focused on the halos of large nearby galaxies (that can be more than 10 arcminutes wide!).
+
+In @ref{Invoking astscript-dither-simulate} we describe one of Gnuastro's @ref{Installed scripts} that is designed to simplify the process of selecting the best dithering pattern for your observation strategy.
+
+@menu
+* Invoking astscript-dither-simulate::  Options and running mode.
+@end menu
+
+@node Invoking astscript-dither-simulate,  , Dithering pattern simulation, Dithering pattern simulation
+@subsection Invoking astscript-dither-simulate
+
+This installed script will simulate a final stacked image from a certain dither pattern (given as a table).
+The executable name is @file{astscript-dither-simulate}, with the following general template:
+
+@example
+$ astscript-dither-simulate [OPTION...] pointings.fits
+@end example
+
+Here is an example usage of this script to simulate a dither pattern centered on the RA,Dec of 10,10 with 5 pointings that are 0.1 degrees away from the central one , in a +-shaped orientation (see contents of @file{pointings.fits} in the first command below).
+This script (which is called in the second command) will produce a final image showing the exposure map produced from these 5 exposures ()
+
+@example
+$ asttable pointings.fits -O
+# Column 1: RA  [deg, f32] Right Ascension of pointing center
+# Column 2: DEC [deg, f32] Declination of pointing center
+10.0   10.0
+10.1   10.0
+10.0   10.1
+-9.9   10.0
+-9.9   -9.9
+
+$ astscript
+
+@end example
+
+
+@node PSF construction and subtraction,  , Dithering pattern simulation, Installed scripts
 @section PSF construction and subtraction
 
 The point spread function (PSF) describes how the light of a point-like source is affected by several optical scattering effects (atmosphere, telescope, instrument, etc.).
