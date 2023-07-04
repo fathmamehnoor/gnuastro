@@ -36,18 +36,19 @@ $(exposures): $(tmpdir)/exp-%.fits: $(img) | $(tmpdir)
 
 #	Copy the input into a temporary one and edit its keywords to adjust
 #	to this pointings position.
-	copy=$(subst .fits,-copy.fits,$@); \
+	@copy=$(subst .fits,-copy.fits,$@); \
 	warped=$(subst .fits,-warped.fits,$@); \
 	const=$(subst .fits,-constant.fits,$@); \
-	astfits $(img) --copy=$(imghdu) --output=$$copy; \
+	astfits $(img) --copy=$(imghdu) --output=$$copy $(quiet); \
 	astfits --update=CRVAL1,$($*-ra) $$copy \
-	        --update=CRVAL2,$($*-dec); \
-	astarithmetic $$copy 1 uint8 constant --output=$$const; \
+	        --update=CRVAL2,$($*-dec) $(quiet); \
+	astarithmetic $$copy 1 uint8 constant --output=$$const \
+	              $(quiet); \
 	rm $$copy; \
 	astwarp $$const --center=$(center) --width=$(width) \
-	        $(widthinpix) --output=$$warped; \
+	        $(widthinpix) --output=$$warped $(quiet); \
 	rm $$const; \
-	astarithmetic $$warped isnotblank -o$@; \
+	astarithmetic $$warped isnotblank -o$@ $(quiet); \
 	rm $$warped
 
 
@@ -56,5 +57,5 @@ $(exposures): $(tmpdir)/exp-%.fits: $(img) | $(tmpdir)
 
 # Build the stack
 $(output): $(exposures)
-	astarithmetic $(exposures) $(words $(exposures)) \
-	              sum -g1 --output=$@
+	@astarithmetic $(exposures) $(words $(exposures)) \
+	              sum -g1 --output=$@ $(quiet)

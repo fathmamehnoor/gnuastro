@@ -29,6 +29,7 @@ img=""
 hdu=1
 cat=""
 width=""
+quiet=""
 imghdu=1
 center=""
 keeptmp=0
@@ -76,7 +77,7 @@ $scriptname options:
   -k, --keeptmp           Keep temporal/auxiliar files.
 
  Operating mode:
-  -h, --help              Print this help.
+  -?, --help              Print this help.
   -N, --numthreads=INT    Number of threads; maximum if not given.
       --cite              BibTeX citation for this program.
   -q, --quiet             Don't print any extra information in stdout.
@@ -241,7 +242,7 @@ do
    -o*)                    output=$(echo "$1" | sed -e's/-o//');         check_v "$1" "$output"; shift;;
 
     # Non-operating options.
-    -q|--quiet)             quiet=" -q"; shift;;
+    -q|--quiet)             quiet="--quiet"; shift;;
     -q*|--quiet=*)          on_off_option_error --quiet -q;;
     -?|--help)              print_help; exit 0;;
     -'?'*|--help=*)         on_off_option_error --help -?;;
@@ -329,10 +330,11 @@ config=$tmpdir/dither-simulate.conf
 ndither=$(astfits $cat --hdu=$hdu --keyvalue=NAXIS2 --quiet)
 echo "img = $img" > $config
 echo "width = $width" >> $config
+echo "quiet = $quiet" >> $config
 echo "center = $center" >> $config
 echo "output = $output" >> $config
 echo "imghdu = $imghdu" >> $config
-echo "dithers = $(seq 24 | tr '\n' ' ')" >> $config
+echo "dithers = $(seq $ndither | tr '\n' ' ')" >> $config
 if [ $widthinpix = 1 ]; then
     echo "widthinpix = --widthinpix" >> $config
 else

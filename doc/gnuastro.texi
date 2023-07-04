@@ -781,6 +781,7 @@ Invoking astscript-zeropoint
 
 Dithering pattern simulation
 
+* Stack from a cross-shaped dither::
 * Invoking astscript-dither-simulate::  Options and running mode.
 
 PSF construction and subtraction
@@ -31863,7 +31864,7 @@ This option is useful for debugging and checking the outputs of internal steps.
 
 @item --mksrc=STR
 Use a non-standard Makefile for the Makefile to call.
-This option is primarily useful during the development of this script and its Makefile, not for a normal user.
+This option is primarily useful during the development of this script and its Makefile, not for normal/regular user.
 So if you are not developing this script, you can safely ignore this option.
 When this option is given, the default installed Makefile will not be used: the file given to this option will be read by @command{make} (within the script) instead.
 @end table
@@ -31918,10 +31919,37 @@ However, the LIGHTS survey is focused on the halos of large nearby galaxies (tha
 In @ref{Invoking astscript-dither-simulate} we describe one of Gnuastro's @ref{Installed scripts} that is designed to simplify the process of selecting the best dithering pattern for your observation strategy.
 
 @menu
+* Stack from a cross-shaped dither:: A tutorial on how to use this script.
 * Invoking astscript-dither-simulate::  Options and running mode.
 @end menu
 
-@node Invoking astscript-dither-simulate,  , Dithering pattern simulation, Dithering pattern simulation
+@node Stack from a cross-shaped dither, Invoking astscript-dither-simulate, Dithering pattern simulation, Dithering pattern simulation
+@subsection Stack from a cross-shaped dither
+
+The example usage below shows how to simulate a dither pattern centered on the RA,Dec of 10,10 with 5 pointings that are 0.1 degrees away from the central one , in a +-shaped orientation (see contents of @file{dither.fits} in the first command below).
+Since it depends on the camera distortion and orientation, an input image is necessary; here we'll download an SDSS image with the second command.
+This script (which is called in the second command) will produce a final image showing the exposure map that will be produced after stacking these 5 exposures.
+
+@example
+$ asttable dither.fits -O
+# Column 1: RA  [deg, f32] Right Ascension of pointing center
+# Column 2: DEC [deg, f32] Declination of pointing center
+10.0   10.0
+10.1   10.0
+10.0   10.1
+-9.9   10.0
+-9.9   -9.9
+
+$ wget $sdssurl/301/3716/6/frame-r-003716-6-0117.fits.bz2 \
+       -Or.fits.bz2
+$ bunzip2 r.fits.bz2
+
+$ astscript-dither-simulate dither.fits --center=10,10 --width=1,1 \
+                            --img=r.fits --output=stack.fits
+@end example
+
+
+@node Invoking astscript-dither-simulate,  , Stack from a cross-shaped dither, Dithering pattern simulation
 @subsection Invoking astscript-dither-simulate
 
 This installed script will simulate a final stacked image from a certain dither pattern (given as a table).
@@ -31931,23 +31959,135 @@ The executable name is @file{astscript-dither-simulate}, with the following gene
 $ astscript-dither-simulate [OPTION...] pointings.fits
 @end example
 
-Here is an example usage of this script to simulate a dither pattern centered on the RA,Dec of 10,10 with 5 pointings that are 0.1 degrees away from the central one , in a +-shaped orientation (see contents of @file{pointings.fits} in the first command below).
-This script (which is called in the second command) will produce a final image showing the exposure map produced from these 5 exposures ()
+@noindent
+Examples (for a tutorial, see @ref{Stack from a cross-shaped dither}):
 
 @example
-$ asttable pointings.fits -O
-# Column 1: RA  [deg, f32] Right Ascension of pointing center
-# Column 2: DEC [deg, f32] Declination of pointing center
-10.0   10.0
-10.1   10.0
-10.0   10.1
--9.9   10.0
--9.9   -9.9
-
-$ astscript
-
+$ astscript-dither-simulate dither.fits --output=stack.fits \
+           --img=image.fits --center=10,10 --width=1,1
 @end example
 
+The default output of this script is a stacked image that results from placing the given image (given to @option{--img}) in the pointings of a dither pattern.
+The Right Ascension (RA) and Declination (Dec) of each pointing is given in the main input catalog (@file{dither.fits} in the example above).
+The center and width of the final stack (both in degrees by default) should be speficied using the @option{--width} option.
+Therefore, in order to successfully run, this script at least needs the following four inputs:
+@table @asis
+@item Pointing positions
+A table containing the RA and Dec of each pointing (the only input argument).
+The actual column names that contain them can be set with the @option{--racol} and @option{--deccol} options (see below).
+@item An image
+This is used for its distortion and rotation, its pixel values and position on the sky will be ignored.
+The file containing the image should be given to the @option{--img} option.
+@item Stack's central coordinate
+The central RA and Dec of the finally produced stack (given to the @option{--center} option).
+@item Stack's width
+The width (in degrees) of the final stack (given to the @option{--width} option).
+@end table
+
+This script will ignore the pixel values of the reference image (given to @option{--img}) and the Reference coordinates (values to @code{CRVAL1} and @code{CRVAL2} in its WCS keywords).
+For each dither pointing, this script will put the given RA and Dec into the @code{CRVAL1} and @code{CRVAL2} keywords of a copy of the input (not changing the input in anyway), and reset that input's pixel values to 1.
+The script will then warp the modified copy into the final pixel grid (correcting any rotation and distortions that are used from the original input).
+This process is done for all the dither points in parallel.
+Finally, all the dithered exposures are stacked together to produce an exposure map (showing how many exposures go into each pixel of the final stack.
+
+Except for the table of dither positions, the rest of the inputs and settings are configured through @ref{Options}, just note the restrictions in @ref{Installed scripts}.
+
+@table @option
+@item -o STR
+@itemx --output=STR
+Name of the output.
+The output is an image of the requested size (@option{--width}) and position (@option{--center}) in the sky, but each pixel will contain the number of exposures that go into it after the dithering has been done.
+See description above for more.
+
+@item -h STR/INT
+@itemx --hdu=STR/INT
+The name or counter (counting from zero; from the FITS standard) of HDU containing the table of dither pointing positions (the file name of this table is the main input argument to this script).
+For more, see the description of this option in @ref{Input output options}.
+
+@item -i STR
+@itemx --img=STR
+The references image.
+The pixel values and central location in this image will be ignored by the script.
+The only relevant information within this script are the WCS properties (except for @option{CRVAL1} and @option{CRVAL2}, which connect it to a certain position on the sky) and image size.
+See the description above for more.
+
+@item -H STR/INT
+@itemx --imghdu=STR/INT
+The name or counter (counting from zero; from the FITS standard) of the HDU containing the reference image (file name should be given to the @option{--img} option).
+If not given, a default value of @code{1} is assumed; so this is not a mandatory option.
+
+@item -r STR/INT
+@itemx --racol=STR/INT
+The name or counter (counting from 1; from the FITS standard) of the column containing the Right Ascension (RA) of each pointing to be used in the dither pattern.
+The file containing the table is given to this script as its only argument.
+
+@item -d STR/INT
+@itemx --deccol=STR/INT
+The name or counter (counting from 1; from the FITS standard) of the column containing the Declination (Dec) of each pointing to be used in the dither pattern.
+The file containing the table is given to this script as its only argument.
+
+@item -C FLT,FLT
+@itemx --center=FLT,FLT
+The central RA and Declination of the final stack in degrees.
+
+@item -w FLT,FLT
+@itemx --width=FLT,FLT
+The width of the final stack in degress.
+If @option{--widthinpix} is given, the two values given to this option will be interpreted as degrees.
+
+@item --widthinpix
+Interpret the values given to @option{--width} as number of pixels along each dimension), and not as degrees.
+
+@item --mksrc=STR
+Use a non-standard Makefile for the Makefile to call.
+This option is primarily useful during the development of this script and its Makefile, not for normal/regular usage.
+So if you are not developing this script, you can safely ignore this option.
+When this option is given, the default installed Makefile will not be used: the file given to this option will be read by @command{make} (within the script) instead.
+
+@item -t STR
+@itemx --tmpdir=STR
+Name of directory containing temporary files.
+If not given, a temporary directory will be created in the running directory with a long name using some of the input options.
+By default, this temporary directory will be deleted after the output is created.
+You can disable the deletion of the temporary directory (useful for debugging!) with the @option{--keeptmp} option.
+
+Using this option has multiple benefits in larger pipelines:
+@itemize
+@item
+You can avoid conflicts in case the used inputs in the default name are the same.
+@item
+You can put this directory somewhere else in the running file system to avoid mixing output files with your source, or to use other storage hardware that are mounted on the running file system.
+@end itemize
+
+@item -k
+@itemx --keeptmp
+Keep the temporary directory (and do not delete it).
+
+@item -?
+@itemx --help
+Print a list of all the options, along with a short descrioption and context for the program.
+For more, see @option{Operating mode options}.
+
+@item -N INT
+@itemx --numthreads=INT
+The number of threads to use for parallel operations (warping the input into the different dither points).
+If not given (by default), the script will try to find the number of available threads on the running system and use that.
+For more, see @option{Operating mode options}.
+
+@item --cite
+Give BibTeX and Acknowledgement information for citing this script within your paper.
+For more, see @option{Operating mode options}.
+
+@item -q
+@itemx --quiet
+Do not print the series of commands or their outputs in the terminal.
+For more, see @option{Operating mode options}.
+
+@item -V
+@itemx --version
+Print the version of the running Gnuastro along with a copyright notice and list of authors that contributed to this script.
+For more, see @option{Operating mode options}.
+@end table
 
 @node PSF construction and subtraction,  , Dithering pattern simulation, Installed scripts
 @section PSF construction and subtraction
