@@ -15366,7 +15366,7 @@ To view the contents of the table on the command-line or to feed it to a program
 @cindex Columns (Vector)
 @cindex Multi-value columns (vector)
 In its most common format, each column of a table only has a single value in each row.
-For example, we usually have one column for the magnitude, another column for the RA and yet another column for the Declination of a set of galaxies/stars (where each galaxy is represented by one row in the table).
+For example, we usually have one column for the magnitude, another column for the RA (Right Ascension) and yet another column for the DEC (Declination) of a set of galaxies/stars (where each galaxy is represented by one row in the table).
 This common single-valued column format is sufficient in many scenarios.
 However, in some situations (like those below) it would help to have multiple values for each row in each column, not just one.
 
