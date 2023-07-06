@@ -119,10 +119,6 @@ struct converttparams
   uint8_t      sizeinarcsec;  /* Sizes are in arcseconds (in WCS-mode).*/
   uint8_t      sizeinarcmin;  /* Sizes are in arcminutes (in WCS-mode).*/
   uint8_t marktextprecision;  /* Precision to convert floats.          */
-  int             widthinpx;  /* Width of image in pixel.              */
-  int            heightinpx;  /* Height of image in pixel.             */
-  int         bitspersample;  /* Number of bits used to represent color 
-                                 of a single pixel.                    */
 
   /* Internal */
   struct change     *change;  /* The value conversion string.          */

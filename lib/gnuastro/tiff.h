@@ -5,6 +5,7 @@ This is part of GNU Astronomy Utilities (Gnuastro) package.
 Original author:
      Mohammad Akhlaghi <mohammad@akhlaghi.org>
 Contributing author(s):
+     Fathma Mehnoor <fathmamehnoor@gmail.com>
 Copyright (C) 2018-2023 Free Software Foundation, Inc.
 
 Gnuastro is free software: you can redistribute it and/or modify it
@@ -67,8 +68,7 @@ gal_data_t *
 gal_tiff_read(char *filename, size_t dir, size_t minmapsize, int quietmmap);
 
 void
-gal_tiff_write(gal_data_t *in, char *filename, int widthinpx, int heightinpx, 
-               int bitspersample, int numimg);
+gal_tiff_write(gal_data_t *in, char *filename);
 
 
 __END_C_DECLS    /* From C++ preparations */

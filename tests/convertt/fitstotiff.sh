@@ -6,7 +6,8 @@
 # Original author:
 #     Mohammad Akhlaghi <mohammad@akhlaghi.org>
 # Contributing author(s):
-# Copyright (C) 2015-2023 Free Software Foundation, Inc.
+#     Fathma Mehnoor <fathmamehnoor@gmail.com>
+# Copyright (C) 2023-2023 Free Software Foundation, Inc.
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright

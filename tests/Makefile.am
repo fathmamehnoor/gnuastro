@@ -320,7 +320,7 @@ EXTRA_DIST = $(TESTS) during-dev.sh \
 
 
 # Files that must be cleaned with 'make clean'.
-CLEANFILES = *.log *.txt *.jpg *.fits *.pdf *.eps simpleio
+CLEANFILES = *.log *.txt *.jpg *.fits *.pdf *.eps *.tif simpleio
 
 
 

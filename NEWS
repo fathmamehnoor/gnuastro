@@ -51,6 +51,11 @@ See the end of the file for license conditions.
     - pool-mean: Similar to 'pool-min' but using mean.
     - pool-median: Similar to 'pool-min' but using median.
 
+  ConvertType:
+  - It is now possible to write TIFF files in the output (until now,
+    Gnuastro could only read TIFF files). This step was written by Fathma
+    Mehnoor.
+
   Table:
   - '$_all' in column arithmetic: when an arithmetic expression contains
     this string, it will be repeated independently for all the columns of
@@ -70,6 +75,8 @@ See the end of the file for license conditions.
   - gal_pool_sum: sum-pooling function, see 'pool-min' above.
   - gal_pool_mean: mean-pooling function, see 'pool-min' above.
   - gal_pool_median: median-pooling function, see 'pool-min' above.
+  - gal_tiff_write: write 'gal_data_t' to a TIFF file; written by
+    Fathma Mehnoor.
 
 ** Removed features
 
