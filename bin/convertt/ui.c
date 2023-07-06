@@ -753,9 +753,9 @@ ui_make_channels_ll(struct converttparams *p)
 
           /* Read in the array and its WCS information. */
           data=gal_fits_img_read(name->v, hdu, p->cp.minmapsize,
-                                 p->cp.quietmmap);
+                                 p->cp.quietmmap, "--hdu");
           data->wcs=gal_wcs_read(name->v, hdu, p->cp.wcslinearmatrix,
-                                 0, 0, &data->nwcs);
+                                 0, 0, &data->nwcs, "--hdu");
           data->ndim=gal_dimension_remove_extra(data->ndim, data->dsize,
                                                 data->wcs);
           gal_list_data_add(&p->chll, data);
@@ -1303,7 +1303,7 @@ ui_marks_read_raw(struct converttparams *p, gal_data_t **coord1,
   table=gal_table_read(p->marksname, p->markshdu, NULL, cols,
                        p->cp.searchin, p->cp.ignorecase,
                        p->cp.numthreads, p->cp.minmapsize,
-                       p->cp.quietmmap, NULL);
+                       p->cp.quietmmap, NULL, "--markshdu");
 
   /* Make sure that we have only one column for each entry (it may happen
      that a table has two columns with the same name!). */

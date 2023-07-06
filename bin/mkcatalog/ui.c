@@ -544,7 +544,7 @@ ui_wcs_info(struct mkcatalogparams *p)
   /* Read the WCS meta-data. */
   p->objects->wcs=gal_wcs_read(p->objectsfile, p->cp.hdu,
                                p->cp.wcslinearmatrix, 0, 0,
-                               &p->objects->nwcs);
+                               &p->objects->nwcs, "--hdu");
 
   /* Read the basic WCS information. */
   if(p->objects->wcs)
@@ -843,7 +843,8 @@ ui_read_labels(struct mkcatalogparams *p)
 
   /* Read it into memory. */
   p->objects = gal_array_read_one_ch(p->objectsfile, p->cp.hdu, NULL,
-                                     p->cp.minmapsize, p->cp.quietmmap);
+                                     p->cp.minmapsize, p->cp.quietmmap,
+                                     "--hdu");
   p->objects->ndim=gal_dimension_remove_extra(p->objects->ndim,
                                               p->objects->dsize, NULL);
 
@@ -935,7 +936,7 @@ ui_read_labels(struct mkcatalogparams *p)
       /* Read the clumps image. */
       p->clumps = gal_array_read_one_ch(p->usedclumpsfile, p->clumpshdu,
                                         NULL, p->cp.minmapsize,
-                                        p->cp.quietmmap);
+                                        p->cp.quietmmap, "--clumpshdu");
       p->clumps->ndim=gal_dimension_remove_extra(p->clumps->ndim,
                                                  p->clumps->dsize, NULL);
 
@@ -1299,7 +1300,8 @@ ui_preparations_read_inputs(struct mkcatalogparams *p)
                                               p->valueshdu,
                                               NULL, GAL_TYPE_FLOAT32,
                                               p->cp.minmapsize,
-                                              p->cp.quietmmap);
+                                              p->cp.quietmmap,
+                                              "--valueshdu");
       p->values->ndim=gal_dimension_remove_extra(p->values->ndim,
                                                  p->values->dsize, NULL);
 
@@ -1355,7 +1357,8 @@ ui_preparations_read_inputs(struct mkcatalogparams *p)
           p->sky=gal_array_read_one_ch_to_type(p->usedskyfile, p->skyhdu,
                                                NULL, GAL_TYPE_FLOAT32,
                                                p->cp.minmapsize,
-                                               p->cp.quietmmap);
+                                               p->cp.quietmmap,
+                                               "--skyhdu");
           p->sky->ndim=gal_dimension_remove_extra(p->sky->ndim,
                                                   p->sky->dsize, NULL);
 
@@ -1387,7 +1390,7 @@ ui_preparations_read_inputs(struct mkcatalogparams *p)
       p->std=gal_array_read_one_ch_to_type(p->usedstdfile, p->stdhdu,
                                            NULL, GAL_TYPE_FLOAT32,
                                            p->cp.minmapsize,
-                                           p->cp.quietmmap);
+                                           p->cp.quietmmap, "--stdhdu");
       p->std->ndim=gal_dimension_remove_extra(p->std->ndim,
                                               p->std->dsize, NULL);
 
@@ -1423,7 +1426,8 @@ ui_preparations_read_inputs(struct mkcatalogparams *p)
           /* Read the mask image. */
           p->upmask = gal_array_read_one_ch(p->upmaskfile, p->upmaskhdu,
                                             NULL, p->cp.minmapsize,
-                                            p->cp.quietmmap);
+                                            p->cp.quietmmap,
+                                            "--upmaskhdu");
           p->upmask->ndim=gal_dimension_remove_extra(p->upmask->ndim,
                                                      p->upmask->dsize,
                                                      NULL);

@@ -53,7 +53,7 @@ static void
 keywords_open(struct fitsparams *p, fitsfile **fptr, int iomode)
 {
   if(*fptr==NULL)
-    *fptr=gal_fits_hdu_open(p->input->v, p->cp.hdu, iomode, 1);
+    *fptr=gal_fits_hdu_open(p->input->v, p->cp.hdu, iomode, 1, "--hdu");
 }
 
 
@@ -507,7 +507,8 @@ keywords_copykeys(struct fitsparams *p, char *inkeys, size_t numinkeys)
   int updatechecksum=0, checksumexists=0;
 
   /* Open the output HDU. */
-  fptr=gal_fits_hdu_open(p->cp.output, p->outhdu, READWRITE, 1);
+  fptr=gal_fits_hdu_open(p->cp.output, p->outhdu, READWRITE, 1,
+                         "--outhdu");
 
   /* See if a 'CHECKSUM' key exists in the HDU or not (to update in case we
      wrote anything). */
@@ -585,22 +586,22 @@ keywords_wcs_convert(struct fitsparams *p)
 
   /* If the extension has any data, read it, otherwise just make an empty
      array. */
-  if(gal_fits_hdu_format(p->input->v, p->cp.hdu)==IMAGE_HDU)
+  if(gal_fits_hdu_format(p->input->v, p->cp.hdu, "--hdu")==IMAGE_HDU)
     {
       /* Read the size of the dataset (we don't need the actual size!). */
-      insize=gal_fits_img_info_dim(p->input->v, p->cp.hdu, &ndim);
+      insize=gal_fits_img_info_dim(p->input->v, p->cp.hdu, &ndim, "--hdu");
       free(insize);
 
       /* If the number of dimensions is two, then read the dataset,
          otherwise, ignore it. */
       if(ndim==2)
         data=gal_fits_img_read(p->input->v, p->cp.hdu, p->cp.minmapsize,
-                               p->cp.quietmmap);
+                               p->cp.quietmmap, "--hdu");
     }
 
   /* Read the input's WCS and make sure one exists. */
   inwcs=gal_wcs_read(p->input->v, p->cp.hdu, p->cp.wcslinearmatrix,
-                     0, 0, &nwcs);
+                     0, 0, &nwcs, "--hdu");
   if(inwcs==NULL)
     error(EXIT_FAILURE, 0, "%s (hdu %s): doesn't have any WCS structure "
           "for converting its coordinate system or distortion",
@@ -946,7 +947,7 @@ keywords_value(struct fitsparams *p)
   for(input=p->input; input!=NULL; input=input->next)
     {
       /* Open the input FITS file. */
-      fptr=gal_fits_hdu_open(input->v, p->cp.hdu, READONLY, 1);
+      fptr=gal_fits_hdu_open(input->v, p->cp.hdu, READONLY, 1, "--hdu");
 
       /* Allocate the array to keep the keys. */
       i=0;

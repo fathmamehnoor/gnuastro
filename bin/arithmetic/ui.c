@@ -386,12 +386,13 @@ ui_preparations(struct arithmeticparams *p)
   if(p->wcsfile && strcmp(p->wcsfile,"none"))
     {
       /* Read the number of dimensions and the size of each. */
-      dsize=gal_fits_img_info_dim(p->wcsfile, p->wcshdu, &ndim);
+      dsize=gal_fits_img_info_dim(p->wcsfile, p->wcshdu, &ndim,
+                                  "--wcshdu");
 
       /* Read the WCS. */
       p->refdata.wcs=gal_wcs_read(p->wcsfile, p->wcshdu,
                                   p->cp.wcslinearmatrix, 0, 0,
-                                  &p->refdata.nwcs);
+                                  &p->refdata.nwcs, "--wcshdu");
       if(p->refdata.wcs)
         {
           if(!p->cp.quiet)

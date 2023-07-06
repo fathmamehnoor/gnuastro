@@ -403,7 +403,8 @@ gal_wcs_read_fitsptr(fitsfile *fptr, int linearmatrix, size_t hstartwcs,
 
 struct wcsprm *
 gal_wcs_read(char *filename, char *hdu, int linearmatrix,
-             size_t hstartwcs, size_t hendwcs, int *nwcs)
+             size_t hstartwcs, size_t hendwcs, int *nwcs,
+             char *hdu_option_name)
 {
   int status=0;
   fitsfile *fptr;
@@ -414,7 +415,7 @@ gal_wcs_read(char *filename, char *hdu, int linearmatrix,
     return NULL;
 
   /* Check HDU for realistic conditions: */
-  fptr=gal_fits_hdu_open_format(filename, hdu, 0);
+  fptr=gal_fits_hdu_open_format(filename, hdu, 0, hdu_option_name);
 
   /* Read the WCS information: */
   wcs=gal_wcs_read_fitsptr(fptr, linearmatrix, hstartwcs,
@@ -2076,7 +2077,7 @@ gal_wcs_pixel_area_arcsec2(struct wcsprm *wcs)
 int
 gal_wcs_coverage(char *filename, char *hdu, size_t *ondim,
                  double **ocenter, double **owidth, double **omin,
-                 double **omax)
+                 double **omax, char *hdu_option_name)
 {
   fitsfile *fptr;
   struct wcsprm *wcs;
@@ -2090,19 +2091,20 @@ gal_wcs_coverage(char *filename, char *hdu, size_t *ondim,
   /* Read the desired WCS (note that the linear matrix is irrelevant here,
      we'll just select PC because its the default WCS mode. */
   wcs=gal_wcs_read(filename, hdu, GAL_WCS_LINEAR_MATRIX_PC,
-                   0, 0, &nwcs);
+                   0, 0, &nwcs, hdu_option_name);
 
   /* If a WCS doesn't exist, return NULL. */
   if(wcs==NULL) return 0;
 
   /* Make sure the input HDU is an image. */
-  if( gal_fits_hdu_format(filename, hdu) != IMAGE_HDU )
+  if( gal_fits_hdu_format(filename, hdu, hdu_option_name) != IMAGE_HDU )
     error(EXIT_FAILURE, 0, "%s (hdu %s): is not an image HDU, the "
           "'--skycoverage' option only applies to image extensions",
           filename, hdu);
 
   /* Get the array information of the image. */
-  fptr=gal_fits_hdu_open(filename, hdu, READONLY, 1);
+  fptr=gal_fits_hdu_open(filename, hdu, READONLY, 1,
+                         hdu_option_name);
   gal_fits_img_info(fptr, &type, ondim, &dsize, &name, &unit);
   fits_close_file(fptr, &status);
   ndim=*ondim;

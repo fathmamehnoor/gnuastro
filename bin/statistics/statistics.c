@@ -308,7 +308,7 @@ statistics_interpolate_and_write(struct statisticsparams *p,
   gal_fits_key_write_filename("input", p->inputname, &p->cp.okeys, 1,
                               p->cp.quiet);
   gal_fits_key_write_config(&p->cp.okeys, "Statistics configuration",
-                            "STATISTICS-CONFIG", output, "0");
+                            "STATISTICS-CONFIG", output, "0", "NONE");
 }
 
 
@@ -688,7 +688,7 @@ write_output_table(struct statisticsparams *p, gal_data_t *table,
       gal_fits_key_write_filename("input", p->inputname, &p->cp.okeys, 1,
                                   p->cp.quiet);
       gal_fits_key_write_config(&p->cp.okeys, "Statistics configuration",
-                                "STATISTICS-CONFIG", output, "0");
+                                "STATISTICS-CONFIG", output, "0", "NONE");
     }
 
 
@@ -863,7 +863,7 @@ histogram_2d(struct statisticsparams *p)
       gal_fits_key_write_filename("input", p->inputname, &p->cp.okeys, 1,
                                   p->cp.quiet);
       gal_fits_key_write_config(&p->cp.okeys, "Statistics configuration",
-                                "STATISTICS-CONFIG", output, "0");
+                                "STATISTICS-CONFIG", output, "0", "NONE");
 
       /* Clean up and let the user know that the histogram is built. */
       free(ctype[0]);

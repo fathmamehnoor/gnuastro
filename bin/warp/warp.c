@@ -430,10 +430,10 @@ warp_write_to_file(struct warpparams *p, int hasmatrix)
   gal_fits_key_write_filename("input", p->inputname, &p->cp.okeys,
                               1, p->cp.quiet);
   gal_fits_key_write_config(&p->cp.okeys, "Warp configuration",
-                            "WARP-CONFIG", p->cp.output, "0");
+                            "WARP-CONFIG", p->cp.output, "0", "NONE");
 
   /* Write headers on HDU/extension '1'. */
-  gal_fits_key_write(&headers, NULL, p->cp.output, "1");
+  gal_fits_key_write(&headers, NULL, p->cp.output, "1", "NONE");
 }
 
 

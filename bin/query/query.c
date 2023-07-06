@@ -78,7 +78,7 @@ query_output_meta_database(struct queryparams *p)
   /* Get the downloaded metadata column information so we can ask for the
      proper columns. */
   allcols=gal_table_info(p->downloadname, "1", NULL, &numcols,
-                         &numrows, &tableformat);
+                         &numrows, &tableformat, "NONE");
 
   /* Parse the column information to set the necessary columns. */
   if( query_output_meta_col(&cols, allcols, numcols, "table_name") == 0 )
@@ -97,7 +97,8 @@ query_output_meta_database(struct queryparams *p)
   gal_list_str_reverse(&cols);
   table=gal_table_read(p->downloadname, "1", NULL, cols,
                        GAL_TABLE_SEARCH_NAME, 1, p->cp.numthreads,
-                       p->cp.minmapsize, p->cp.quietmmap, NULL);
+                       p->cp.minmapsize, p->cp.quietmmap, NULL,
+                       "NONE");
 
   /* Set the basic columns for easy reading. */
   name=table->array;
@@ -189,7 +190,7 @@ query_output_meta_dataset(struct queryparams *p)
   /* Get the downloaded metadata column information so we can ask for the
      proper columns. */
   allcols=gal_table_info(p->downloadname, "1", NULL, &numcols,
-                         &numrows, &tableformat);
+                         &numrows, &tableformat, "NONE");
 
   /* Parse the column information to set the necessary columns. */
   if( query_output_meta_col(&cols, allcols, numcols, "column_name") == 0 )
@@ -210,7 +211,8 @@ query_output_meta_dataset(struct queryparams *p)
   gal_list_str_reverse(&cols);
   table=gal_table_read(p->downloadname, "1", NULL, cols,
                        GAL_TABLE_SEARCH_NAME, 1, p->cp.numthreads,
-                       p->cp.minmapsize, p->cp.quietmmap, NULL);
+                       p->cp.minmapsize, p->cp.quietmmap, NULL,
+                       "NONE");
 
   /* It may happen that the required dataset name isn't recognized by the
      database. In this case, 'table' will have 0 rows. */
@@ -276,7 +278,8 @@ query_output_data(struct queryparams *p)
      downloaded table is compressed in any special FITS way). */
   table=gal_table_read(p->downloadname, "1", NULL, NULL,
                        GAL_TABLE_SEARCH_NAME, 1, p->cp.numthreads,
-                       p->cp.minmapsize, p->cp.quietmmap, NULL);
+                       p->cp.minmapsize, p->cp.quietmmap, NULL,
+                       "NONE");
   gal_table_write(table, NULL, NULL, p->cp.tableformat,
                   p->cp.output ? p->cp.output : p->cp.output,
                   "QUERY", 0);
@@ -356,7 +359,8 @@ query_output_finalize(struct queryparams *p)
       gal_fits_key_list_fullcomment_add_end(&p->cp.okeys,
                                             p->finalcommand, 1);
       gal_fits_key_write_config(&p->cp.okeys, "Query settings",
-                                "QUERY-CONFIG", p->cp.output, "0");
+                                "QUERY-CONFIG", p->cp.output, "0",
+                                "NONE");
     }
 }
 

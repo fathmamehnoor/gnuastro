@@ -703,7 +703,7 @@ ui_read_cols_general(struct mkprofparams *p, gal_list_str_t *colstrs)
   lines=gal_options_check_stdin(p->catname, p->cp.stdintimeout, "input");
   cols=gal_table_read(p->catname, p->cp.hdu, lines, colstrs,
                       p->cp.searchin, p->cp.ignorecase, p->cp.numthreads,
-                      p->cp.minmapsize, p->cp.quietmmap, NULL);
+                      p->cp.minmapsize, p->cp.quietmmap, NULL, "--hdu");
   gal_list_str_free(lines, 1);
 
   /* The name of the input catalog is only for informative steps from now
@@ -1336,7 +1336,7 @@ ui_prepare_columns(struct mkprofparams *p)
     {
       if(p->f[i]==PROFILE_CUSTOM_PROF)
         {
-          if(p->customprofname==NULL)
+          if(p->customtablename==NULL)
             error(EXIT_FAILURE, 0, "at least one custom profile "
                   "requested (first occurrence in row %zu), but no "
                   "file/table was given to the '--customtable' "
@@ -1521,9 +1521,10 @@ ui_prepare_canvas(struct mkprofparams *p)
          no merged image is desired, we just need the WCS information of
          the background image and the number of its dimensions. So
          'ndim==0' and what 'dsize' points to is irrelevant. */
-      tdsize=gal_fits_img_info_dim(p->backname, p->backhdu, &tndim);
+      tdsize=gal_fits_img_info_dim(p->backname, p->backhdu, &tndim,
+                                   "--backhdu");
       p->wcs=gal_wcs_read(p->backname, p->backhdu, p->cp.wcslinearmatrix,
-                          0, 0, &p->nwcs);
+                          0, 0, &p->nwcs, "--backhdu");
       tndim=gal_dimension_remove_extra(tndim, tdsize, p->wcs);
       free(tdsize);
       if(p->nomerged==0)
@@ -1843,10 +1844,10 @@ ui_read_custom_table(struct mkprofparams *p)
   double *min, *max;
 
   /* Read the input radial table. */
-  cols=gal_table_read(p->customprofname, p->customprofhdu,
+  cols=gal_table_read(p->customtablename, p->customtablehdu,
                       NULL, NULL, p->cp.searchin, p->cp.ignorecase,
                       p->cp.numthreads, p->cp.minmapsize,
-                      p->cp.quietmmap, NULL);
+                      p->cp.quietmmap, NULL, "--customtablehdu");
 
   /* Make sure the table only has three columns. */
   if(gal_list_data_number(cols) != 3 )
@@ -1855,8 +1856,8 @@ ui_read_custom_table(struct mkprofparams *p)
           "value. Column 2: the radial interval's higher value. "
           "Column 3: the value to use for pixels within that radius "
           "interval",
-          gal_fits_name_save_as_string(p->customprofname,
-                                       p->customprofhdu),
+          gal_fits_name_save_as_string(p->customtablename,
+                                       p->customtablehdu),
           gal_list_data_number(cols));
 
   /* Make sure none of the three columns are string type. */
@@ -1864,8 +1865,8 @@ ui_read_custom_table(struct mkprofparams *p)
       || cols->next->type==GAL_TYPE_STRING
       || cols->next->next->type==GAL_TYPE_STRING )
     error(EXIT_FAILURE, 0, "%s: the columns should only have numeric "
-          "data types", gal_fits_name_save_as_string(p->customprofname,
-                                                     p->customprofhdu));
+          "data types", gal_fits_name_save_as_string(p->customtablename,
+                                                     p->customtablehdu));
 
   /* Fill the final table as a double type. */
   p->custom=gal_data_copy_to_new_type(cols, GAL_TYPE_FLOAT64);
@@ -1885,8 +1886,8 @@ ui_read_custom_table(struct mkprofparams *p)
             "value %g). However, the first column is the lower-limit "
             "of the radial interval and the second column is the "
             "upper-limit. So the first column must have a lower value",
-            gal_fits_name_save_as_string(p->customprofname,
-                                         p->customprofhdu), i+1,
+            gal_fits_name_save_as_string(p->customtablename,
+                                         p->customtablehdu), i+1,
             min[i], max[i]);
 
   /* Check if the input table is regular and sorted (which can greatly
@@ -1944,7 +1945,7 @@ ui_read_ndim(struct mkprofparams *p)
             {
               /* Get the number of the background image's dimensions. */
               dsize=gal_fits_img_info_dim(p->backname, p->backhdu,
-                                          &p->ndim);
+                                          &p->ndim, "--backhdu");
               p->ndim=gal_dimension_remove_extra(p->ndim, dsize, NULL);
               free(dsize);
             }
@@ -1954,7 +1955,8 @@ ui_read_ndim(struct mkprofparams *p)
               p->out=gal_array_read_one_ch_to_type(p->backname, p->backhdu,
                                                    NULL, GAL_TYPE_FLOAT32,
                                                    p->cp.minmapsize,
-                                                   p->cp.quietmmap);
+                                                   p->cp.quietmmap,
+                                                   "--backhdu");
               p->out->ndim=gal_dimension_remove_extra(p->out->ndim,
                                                       p->out->dsize, NULL);
               p->ndim=p->out->ndim;
@@ -1998,7 +2000,7 @@ ui_preparations(struct mkprofparams *p)
   ui_prepare_columns(p);
 
   /* Read the radial table. */
-  if(p->customprofname) ui_read_custom_table(p);
+  if(p->customtablename) ui_read_custom_table(p);
 
   /* If the kernel option was given, some parameters need to be
      over-written: */

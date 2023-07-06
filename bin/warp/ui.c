@@ -343,13 +343,15 @@ ui_check_gridfile(struct warpparams *p)
 
   /* Read the WCS and save to a standard PC convention WCS struct. */
   wa->twcs=gal_wcs_read(p->gridfile, p->gridhdu,
-                        GAL_WCS_LINEAR_MATRIX_PC, 0, 0, &nwcs);
+                        GAL_WCS_LINEAR_MATRIX_PC, 0, 0, &nwcs,
+                        "--gridhdu");
   if(wa->twcs==NULL)
     error(EXIT_FAILURE, 0, "%s (hdu %s): no readable WCS structure",
           p->gridfile, p->gridhdu);
 
   /* Correct the WCS dimensions if necessary. */
-  dsize=gal_fits_img_info_dim(p->gridfile, p->gridhdu, &ndim);
+  dsize=gal_fits_img_info_dim(p->gridfile, p->gridhdu, &ndim,
+                              "--gridhdu");
   ndim=gal_dimension_remove_extra(ndim, dsize, wa->twcs);
   if(ndim!=2)
     error(EXIT_FAILURE, 0, "%s (hdu %s): the target WCS must "
@@ -612,7 +614,7 @@ ui_check_options_and_arguments_wcsalign(struct warpparams *p)
       /* Get sky coverage information about the input image. Note that
          this allocates the pointers that have to be freed later. */
       if( gal_wcs_coverage(p->inputname, p->cp.hdu, &indim, &icenter,
-                           &iwidth, &imin, &imax)==0 )
+                           &iwidth, &imin, &imax, "--hdu")==0 )
         error(EXIT_FAILURE, 0, "%s (hdu %s): is not usable for finding "
               "sky coverage", p->inputname, p->cp.hdu);
 
@@ -676,12 +678,12 @@ ui_check_options_and_arguments(struct warpparams *p)
   p->input=gal_array_read_one_ch_to_type(p->inputname, p->cp.hdu,
                                          NULL, GAL_TYPE_FLOAT64,
                                          p->cp.minmapsize,
-                                         p->cp.quietmmap);
+                                         p->cp.quietmmap, "--hdu");
 
   /* Read the WCS and remove one-element wide dimension(s). */
   p->input->wcs=gal_wcs_read(p->inputname, p->cp.hdu,
                              p->cp.wcslinearmatrix, p->hstartwcs,
-                             p->hendwcs, &p->input->nwcs);
+                             p->hendwcs, &p->input->nwcs, "--hdu");
   p->input->ndim=gal_dimension_remove_extra(p->input->ndim,
                                             p->input->dsize,
                                             p->input->wcs);

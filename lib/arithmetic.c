@@ -3140,7 +3140,8 @@ gal_arithmetic_load_col(char *str, int searchin, int ignorecase,
 
   /* Read the column from the table. */
   out=gal_table_read(filename, hdu, NULL, colid, searchin, ignorecase,
-                     numthreads, minmapsize, quietmmap, NULL);
+                     numthreads, minmapsize, quietmmap, NULL,
+                     "WITHIN-LOAD-COL");
 
   /* Make sure that only a single column matched. */
   if(out->next)

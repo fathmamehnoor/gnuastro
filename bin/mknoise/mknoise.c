@@ -122,7 +122,7 @@ convertsaveoutput(struct mknoiseparams *p)
   gal_fits_key_write_filename("input", p->inputname, &p->cp.okeys, 1,
                               p->cp.quiet);
   gal_fits_key_write_config(&p->cp.okeys, "MakeNoise configuration",
-                            "MKNOISE-CONFIG", p->cp.output, "0");
+                            "MKNOISE-CONFIG", p->cp.output, "0", "NONE");
 }
 
 

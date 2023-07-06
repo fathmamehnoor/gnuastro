@@ -100,13 +100,14 @@ gal_array_file_recognized(char *name)
    extension/dir of the given file. */
 gal_data_t *
 gal_array_read(char *filename, char *extension, gal_list_str_t *lines,
-               size_t minmapsize, int quietmmap)
+               size_t minmapsize, int quietmmap, char *ext_option_name)
 {
   size_t ext;
 
   /* FITS  */
   if( gal_fits_file_recognized(filename) )
-    return gal_fits_img_read(filename, extension, minmapsize, quietmmap);
+    return gal_fits_img_read(filename, extension, minmapsize, quietmmap,
+                             ext_option_name);
 
   /* TIFF */
   else if ( gal_tiff_name_is_tiff(filename) )
@@ -139,11 +140,13 @@ gal_array_read(char *filename, char *extension, gal_list_str_t *lines,
 gal_data_t *
 gal_array_read_to_type(char *filename, char *extension,
                        gal_list_str_t *lines, uint8_t type,
-                       size_t minmapsize, int quietmmap)
+                       size_t minmapsize, int quietmmap,
+                       char *ext_option_name)
 {
   gal_data_t *out=NULL;
   gal_data_t *next, *in=gal_array_read(filename, extension, lines,
-                                       minmapsize, quietmmap);
+                                       minmapsize, quietmmap,
+                                       ext_option_name);
 
   /* Go over all the channels. */
   while(in)
@@ -165,12 +168,14 @@ gal_array_read_to_type(char *filename, char *extension,
 
 /* Read the input array and make sure it is only one channel. */
 gal_data_t *
-gal_array_read_one_ch(char *filename, char *extension, gal_list_str_t *lines,
-                      size_t minmapsize, int quietmmap)
+gal_array_read_one_ch(char *filename, char *extension,
+                      gal_list_str_t *lines, size_t minmapsize,
+                      int quietmmap, char *ext_option_name)
 {
   char *fname;
   gal_data_t *out;
-  out=gal_array_read(filename, extension, lines, minmapsize, quietmmap);
+  out=gal_array_read(filename, extension, lines, minmapsize, quietmmap,
+                     ext_option_name);
 
   if(out->next)
     {
@@ -202,10 +207,12 @@ gal_array_read_one_ch(char *filename, char *extension, gal_list_str_t *lines,
 gal_data_t *
 gal_array_read_one_ch_to_type(char *filename, char *extension,
                               gal_list_str_t *lines, uint8_t type,
-                              size_t minmapsize, int quietmmap)
+                              size_t minmapsize, int quietmmap,
+                              char *ext_option_name)
 {
   gal_data_t *out=gal_array_read_one_ch(filename, extension, lines,
-                                        minmapsize, quietmmap);
+                                        minmapsize, quietmmap,
+                                        ext_option_name);
 
   return gal_data_copy_to_new_type_free(out, type);
 }

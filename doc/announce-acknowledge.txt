@@ -1,5 +1,6 @@
 Alphabetically ordered list to acknowledge in the next release.
 
+Aaron Watkins
 Agata Rożek
 Irene Pintos Castro
 Rashid Yaaqib

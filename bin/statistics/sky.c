@@ -290,7 +290,7 @@ sky(struct statisticsparams *p)
   gal_fits_key_write_filename("input", p->inputname, &p->cp.okeys, 1,
                               p->cp.quiet);
   gal_fits_key_write_config(&p->cp.okeys, "Statistics configuration",
-                            "STATISTICS-CONFIG", outname, "0");
+                            "STATISTICS-CONFIG", outname, "0", "NONE");
   if(!cp->quiet)
     printf("  - Sky and its STD written to '%s'.\n", outname);
 

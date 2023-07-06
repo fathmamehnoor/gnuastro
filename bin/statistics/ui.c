@@ -623,7 +623,8 @@ ui_check_options_and_arguments(struct statisticsparams *p)
 
           /* If its an image, make sure column isn't given (in case the
              user confuses an image with a table). */
-          p->hdu_type=gal_fits_hdu_format(p->inputname, p->cp.hdu);
+          p->hdu_type=gal_fits_hdu_format(p->inputname, p->cp.hdu,
+                                          "--hdu");
           if(p->hdu_type==IMAGE_HDU && p->columns)
             error(EXIT_FAILURE, 0, "%s (hdu: %s): is a FITS image "
                   "extension. The '--column' option is only applicable "
@@ -910,7 +911,7 @@ ui_read_columns(struct statisticsparams *p)
     {
       /* Get the basic table information. */
       cinfo=gal_table_info(p->inputname, p->cp.hdu, lines, &ncols, &nrows,
-                           &tformat);
+                           &tformat, "NONE");
       gal_data_array_free(cinfo, ncols, 1);
 
       /* See how many columns it has and take the proper action. */
@@ -946,7 +947,7 @@ ui_read_columns(struct statisticsparams *p)
   /* Read the desired column(s). */
   cols=gal_table_read(p->inputname, p->cp.hdu, lines, p->columns,
                       p->cp.searchin, p->cp.ignorecase, p->cp.numthreads,
-                      p->cp.minmapsize, p->cp.quietmmap, NULL);
+                      p->cp.minmapsize, p->cp.quietmmap, NULL, "--hdu");
   gal_list_str_free(lines, 1);
   p->input=cols;
 
@@ -1037,7 +1038,7 @@ ui_preparations_fitestimate(struct statisticsparams *p)
                                   NULL, fecols,
                                   p->cp.searchin, p->cp.ignorecase, 1,
                                   p->cp.minmapsize, p->cp.quietmmap,
-                                  NULL);
+                                  NULL, "--fitestimatehdu");
 
       /* If more than one column matched, inform the user. */
       if(p->fitestval->next)
@@ -1136,10 +1137,11 @@ ui_preparations(struct statisticsparams *p)
     {
       p->inputformat=INPUT_FORMAT_IMAGE;
       p->input=gal_array_read_one_ch(p->inputname, cp->hdu, NULL,
-                                     cp->minmapsize, p->cp.quietmmap);
+                                     cp->minmapsize, p->cp.quietmmap,
+                                     "--hdu");
       p->input->wcs=gal_wcs_read(p->inputname, cp->hdu,
                                  p->cp.wcslinearmatrix, 0, 0,
-                                 &p->input->nwcs);
+                                 &p->input->nwcs, "--hdu");
       p->input->ndim=gal_dimension_remove_extra(p->input->ndim,
                                                 p->input->dsize,
                                                 p->input->wcs);
@@ -1160,7 +1162,8 @@ ui_preparations(struct statisticsparams *p)
   if(p->sky && p->kernelname)
     {
       p->kernel=gal_fits_img_read_kernel(p->kernelname, p->khdu,
-                                         cp->minmapsize, p->cp.quietmmap);
+                                         cp->minmapsize, p->cp.quietmmap,
+                                         "--khdu");
       p->kernel->ndim=gal_dimension_remove_extra(p->kernel->ndim,
                                                  p->kernel->dsize, NULL);
     }

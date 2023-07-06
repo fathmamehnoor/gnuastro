@@ -1691,7 +1691,7 @@ arithmetic_final_read_file(struct arithmeticparams *p,
       /* Read the data, note that the WCS has already been set. */
       out=gal_array_read_one_ch(filename, hdu, NULL,
                                 p->cp.minmapsize,
-                                p->cp.quietmmap);
+                                p->cp.quietmmap, "--hdu");
       out->ndim=gal_dimension_remove_extra(out->ndim, out->dsize,
                                             NULL);
       if(!p->cp.quiet) printf(" - %s (hdu %s) is read.\n", filename, hdu);

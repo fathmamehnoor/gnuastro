@@ -45,8 +45,10 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 
 /* Number of columns in a file. */
 static gal_list_str_t *
-match_add_all_cols(char *filename, char *extname, gal_list_str_t *stdinlines,
-                   gal_list_str_t *incols, size_t *num)
+match_add_all_cols(char *filename, char *extname,
+                   gal_list_str_t *stdinlines,
+                   gal_list_str_t *incols, size_t *num,
+                   char *hdu_option_name)
 {
   char *tstr;
   int tableformat;
@@ -64,8 +66,9 @@ match_add_all_cols(char *filename, char *extname, gal_list_str_t *stdinlines,
           if( numcols == GAL_BLANK_SIZE_T )
             {
               colinfo=gal_table_info(filename, extname,
-                                     filename ? NULL : stdinlines, &numcols,
-                                     &numrows, &tableformat);
+                                     filename ? NULL : stdinlines,
+                                     &numcols, &numrows, &tableformat,
+                                     hdu_option_name);
               gal_data_array_free(colinfo, numcols, 1);
             }
 
@@ -316,6 +319,7 @@ match_catalog_read_write_all(struct matchparams *p, size_t *permutation,
   gal_data_t *tmp, *cat;
   gal_list_str_t *cols, *tcol;
 
+  char *hopt             = (f1s2==1) ? "--hdu"       : "--hdu2";
   char *hdu              = (f1s2==1) ? p->cp.hdu     : p->hdu2;
   gal_list_str_t *incols = (f1s2==1) ? p->acols      : p->bcols;
   size_t *numcols        = (f1s2==1) ? &p->anum      : &p->bnum;
@@ -338,7 +342,7 @@ match_catalog_read_write_all(struct matchparams *p, size_t *permutation,
       if(hasall)
         {
           cols=match_add_all_cols(filename, hdu, p->stdinlines, incols,
-                                  numcols);
+                                  numcols, hopt);
           if(f1s2==1) { gal_list_str_free(p->acols, 0); p->acols=cols; }
           else        { gal_list_str_free(p->bcols, 0); p->bcols=cols; }
         }
@@ -360,7 +364,7 @@ match_catalog_read_write_all(struct matchparams *p, size_t *permutation,
     cat=gal_table_read(filename, hdu, filename ? NULL : p->stdinlines,
                        cols, p->cp.searchin, p->cp.ignorecase,
                        p->cp.numthreads, p->cp.minmapsize,
-                       p->cp.quietmmap, *numcolmatch);
+                       p->cp.quietmmap, *numcolmatch, hopt);
   else
     cat=match_cat_from_coord(p, cols, *numcolmatch);
 
@@ -886,6 +890,7 @@ match(struct matchparams *p)
                                   p->input2name?p->input2name:"--coord",
                                   &p->cp.okeys, 1, p->cp.quiet);
       gal_fits_key_write_config(&p->cp.okeys, "Match configuration",
-                                "MATCH-CONFIG", p->out1name, "0");
+                                "MATCH-CONFIG", p->out1name, "0",
+                                "NONE");
     }
 }

@@ -160,23 +160,24 @@ size_t
 gal_fits_hdu_num(char *filename);
 
 unsigned long
-gal_fits_hdu_datasum(char *filename, char *hdu);
+gal_fits_hdu_datasum(char *filename, char *hdu, char *hdu_option_name);
 
 unsigned long
 gal_fits_hdu_datasum_ptr(fitsfile *fptr);
 
 int
-gal_fits_hdu_format(char *filename, char *hdu);
+gal_fits_hdu_format(char *filename, char *hdu, char *hdu_option_name);
 
 int
 gal_fits_hdu_is_healpix(fitsfile *fptr);
 
 fitsfile *
-gal_fits_hdu_open(char *filename, char *hdu, int iomode,
-                  int exitonerror);
+gal_fits_hdu_open(char *filename, char *hdu, int iomode, int exitonerror,
+                  char *hdu_option_name);
 
 fitsfile *
-gal_fits_hdu_open_format(char *filename, char *hdu, int img0_tab1);
+gal_fits_hdu_open_format(char *filename, char *hdu, int img0_tab1,
+                         char *hdu_option_name);
 
 
 
@@ -251,14 +252,15 @@ gal_fits_key_write_wcsstr(fitsfile *fptr, struct wcsprm *wcs,
 
 void
 gal_fits_key_write(gal_fits_list_key_t **keylist, char *title,
-                   char *filename, char *hdu);
+                   char *filename, char *hdu, char *hdu_option_name);
 
 void
 gal_fits_key_write_in_ptr(gal_fits_list_key_t **keylist, fitsfile *fptr);
 
 void
 gal_fits_key_write_version(gal_fits_list_key_t **keylist, char *title,
-                           char *filename, char *hdu);
+                           char *filename, char *hdu,
+                           char *hdu_option_name);
 
 void
 gal_fits_key_write_version_in_ptr(gal_fits_list_key_t **keylist, char *title,
@@ -266,14 +268,16 @@ gal_fits_key_write_version_in_ptr(gal_fits_list_key_t **keylist, char *title,
 
 void
 gal_fits_key_write_config(gal_fits_list_key_t **keylist, char *title,
-                          char *extname, char *filename, char *hdu);
+                          char *extname, char *filename, char *hdu,
+                          char *hdu_option_name);
 
 gal_list_str_t *
 gal_fits_with_keyvalue(gal_list_str_t *files, char *hdu, char *name,
-                       gal_list_str_t *values);
+                       gal_list_str_t *values, char *hdu_option_name);
 
 gal_list_str_t *
-gal_fits_unique_keyvalues(gal_list_str_t *files, char *hdu, char *name);
+gal_fits_unique_keyvalues(gal_list_str_t *files, char *hdu, char *name,
+                          char *hdu_option_name);
 
 
 
@@ -287,18 +291,21 @@ gal_fits_img_info(fitsfile *fptr, int *type, size_t *ndim, size_t **dsize,
                   char **name, char **unit);
 
 size_t *
-gal_fits_img_info_dim(char *filename, char *hdu, size_t *ndim);
+gal_fits_img_info_dim(char *filename, char *hdu, size_t *ndim,
+                      char *hdu_option_name);
 
 gal_data_t *
-gal_fits_img_read(char *filename, char *hdu, size_t minmapsize, int quietmmap);
+gal_fits_img_read(char *filename, char *hdu, size_t minmapsize,
+                  int quietmmap, char *hdu_option_name);
 
 gal_data_t *
 gal_fits_img_read_to_type(char *inputname, char *hdu, uint8_t type,
-                          size_t minmapsize, int quietmmap);
+                          size_t minmapsize, int quietmmap,
+                          char *hdu_option_name);
 
 gal_data_t *
 gal_fits_img_read_kernel(char *filename, char *hdu, size_t minmapsize,
-                         int quietmmap);
+                         int quietmmap, char *hdu_option_name);
 
 fitsfile *
 gal_fits_img_write_to_ptr(gal_data_t *data, char *filename);
@@ -333,12 +340,14 @@ gal_fits_tab_format(fitsfile *fptr);
 
 gal_data_t *
 gal_fits_tab_info(char *filename, char *hdu, size_t *numcols,
-                  size_t *numrows, int *tableformat);
+                  size_t *numrows, int *tableformat,
+                  char *hdu_option_name);
 
 gal_data_t *
 gal_fits_tab_read(char *filename, char *hdu, size_t numrows,
                   gal_data_t *allcols, gal_list_sizet_t *indexll,
-                  size_t numthreads, size_t minmapsize, int quietmmap);
+                  size_t numthreads, size_t minmapsize, int quietmmap,
+                  char *hdu_option_name);
 
 void
 gal_fits_tab_write(gal_data_t *cols, gal_list_str_t *comments,

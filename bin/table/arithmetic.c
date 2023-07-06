@@ -169,7 +169,7 @@ arithmetic_init_wcs(struct tableparams *p, char *operator)
 
       /* Read the WCS. */
       p->wcs=gal_wcs_read(p->wcsfile, p->wcshdu, p->cp.wcslinearmatrix,
-                          0, 0, &p->nwcs);
+                          0, 0, &p->nwcs, "--wcshdu");
       if(p->wcs==NULL)
         error(EXIT_FAILURE, 0, "%s (hdu: %s): no WCS could be read by "
               "WCSLIB", p->wcsfile, p->wcshdu);

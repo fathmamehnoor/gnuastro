@@ -715,9 +715,10 @@ ui_read_cols(struct cropparams *p)
 
 
   /* Read the desired columns from the file. */
-  cols=gal_table_read(p->catname, p->cathdu, NULL, colstrs, p->cp.searchin,
-                      p->cp.ignorecase, p->cp.numthreads, p->cp.minmapsize,
-                      p->cp.quietmmap, NULL);
+  cols=gal_table_read(p->catname, p->cathdu, NULL, colstrs,
+                      p->cp.searchin, p->cp.ignorecase,
+                      p->cp.numthreads, p->cp.minmapsize,
+                      p->cp.quietmmap, NULL, "--cathdu");
   if(cols==NULL)
     error(EXIT_FAILURE, 0, "%s: is empty! No usable information "
           "(un-commented lines) could be read from this file",
@@ -880,7 +881,8 @@ ui_preparations_to_img_mode(struct cropparams *p)
   double *darr, pixwidth, *pixscale;
   struct wcsprm *wcs=gal_wcs_read(p->inputs->v, p->cp.hdu,
                                   p->cp.wcslinearmatrix,
-                                  p->hstartwcs, p->hendwcs, &nwcs);
+                                  p->hstartwcs, p->hendwcs, &nwcs,
+                                  "--hdu");
 
   /* Make sure a WCS actually exists. */
   if(wcs==NULL)
@@ -1061,7 +1063,7 @@ ui_preparations(struct cropparams *p)
       status=0;
       img=&p->imgs[--input_counter];
       img->name=gal_list_str_pop(&p->inputs);
-      tmpfits=gal_fits_hdu_open_format(img->name, p->cp.hdu, 0);
+      tmpfits=gal_fits_hdu_open_format(img->name, p->cp.hdu, 0, "--hdu");
       gal_fits_img_info(tmpfits, &p->type, &img->ndim, &img->dsize,
                         NULL, NULL);
       img->wcs=gal_wcs_read_fitsptr(tmpfits, p->cp.wcslinearmatrix,

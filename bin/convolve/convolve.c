@@ -826,7 +826,8 @@ convolve(struct convolveparams *p)
       gal_fits_key_write_filename("input", p->filename, &cp->okeys, 1,
                                   cp->quiet);
       gal_fits_key_write_config(&cp->okeys, "Convolve configuration",
-                                "CONVOLVE-CONFIG", cp->output, "0");
+                                "CONVOLVE-CONFIG", cp->output, "0",
+                                "NONE");
     }
 
   /* Inform the user that the job is done. */

@@ -68,8 +68,8 @@ meta_initialize(struct fitsparams *p, gal_warp_wcsalign_t *wa)
 
   /* Read the input image and its WCS, must free it when done. */
   input=gal_array_read_one_ch_to_type(inputname, hdu, NULL,
-                                      GAL_TYPE_FLOAT64, -1,  0);
-  input->wcs=gal_wcs_read(inputname, hdu, 0, 0, 0, &input->nwcs);
+                                      GAL_TYPE_FLOAT64, -1,  0, "--hdu");
+  input->wcs=gal_wcs_read(inputname, hdu, 0, 0, 0, &input->nwcs, "--hdu");
 
   /* Prepare the essential warping variables. */
   wa->input=input;

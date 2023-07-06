@@ -414,10 +414,10 @@ ui_prepare_inputs(struct segmentparams *p)
   p->input = gal_array_read_one_ch_to_type(p->inputname, p->cp.hdu,
                                            NULL, GAL_TYPE_FLOAT32,
                                            p->cp.minmapsize,
-                                           p->cp.quietmmap);
+                                           p->cp.quietmmap, "--hdu");
   p->input->wcs = gal_wcs_read(p->inputname, p->cp.hdu,
                                p->cp.wcslinearmatrix, 0, 0,
-                               &p->input->nwcs);
+                               &p->input->nwcs, "--hdu");
   p->input->ndim=gal_dimension_remove_extra(p->input->ndim,
                                             p->input->dsize,
                                             p->input->wcs);
@@ -445,7 +445,7 @@ ui_prepare_inputs(struct segmentparams *p)
       p->conv = gal_array_read_one_ch_to_type(p->convolvedname, p->chdu,
                                               NULL, GAL_TYPE_FLOAT32,
                                               p->cp.minmapsize,
-                                              p->cp.quietmmap);
+                                              p->cp.quietmmap, "--chdu");
       p->conv->ndim=gal_dimension_remove_extra(p->conv->ndim,
                                                p->conv->dsize,
                                                p->conv->wcs);
@@ -467,7 +467,7 @@ ui_prepare_inputs(struct segmentparams *p)
       /* Read the dataset into memory. */
       p->olabel = gal_array_read_one_ch(p->useddetectionname, p->dhdu,
                                         NULL, p->cp.minmapsize,
-                                        p->cp.quietmmap);
+                                        p->cp.quietmmap, "--dhdu");
       p->olabel->ndim=gal_dimension_remove_extra(p->olabel->ndim,
                                                  p->olabel->dsize, NULL);
       if( gal_dimension_is_different(p->input, p->olabel) )
@@ -564,7 +564,7 @@ ui_prepare_kernel(struct segmentparams *p)
           /* Read the kernel into memory. */
           p->kernel=gal_fits_img_read_kernel(p->kernelname, p->khdu,
                                              p->cp.minmapsize,
-                                             p->cp.quietmmap);
+                                             p->cp.quietmmap, "--khdu");
           p->kernel->ndim=gal_dimension_remove_extra(p->kernel->ndim,
                                                      p->kernel->dsize,
                                                      NULL);
@@ -775,7 +775,8 @@ ui_read_std_and_sky(struct segmentparams *p)
       /* Read the STD image. */
       p->std=gal_array_read_one_ch_to_type(p->usedstdname, p->stdhdu,
                                            NULL, GAL_TYPE_FLOAT32,
-                                           p->cp.minmapsize, p->cp.quietmmap);
+                                           p->cp.minmapsize,
+                                           p->cp.quietmmap, "--stdhdu");
       p->std->ndim=gal_dimension_remove_extra(p->std->ndim,
                                               p->std->dsize, NULL);
 
@@ -835,13 +836,14 @@ ui_read_std_and_sky(struct segmentparams *p)
           /* Read the Sky dataset. */
           sky=gal_array_read_one_ch_to_type(p->skyname, p->skyhdu,
                                             NULL, GAL_TYPE_FLOAT32,
-                                            p->cp.minmapsize, p->cp.quietmmap);
+                                            p->cp.minmapsize,
+                                            p->cp.quietmmap, "--skyhdu");
           sky->ndim=gal_dimension_remove_extra(sky->ndim, sky->dsize,
                                                NULL);
 
           /* Check its size. */
-          ui_check_size(p->input, sky, tl->tottiles, p->inputname, p->cp.hdu,
-                        p->skyname, p->skyhdu);
+          ui_check_size(p->input, sky, tl->tottiles, p->inputname,
+                        p->cp.hdu, p->skyname, p->skyhdu);
         }
 
       /* Subtract the sky from the input. */

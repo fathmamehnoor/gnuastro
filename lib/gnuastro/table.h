@@ -139,7 +139,8 @@ gal_table_displayflt_to_str(uint8_t fmt);
 /************************************************************************/
 gal_data_t *
 gal_table_info(char *filename, char *hdu, gal_list_str_t *lines,
-               size_t *numcols, size_t *numrows, int *tableformat);
+               size_t *numcols, size_t *numrows, int *tableformat,
+               char *hdu_option_name);
 
 void
 gal_table_print_info(gal_data_t *allcols, size_t numcols, size_t numrows);
@@ -153,7 +154,7 @@ gal_data_t *
 gal_table_read(char *filename, char *hdu, gal_list_str_t *lines,
                gal_list_str_t *cols, int searchin, int ignorecase,
                size_t numthreads, size_t minmapsize, int quietmmap,
-               size_t *colmatch);
+               size_t *colmatch, char *hdu_option_name);
 
 gal_list_sizet_t *
 gal_table_list_of_indexs(gal_list_str_t *cols, gal_data_t *allcols,

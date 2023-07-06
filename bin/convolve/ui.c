@@ -266,7 +266,7 @@ ui_check_options_and_arguments(struct convolveparams *p)
 
           /* If its an image, make sure column isn't given (in case the
              user confuses an image with a table). */
-          p->hdu_type=gal_fits_hdu_format(p->filename, p->cp.hdu);
+          p->hdu_type=gal_fits_hdu_format(p->filename, p->cp.hdu, "--hdu");
           if(p->hdu_type==IMAGE_HDU && p->column)
             error(EXIT_FAILURE, 0, "%s (hdu: %s): is a FITS image "
                   "extension. The '--column' option is only applicable "
@@ -289,7 +289,8 @@ ui_check_options_and_arguments(struct convolveparams *p)
 
           /* If its an image, make sure column isn't given (in case the
              user confuses an image with a table). */
-          kernel_type=gal_fits_hdu_format(p->kernelname, p->khdu);
+          kernel_type=gal_fits_hdu_format(p->kernelname, p->khdu,
+                                          "--khdu");
           if(kernel_type==IMAGE_HDU && p->kernelcolumn)
             error(EXIT_FAILURE, 0, "%s (hdu: %s): is a FITS image "
                   "extension. The '--kernelcolumn' option is only "
@@ -343,7 +344,8 @@ ui_read_column(struct convolveparams *p, int i0k1)
   if(columnname==NULL)
     {
       /* Get the basic table information. */
-      cinfo=gal_table_info(filename, hdu, lines, &ncols, &nrows, &tformat);
+      cinfo=gal_table_info(filename, hdu, lines, &ncols, &nrows, &tformat,
+                           "--hdu");
       gal_data_array_free(cinfo, ncols, 1);
 
       /* See how many columns it has and take the proper action. */
@@ -380,7 +382,7 @@ ui_read_column(struct convolveparams *p, int i0k1)
   /* Read the desired column(s). */
   out=gal_table_read(filename, hdu, lines, column, p->cp.searchin,
                      p->cp.ignorecase, p->cp.numthreads,
-                     p->cp.minmapsize, p->cp.quietmmap, NULL);
+                     p->cp.minmapsize, p->cp.quietmmap, NULL, "--hdu");
   gal_list_str_free(lines, 1);
 
   /* Confirm if only one column was read (it is possible that a regexp
@@ -442,13 +444,13 @@ ui_read_input(struct convolveparams *p)
   if( p->filename && gal_array_name_recognized(p->filename) )
     if (p->isfits && p->hdu_type==IMAGE_HDU)
       {
-        p->input=gal_array_read_one_ch_to_type(p->filename, p->cp.hdu, NULL,
-                                               INPUT_USE_TYPE,
+        p->input=gal_array_read_one_ch_to_type(p->filename, p->cp.hdu,
+                                               NULL, INPUT_USE_TYPE,
                                                p->cp.minmapsize,
-                                               p->cp.quietmmap);
+                                               p->cp.quietmmap, "--hdu");
         p->input->wcs=gal_wcs_read(p->filename, p->cp.hdu,
                                    p->cp.wcslinearmatrix, 0, 0,
-                                   &p->input->nwcs);
+                                   &p->input->nwcs, "--hdu");
         p->input->ndim=gal_dimension_remove_extra(p->input->ndim,
                                                   p->input->dsize,
                                                   p->input->wcs);
@@ -477,7 +479,8 @@ ui_read_kernel(struct convolveparams *p)
       p->kernel = gal_array_read_one_ch_to_type(p->kernelname, p->khdu,
                                                 NULL, INPUT_USE_TYPE,
                                                 p->cp.minmapsize,
-                                                p->cp.quietmmap);
+                                                p->cp.quietmmap,
+                                                "--khdu");
       p->kernel->ndim=gal_dimension_remove_extra(p->kernel->ndim,
                                                  p->kernel->dsize,
                                                  p->kernel->wcs);

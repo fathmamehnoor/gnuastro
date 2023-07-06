@@ -161,7 +161,7 @@ tap_query_construct_spatial(struct queryparams *p)
     {
       /* Calculate the Sky coverage of the overlap dataset. */
       gal_wcs_coverage(p->overlapwith, p->cp.hdu, &ndim, &ocenter,
-                       &owidth, &omin, &omax);
+                       &owidth, &omin, &omax, "--hdu");
 
       /* Make sure a WCS existed in the file. */
       if(owidth==NULL)

@@ -878,7 +878,7 @@ table_catcolumn(struct tableparams *p)
       tocat=gal_table_read(filell->v, hdu, NULL, p->catcolumns,
                            cp->searchin, cp->ignorecase,
                            cp->numthreads, cp->minmapsize,
-                           p->cp.quietmmap, NULL);
+                           p->cp.quietmmap, NULL, "--catcolumnhdu");
 
       /* Check the number of rows. */
       if(tocat->dsize[0]!=p->table->dsize[0])
@@ -1135,7 +1135,7 @@ table_catrows_prepare(struct tableparams *p)
     {
       hdu=table_catrows_findhdu(filell->v, &hdull);
       gal_table_info(filell->v, hdu, NULL, &numcols, &numrows,
-                     &tableformat);
+                     &tableformat, "--catrowhdu");
       nrows+=numrows;
     }
 
@@ -1216,7 +1216,7 @@ table_catrows(struct tableparams *p)
       new=gal_table_read(filell->v, hdu, NULL, p->columns,
                          p->cp.searchin, p->cp.ignorecase,
                          p->cp.numthreads, p->cp.minmapsize,
-                         p->cp.quietmmap, NULL);
+                         p->cp.quietmmap, NULL, "--catrowhdu");
 
       /* Make sure that the same number of columns were extracted from this
          table as they were from the original table. */

@@ -717,14 +717,15 @@ gal_fits_hdu_num(char *filename)
 
 /* Calculate the datasum of the given HDU in the given file. */
 unsigned long
-gal_fits_hdu_datasum(char *filename, char *hdu)
+gal_fits_hdu_datasum(char *filename, char *hdu, char *hdu_option_name)
 {
   int status=0;
   fitsfile *fptr;
   unsigned long datasum;
 
   /* Read the desired extension (necessary for reading the rest). */
-  fptr=gal_fits_hdu_open(filename, hdu, READONLY, 1);
+  fptr=gal_fits_hdu_open(filename, hdu, READONLY, 1,
+                         hdu_option_name);
 
   /* Calculate the datasum. */
   datasum=gal_fits_hdu_datasum_ptr(fptr);
@@ -766,13 +767,14 @@ gal_fits_hdu_datasum_ptr(fitsfile *fptr)
        ASCII_TBL:    An ASCII table HDU.
        BINARY_TBL:   BINARY TABLE HDU.       */
 int
-gal_fits_hdu_format(char *filename, char *hdu)
+gal_fits_hdu_format(char *filename, char *hdu, char *hdu_option_name)
 {
   fitsfile *fptr;
   int hdutype, status=0;
 
   /* Open the HDU. */
-  fptr=gal_fits_hdu_open(filename, hdu, READONLY, 1);
+  fptr=gal_fits_hdu_open(filename, hdu, READONLY, 1,
+                         hdu_option_name);
 
   /* Check the type of the given HDU: */
   if (fits_get_hdu_type(fptr, &hdutype, &status) )
@@ -819,11 +821,13 @@ gal_fits_hdu_is_healpix(fitsfile *fptr)
      READONLY:   read-only.
      READWRITE:  read and write.         */
 fitsfile *
-gal_fits_hdu_open(char *filename, char *hdu, int iomode, int exitonerror)
+gal_fits_hdu_open(char *filename, char *hdu, int iomode, int exitonerror,
+                  char *hdu_option_name)
 {
   int status=0;
   char *ffname;
   fitsfile *fptr;
+  char *hduon = hdu_option_name ? hdu_option_name : "--hdu";
 
   /* Add hdu to filename: */
   if( asprintf(&ffname, "%s[%s#]", filename, hdu)<0 )
@@ -846,19 +850,17 @@ gal_fits_hdu_open(char *filename, char *hdu, int iomode, int exitonerror)
             {
               if(exitonerror)
                 error(EXIT_FAILURE, 0, "%s: only has one HDU.\n\n"
-                      "You should tell Gnuastro's command-line "
-                      "programs to look for data in the primary HDU "
-                      "with the '--hdu=0' option (or '-h0'). For library "
-                      "users, you can put \"0\" (a string literal) for "
-                      "the function's HDU argument. For more, see the "
-                      "FOOTNOTE below.\n\n"
+                      "You should inform this program to look for your "
+                      "desired input data in the primary HDU with the "
+                      "'%s=0' option. For more, see the FOOTNOTE "
+                      "below.\n\n"
                       "Pro TIP: if your desired HDU has a name (value to "
                       "'EXTNAME' keyword), it is best to just use that "
-                      "name with '--hdu' instead of relying on a "
-                      "counter. You can see the list of HDUs in a FITS "
-                      "file (with their data format, type, size and "
-                      "possibly HDU name) using Gnuastro's 'astfits' "
-                      "program, for example:\n\n"
+                      "name with '%s' instead of relying on a counter. "
+                      "You can see the list of HDUs in a FITS file (with "
+                      "their data format, type, size and possibly HDU "
+                      "name) using Gnuastro's 'astfits' program, for "
+                      "example:\n\n"
                       "    astfits %s\n\n"
                       "FOOTNOTE -- When writing a new FITS file, "
                       "Gnuastro leaves the pimary HDU only for metadata. "
@@ -871,10 +873,11 @@ gal_fits_hdu_open(char *filename, char *hdu, int iomode, int exitonerror)
                       "contains the option names and values that the "
                       "program was run with. Because of this, Gnuastro's "
                       "default HDU to read data in a FITS file is the "
-                      "second (or '--hdu=1'). This error is commonly "
+                      "second (or '%s=1'). This error is commonly "
                       "caused when the FITS file wasn't created by "
                       "Gnuastro or by a program respecting this "
-                      "convention.", filename, filename);
+                      "convention.", filename, hduon, hduon, filename,
+                      hduon);
               else return NULL;
             }
           break;
@@ -887,22 +890,22 @@ gal_fits_hdu_open(char *filename, char *hdu, int iomode, int exitonerror)
            reporting that we have already prepared. */
         default:
           if(exitonerror)
-            gal_fits_io_error(status, "opening the given extension/HDU in "
-                              "the given file");
+            gal_fits_io_error(status, "opening the given extension/HDU "
+                              "in the given file");
           else return NULL;
         }
 
       if(exitonerror)
-        error(EXIT_FAILURE, 0, "%s: extension/HDU '%s' doesn't exist. Please "
-              "run the following command to see the extensions/HDUs in "
-              "'%s':\n\n"
+        error(EXIT_FAILURE, 0, "%s: extension/HDU '%s' doesn't exist. "
+              "Please run the following command to see the "
+              "extensions/HDUs in '%s':\n\n"
               "    $ astfits %s\n\n"
-              "The respective HDU number (or name, when present) may be used "
-              "with the '--hdu' option in Gnuastro's programs (or the 'hdu' "
-              "argument in Gnuastro's libraries) to open the respective HDU. "
-              "If you are using counters/numbers to identify your HDUs, note "
-              "that since Gnuastro uses CFITSIO for FITS input/output, HDU "
-              "counting starts from 0", filename, hdu, filename, filename);
+              "The respective HDU number (or name, when present) may be "
+              "used with the '%s' option to open your desired input here. "
+              "If you are using counters/numbers to identify your HDUs, "
+              "note that since Gnuastro uses CFITSIO for FITS "
+              "input/output, HDU counting starts from 0", filename, hdu,
+              filename, filename, hduon);
       else return NULL;
     }
 
@@ -918,7 +921,8 @@ gal_fits_hdu_open(char *filename, char *hdu, int iomode, int exitonerror)
 /* Check the desired HDU in a FITS image and also if it has the
    desired type. */
 fitsfile *
-gal_fits_hdu_open_format(char *filename, char *hdu, int img0_tab1)
+gal_fits_hdu_open_format(char *filename, char *hdu, int img0_tab1,
+                         char *hdu_option_name)
 {
   fitsfile *fptr;
   int status=0, hdutype;
@@ -928,7 +932,7 @@ gal_fits_hdu_open_format(char *filename, char *hdu, int img0_tab1)
     error(EXIT_FAILURE, 0, "no HDU specified for %s", filename);
 
   /* Open the HDU. */
-  fptr=gal_fits_hdu_open(filename, hdu, READONLY, 1);
+  fptr=gal_fits_hdu_open(filename, hdu, READONLY, 1, hdu_option_name);
 
   /* Check the type of the given HDU: */
   if (fits_get_hdu_type(fptr, &hdutype, &status) )
@@ -2019,10 +2023,11 @@ gal_fits_key_write_wcsstr(fitsfile *fptr, struct wcsprm *wcs,
    specified FITS file. */
 void
 gal_fits_key_write(gal_fits_list_key_t **keylist, char *title,
-                   char *filename, char *hdu)
+                   char *filename, char *hdu, char *hdu_option_name)
 {
   int status=0;
-  fitsfile *fptr=gal_fits_hdu_open(filename, hdu, READWRITE, 1);
+  fitsfile *fptr=gal_fits_hdu_open(filename, hdu, READWRITE, 1,
+                                   hdu_option_name);
 
   /* Write the title */
   gal_fits_key_write_title_in_ptr(title, fptr);
@@ -2162,10 +2167,12 @@ gal_fits_key_write_in_ptr(gal_fits_list_key_t **keylist, fitsfile *fptr)
    file. */
 void
 gal_fits_key_write_version(gal_fits_list_key_t **keylist, char *title,
-                           char *filename, char *hdu)
+                           char *filename, char *hdu,
+                           char *hdu_option_name)
 {
   int status=0;
-  fitsfile *fptr=gal_fits_hdu_open(filename, hdu, READWRITE, 1);
+  fitsfile *fptr=gal_fits_hdu_open(filename, hdu, READWRITE, 1,
+                                   hdu_option_name);
 
   /* Write the given keys followed by the versions. */
   gal_fits_key_write_version_in_ptr(keylist, title, fptr);
@@ -2274,10 +2281,12 @@ gal_fits_key_write_version_in_ptr(gal_fits_list_key_t **keylist,
    Gnuastro's program and this library). */
 void
 gal_fits_key_write_config(gal_fits_list_key_t **keylist, char *title,
-                          char *extname, char *filename, char *hdu)
+                          char *extname, char *filename, char *hdu,
+                          char *hdu_option_name)
 {
   int status=0;
-  fitsfile *fptr=gal_fits_hdu_open(filename, hdu, READWRITE, 1);
+  fitsfile *fptr=gal_fits_hdu_open(filename, hdu, READWRITE, 1,
+                                   hdu_option_name);
 
   /* Delete the two extra comment lines describing the FITS standard that
      CFITSIO puts in when it creates a new extension. We'll set status to 0
@@ -2307,7 +2316,7 @@ gal_fits_key_write_config(gal_fits_list_key_t **keylist, char *title,
    certain value(s) in a certain keyword.*/
 gal_list_str_t *
 gal_fits_with_keyvalue(gal_list_str_t *files, char *hdu, char *name,
-                       gal_list_str_t *values)
+                       gal_list_str_t *values, char *hdu_option_name)
 {
   int status=0;
   fitsfile *fptr;
@@ -2319,7 +2328,7 @@ gal_fits_with_keyvalue(gal_list_str_t *files, char *hdu, char *name,
   for(f=files; f!=NULL; f=f->next)
     {
       /* Open the file. */
-      fptr=gal_fits_hdu_open(f->v, hdu, READONLY, 0);
+      fptr=gal_fits_hdu_open(f->v, hdu, READONLY, 0, hdu_option_name);
 
       /* Only attempt to read the value if the requested HDU could be
          opened ('fptr!=NULL'). */
@@ -2364,7 +2373,8 @@ gal_fits_with_keyvalue(gal_list_str_t *files, char *hdu, char *name,
 /* From an input list of FITS files and a HDU, select those that have a
    certain value(s) in a certain keyword.*/
 gal_list_str_t *
-gal_fits_unique_keyvalues(gal_list_str_t *files, char *hdu, char *name)
+gal_fits_unique_keyvalues(gal_list_str_t *files, char *hdu, char *name,
+                          char *hdu_option_name)
 {
   fitsfile *fptr;
   int status=0, newvalue;
@@ -2376,7 +2386,7 @@ gal_fits_unique_keyvalues(gal_list_str_t *files, char *hdu, char *name)
   for(f=files; f!=NULL; f=f->next)
     {
       /* Open the file. */
-      fptr=gal_fits_hdu_open(f->v, hdu, READONLY, 0);
+      fptr=gal_fits_hdu_open(f->v, hdu, READONLY, 0, hdu_option_name);
 
       /* Only attempt to read the value if the requested HDU could be
          opened ('fptr!=NULL'). */
@@ -2529,7 +2539,8 @@ gal_fits_img_info(fitsfile *fptr, int *type, size_t *ndim, size_t **dsize,
 
 /* Get the basic array info to remove extra dimensions if necessary. */
 size_t *
-gal_fits_img_info_dim(char *filename, char *hdu, size_t *ndim)
+gal_fits_img_info_dim(char *filename, char *hdu, size_t *ndim,
+                      char *hdu_option_name)
 {
   fitsfile *fptr;
   size_t *dsize=NULL;
@@ -2537,7 +2548,8 @@ gal_fits_img_info_dim(char *filename, char *hdu, size_t *ndim)
 
   /* Open the given header, read the basic image information and close it
      again. */
-  fptr=gal_fits_hdu_open(filename, hdu, READONLY, 1);
+  fptr=gal_fits_hdu_open(filename, hdu, READONLY, 1,
+                         hdu_option_name);
   gal_fits_img_info(fptr, &type, ndim, &dsize, NULL, NULL);
   if( fits_close_file(fptr, &status) ) gal_fits_io_error(status, NULL);
 
@@ -2551,7 +2563,7 @@ gal_fits_img_info_dim(char *filename, char *hdu, size_t *ndim)
 /* Read a FITS image HDU into a Gnuastro data structure. */
 gal_data_t *
 gal_fits_img_read(char *filename, char *hdu, size_t minmapsize,
-                  int quietmmap)
+                  int quietmmap, char *hdu_option_name)
 {
   void *blank;
   long *fpixel;
@@ -2560,10 +2572,11 @@ gal_fits_img_read(char *filename, char *hdu, size_t minmapsize,
   size_t i, ndim, *dsize;
   char *name=NULL, *unit=NULL;
   int status=0, type, anyblank;
+  char *hduon = hdu_option_name ? hdu_option_name : "--hdu";
 
 
   /* Check HDU for realistic conditions: */
-  fptr=gal_fits_hdu_open_format(filename, hdu, 0);
+  fptr=gal_fits_hdu_open_format(filename, hdu, 0, NULL);
 
 
   /* Get the info and allocate the data structure. */
@@ -2573,13 +2586,13 @@ gal_fits_img_read(char *filename, char *hdu, size_t minmapsize,
   /* Check if there is any dimensions (the first header can sometimes have
      no images). */
   if(ndim==0)
-    error(EXIT_FAILURE, 0, "%s (hdu: %s) has 0 dimensions! The most common "
-          "cause for this is a wrongly specified HDU. In some FITS images, "
-          "the first HDU doesn't have any data, the data is in subsequent "
-          "extensions. So probably reading the second HDU (with '--hdu=1' "
-          "or '-h1') will solve the problem (following CFITSIO's "
-          "convention, currently HDU counting starts from 0)." , filename,
-          hdu);
+    error(EXIT_FAILURE, 0, "%s (hdu: %s) has 0 dimensions! The most "
+          "common cause for this is a wrongly specified HDU. In some "
+          "FITS images, the first HDU doesn't have any data, the data "
+          "is in subsequent extensions. So probably reading the second "
+          "HDU (with '%s=1') will solve the problem (following CFITSIO's "
+          "convention, currently HDU counting starts from 0)", filename,
+          hdu, hduon);
 
 
   /* Set the fpixel array (first pixel in all dimensions). Note that the
@@ -2627,12 +2640,14 @@ gal_fits_img_read(char *filename, char *hdu, size_t minmapsize,
    used to convert the input file to the desired type. */
 gal_data_t *
 gal_fits_img_read_to_type(char *inputname, char *hdu, uint8_t type,
-                          size_t minmapsize, int quietmmap)
+                          size_t minmapsize, int quietmmap,
+                          char *hdu_option_name)
 {
   gal_data_t *in, *converted;
 
   /* Read the specified input image HDU. */
-  in=gal_fits_img_read(inputname, hdu, minmapsize, quietmmap);
+  in=gal_fits_img_read(inputname, hdu, minmapsize, quietmmap,
+                       hdu_option_name);
 
   /* If the input had another type, convert it to float. */
   if(in->type!=type)
@@ -2652,7 +2667,7 @@ gal_fits_img_read_to_type(char *inputname, char *hdu, uint8_t type,
 
 gal_data_t *
 gal_fits_img_read_kernel(char *filename, char *hdu, size_t minmapsize,
-                         int quietmmap)
+                         int quietmmap, char *hdu_option_name)
 {
   size_t i;
   int check=0;
@@ -2662,7 +2677,7 @@ gal_fits_img_read_kernel(char *filename, char *hdu, size_t minmapsize,
 
   /* Read the image as a float and if it has a WCS structure, free it. */
   kernel=gal_fits_img_read_to_type(filename, hdu, GAL_TYPE_FLOAT32,
-                                   minmapsize, quietmmap);
+                                   minmapsize, quietmmap, hdu_option_name);
   if(kernel->wcs) { wcsfree(kernel->wcs); kernel->wcs=NULL; }
 
   /* Check if the size along each dimension of the kernel is an odd
@@ -3190,7 +3205,7 @@ fits_correct_bin_table_int_types(gal_data_t *allcols, int tfields,
 /* See the descriptions of 'gal_table_info'. */
 gal_data_t *
 gal_fits_tab_info(char *filename, char *hdu, size_t *numcols,
-                  size_t *numrows, int *tableformat)
+                  size_t *numrows, int *tableformat, char *hdu_option_name)
 {
   long repeat;
   int tfields;        /* The maximum number of fields in FITS is 999 */
@@ -3210,7 +3225,7 @@ gal_fits_tab_info(char *filename, char *hdu, size_t *numcols,
 
 
   /* Open the FITS file and get the basic information. */
-  fptr=gal_fits_hdu_open_format(filename, hdu, 1);
+  fptr=gal_fits_hdu_open_format(filename, hdu, 1, hdu_option_name);
   *tableformat=gal_fits_tab_format(fptr);
   gal_fits_tab_size(fptr, numrows, numcols);
 
@@ -3569,22 +3584,23 @@ fits_tab_read_ascii_float_special(char *filename, char *hdu,
 /* Read one column of the table in parallel. */
 struct fits_tab_read_onecol_params
 {
-  char              *filename;  /* Name of FITS file with table.     */
-  char                   *hdu;  /* HDU of input table.               */
-  size_t              numrows;  /* Number of rows in table to read.  */
-  size_t              numcols;  /* Number of columns.                */
-  size_t           minmapsize;  /* Minimum space to memory-map.      */
-  int               quietmmap;  /* Don't print memory-mapping info.  */
-  gal_data_t         *allcols;  /* Information of all columns.       */
-  gal_data_t       **colarray;  /* Array of pointers to all columns. */
-  gal_list_sizet_t   *indexll;  /* Index of columns to read.         */
+  char              *filename;  /* Name of FITS file with table.        */
+  char                   *hdu;  /* HDU of input table.                  */
+  size_t              numrows;  /* Number of rows in table to read.     */
+  size_t              numcols;  /* Number of columns.                   */
+  size_t           minmapsize;  /* Minimum space to memory-map.         */
+  int               quietmmap;  /* Don't print memory-mapping info.     */
+  gal_data_t         *allcols;  /* Information of all columns.          */
+  gal_data_t       **colarray;  /* Array of pointers to all columns.    */
+  gal_list_sizet_t   *indexll;  /* Index of columns to read.            */
+  char       *hdu_option_name;  /* HDU option name (for error message). */
 };
 
 
 
 
 
-void *
+static void *
 fits_tab_read_onecol(void *in_prm)
 {
   /* Low-level definitions to be done first. */
@@ -3604,7 +3620,8 @@ fits_tab_read_onecol(void *in_prm)
   size_t i, j, c, ndim, strw, repeat, indout, indin=GAL_BLANK_SIZE_T;
 
   /* Open the FITS file. */
-  fptr=gal_fits_hdu_open_format(p->filename, p->hdu, 1);
+  fptr=gal_fits_hdu_open_format(p->filename, p->hdu, 1,
+                                p->hdu_option_name);
 
   /* See if its a Binary or ASCII table (necessary for floating point
      blank values). */
@@ -3751,7 +3768,8 @@ fits_tab_read_onecol(void *in_prm)
 gal_data_t *
 gal_fits_tab_read(char *filename, char *hdu, size_t numrows,
                   gal_data_t *allcols, gal_list_sizet_t *indexll,
-                  size_t numthreads, size_t minmapsize, int quietmmap)
+                  size_t numthreads, size_t minmapsize, int quietmmap,
+                  char *hdu_option_name)
 {
   size_t i;
   gal_data_t *out=NULL;
@@ -3787,6 +3805,7 @@ gal_fits_tab_read(char *filename, char *hdu, size_t numrows,
       p.filename = filename;
       p.quietmmap = quietmmap;
       p.minmapsize = minmapsize;
+      p.hdu_option_name = hdu_option_name;
       gal_threads_spin_off(fits_tab_read_onecol, &p, p.numcols, nthreads,
                            minmapsize, quietmmap);
 

@@ -179,16 +179,18 @@ operands_add(struct arithmeticparams *p, char *filename, gal_data_t *data)
               if(readwcs && p->refdata.wcs==NULL)
                 {
                   /* If the HDU is an image, read its size. */
-                  dsize = ( gal_fits_hdu_format(filename,
-                                                newnode->hdu)==IMAGE_HDU
+                  dsize = ( gal_fits_hdu_format(filename, newnode->hdu,
+                                                "--hdu")==IMAGE_HDU
                             ? gal_fits_img_info_dim(filename,
-                                                    newnode->hdu, &ndim)
+                                                    newnode->hdu, &ndim,
+                                                    "--hdu")
                             : NULL);
 
                   /* Read the WCS. */
                   p->refdata.wcs=gal_wcs_read(filename, newnode->hdu,
                                               p->cp.wcslinearmatrix,
-                                              0, 0, &p->refdata.nwcs);
+                                              0, 0, &p->refdata.nwcs,
+                                              "--hdu");
 
                   /* Remove extra (length of 1) dimensions (if we had an
                      image HDU). */
@@ -242,7 +244,7 @@ operands_pop(struct arithmeticparams *p, char *operator)
 
       /* Read the dataset and remove possibly extra dimensions. */
       data=gal_array_read_one_ch(filename, hdu, NULL, p->cp.minmapsize,
-                                 p->cp.quietmmap);
+                                 p->cp.quietmmap, "--hdu");
       data->ndim=gal_dimension_remove_extra(data->ndim, data->dsize, NULL);
 
       /* When the reference data structure's dimensionality is non-zero, it

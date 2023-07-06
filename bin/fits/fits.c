@@ -103,7 +103,7 @@ fits_print_extension_info(struct fitsparams *p)
   /* Open the FITS file and read the first extension type, upon moving to
      the next extension, we will read its type, so for the first we will
      need to do it explicitly. */
-  fptr=gal_fits_hdu_open(p->input->v, "0", READONLY, 1);
+  fptr=gal_fits_hdu_open(p->input->v, "0", READONLY, 1, "NONE");
   if (fits_get_hdu_type(fptr, &hdutype, &status) )
     gal_fits_io_error(status, "reading first extension");
 
@@ -327,7 +327,7 @@ fits_hdu_number(struct fitsparams *p)
   int numhdu, status=0;
 
   /* Read the first extension (necessary for reading the rest). */
-  fptr=gal_fits_hdu_open(p->input->v, "0", READONLY, 1);
+  fptr=gal_fits_hdu_open(p->input->v, "0", READONLY, 1, "NONE");
 
   /* Get the number of HDUs. */
   if( fits_get_num_hdus(fptr, &numhdu, &status) )
@@ -347,7 +347,7 @@ fits_hdu_number(struct fitsparams *p)
 static void
 fits_datasum(struct fitsparams *p)
 {
-  printf("%ld\n", gal_fits_hdu_datasum(p->input->v, p->cp.hdu));
+  printf("%ld\n", gal_fits_hdu_datasum(p->input->v, p->cp.hdu, "--hdu"));
 }
 
 
@@ -363,7 +363,7 @@ fits_read_check_wcs(struct fitsparams *p, size_t *ndim,
 
   /* Read the desired WCS. */
   wcs=gal_wcs_read(p->input->v, p->cp.hdu, p->cp.wcslinearmatrix,
-                   0, 0, &nwcs);
+                   0, 0, &nwcs, "--hdu");
 
   /* If a WCS doesn't exist, let the user know and return. */
   if(wcs)
@@ -535,7 +535,7 @@ fits_skycoverage(struct fitsparams *p)
 
   /* Find the coverage. */
   if( gal_wcs_coverage(p->input->v, p->cp.hdu, &ndim,
-                       &center, &width, &min, &max)==0 )
+                       &center, &width, &min, &max, "--hdu")==0 )
     error(EXIT_FAILURE, 0, "%s (hdu %s): is not usable for finding "
           "sky coverage (either doesn't have a WCS, or isn't an image "
           "or cube HDU with 2 or 3 dimensions", p->input->v, p->cp.hdu);
@@ -576,7 +576,7 @@ fits_skycoverage(struct fitsparams *p)
 
       /* For the range type of coverage. */
       wcs=gal_wcs_read(p->input->v, p->cp.hdu, p->cp.wcslinearmatrix,
-                       0, 0, &nwcs);
+                       0, 0, &nwcs, "--hdu");
       printf("\nSky coverage by range along dimensions:\n");
       for(i=0;i<ndim;++i)
         printf("  %-8s %-15.10g%-15.10g\n", gal_wcs_dimension_name(wcs, i),
@@ -763,7 +763,7 @@ fits_hdu_remove(struct fitsparams *p, int *r)
       hdu=gal_list_str_pop(&p->remove);
 
       /* Open the FITS file at the specified HDU. */
-      fptr=gal_fits_hdu_open(p->input->v, hdu, READWRITE, 1);
+      fptr=gal_fits_hdu_open(p->input->v, hdu, READWRITE, 1, "--remove");
 
       /* Delete the extension. */
       if( fits_delete_hdu(fptr, &hdutype, &status) )
@@ -816,6 +816,7 @@ fits_hdu_copy(struct fitsparams *p, int cut1_copy0, int *r)
   char *hdu;
   int status=0, hdutype;
   fitsfile *in, *out=NULL;
+  char *hopt = cut1_copy0 ? "--cut" : "--copy";
   gal_list_str_t *list = cut1_copy0 ? p->cut : p->copy;
 
   /* Copy all the given extensions. */
@@ -826,11 +827,11 @@ fits_hdu_copy(struct fitsparams *p, int cut1_copy0, int *r)
 
       /* Open the FITS file at the specified HDU. */
       in=gal_fits_hdu_open(p->input->v, hdu,
-                           cut1_copy0 ? READWRITE : READONLY, 1);
+                           cut1_copy0 ? READWRITE : READONLY, 1, hopt);
 
       /* If the output isn't opened yet, open it.  */
       if(out==NULL)
-        out = ( ( gal_fits_hdu_format(p->input->v, hdu)==IMAGE_HDU
+        out = ( ( gal_fits_hdu_format(p->input->v, hdu, hopt)==IMAGE_HDU
                   && p->primaryimghdu )
                 ? fits_open_to_write_no_blank(p->cp.output)
                 : gal_fits_open_to_write(p->cp.output) );

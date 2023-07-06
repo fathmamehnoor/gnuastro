@@ -451,7 +451,7 @@ ui_prepare_kernel(struct noisechiselparams *p)
           /* Read the kernel into memory. */
           p->kernel=gal_fits_img_read_kernel(p->kernelname, p->khdu,
                                              p->cp.minmapsize,
-                                             p->cp.quietmmap);
+                                             p->cp.quietmmap, "--khdu");
 
           /* Make sure it has the same dimensions as the input. */
           if( p->kernel->ndim != p->input->ndim )
@@ -481,7 +481,8 @@ ui_prepare_kernel(struct noisechiselparams *p)
      ignore it. */
   if(p->widekernelname)
     p->widekernel=gal_fits_img_read_kernel(p->widekernelname, p->whdu,
-                                           p->cp.minmapsize, p->cp.quietmmap);
+                                           p->cp.minmapsize,
+                                           p->cp.quietmmap, "--whdu");
 }
 
 
@@ -609,10 +610,10 @@ ui_preparations_read_input(struct noisechiselparams *p)
   p->input = gal_array_read_one_ch_to_type(p->inputname, p->cp.hdu,
                                            NULL, GAL_TYPE_FLOAT32,
                                            p->cp.minmapsize,
-                                           p->cp.quietmmap);
+                                           p->cp.quietmmap, "--hdu");
   p->input->wcs = gal_wcs_read(p->inputname, p->cp.hdu,
                                p->cp.wcslinearmatrix, 0, 0,
-                               &p->input->nwcs);
+                               &p->input->nwcs, "--hdu");
   p->input->ndim=gal_dimension_remove_extra(p->input->ndim,
                                             p->input->dsize,
                                             p->input->wcs);
@@ -682,7 +683,8 @@ ui_preparations(struct noisechiselparams *p)
       p->conv = gal_array_read_one_ch_to_type(p->convolvedname, p->chdu,
                                               NULL, GAL_TYPE_FLOAT32,
                                               p->cp.minmapsize,
-                                              p->cp.quietmmap);
+                                              p->cp.quietmmap,
+                                              "--chdu");
 
       /* Make sure the convolved image is the same size as the input. */
       if( gal_dimension_is_different(p->input, p->conv) )

@@ -558,7 +558,8 @@ oneprofile_custom_img(struct mkprofparams *p, size_t id)
   if(p->customimghdu->next)
     for(i=1;i<imgcounter;++i) thdu=thdu->next;
   out=gal_fits_img_read_to_type(timg->v, thdu->v, GAL_TYPE_FLOAT32,
-                                p->cp.minmapsize, p->cp.quietmmap);
+                                p->cp.minmapsize, p->cp.quietmmap,
+                                "--customimghdu");
 
   /* Make sure the image has an odd number of pixels on each side. */
   if( out->dsize[0]%2==0 || out->dsize[1]%2==0 )

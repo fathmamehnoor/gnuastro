@@ -266,8 +266,8 @@ saveindividual(struct mkonthread *mkp)
                         "not full profile", 0, NULL, 0);
 
   gal_fits_key_list_reverse(&keys);
-  gal_fits_key_write_config(&keys, "Profile configuration", "PROFILE-CONFIG",
-                            filename, "0");
+  gal_fits_key_write_config(&keys, "Profile configuration",
+                            "PROFILE-CONFIG", filename, "0", "NONE");
 
 
   /* Report if in verbose mode. */
@@ -723,7 +723,8 @@ mkprof_write(struct mkprofparams *p)
       gal_fits_key_write_filename("input", p->catname, &p->cp.okeys, 1,
                                   p->cp.quiet);
       gal_fits_key_write_config(&p->cp.okeys, "MakeProfiles configuration",
-                                "MKPROF-CONFIG", p->mergedimgname, "0");
+                                "MKPROF-CONFIG", p->mergedimgname, "0",
+                                "NONE");
 
       /* In verbose mode, print the information. */
       if(!p->cp.quiet)

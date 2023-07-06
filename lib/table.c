@@ -102,11 +102,13 @@ gal_table_displayflt_to_str(uint8_t fmt)
    of the output's elements. */
 gal_data_t *
 gal_table_info(char *filename, char *hdu, gal_list_str_t *lines,
-               size_t *numcols, size_t *numrows, int *tableformat)
+               size_t *numcols, size_t *numrows, int *tableformat,
+               char *hdu_option_name)
 {
   /* Get the table format and size (number of columns and rows). */
   if(filename && gal_fits_file_recognized(filename))
-    return gal_fits_tab_info(filename, hdu, numcols, numrows, tableformat);
+    return gal_fits_tab_info(filename, hdu, numcols, numrows, tableformat,
+                             hdu_option_name);
   else
     {
       *tableformat=GAL_TABLE_FORMAT_TXT;
@@ -483,7 +485,7 @@ gal_data_t *
 gal_table_read(char *filename, char *hdu, gal_list_str_t *lines,
                gal_list_str_t *cols, int searchin, int ignorecase,
                size_t numthreads, size_t minmapsize, int quietmmap,
-               size_t *colmatch)
+               size_t *colmatch, char *hdu_option_name)
 {
   int tableformat;
   gal_list_sizet_t *indexll;
@@ -492,7 +494,7 @@ gal_table_read(char *filename, char *hdu, gal_list_str_t *lines,
 
   /* First get the information of all the columns. */
   allcols=gal_table_info(filename, hdu, lines, &numcols, &numrows,
-                         &tableformat);
+                         &tableformat, hdu_option_name);
 
   /* If there was no actual data in the file, then return NULL. */
   if(allcols==NULL) return NULL;
@@ -514,7 +516,8 @@ gal_table_read(char *filename, char *hdu, gal_list_str_t *lines,
     case GAL_TABLE_FORMAT_AFITS:
     case GAL_TABLE_FORMAT_BFITS:
       out=gal_fits_tab_read(filename, hdu, numrows, allcols, indexll,
-                            numthreads, minmapsize, quietmmap);
+                            numthreads, minmapsize, quietmmap,
+                            hdu_option_name);
       break;
 
     default:

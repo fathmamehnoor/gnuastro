@@ -104,8 +104,9 @@ gal_wcs_read_fitsptr(fitsfile *fptr, int linearmatrix, size_t hstartwcs,
                      size_t hendwcs, int *nwcs);
 
 struct wcsprm *
-gal_wcs_read(char *filename, char *hdu, int linearmatrix, size_t hstartwcs,
-             size_t hendwcs, int *nwcs);
+gal_wcs_read(char *filename, char *hdu, int linearmatrix,
+             size_t hstartwcs, size_t hendwcs, int *nwcs,
+             char *hdu_option_name);
 
 struct wcsprm *
 gal_wcs_create(double *crpix, double *crval, double *cdelt,
@@ -209,9 +210,11 @@ double
 gal_wcs_pixel_area_arcsec2(struct wcsprm *wcs);
 
 int
-gal_wcs_coverage(char *filename, char *hdu, size_t *ndim,
-                 double **center, double **width, double **min,
-                 double **max);
+gal_wcs_coverage(char *filename, char *hdu, size_t *ondim,
+                 double **ocenter, double **owidth, double **omin,
+                 double **omax, char *hdu_option_name);
+
+
 
 
 

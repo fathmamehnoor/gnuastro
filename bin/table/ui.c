@@ -619,7 +619,7 @@ ui_print_info_exit(struct tableparams *p)
   /* Read the table information for the number of columns and rows. */
   lines=gal_options_check_stdin(p->filename, p->cp.stdintimeout, "input");
   allcols=gal_table_info(p->filename, p->cp.hdu, lines, &numcols,
-                         &numrows, &tableformat);
+                         &numrows, &tableformat, "--hdu");
   if(p->filename==NULL) p->filename="Standard-input";
   gal_list_str_free(lines, 1);
 
@@ -719,7 +719,8 @@ ui_columns_prepare(struct tableparams *p, gal_list_str_t *lines)
              information. */
           if(colinfo==NULL)
             colinfo=gal_table_info(p->filename, p->cp.hdu, lines,
-                                   &numcols, &numrows, &tableformat);
+                                   &numcols, &numrows, &tableformat,
+                                   "--hdu");
 
           /* Check if '$_all' is in the string. */
           for(c=str; *c!='\0'; ++c)
@@ -772,7 +773,7 @@ ui_columns_prepare(struct tableparams *p, gal_list_str_t *lines)
               if(colinfo==NULL)
                 colinfo=gal_table_info(p->filename, p->cp.hdu, lines,
                                        &numcols, &numrows,
-                                       &tableformat);
+                                       &tableformat, "--hdu");
 
               /* Add all the input column counters to the list of columns
                  to read */
@@ -987,7 +988,7 @@ ui_check_select_sort_before(struct tableparams *p, gal_list_str_t *lines,
 
   /* Get all the input table's column information. */
   allcols=gal_table_info(p->filename, p->cp.hdu, lines, &numcols,
-                         &numrows, &tableformat);
+                         &numrows, &tableformat, "--hdu");
 
 
   /* If '--noblank' is given an '_all', we should replace it with the
@@ -1327,7 +1328,8 @@ ui_preparations(struct tableparams *p)
   /* Read the necessary columns. */
   p->table=gal_table_read(p->filename, cp->hdu, lines, p->columns,
                           cp->searchin, cp->ignorecase, cp->numthreads,
-                          cp->minmapsize, p->cp.quietmmap, p->colmatch);
+                          cp->minmapsize, p->cp.quietmmap, p->colmatch,
+                          "--hdu");
   if(p->filename==NULL) p->filename="stdin";
   gal_list_str_free(lines, 1);
 

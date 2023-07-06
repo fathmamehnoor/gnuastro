@@ -360,7 +360,7 @@ ui_set_mode(struct matchparams *p)
      on plain text. */
   if( p->input1name && gal_fits_file_recognized(p->input1name) )
     {
-      tin1=gal_fits_hdu_format(p->input1name, p->cp.hdu);
+      tin1=gal_fits_hdu_format(p->input1name, p->cp.hdu, "--hdu");
       p->mode = (tin1 == IMAGE_HDU) ? MATCH_MODE_WCS : MATCH_MODE_CATALOG;
     }
   else
@@ -384,7 +384,7 @@ ui_set_mode(struct matchparams *p)
     {
       if(gal_fits_file_recognized(p->input2name))
         {
-          tin2=gal_fits_hdu_format(p->input2name, p->hdu2);
+          tin2=gal_fits_hdu_format(p->input2name, p->hdu2, "--hdu2");
           if(tin1==IMAGE_HDU && tin2!=IMAGE_HDU)
             {
               t1 = (tin1==IMAGE_HDU) ? "image" : "catalog";
@@ -720,8 +720,9 @@ ui_set_columns_from_coord(struct matchparams *p)
 /* We want to keep the columns as double type. So what-ever their original
    type is, convert it. */
 static gal_data_t *
-ui_read_columns_to_double(struct matchparams *p, char *filename, char *hdu,
-                          gal_list_str_t *cols, size_t numcols)
+ui_read_columns_to_double(struct matchparams *p, char *filename,
+                          char *hdu, gal_list_str_t *cols,
+                          size_t numcols, char *hdu_option_name)
 {
   gal_data_t *tmp, *ttmp, *tout, *out=NULL;
   struct gal_options_common_params *cp=&p->cp;
@@ -740,7 +741,8 @@ ui_read_columns_to_double(struct matchparams *p, char *filename, char *hdu,
                                           "input");
   tout=gal_table_read(filename, hdu, filename ? NULL : p->stdinlines,
                       cols, cp->searchin, cp->ignorecase, cp->numthreads,
-                      cp->minmapsize, p->cp.quietmmap, NULL);
+                      cp->minmapsize, p->cp.quietmmap, NULL,
+                      hdu_option_name);
 
   /* A small sanity check. */
   if(gal_list_data_number(tout)!=numcols)
@@ -802,7 +804,7 @@ ui_read_kdtree(struct matchparams *p)
   p->kdtreedata=gal_table_read(p->kdtree, p->kdtreehdu, NULL,
                                NULL, GAL_TABLE_SEARCH_NAME, 1,
                                p->cp.numthreads, p->cp.minmapsize,
-                               p->cp.quietmmap, NULL);
+                               p->cp.quietmmap, NULL, "--kdtreehdu");
 
   /* It has to have only two columns, with an unsigned 32-bit integer
      type in each. */
@@ -876,12 +878,12 @@ ui_read_columns(struct matchparams *p)
 
   /* Read-in the columns. */
   p->cols1=ui_read_columns_to_double(p, p->input1name, p->cp.hdu,
-                                     cols1, ndim);
+                                     cols1, ndim, "--hdu");
   if( p->kdtreemode!=MATCH_KDTREE_BUILD )
     p->cols2=( p->coord
                ? ui_set_columns_from_coord(p)
                : ui_read_columns_to_double(p, p->input2name, p->hdu2,
-                                           cols2, ndim) );
+                                           cols2, ndim, "--hdu2") );
 
   /* If an external k-d tree is given, read it and make sure it has the
      same number of rows as the first input and the proper datatype. */

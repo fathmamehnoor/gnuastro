@@ -119,8 +119,8 @@ struct mkprofparams
   char            *backname;  /* Name of background image file name.      */
   char             *catname;  /* Name of catalog of parameters.           */
   char             *backhdu;  /* HDU of background image.                 */
-  char      *customprofname;  /* Table to use for radial profile.         */
-  char       *customprofhdu;  /* HDU of table to use for radial profile.  */
+  char     *customtablename;  /* Table to use for radial profile.         */
+  char      *customtablehdu;  /* HDU of table to use for radial profile.  */
   gal_list_str_t *customimgname;  /* Image to insert into the image.      */
   gal_list_str_t  *customimghdu;  /* HDU of images for custom image.      */
   size_t             *dsize;  /* Size of the output image.                */

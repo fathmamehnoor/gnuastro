@@ -1453,7 +1453,7 @@ segment_output(struct segmentparams *p)
   gal_fits_key_write_filename("input", p->inputname, &p->cp.okeys, 1,
                               p->cp.quiet);
   gal_fits_key_write_config(&p->cp.okeys, "Segment configuration",
-                            "SEGMENT-CONFIG", p->cp.output, "0");
+                            "SEGMENT-CONFIG", p->cp.output, "0", "NONE");
 
   /* Let the user know that the output is written. */
   if(!p->cp.quiet)

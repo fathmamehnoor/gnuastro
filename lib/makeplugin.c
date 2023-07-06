@@ -240,7 +240,7 @@ makeplugin_fits_with_keyvalue(const char *caller, unsigned int argc,
      values and find the output files.*/
   files=gal_list_str_extract(argv[3]);
   values=gal_list_str_extract(argv[1]);
-  outlist=gal_fits_with_keyvalue(files, hdu, name, values);
+  outlist=gal_fits_with_keyvalue(files, hdu, name, values, NULL);
 
   /* Write the output string */
   out=gal_list_str_cat(outlist, ' ');
@@ -276,7 +276,7 @@ makeplugin_fits_unique_keyvalues(const char *caller, unsigned int argc,
   /* Extract the components in the arguments with possibly multiple
      values and find the output files.*/
   files=gal_list_str_extract(argv[2]);
-  outlist=gal_fits_unique_keyvalues(files, hdu, name);
+  outlist=gal_fits_unique_keyvalues(files, hdu, name, NULL);
 
   /* Write the output value. */
   out=gal_list_str_cat(outlist, ' ');

@@ -751,7 +751,8 @@ mkcatalog_write_outputs(struct mkcatalogparams *p)
       gal_fits_key_write_filename("input", p->objectsfile, &p->cp.okeys,
                                   1, p->cp.quiet);
       gal_fits_key_write_config(&p->cp.okeys, "MakeCatalog configuration",
-                                "MKCATALOG-CONFIG", p->objectsout, "0");
+                                "MKCATALOG-CONFIG", p->objectsout, "0",
+                                "NONE");
     }
 
 
