@@ -64,9 +64,6 @@ enum option_keys_enum
   UI_KEY_INVERT              = 'i',
   UI_KEY_MODE                = 'O',
   UI_KEY_MARKCOORDS          = 'r',
-  UI_KEY_WIDTHINPX           = 'W',
-  UI_KEY_HEIGHTINPX          = 'l',
-  UI_KEY_BITSPERSAMPLE       = 'p',
 
   /* Only with long version (start with a value 1000, the rest will be set
      automatically). */

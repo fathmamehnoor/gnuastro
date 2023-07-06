@@ -366,8 +366,7 @@ convertt(struct converttparams *p)
     /* TIFF */
     case OUT_FORMAT_TIFF:
       if(p->colormap) color_map_prepare(p); else convertt_scale_to_uchar(p);
-      gal_tiff_write(p->chll, p->cp.output, p->widthinpx, p->heightinpx, 
-                    p->bitspersample, p->numch);
+      gal_tiff_write(p->chll, p->cp.output);
       break;
       
 

@@ -5,6 +5,7 @@ This is part of GNU Astronomy Utilities (Gnuastro) package.
 Original author:
      Mohammad Akhlaghi <mohammad@akhlaghi.org>
 Contributing author(s):
+     Fathma Mehnoor <fathmamehnoor@gmail.com>
 Copyright (C) 2018-2023 Free Software Foundation, Inc.
 
 Gnuastro is free software: you can redistribute it and/or modify it
@@ -635,118 +636,118 @@ gal_tiff_read(char *filename, size_t dir, size_t minmapsize, int quietmmap)
 /*************************************************************
  ****************    Write into a TIFF file   ****************
  *************************************************************/
-
-/* Write image data into a TIFF file using libtiff library*/
 #ifdef HAVE_LIBTIFF
-static int
-tiff_img_write(TIFF *tif, gal_data_t *in, char *filename, int widthinpx, 
-              int heightinpx, size_t numch, int bitspersample, int numimg) 
-{
-    
-    size_t c;
-    int i, out;
-    uint32_t stripoffset, stripcount;
-    size_t bytespersample = bitspersample / 8;
-    uint32_t stripsize = TIFFDefaultStripSize(tif, widthinpx * numch 
-                                              * bytespersample);
-    uint32_t rowsperstrip = stripsize / (widthinpx * numch * bytespersample);
+static void 
+tiff_img_write(TIFF *tif, gal_data_t *in, char *filename)
+{ 
+  gal_data_t *channel = in; 
+  size_t index, offset, row, col, ch;
+  size_t numch = gal_list_data_number(in);
+  unsigned char *image, *buf, *colors[4] = {NULL}; 
+  size_t width = in->dsize[1], height = in->dsize[0]; 
+
+  /* Allocate memory for image */
+  image = (unsigned char*)malloc(in->size * numch);
+  if(image == NULL) 
+    error(EXIT_FAILURE, errno, "%s: %s: failed to allocate memory" 
+         "for image", __func__, filename);
   
-    /*Make sure rowspwerstrip is not 0*/
-    if (rowsperstrip == 0) {
-        rowsperstrip = 1;
+  /* Extract color channels from input data */
+  for(ch = 0; ch < numch; ch++)
+    {
+     if(channel != NULL && channel->array != NULL)
+      {
+        colors[ch] = channel->array;
+        channel = channel->next;
+      } 
+     else
+       {
+          error(EXIT_FAILURE, errno, "%s: %s: missing or invalid color"
+               "channel", __func__, filename);
+          free(image);
+       }
     }
 
-    /*Recalculate stripsize based on the rowsperstrip*/
-    stripsize = rowsperstrip * widthinpx * numch * bytespersample;
-    
-    /*Set TIFF tags that define image properties for image data*/
-    TIFFSetField(tif, TIFFTAG_IMAGEWIDTH, widthinpx);
-    TIFFSetField(tif, TIFFTAG_IMAGELENGTH, heightinpx);
-    TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, numch);
-    TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE, bitspersample);
-    TIFFSetField(tif, TIFFTAG_ROWSPERSTRIP, rowsperstrip);
-    TIFFSetField(tif, TIFFTAG_PLANARCONFIG, PLANARCONFIG_SEPARATE);
-    
-    /*For each number of image and channel, write the data into the TIFF file*/
-    for (i = 0; i < numimg; i++) {
-        for (c = 0; c < numch; c++) {
-            /*Calculate the offset of current strip*/
-            stripoffset = i * rowsperstrip * widthinpx * numch;
+  /* Copy input data to image buffer */
+  for(row = 0; row < height; row++)
+    {
+    for(col = 0; col < width; col++)
+      {
+        index = row * width + col;
+        offset = index * numch;
 
-            /*Calculate the number of rows per each strip while making sure 
-            that it does not exceed the image height*/
-            stripcount = heightinpx - stripoffset * rowsperstrip;
-            if (stripcount > rowsperstrip) {
-                stripcount = rowsperstrip;
-            }
-
-            /*Write the data of the current strip into the TIFF file*/
-            out = TIFFWriteEncodedStrip(tif, c, (void*)((char*)in + 
-                                       (stripoffset * widthinpx * numch + c)
-                                        * bytespersample), stripsize * stripcount);
-
-            /*If there is an error writing into TIFF file close the file and
-            return -1 */
-            if (out < 0) {
-                TIFFClose(tif);
-                return -1;
-            }
-        }
-
-        /*Write the TIFF directory for current image*/
-        TIFFWriteDirectory(tif);
+        for(ch = 0; ch < numch; ch++) 
+          image[offset + ch] = colors[ch][index]; 
+      }
     }
-    /*return success*/
-    return 0;
-    
-    
+
+  /* Set TIFF tags */
+  TIFFSetField(tif, TIFFTAG_IMAGEWIDTH, width);
+  TIFFSetField(tif, TIFFTAG_IMAGELENGTH, height);
+  if(numch==1)
+    TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK);
+  else
+     TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB); 
+  TIFFSetField(tif, TIFFTAG_BITSPERSAMPLE, 8);
+  TIFFSetField(tif, TIFFTAG_SAMPLESPERPIXEL, numch);
+  TIFFSetField(tif, TIFFTAG_COMPRESSION, COMPRESSION_NONE);
+  TIFFSetField(tif, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
+
+  /* Allocate memory for scanline buffer */
+  buf = (unsigned char*)_TIFFmalloc(TIFFScanlineSize(tif));
+  
+  if(buf == NULL)
+   {
+     error(EXIT_FAILURE, errno, "%s: %s: failed to allocate necessary"
+          "memory for the scanline buffer" , __func__, filename);
+     free(image); 
+   }
+
+  /* Write each scanline of the image to the TIFF file */
+  for(row = height; row > 0; row--)
+    {
+      _TIFFmemcpy(buf, &image[(row - 1) * width * numch], width * numch);
+
+      if(TIFFWriteScanline(tif, buf, height - row, 0) < 0)
+       {
+        error(EXIT_FAILURE, errno, "%s: problem in writing to %s", 
+              __func__, filename);
+        _TIFFfree(buf); 
+        free(image); 
+       }
+    }
+
+  _TIFFfree(buf); 
+  free(image);
 }
 #endif
 
 
 
-
-
 void
-gal_tiff_write(gal_data_t *in, char *filename, int widthinpx, int heightinpx,
-              int bitspersample, int numimg)
+gal_tiff_write(gal_data_t* in, char* filename)
 {
   #ifdef HAVE_LIBTIFF
 
-  int out;
-  size_t numch=gal_list_data_number(in);
- 
-  /*Open the TIFF file*/
+  if(in == NULL)
+     error(EXIT_FAILURE, 0, "%s: '%s', input data is NULL", 
+      __func__, filename);
+      
+  
+  /* Open the TIFF file */
   TIFF* tif = TIFFOpen(filename, "w");
-  if (tif==NULL) {
-    error(EXIT_FAILURE, 0, "%s: '%s' couldn't be opened for writing",
-          __func__, filename);
-  }
+  
+  if(tif == NULL)
+    error(EXIT_FAILURE, errno,
+          "%s: '%s' couldn't be opened for writing", __func__, filename);
 
-  /*Check if input parameters have valid values*/
-  if( widthinpx <=0 || bitspersample <= 0 || numch <= 0){
-    error(EXIT_FAILURE, 0, "%s: '%s', widthinpx=%d, bitspersample=%d,"
-        "numch=%zu, values should be greater than 0",
-        __func__, filename, widthinpx, bitspersample, numch);
-  }
+  /* Write to TIFF file */
+  tiff_img_write(tif, in, filename);
 
-  /*Check if the file already exists or has write permissions*/
-  if( gal_checkset_writable_notexist(filename)==0 )
-    error(EXIT_FAILURE, 0, "%s: already exists or its directory doesn't "
-          "write permssion. ", filename);
-
-  /*Write to TIFF file*/
-  out = tiff_img_write(tif, in, filename, widthinpx, heightinpx,
-                       numch, bitspersample, numimg);
-  if(out < 0){
-    error(EXIT_FAILURE, 0, "%s: problem in writing to %s",__func__, filename);
-    
-  }
-  /*Close file*/
+  /* Close file */
   TIFFClose(tif);
 
-  #else
-  tiff_error_no_litiff(__func__);
-  return NULL;
-  #endif /*HAVE_LIBTIFF*/
+#else
+tiff_error_no_litiff(__func__);
+#endif 
 }

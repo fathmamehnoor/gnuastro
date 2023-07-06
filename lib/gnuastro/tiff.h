@@ -67,8 +67,7 @@ gal_data_t *
 gal_tiff_read(char *filename, size_t dir, size_t minmapsize, int quietmmap);
 
 void
-gal_tiff_write(gal_data_t *in, char *filename, int widthinpx, int heightinpx, 
-               int bitspersample, int numimg);
+gal_tiff_write(gal_data_t *in, char *filename);
 
 
 __END_C_DECLS    /* From C++ preparations */
