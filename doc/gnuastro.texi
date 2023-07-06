@@ -15583,6 +15583,39 @@ Therefore, when your column arithmetic involves the @key{$} sign (to specify col
 Otherwise you can use both single or double quotes.
 @end cartouche
 
+
+
+
+@cartouche
+@noindent
+@strong{Manipulate all columns in one call using @key{$_all}}: Usually we manipulate one column in one call of column arithmetic.
+For instance, with the command below the elements of the @code{AWAV} column will be sumed.
+
+@example
+$ asttable table.fits -c'arith AWAV sumvalue'
+@end example
+
+But sometimes, we want to manipulate more than one column with the same expression.
+For example we want to sum all the elements of all the columns.
+In this case we could use the following command (assuming that the table has four different @code{AWAV-*} columns):
+
+@example
+$ asttable table.fits -c'arith AWAV-1 sumvalue' \
+                      -c'arith AWAV-2 sumvalue' \
+                      -c'arith AWAV-3 sumvalue' \
+                      -c'arith AWAV-4 sumvalue'
+@end example
+
+To avoid repetition and mistakes, instead of using column arithmetic many times, we can use the @code{$_all} identifier.
+When column arithmetic confronts this special string, it will repeat the expression for all the columns in the input table.
+Therefore the command above can be written as:
+
+@example
+$ asttable table.fits -c'arith $_all sumvalue'
+@end example
+
+@end cartouche
+
 Alternatively, if the columns have meta-data and the first two are respectively called @code{AWAV} and @code{SPECTRUM}, the command above is equivalent to the command below.
 Note that the character `@key{$}' is no longer necessary in this scenario (because names will not be confused with numbers):
 
