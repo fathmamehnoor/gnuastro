@@ -39,10 +39,14 @@ See the end of the file for license conditions.
     - pool-mean: Similar to 'pool-min' but using mean.
     - pool-median: Similar to 'pool-min' but using median.
 
-  astscript-zeropoint:
-  --mksrc: use a custom Makefile for estimating the zeropoint, not the
-    default installed Makefile. This is primarily intended for debugging or
-    developing this script, not for normal usage.
+  Table:
+  - '$_all' in column arithmetic: when an arithmetic expression contains
+    this string, it will be repeated independently for all the columns of
+    the input table.
+
+  astscript-zeropoint: --mksrc: use a custom Makefile for estimating the
+  zeropoint, not the default installed Makefile. This is primarily intended
+  for debugging or developing this script, not for normal usage.
 
   Library:
   -gal_pool_min: min-pooling function, see 'pool-min' above.

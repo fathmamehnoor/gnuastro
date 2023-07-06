@@ -190,7 +190,8 @@ parse_opt(int key, char *arg, struct argp_state *state)
          'arg' will be an empty string! We don't want to account for such
          cases (and give a clear error that no input has been given). */
       if(p->filename)
-        argp_error(state, "only one argument (input file) should be given");
+        argp_error(state, "only one argument (input file) should be given, "
+                   "extra argument is: '%s'", arg);
       else
         if(arg[0]!='\0') p->filename=arg;
       break;
@@ -654,6 +655,38 @@ ui_print_info_exit(struct tableparams *p)
 
 
 
+static void
+ui_columns_prepare_arith(struct tableparams *p, gal_data_t *colinfo,
+                         gal_list_str_t **colstoread, size_t *totcalled,
+                         size_t numcols, char *str)
+{
+  struct column_pack *node;
+
+  /* If this is the first arithmetic operation and the user has
+     already asked for some columns, we'll need to put all
+     previously requested simply-printed columns into an 'colpack'
+     structure, then add this arithmetic operation's 'colpack'. */
+  if(p->colpack==NULL && *colstoread)
+    {
+      /* Allocate an empty structure and set the necessary
+         pointers. */
+      node=ui_colpack_add_new_to_end(&p->colpack);
+      node->start=0;
+      node->numsimple=gal_list_str_number(*colstoread);
+      *totcalled=node->numsimple;
+    }
+
+  /* Add a new column pack for this arithmetic operation, then read
+     all the tokens (while specifying which columns it needs). */
+  node=ui_colpack_add_new_to_end(&p->colpack);
+  arithmetic_init(p, &node->arith, colstoread, totcalled,
+                  str+ARITHMETIC_CALL_LENGTH, colinfo, numcols);
+}
+
+
+
+
+
 /* The columns can be given as comma-separated values to one option or
    multiple calls to the column option. Here, we'll check if the input list
    has comma-separated values. If they do then the list will be updated to
@@ -661,12 +694,13 @@ ui_print_info_exit(struct tableparams *p)
 static void
 ui_columns_prepare(struct tableparams *p, gal_list_str_t *lines)
 {
-  int tableformat;
+  char *tstr;
   gal_data_t *colinfo=NULL;
+  int tableformat, arithallind=0;
   struct column_pack *node, *last;
   gal_list_str_t *tmp, *colstoread=NULL;
   size_t i, totcalled=0, numcols, numrows, numsimple;
-  char *str, countstr[11]; /* an un-signed 32-bit integer takes 10 chars */
+  char *c, *str, countstr[11]; /* an un-signed 32-bit integer takes 10 chars */
 
   /* Go over the list of requested columns from the main input. */
   for(tmp=p->columns;tmp!=NULL;tmp=tmp->next)
@@ -687,25 +721,44 @@ ui_columns_prepare(struct tableparams *p, gal_list_str_t *lines)
             colinfo=gal_table_info(p->filename, p->cp.hdu, lines,
                                    &numcols, &numrows, &tableformat);
 
-          /* If this is the first arithmetic operation and the user has
-             already asked for some columns, we'll need to put all
-             previously requested simply-printed columns into an 'colpack'
-             structure, then add this arithmetic operation's 'colpack'. */
-          if(p->colpack==NULL && colstoread)
-            {
-              /* Allocate an empty structure and set the necessary
-                 pointers. */
-              node=ui_colpack_add_new_to_end(&p->colpack);
-              node->start=0;
-              node->numsimple=gal_list_str_number(colstoread);
-              totcalled=node->numsimple;
-            }
+          /* Check if '$_all' is in the string. */
+          for(c=str; *c!='\0'; ++c)
+            if(strncmp(c, "$_all", 5)==0)
+              { arithallind=c-str; break; }
 
-          /* Add a new column pack for this arithmetic operation, then read
-             all the tokens (while specifying which columns it needs). */
-          node=ui_colpack_add_new_to_end(&p->colpack);
-          arithmetic_init(p, &node->arith, &colstoread, &totcalled,
-                          str+ARITHMETIC_CALL_LENGTH, colinfo, numcols);
+          /* When '$_all' is in the string, we need to repeat this option
+             for every column. Otherwise, just add this option once.*/
+          if(arithallind)
+            {
+              /* Because we want to use the same bytes as '$_all' in the
+                 input string, we have four characters to write over '_all'
+                 with the number of each column. However, 'sprintf' already
+                 puts a '\0' on the last character (which we later replace
+                 with a ' '), so we only have three characters to use for
+                 column numbers. Therefore, to use this feature the input
+                 table can have a maximum of 999 columns (the FITS standard
+                 only accepts 999 columns; so it is very rare for people to
+                 need more! but we can add it if necessary). */
+              if(numcols>999)
+                error(EXIT_FAILURE, 0, "the '$_all' feature is currently "
+                      "only implemented for tables with fewer than 999 "
+                      "columns. Please contact us at %s to add more columns",
+                      PACKAGE_BUGREPORT);
+
+              /* Repeat the arithmetic command for each column. */
+              for(i=1;i<=numcols;++i)
+                {
+                  gal_checkset_allocate_copy(str, &tstr);
+                  sprintf(tstr+arithallind+1, "%-3zu", i);
+                  tstr[arithallind+4]=' ';
+                  ui_columns_prepare_arith(p, colinfo, &colstoread, &totcalled,
+                                           numcols, tstr);
+                  free(tstr);
+                }
+            }
+          else
+            ui_columns_prepare_arith(p, colinfo, &colstoread, &totcalled,
+                                     numcols, str);
         }
 
       /* This is a simple column (no change in values). */
