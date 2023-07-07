@@ -100,6 +100,8 @@ See the end of the file for license conditions.
   bug #64303: Statistics fit --fitestimate crash when covariance matrix has
               NaN. Reported Sepideh Eskandarlou.
   bug #64357: Plain text metadata ignored when no name is present.
+  bug #64392: Arithmetic's isnotblank operator producing zeros when no
+              blanks present.
 
 
 
