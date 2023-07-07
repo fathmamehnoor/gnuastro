@@ -625,11 +625,22 @@ blank_flag(gal_data_t *input, int blank1_not0)
                 __func__, input->type);
         }
     }
+
+  /* Input had no blanks */
   else
-    /* Allocate a CLEAR data structure (all zeros). */
-    out=gal_data_alloc(NULL, GAL_TYPE_UINT8, input->ndim, input->dsize,
-                       input->wcs, 1, input->minmapsize, input->quietmmap,
-                       NULL, "bool", NULL);
+    {
+      /* Allocate the output data structure (if the caller wants to flag
+         blanks, then we will "clear" the output also). */
+      out=gal_data_alloc(NULL, GAL_TYPE_UINT8, input->ndim, input->dsize,
+                         input->wcs, blank1_not0 ? 1 : 0,
+                         input->minmapsize, input->quietmmap,
+                         NULL, "bool", NULL);
+
+      /* If the caller wants to flag the non-blank elements, we should now
+         set all the output values to 1 (the input had no blanks!). */
+      if(blank1_not0==0)
+        { of=(o=out->array)+out->size; do *o++=1; while(o<of); }
+    }
 
   /* Return */
   return out;
