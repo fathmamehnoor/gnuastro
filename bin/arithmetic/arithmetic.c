@@ -108,7 +108,7 @@ pop_number_of_operands(struct arithmeticparams *p, int op, char *token_string,
          or quantile estimation can be negative). */
       if( ((float *)(tmp->array))[0]<=0.0 )
         error(EXIT_FAILURE, 0, "the %s popped operand of the '%s' "
-              "operator cannot be negative", cstring, token_string);
+              "operator cannot be zero or negative", cstring, token_string);
 
       /* Increment the counter string. */
       cstring=c?"third":"second";

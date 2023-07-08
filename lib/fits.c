@@ -114,7 +114,7 @@ gal_fits_io_error(int status, char *message)
 /* IMPORTANT NOTE: if other compression suffixes are add to this function,
    include them in 'gal_checkset_automatic_output', so the compression
    suffix can be skipped when the user doesn't specify an output
-   filename.*/
+   filename. */
 int
 gal_fits_name_is_fits(char *name)
 {
@@ -143,7 +143,7 @@ gal_fits_name_is_fits(char *name)
 /* IMPORTANT NOTE: if other compression suffixes are added to this function,
    include them in 'gal_checkset_automatic_output', so the compression
    suffix can be skipped when the user doesn't specify an output
-   filename.*/
+   filename. */
 int
 gal_fits_suffix_is_fits(char *suffix)
 {
@@ -325,7 +325,7 @@ gal_fits_type_to_bitpix(uint8_t type)
 /* The values to the TFORM header keywords of FITS binary tables are single
    letter capital letters, but that is useless in identifying the data type
    of the column. So this function will do the conversion based on the
-   CFITSIO manual.*/
+   CFITSIO manual. */
 char
 gal_fits_type_to_bin_tform(uint8_t type)
 {
@@ -385,7 +385,7 @@ gal_fits_type_to_datatype(uint8_t type)
 
     /* Types that depend on the host system. The C standard says that the
        'short', 'int' and 'long' types are ATLEAST 2, 2, 4 bytes, so to be
-       safe, we will check all of them for the 32-bit types.*/
+       safe, we will check all of them for the 32-bit types. */
     case GAL_TYPE_UINT16:
       w=2;
       if     ( sizeof(short)    == w )   return TUSHORT;
@@ -401,7 +401,7 @@ gal_fits_type_to_datatype(uint8_t type)
     /* On 32-bit systems, the length of 'int' and 'long' are both
        32-bits. But CFITSIO's LONG type is preferred because it is designed
        to be 32-bit. Its 'INT' type is not clearly defined and caused
-       problems when reading keywords.*/
+       problems when reading keywords. */
     case GAL_TYPE_UINT32:
       w=4;
       if     ( sizeof(long)     == w )   return TULONG;
@@ -557,7 +557,7 @@ gal_fits_datatype_to_type(int datatype, int is_table_column)
 /* When there is a BZERO or TZERO and BSCALE or TSCALE keywords, then the
    type that must be used to store the actual values of the pixels may be
    different from the type from BITPIX. This function does the necessary
-   corrections.*/
+   corrections. */
 static void
 fits_type_correct(int *type, double bscale, char *bzero_str)
 {
@@ -780,7 +780,7 @@ gal_fits_hdu_format(char *filename, char *hdu, char *hdu_option_name)
   if (fits_get_hdu_type(fptr, &hdutype, &status) )
     gal_fits_io_error(status, NULL);
 
-  /* Clean up and return.. */
+  /* Clean up and return. */
   if( fits_close_file(fptr, &status) )
     gal_fits_io_error(status, NULL);
   return hdutype;
@@ -882,7 +882,7 @@ gal_fits_hdu_open(char *filename, char *hdu, int iomode, int exitonerror,
             }
           break;
 
-        /* Generic error below is fine for this case */
+        /* Generic error below is fine for this case. */
         case BAD_HDU_NUM:
           break;
 
@@ -1128,7 +1128,7 @@ gal_fits_key_date_to_struct_tm(char *fitsdate, struct tm *tp)
                                    /* https://www.w3.org/TR/NOTE-datetime */
 
       /* In case we have sub-seconds in the string, we need to remove it
-         because 'strptime' doesn't recognize sub-second resolution.*/
+         because 'strptime' doesn't recognize sub-second resolution. */
       case '.':
         /* Allocate space (by copying the remaining full string and adding
            a '\0' where necessary. */
@@ -1196,7 +1196,8 @@ gal_fits_key_date_to_struct_tm(char *fitsdate, struct tm *tp)
    useful to avoid calendar issues like number of days in a different
    months or leap years and etc. The remainder of the format string
    (sub-seconds) will be put into the two pointer arguments: 'subsec' is in
-   double-precision floating point format and  */
+   double-precision floating point format but it will only get a value when
+   'subsecstr!=NULL'. */
 size_t
 gal_fits_key_date_to_seconds(char *fitsdate, char **subsecstr,
                              double *subsec)
@@ -1351,7 +1352,7 @@ gal_fits_key_read_from_ptr(fitsfile *fptr, gal_data_t *keysll,
         /* When the type is a string, 'tmp->array' is an array of pointers
            to a separately allocated piece of memory. So we have to
            allocate that space here. If its not a string, then the
-           allocated space above is enough to keep the value.*/
+           allocated space above is enough to keep the value. */
         switch(tmp->type)
           {
           case GAL_TYPE_STRING:
@@ -1375,7 +1376,7 @@ gal_fits_key_read_from_ptr(fitsfile *fptr, gal_data_t *keysll,
                                                          "tmp->array") );
           }
 
-        /* Allocate space for the keyword comment if necessary.*/
+        /* Allocate space for the keyword comment if necessary. */
         if(readcomment)
           {
             errno=0;
@@ -1392,7 +1393,7 @@ gal_fits_key_read_from_ptr(fitsfile *fptr, gal_data_t *keysll,
            the 'FLEN_COMMENT' length for units too (theoretically, the unit
            might take the full remaining area in the keyword). Also note
            that the unit is only optional, so it needs a separate CFITSIO
-           function call which is done here.*/
+           function call which is done here. */
         if(readunit)
           {
             /* Allocate space for the unit and read it in. */
@@ -1547,7 +1548,7 @@ gal_fits_key_list_add_end(gal_fits_list_key_t **list, uint8_t type,
   newnode->ufree=ufree;
 
   /* Set the next pointer. */
-  if(*list)         /* List is already full, add this node to the end */
+  if(*list)         /* List is already full, add this node to the end. */
     {
       /* After this line, tmp points to the last node. */
       tmp=*list; while(tmp->next!=NULL) tmp=tmp->next;
@@ -1609,7 +1610,7 @@ gal_fits_key_list_title_add_end(gal_fits_list_key_t **list, char *title,
   newnode->tfree=tfree;
 
   /* Set the next pointer. */
-  if(*list)         /* List is already full, add this node to the end */
+  if(*list)         /* List is already full, add this node to the end. */
     {
       /* After this line, tmp points to the last node. */
       tmp=*list; while(tmp->next!=NULL) tmp=tmp->next;
@@ -1627,7 +1628,7 @@ gal_fits_key_list_title_add_end(gal_fits_list_key_t **list, char *title,
 
 
 
-/* Only set this key to be a full comment */
+/* Only set this key to be a full comment. */
 void
 gal_fits_key_list_fullcomment_add(gal_fits_list_key_t **list,
                                   char *fullcomment, int fcfree)
@@ -1673,7 +1674,7 @@ gal_fits_key_list_fullcomment_add_end(gal_fits_list_key_t **list,
   newnode->fcfree=fcfree;
 
   /* Set the next pointer. */
-  if(*list)         /* List is already full, add this node to the end */
+  if(*list)         /* List is already full, add this node to the end. */
     {
       /* After this line, tmp points to the last node. */
       tmp=*list; while(tmp->next!=NULL) tmp=tmp->next;
@@ -1742,7 +1743,7 @@ gal_fits_key_write_title_in_ptr(char *title, fitsfile *fptr)
       titlerec[79]='\0';
       cp=blankrec; do *cp=' '; while(++cp<cpf);
 
-      /* Print the blank lines before the title */
+      /* Print the blank lines before the title. */
       if(fits_write_record(fptr, blankrec, &status))
         gal_fits_io_error(status, NULL);
 
@@ -1772,7 +1773,7 @@ gal_fits_key_write_filename(char *keynamebase, char *filename,
   /* When you give string arguments, CFITSIO puts them within two ''s,
      so the actual length available is two less. It seems this length
      also didn't include the null character, so, ultimately you have
-     to take three from it.*/
+     to take three from it. */
   maxlength=FLEN_VALUE-3;
 
   /* Parse the filename and see when it is necessary to break it. */
@@ -1817,7 +1818,7 @@ gal_fits_key_write_filename(char *keynamebase, char *filename,
         {
           /* Find the last place in the copied array that contains a
              '/' and put j on the next character (so it can be turned
-             into a null character.*/
+             into a null character. */
           for(j=maxlength-2;j>0;--j)
             if(value[j]=='/')
               {
@@ -1847,7 +1848,7 @@ gal_fits_key_write_filename(char *keynamebase, char *filename,
                       __func__, filename, maxlength);
             }
 
-          /* Convert the last useful character and save the file name.*/
+          /* Convert the last useful character and save the file name. */
           if(top1end0)
             gal_fits_key_list_add(list, GAL_TYPE_STRING, keyname, 1,
                                   value, 1, NULL, 0, NULL, 0);
@@ -1948,7 +1949,7 @@ fits_bug_wrapper_cdelt_zero(fitsfile *fptr, struct wcsprm *wcs, char *keystr)
 
 
 
-/* Write the WCS header string into a FITS files*/
+/* Write the WCS header string into a FITS files. */
 void
 gal_fits_key_write_wcsstr(fitsfile *fptr, struct wcsprm *wcs,
                           char *wcsstr, int nkeyrec)
@@ -1974,7 +1975,7 @@ gal_fits_key_write_wcsstr(fitsfile *fptr, struct wcsprm *wcs,
          that WCSLIB adds a blank line and a 'COMMENT' keyword saying its
          own version. But Gnuastro writes the version of WCSLIB as a
          separate keyword along with all other important software, so it is
-         redundant and just makes the keywrods hard to read by eye.*/
+         redundant and just makes the keywrods hard to read by eye. */
       if( keystart[0]!=' ' && strncmp(keystart, "COMMENT", 7) )
         {
           fits_write_record(fptr, keystart, &status);
@@ -2029,10 +2030,10 @@ gal_fits_key_write(gal_fits_list_key_t **keylist, char *title,
   fitsfile *fptr=gal_fits_hdu_open(filename, hdu, READWRITE, 1,
                                    hdu_option_name);
 
-  /* Write the title */
+  /* Write the title. */
   gal_fits_key_write_title_in_ptr(title, fptr);
 
-  /* Write the keywords into the  */
+  /* Write the keywords into the FITS file pointer ('fptr'). */
   gal_fits_key_write_in_ptr(keylist, fptr);
 
   /* Close the input FITS file. */
@@ -2079,7 +2080,7 @@ gal_fits_key_write_in_ptr_nan_check(gal_fits_list_key_t *tmp)
               : ((double *)(out))[0] ) );
     }
 
-  /* Return the allocated array.*/
+  /* Return the allocated array. */
   return out;
 }
 
@@ -2149,7 +2150,7 @@ gal_fits_key_write_in_ptr(gal_fits_list_key_t **keylist, fitsfile *fptr)
         }
 
       /* Keep the pointer to the next keyword and free the allocated
-         space for this keyword.*/
+         space for this keyword. */
       ttmp=tmp->next;
       free(tmp);
       tmp=ttmp;
@@ -2197,7 +2198,7 @@ gal_fits_key_write_version_in_ptr(gal_fits_list_key_t **keylist,
   /* Before WCSLIB 5.0, the wcslib_version function was not
      defined. Sometime in the future were everyone has moved to more
      recent versions of WCSLIB, we can remove this macro and its check
-     in configure.ac.*/
+     in configure.ac. */
 #if GAL_CONFIG_HAVE_WCSLIB_VERSION == 1
   int wcslibvers[3];
   char wcslibversion[20];
@@ -2235,7 +2236,7 @@ gal_fits_key_write_version_in_ptr(gal_fits_list_key_t **keylist,
   /* Write all the information: */
   fits_write_date(fptr, &status);
 
-  /* Write the version of CFITSIO */
+  /* Write the version of CFITSIO. */
   fits_update_key(fptr, TSTRING, "CFITSIO", cfitsioversion,
                   "CFITSIO version.", &status);
 
@@ -2265,7 +2266,7 @@ gal_fits_key_write_version_in_ptr(gal_fits_list_key_t **keylist,
       free(gitdescribe);
     }
 
-  /* Report any error if a problem came up */
+  /* Report any error if a problem came up. */
   gal_fits_io_error(status, NULL);
 }
 
@@ -2313,7 +2314,7 @@ gal_fits_key_write_config(gal_fits_list_key_t **keylist, char *title,
 
 
 /* From an input list of FITS files and a HDU, select those that have a
-   certain value(s) in a certain keyword.*/
+   certain value(s) in a certain keyword. */
 gal_list_str_t *
 gal_fits_with_keyvalue(gal_list_str_t *files, char *hdu, char *name,
                        gal_list_str_t *values, char *hdu_option_name)
@@ -2371,7 +2372,7 @@ gal_fits_with_keyvalue(gal_list_str_t *files, char *hdu, char *name,
 
 
 /* From an input list of FITS files and a HDU, select those that have a
-   certain value(s) in a certain keyword.*/
+   certain value(s) in a certain keyword. */
 gal_list_str_t *
 gal_fits_unique_keyvalues(gal_list_str_t *files, char *hdu, char *name,
                           char *hdu_option_name)
@@ -2627,7 +2628,7 @@ gal_fits_img_read(char *filename, char *hdu, size_t minmapsize,
   gal_fits_io_error(status, NULL);
 
 
-  /* Return the filled data structure */
+  /* Return the filled data structure. */
   return img;
 }
 
@@ -2692,7 +2693,7 @@ gal_fits_img_read_kernel(char *filename, char *hdu, size_t minmapsize,
           "doesn't have an odd number of pixels", __func__, filename, hdu);
 
   /* If there are any NaN pixels, set them to zero and normalize it. A
-     blank pixel in a kernel is going to make a completely blank output.*/
+     blank pixel in a kernel is going to make a completely blank output. */
   fp=(f=kernel->array)+kernel->size;
   do
     {
@@ -2714,7 +2715,7 @@ gal_fits_img_read_kernel(char *filename, char *hdu, size_t minmapsize,
       f[ kernel->size - i - 1 ]=tmp;
     }
 
-  /* Return the kernel*/
+  /* Return the kernel. */
   return kernel;
 }
 
@@ -2756,7 +2757,7 @@ gal_fits_img_write_to_ptr(gal_data_t *input, char *filename)
                               "naxes");
 
 
-  /* Open the file for writing */
+  /* Open the file for writing. */
   fptr=gal_fits_open_to_write(filename);
 
 
@@ -2813,7 +2814,7 @@ gal_fits_img_write_to_ptr(gal_data_t *input, char *filename)
     }
   else
     {
-      /* Set the datatype */
+      /* Set the datatype. */
       datatype=gal_fits_type_to_datatype(block->type);
 
       /* Create the FITS file. */
@@ -2845,7 +2846,7 @@ gal_fits_img_write_to_ptr(gal_data_t *input, char *filename)
       case GAL_TYPE_FLOAT32:
       case GAL_TYPE_FLOAT64:
         /* Do nothing! Since there are much fewer floating point types
-           (that don't need any BLANK keyword), we are checking them.*/
+           (that don't need any BLANK keyword), we are checking them. */
         break;
 
       default:
@@ -2872,12 +2873,13 @@ gal_fits_img_write_to_ptr(gal_data_t *input, char *filename)
     fits_write_comment(fptr, towrite->comment, &status);
 
 
-  /* If a WCS structure is present, write it in */
+  /* If a WCS structure is present, write it in the FITS file pointer
+     ('fptr'). */
   if(towrite->wcs)
     gal_wcs_write_in_fitsptr(fptr, towrite->wcs);
 
 
-  /* Report any errors if we had any */
+  /* If there were any errors, report them and return.*/
   free(naxes);
   gal_fits_io_error(status, NULL);
   if(towrite!=input) gal_data_free(towrite);
@@ -2943,7 +2945,7 @@ gal_fits_img_write_to_type(gal_data_t *data, char *filename,
 
       - WCSLIB's header writing function is not thread safe. So when
         writing FITS images in parallel, we can't write the header keywords
-        in each thread.   */
+        in each thread. */
 void
 gal_fits_img_write_corr_wcs_str(gal_data_t *input, char *filename,
                                 char *wcsstr, int nkeyrec, double *crpix,
@@ -3008,7 +3010,7 @@ gal_fits_img_write_corr_wcs_str(gal_data_t *input, char *filename,
 /**********                 Table                  ************/
 /**************************************************************/
 /* Get the size of a table HDU. CFITSIO doesn't use size_t, also we want to
-   check status here.*/
+   check status here. */
 void
 gal_fits_tab_size(fitsfile *fitsptr, size_t *nrows, size_t *ncols)
 {
@@ -3079,7 +3081,7 @@ set_display_format(char *tdisp, gal_data_t *data, char *filename, char *hdu,
   int isanint=0;
   char *tailptr;
 
-  /* First, set the general display format */
+  /* First, set the general display format. */
   switch(tdisp[0])
     {
     case 'A':
@@ -3158,7 +3160,7 @@ set_display_format(char *tdisp, gal_data_t *data, char *filename, char *hdu,
    'TSCALn' and 'TZEROn' to scale the signed types to an unsigned type. It
    does this internally, but since we need to define our data type and
    allocate space for it before actually reading the array, it is necessary
-   to do this setting here.  */
+   to do this setting here. */
 static void
 fits_correct_bin_table_int_types(gal_data_t *allcols, int tfields,
                                  int *tscal, long long *tzero)
@@ -3208,7 +3210,7 @@ gal_fits_tab_info(char *filename, char *hdu, size_t *numcols,
                   size_t *numrows, int *tableformat, char *hdu_option_name)
 {
   long repeat;
-  int tfields;        /* The maximum number of fields in FITS is 999 */
+  int tfields;        /* The maximum number of fields in FITS is 999. */
   char *tailptr;
   fitsfile *fptr;
   size_t i, index;
@@ -3266,7 +3268,7 @@ gal_fits_tab_info(char *filename, char *hdu, size_t *numcols,
          single quotes around the value string, one before and one
          after. 'gal_fits_key_clean_str_value' will remove these single
          quotes and any possible trailing space within the allocated
-         space.*/
+         space. */
       if(value[0]=='\'') gal_fits_key_clean_str_value(value);
 
 
@@ -3277,14 +3279,14 @@ gal_fits_tab_info(char *filename, char *hdu, size_t *numcols,
          number exists before the defined capital letter, it defaults to 1,
          but if a number exists (for example '5D'), then the repeat is 5
          (there are actually five values in each column). Note that
-         value[0] is a single quote.*/
+         value[0] is a single quote. */
       if(strncmp(keyname, "TFORM", 5)==0)
         {
           /* See which column this information was for and add it, if the
              index is larger than the number of columns, then ignore
              the . The FITS standard says there should be no extra TFORM
              keywords beyond the number of columns, but we don't want to be
-             that strict here.*/
+             that strict here. */
           index = strtoul(&keyname[5], &tailptr, 10) - 1;
           if(index<tfields)  /* Counting from zero was corrected above. */
             {
@@ -3307,14 +3309,14 @@ gal_fits_tab_info(char *filename, char *hdu, size_t *numcols,
                   /* Set the repeat flag if necessary (recall that by
                      default 'allcols[index].minmapsize' will be zero! So
                      we need this flag to confirm that the zero there is
-                     meaningful.*/
+                     meaningful. */
                   if(repeat==0)
                     allcols[index].flag
                       |= GAL_TABLEINTERN_FLAG_TFORM_REPEAT_IS_ZERO;
                 }
 
               /* Write the "repeat" element into 'allcols->minmapsize',
-                 also activate the repeat flag within the dataset.*/
+                 also activate the repeat flag within the dataset. */
               allcols[index].minmapsize = repeat;
 
               /* Write the type into the data structure. */
@@ -3381,7 +3383,7 @@ gal_fits_tab_info(char *filename, char *hdu, size_t *numcols,
          quotation marks, CFITSIO puts them in itsself, so if we don't
          remove them here, we might have duplicates later, its easier to
          just remove them to have a simple string that might be used else
-         where too (without the single quotes).*/
+         where too (without the single quotes). */
       else if(strncmp(keyname, "TTYPE", 5)==0)
         {
           index = strtoul(&keyname[5], &tailptr, 10) - 1;
@@ -3399,7 +3401,7 @@ gal_fits_tab_info(char *filename, char *hdu, size_t *numcols,
         }
 
 
-      /* COLUMN COMMENTS */
+      /* COLUMN COMMENTS. */
       else if(strncmp(keyname, "TCOMM", 5)==0)
         {
           index = strtoul(&keyname[5], &tailptr, 10) - 1;
@@ -3441,7 +3443,7 @@ gal_fits_tab_info(char *filename, char *hdu, size_t *numcols,
         }
 
 
-      /* COLUMN DISPLAY FORMAT */
+      /* COLUMN DISPLAY FORMAT. */
       else if(strncmp(keyname, "TDISP", 5)==0)
         {
           index = strtoul(&keyname[5], &tailptr, 10) - 1;
@@ -4015,7 +4017,7 @@ fits_table_prepare_arrays(gal_data_t *cols, size_t numcols,
               /* For vector columns, we need to give the number of elements
                  in the vector. Note that a vector column with dsize[1]==1
                  is just a single-valued column and shouldn't be treated
-                 like a vector.*/
+                 like a vector. */
               if( col->ndim==1 || (col->ndim==2 && col->dsize[1]==1) )
                 {
                   if( asprintf(&tform[i], "%c", fmt[0])<0 )
@@ -4105,7 +4107,7 @@ fits_write_tnull_tcomm(fitsfile *fptr, gal_data_t *col, int tableformat,
   int status=0;
   char *c, *keyname, *bcomment;
 
-  /* Write the NULL value */
+  /* Write the NULL value. */
   switch(tableformat)
     {
     case GAL_TABLE_FORMAT_AFITS:
@@ -4377,7 +4379,7 @@ gal_fits_tab_write(gal_data_t *cols, gal_list_str_t *comments,
   /* Clean up and close the FITS file. Note that each element in the
      'ttype' and 'tunit' arrays just points to the respective string in the
      column data structure, the space for each element of the array wasn't
-     allocated.*/
+     allocated. */
   for(i=0;i<numcols;++i) {free(tform[i]); free(ttype[i]); free(tunit[i]);}
   free(tform); free(ttype); free(tunit);
   fits_close_file(fptr, &status);

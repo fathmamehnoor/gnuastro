@@ -230,7 +230,7 @@ gal_options_check_version(struct argp_option *option, char *arg,
               PACKAGE_BUGREPORT);
       else if( strcmp(arg, PACKAGE_VERSION) )
         {
-          /* Print an error message and abort.  */
+          /* Print an error message and abort. */
           error_at_line(EXIT_FAILURE, 0, filename, lineno, "version "
                         "mis-match: you are running GNU Astronomy "
                         "Utilities (Gnuastro) version '%s'. However, "
@@ -450,7 +450,7 @@ gal_options_read_type(struct argp_option *option, char *arg,
                       arg, option->name);
 
       /* For no un-used variable warning. This function doesn't need the
-         pointer.*/
+         pointer. */
       return junk=NULL;
     }
 }
@@ -530,7 +530,7 @@ gal_options_read_searchin(struct argp_option *option, char *arg,
                       arg, option->name);
 
       /* For no un-used variable warning. This function doesn't need the
-         pointer.*/
+         pointer. */
       return junk=NULL;
     }
 }
@@ -580,7 +580,7 @@ gal_options_read_wcslinearmatrix(struct argp_option *option, char *arg,
       *(uint8_t *)(option->value)=value;
 
       /* For no un-used variable warning. This function doesn't need the
-         pointer.*/
+         pointer. */
       return junk=NULL;
     }
 }
@@ -617,7 +617,7 @@ gal_options_read_tableformat(struct argp_option *option, char *arg,
                       "'fits-binary').\n\n", arg, option->name);
 
       /* For no un-used variable warning. This function doesn't need the
-         pointer.*/
+         pointer. */
       return junk=NULL;
     }
 }
@@ -742,7 +742,7 @@ gal_options_read_sexagesimal(size_t dim, char *str, char **tailptr,
         /* If the loop above ended in a comma, then it stops and its time
            to check if this is actually a sexagesimal string or not. If we
            have reached the end of the string, and there was only two
-           colons, then this is indeed a colon-based sexagesimal string.*/
+           colons, then this is indeed a colon-based sexagesimal string. */
         if( (*cc=='\0' || *cc==',')
             && coloncounter>=2 )
           iscolon=1;
@@ -753,12 +753,12 @@ gal_options_read_sexagesimal(size_t dim, char *str, char **tailptr,
            string. */
         if(iscolon==0) return NAN;
 
-        /* Everything is good, continue */
+        /* Everything is good, continue. */
         if(dim==0) isra=1; else isdec=1;
         break;
       }
 
-  /* Make sure the string could be identified properly */
+  /* Make sure the string could be identified properly. */
   if( (isra==0 && isdec==0) || (ishd==0 && iscolon==0) )
     {
       if(abort)
@@ -939,7 +939,7 @@ gal_options_parse_list_of_numbers(char *string, char *filename,
 
 
   /* If the last number wasn't finished by a ',', add the read value to the
-     list */
+     list. */
   if( !isnan(numerator) )
     {
       ++num;
@@ -1004,7 +1004,7 @@ gal_options_parse_list_of_strings(char *string, char *filename,
           { for(d=c+2; *d!='\0'; ++d) {*(d-1)=*d;} *(d-1)='\0'; }
       }
 
-  /* Start separating the tokens */
+  /* Start separating the tokens. */
   token=strtok(cp, delimiters);
   gal_list_str_add(&list, token, 1);
   while(token!=NULL)
@@ -1039,7 +1039,7 @@ gal_options_parse_list_of_strings(char *string, char *filename,
 
   /* Clean up and return. Note that we don't want to free the values in the
      list, the elements in 'out->array' point to them and will later use
-     them.*/
+     them. */
   free(cp);
   gal_list_str_free(list, 0);
   return out;
@@ -1084,7 +1084,7 @@ options_print_liststr_as_csv(void *inval)
 
 
 /* NOTE: output is REVERSED (since the option parsing automatically
-   reverses STRLLs at its end).. */
+   reverses STRLLs at its end). */
 gal_list_str_t *
 gal_options_parse_csv_strings_to_list(char *string, char *filename,
                                       size_t lineno)
@@ -1131,7 +1131,7 @@ gal_options_parse_csv_strings_to_list(char *string, char *filename,
             {
               *c='\0';
               gal_list_str_add(&list, str, 1);
-              str=NULL;  /* Mark that the next character is the start */
+              str=NULL;  /* Mark that the next character is the start. */
             }
           break;
 
@@ -1189,7 +1189,7 @@ gal_options_parse_csv_strings_append(struct argp_option *option, char *arg,
       gal_list_str_last(alist)->next=olist;
       *(gal_list_str_t **)(option->value)=alist;
 
-      /* Return a NULL pointer */
+      /* Return a NULL pointer. */
       return NULL;
     }
 }
@@ -1244,7 +1244,7 @@ gal_options_parse_csv_strings_to_data(char *string, char *filename,
 
 
   /* Clean up and return. Note that we don't want to free the space of
-     each string becuse it has been passed  */
+     each string becuse it has been passed. */
   gal_list_str_free(list, 0);
   return out;
 }
@@ -1300,7 +1300,7 @@ gal_options_parse_csv_strings(struct argp_option *option, char *arg,
       else            sstr[nc-1]='\0';
 
       /* Copy the string into a dynamically allocated space, because it
-         will be freed later.*/
+         will be freed later. */
       gal_checkset_allocate_copy(sstr, &str);
       return str;
     }
@@ -1427,7 +1427,7 @@ gal_options_parse_sizes_reverse(struct argp_option *option, char *arg,
       sstr[nc-1]='\0';
 
       /* Copy the string into a dynamically allocated space, because it
-         will be freed later.*/
+         will be freed later. */
       gal_checkset_allocate_copy(sstr, &str);
       return str;
     }
@@ -1465,14 +1465,14 @@ gal_options_parse_sizes_reverse(struct argp_option *option, char *arg,
         }
 
       /* Write the values into an allocated size_t array and finish it with
-         a '-1' so the total number can be found later.*/
+         a '-1' so the total number can be found later. */
       num=values->size;
       array=gal_pointer_allocate(GAL_TYPE_SIZE_T, num+1, 0, __func__,
                                  "array");
       for(i=0;i<num;++i) array[num-1-i]=v[i];
       array[num] = GAL_BLANK_SIZE_T;
 
-      /* Put the array of size_t into the option, clean up and return.*/
+      /* Put the array of size_t into the option, clean up and return. */
       *(size_t **)(option->value) = array;
       gal_data_free(values);
       return NULL;
@@ -1500,7 +1500,7 @@ gal_options_parse_csv_float64(struct argp_option *option, char *arg,
       values = *(gal_data_t **)(option->value);
       darray=values->array;
 
-      /* Write each string into the output string */
+      /* Write each string into the output string. */
       nc=0;
       for(i=0;i<values->size;++i)
         {
@@ -1515,7 +1515,7 @@ gal_options_parse_csv_float64(struct argp_option *option, char *arg,
       sstr[nc-1]='\0';
 
       /* Copy the string into a dynamically allocated space, because it
-         will be freed later.*/
+         will be freed later. */
       gal_checkset_allocate_copy(sstr, &str);
       return str;
     }
@@ -1681,7 +1681,7 @@ gal_options_parse_name_and_values(struct argp_option *option, char *arg,
       sstr[nc-1]='\0';
 
       /* Copy the string into a dynamically allocated space, because it
-         will be freed later.*/
+         will be freed later. */
       gal_checkset_allocate_copy(sstr, &str);
       return str;
     }
@@ -1692,7 +1692,7 @@ gal_options_parse_name_and_values(struct argp_option *option, char *arg,
         error_at_line(EXIT_FAILURE, 0, filename, lineno, "no value "
                       "given to '--%s'", option->name);
 
-      /* Parse until the comma or the end of the string.*/
+      /* Parse until the comma or the end of the string. */
       c=arg; while(*c!='\0' && *c!=',') ++c;
       values = (*c=='\0') ? NULL : c+1;
 
@@ -1848,7 +1848,7 @@ gal_options_parse_colon_sep_csv_raw(char *instring, char *filename,
          but not when they are before a : or ,. So we need to remove
          all white spaces. White spaces are usually put beside each
          other, so if one is encountered, go along the string until
-         the white space characters finish.  */
+         the white space characters finish. */
       if(isspace(*pt))
         ++pt;
       else
@@ -1891,7 +1891,7 @@ gal_options_parse_colon_sep_csv_raw(char *instring, char *filename,
           /* Add the read coordinate to the list of coordinates. */
           gal_list_f64_add(&vertices, read);
 
-          /* The job here is done, start from tailptr */
+          /* The job here is done, start from tailptr. */
           pt=tailptr;
         }
     }
@@ -1910,7 +1910,7 @@ gal_options_parse_colon_sep_csv_raw(char *instring, char *filename,
 
 
 /* Parse strings that are given to a function in this format
-   'num1,num2:num3,n4:num5,num6' */
+   'num1,num2:num3,n4:num5,num6'. */
 void *
 gal_options_parse_colon_sep_csv(struct argp_option *option, char *arg,
                                 char *filename, size_t lineno, void *junk)
@@ -1949,7 +1949,7 @@ gal_options_parse_colon_sep_csv(struct argp_option *option, char *arg,
       sstr[nc-1]='\0';
 
       /* Copy the string into a dynamically allocated space, because it
-         will be freed later.*/
+         will be freed later. */
       gal_checkset_allocate_copy(sstr, &str);
       return str;
     }
@@ -2331,7 +2331,7 @@ gal_options_set_from_key(int key, char *arg, struct argp_option *options,
   /* Go through all the options and find the one that should keep this
      value, then put its value into the appropriate key. Note that the
      options array finishs with an all zero element, so we don't need to
-     know the number before hand.*/
+     know the number before hand. */
   for(i=0;1;++i)
     {
       /* Check if the key corresponds to this option. */
@@ -2480,7 +2480,7 @@ gal_options_check_stdin(char *inputname, long stdintimeout, char *name)
 /************            Configuration files            ***************/
 /**********************************************************************/
 
-/* Read the option and the argument from the line and return.*/
+/* Read the option and the argument from the line and return. */
 static void
 options_read_name_arg(char *line, char *filename, size_t lineno,
                       char **name, char **arg)
@@ -2496,7 +2496,7 @@ options_read_name_arg(char *line, char *filename, size_t lineno,
     switch(*line)
       {
       case ' ': case '=': case '\t': case '\v': case '\n': case '\r':
-        if(inword) /* Only considered in a word, not in a quote*/
+        if(inword) /* Only considered in a word, not in a quote. */
           {
             inword=0;
             *line='\0';
@@ -2573,7 +2573,7 @@ options_set_from_name(char *name, char *arg,  struct argp_option *options,
   /* Go through all the options and find the one that should keep this
      value, then put its value into the appropriate key. Note that the
      options array finishs with an all zero element, so we don't need to
-     know the number before hand.*/
+     know the number before hand. */
   for(i=0;1;++i)
     {
       /* Check if the key corresponds to this option. */
@@ -2664,7 +2664,7 @@ options_parse_file(char *filename,  struct gal_options_common_params *cp,
   fp=fopen(filename, "r");
   if(fp==NULL)
     {
-      /* Print a warning  */
+      /* Print a warning. */
       if(warning && cp->quiet==0)
         error(EXIT_SUCCESS, errno, "%s", filename);
       return;
@@ -2699,7 +2699,7 @@ options_parse_file(char *filename,  struct gal_options_common_params *cp,
              found there, 'options_set_from_name' will return 1. So the
              condition will succeed and we will start looking into the
              common options, if it isn't found there either, then report an
-             error.*/
+             error. */
           if( options_set_from_name(name, arg, cp->poptions, cp,
                                     filename, lineno) )
             if( options_set_from_name(name, arg, cp->coptions, cp,
@@ -2896,7 +2896,7 @@ gal_options_read_low_level_checks(struct gal_options_common_params *cp)
 
 
 
-/* Read all configuration files and set common options */
+/* Read all configuration files and set common options. */
 void
 gal_options_read_config_set(struct gal_options_common_params *cp)
 {
@@ -2905,7 +2905,7 @@ gal_options_read_config_set(struct gal_options_common_params *cp)
 
   /* Reverse the order of all linked list type options so the popping order
      is the same as the user's input order. We need to do this here because
-     when printing those options, their order matters.*/
+     when printing those options, their order matters. */
   options_reverse_lists_check_mandatory(cp, cp->poptions);
   options_reverse_lists_check_mandatory(cp, cp->coptions);
 
@@ -3115,12 +3115,12 @@ options_print_doc(FILE *fp, const char *doc, int nvwidth)
   else
     {
       /* If the break is in the middle of a word, then pull set it before
-         the word starts.*/
+         the word starts. */
       cwidth=width; while( doc[cwidth]!=' ' ) --cwidth;
       fprintf(fp, "# %.*s\n", cwidth, doc);
       i=cwidth;
 
-      /* Go over the rest of the line */
+      /* Go over the rest of the line. */
       while(i<len)
         {
           /* Remove any possible space before the first word. */
@@ -3154,7 +3154,7 @@ options_print_all_in_group(struct argp_option *options, int groupint,
         && options[i].set                      /* Has been given a value.  */
         && option_is_printable(&options[i]) )  /* Is relevant for printing.*/
       {
-        /* Linked lists */
+        /* Linked lists. */
         if(gal_type_is_list(options[i].type))
           for(tmp=*(gal_list_str_t **)(options[i].value);
               tmp!=NULL; tmp=tmp->next)
@@ -3211,7 +3211,7 @@ options_print_all(struct gal_options_common_params *cp, char *dirname,
       /* Remove the file if it already exists. */
       gal_checkset_writable_remove(filename, NULL, 0, 0);
 
-      /* Open the file for writing */
+      /* Open the file for writing. */
       errno=0;
       fp=fopen(filename, "w");
       if(fp==NULL)
@@ -3243,7 +3243,7 @@ options_print_all(struct gal_options_common_params *cp, char *dirname,
      the (possible) other groups are in the program specific options. We
      will only be dealing with the 'topics' linked list in this function
      and the strings in 'poption' are statically allocated, so its fine to
-     not waste CPU cycles allocating and freeing.*/
+     not waste CPU cycles allocating and freeing. */
   for(i=0; !gal_options_is_last(&coptions[i]); ++i)
     if(coptions[i].name==NULL && coptions[i].key==0 && coptions[i].doc)
       {
@@ -3298,7 +3298,7 @@ options_print_all(struct gal_options_common_params *cp, char *dirname,
       free(filename);
     }
 
-  /* Exit the program successfully */
+  /* Exit the program successfully. */
   exit(EXIT_SUCCESS);
 }
 

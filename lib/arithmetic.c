@@ -1129,7 +1129,7 @@ arithmetic_size(int operator, int flags, gal_data_t *in, gal_data_t *arg)
 
 /* Stitch multiple operands along a given dimension. */
 static gal_data_t *
-arithmetic_to_1d(int operator, int flags, gal_data_t *input)
+arithmetic_to_1d(int flags, gal_data_t *input)
 {
   size_t i;
 
@@ -1223,8 +1223,7 @@ arithmetic_stitch_sanity_check(gal_data_t *list, gal_data_t *fdim)
 
 /* Stitch multiple operands along a given dimension. */
 static gal_data_t *
-arithmetic_stitch(int operator, int flags, gal_data_t *list,
-                  gal_data_t *fdim)
+arithmetic_stitch(int flags, gal_data_t *list, gal_data_t *fdim)
 {
   void *oarr;
   gal_data_t *tmp, *out;
@@ -1276,7 +1275,7 @@ arithmetic_stitch(int operator, int flags, gal_data_t *list,
               break;
 
             /* Horizontal stitching (first FITS axis is the horizontal
-               axis) */
+               axis). */
             case 1:
 
               /* Copy row-by-row. */
@@ -3824,13 +3823,13 @@ gal_arithmetic(int operator, size_t numthreads, int flags, ...)
     case GAL_ARITHMETIC_OP_TRIM:
       d1 = va_arg(va, gal_data_t *);
       out = ( operator==GAL_ARITHMETIC_OP_TO1D
-              ? arithmetic_to_1d(operator, flags, d1)
+              ? arithmetic_to_1d(flags, d1)
               : gal_blank_trim(d1, flags & GAL_ARITHMETIC_FLAG_FREE) );
       break;
     case GAL_ARITHMETIC_OP_STITCH:
       d1 = va_arg(va, gal_data_t *);
       d2 = va_arg(va, gal_data_t *);
-      out=arithmetic_stitch(operator, flags, d1, d2);
+      out=arithmetic_stitch(flags, d1, d2);
       break;
 
     /* Conversion operators. */

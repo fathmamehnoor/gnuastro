@@ -20,7 +20,6 @@
 
 @c So dashes and underscores can be used in HTMLs
 @allowcodebreaks true
-
 @c So function output type is printed on first line
 @deftypefnnewline on
 
@@ -21074,16 +21073,16 @@ Formally, any pixel that is outside of the image in the equation above will be c
 When the kernel is symmetric about its center the blurred image has the same orientation as the original image.
 However, if the kernel is not symmetric, the image will be affected in the opposite manner, this is a natural consequence of the definition of spatial filtering.
 In order to avoid this we can rotate the kernel about its center by 180 degrees so the convolved output can have the same original orientation (this is done by default in the Convolve program).
-Technically speaking, only if the kernel is flipped the process is known @emph{Convolution}.
+Technically speaking, only if the kernel is flipped the process is known as @emph{Convolution}.
 If it is not it is known as @emph{Correlation}.
 
-To be a weighted average, the sum of the weights (the pixels in the kernel) have to be unity.
+To be a weighted average, the sum of the weights (the pixels in the kernel) has to be unity.
 This will have the consequence that the convolved image of an object and unconvolved object will have the same brightness (see @ref{Brightness flux magnitude}), which is natural, because convolution should not eat up the object photons, it only disperses them.
 
-The convolution of each pixel is independent of the others pixels, and in some cases it may be necessary to convolve different parts of an image separately (for example, when you have different amplifiers on the CCD).
+The convolution of each pixel is independent of the other pixels, and in some cases, it may be necessary to convolve different parts of an image separately (for example, when you have different amplifiers on the CCD).
 Therefore, to speed up spatial convolution, Gnuastro first defines a tessellation over the input; assigning each group of pixels to ``tiles''.
 It then does the convolution in parallel on each tile.
-For more on how Gnuastro's program create the tile grid (tessellation), see @ref{Tessellation}.
+For more on how Gnuastro's programs create the tile grid (tessellation), see @ref{Tessellation}.
 
 
 
@@ -21093,7 +21092,7 @@ For more on how Gnuastro's program create the tile grid (tessellation), see @ref
 In purely `linear' spatial filtering (convolution), there are problems with the edges of the input image.
 Here we will explain the problem in the spatial domain.
 For a discussion of this problem from the frequency domain perspective, see @ref{Edges in the frequency domain}.
-The problem originates from the fact that on the edges, in practice@footnote{Because we assumed the overlapping pixels outside the input image have a value of zero.}, the sum of the weights we use on the actual image pixels is not unity.
+The problem originates from the fact that on the edges, in practice, the sum of the weights we use on the actual image pixels is not unity@footnote{Because we assumed the overlapping pixels outside the input image have a value of zero.}.
 For example, as discussed above, a profile in the center of an image will have the same brightness before and after convolution.
 However, for partially imaged profile on the edge of the image, the brightness (sum of its pixel fluxes within the image, see @ref{Brightness flux magnitude}) will not be equal, some of the flux is going to be `eaten' by the edges.
 
@@ -21896,11 +21895,13 @@ Column containing the 1D kernel.
 When the input dataset is a 1-dimensional column, and the host table has more than one column, use this option to specify which column should be used.
 
 @item --nokernelflip
-Do not flip the kernel after reading it the spatial domain convolution.
+Do not flip the kernel after reading; only for spatial domain convolution.
 This can be useful if the flipping has already been applied to the kernel.
+By default, the input kernel is flipped to avoid the output getting flipped; see @ref{Convolution process}.
 
-@item --nokernelnormx
+@item --nokernelnorm
 Do not normalize the kernel after reading it, such that the sum of its pixels is unity.
+As described in @ref{Convolution process}, the kernel is normalized by default.
 
 @item -d STR
 @itemx --domain=STR
@@ -21951,7 +21952,7 @@ Therefore in the final step (when cropping the central parts of the image), we a
 @end enumerate
 
 @item --noedgecorrection
-Do not correct the edge effect in spatial domain convolution.
+Do not correct the edge effect in spatial domain convolution (this correction is done in spatial domain convolution by default).
 For a full discussion, please see @ref{Edges in the spatial domain}.
 
 @item -m INT
@@ -35642,8 +35643,8 @@ Here is one short/simple example of initializing and adding elements to a string
 
 @example
 gal_list_str_t *strlist=NULL;
-gal_list_str_add(&strlist, "bottom of list.");
-gal_list_str_add(&strlist, "second last element of list.");
+gal_list_str_add(&strlist, "bottom of list.", 1);
+gal_list_str_add(&strlist, "second last element of list.", 1);
 @end example
 
 @end deftypefun

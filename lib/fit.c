@@ -107,7 +107,7 @@ gal_fit_name_from_id(uint8_t fitid)
 int
 gal_fit_name_robust_to_id(char *name)
 {
-  /* In case 'name' is NULL, then return the invalid type.  */
+  /* In case 'name' is NULL, then return the invalid type. */
   if(name==NULL) return GAL_FIT_ROBUST_INVALID;
 
   /* Match the name. */
@@ -501,8 +501,8 @@ gal_fit_1d_polynomial_base(gal_data_t *xin, gal_data_t *yin,
      any space, we can just use the allocated space within the
      'gal_data_t'. We can't set the pointers now because we aren't sure
      they have 'double' type yet. */
-  gsl_vector yvec={yin->size, 1, NULL, NULL, 0}; /* Both have same size, */
-  gsl_vector wvec={yin->size, 1, NULL, NULL, 0}; /* but ywht may be NULL!*/
+  gsl_vector yvec={yin->size, 1, NULL, NULL, 0}; /* Both have same size. */
+  gsl_vector wvec={yin->size, 1, NULL, NULL, 0}; /* 'ywht' may be NULL!  */
   gsl_vector *y=&yvec, *w=&wvec; /* These have to be after the two above.*/
 
   /* Basic sanity checks. */
@@ -624,7 +624,7 @@ gal_fit_1d_polynomial_robust(gal_data_t *xin, gal_data_t *yin,
 
 
 
-/* Estimate values from a polynomial fit.*/
+/* Estimate values from a polynomial fit. */
 gal_data_t *
 gal_fit_1d_polynomial_estimate(gal_data_t *fit, gal_data_t *xin)
 {
