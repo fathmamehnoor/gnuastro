@@ -24,7 +24,9 @@
 
 # Data files (necessary for various components like desktop files for GUIs
 # or Makefiles that are called within scripts).
-pkgdata_DATA = astscript-fits-view.desktop zeropoint.mk
+pkgdata_DATA = zeropoint.mk \
+               dither-simulate.mk \
+               astscript-fits-view.desktop
 astscript-fits-view.desktop: $(srcdir)/fits-view.desktop.in Makefile
 	sed -e 's|@PREFIX[@]|$(exec_prefix)|g' \
 	    $(srcdir)/fits-view.desktop.in > $@
@@ -59,6 +61,7 @@ EXTRA_DIST = fits-view.in \
              sort-by-night.in \
              radial-profile.in \
              dither-simulate.in \
+             dither-simulate.mk \
              psf-select-stars.in \
              psf-scale-factor.in \
              fits-view.desktop.in

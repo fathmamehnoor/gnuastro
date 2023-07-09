@@ -31,6 +31,7 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <stdarg.h>
 
+#include <wcslib/wcs.h>
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_randist.h>
@@ -1132,8 +1133,8 @@ arithmetic_to_1d(int operator, int flags, gal_data_t *input)
 {
   size_t i;
 
-  /* Set absurd value to cause a crash if values that shouldn't be used are
-     used! */
+  /* Set absurd value to cause a crash if values that shouldn't be used
+     are used! */
   for(i=1;i<input->ndim;++i) input->dsize[i]=GAL_BLANK_UINT64;
 
   /* Reset the metadata and return.*/
@@ -3343,6 +3344,8 @@ gal_arithmetic_set_operator(char *string, size_t *num_operands)
     { op=GAL_ARITHMETIC_OP_TO1D;              *num_operands=1;  }
   else if (!strcmp(string, "stitch"))
     { op=GAL_ARITHMETIC_OP_STITCH;            *num_operands=-1; }
+  else if (!strcmp(string, "trim"))
+    { op=GAL_ARITHMETIC_OP_TRIM;              *num_operands=1; }
 
   /* Conditional operators. */
   else if (!strcmp(string, "lt" ))
@@ -3577,6 +3580,7 @@ gal_arithmetic_operator_string(int operator)
     case GAL_ARITHMETIC_OP_RANDOM_FROM_HIST_RAW:return "random-from-hist-raw";
 
     case GAL_ARITHMETIC_OP_SIZE:            return "size";
+    case GAL_ARITHMETIC_OP_TRIM:            return "trim";
     case GAL_ARITHMETIC_OP_TO1D:            return "to-1d";
     case GAL_ARITHMETIC_OP_STITCH:          return "stitch";
 
@@ -3816,8 +3820,11 @@ gal_arithmetic(int operator, size_t numthreads, int flags, ...)
 
     /* Dimensionality changing operators. */
     case GAL_ARITHMETIC_OP_TO1D:
+    case GAL_ARITHMETIC_OP_TRIM:
       d1 = va_arg(va, gal_data_t *);
-      out=arithmetic_to_1d(operator, flags, d1);
+      out = ( operator==GAL_ARITHMETIC_OP_TO1D
+              ? arithmetic_to_1d(operator, flags, d1)
+              : gal_blank_trim(d1, flags & GAL_ARITHMETIC_FLAG_FREE) );
       break;
     case GAL_ARITHMETIC_OP_STITCH:
       d1 = va_arg(va, gal_data_t *);

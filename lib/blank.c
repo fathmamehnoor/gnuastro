@@ -29,6 +29,7 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <inttypes.h>
 
+#include <gnuastro/wcs.h>
 #include <gnuastro/data.h>
 #include <gnuastro/tile.h>
 #include <gnuastro/blank.h>
@@ -609,7 +610,10 @@ blank_flag(gal_data_t *input, int blank1_not0)
 
         /* String. */
         case GAL_TYPE_STRING:
-          do *o++ = !strcmp(*str,GAL_BLANK_STRING); while(++str<strf);
+          if(blank1_not0)
+            do *o++ = strcmp(*str,GAL_BLANK_STRING)==0; while(++str<strf);
+          else
+            do *o++ = strcmp(*str,GAL_BLANK_STRING)!=0; while(++str<strf);
           break;
 
         /* Currently unsupported types. */
@@ -664,6 +668,236 @@ gal_data_t *
 gal_blank_flag_not(gal_data_t *input)
 {
   return blank_flag(input, 0);
+}
+
+
+
+#define NMM_CRDS_CHECK                                                  \
+  gal_dimension_index_to_coord(a-as, ndim, input->dsize, c);            \
+  for(i=0;i<ndim;++i)                                                   \
+    { if(c[i]<min[i]) min[i]=c[i]; if(c[i]>max[i]) max[i]=c[i]; }
+
+#define NMM_CRDS(IT) {                                                  \
+  IT b, *a=input->array, *as=a, *af=a+input->size;                      \
+  gal_blank_write(&b, input->type);                                     \
+  if(b==b) /* Blank value can be checked with the equal. */             \
+    do { if(*a!=b)  {NMM_CRDS_CHECK} } while(++a<af);                   \
+  else     /* Blank value will fail with the equal comparison. */       \
+    do { if(*a==*a) {NMM_CRDS_CHECK} } while(++a<af);                   \
+  }
+
+size_t *
+gal_blank_not_minmax_coords(gal_data_t *input)
+{
+  char **strarr=input->array;
+  size_t c[3], i, ndim, *out, *min, *max;
+
+  /* Sanity check. */
+  if(input==NULL) error(EXIT_FAILURE, 0, "%s: input is NULL", __func__);
+
+  /* Allocate the output and min/max datasets; and initialize the 'min'
+     dataset (note that the 'max' dataset has already been "clear"ed to
+     zero; which is what we want). */
+  ndim=input->ndim;
+  min=gal_pointer_allocate(GAL_TYPE_SIZE_T, ndim, 0, __func__, "min");
+  max=gal_pointer_allocate(GAL_TYPE_SIZE_T, ndim, 1, __func__, "max");
+  out=gal_pointer_allocate(GAL_TYPE_SIZE_T, 2*ndim, 0, __func__, "out");
+  for(i=0;i<ndim;++i) min[i]=GAL_BLANK_SIZE_T;
+
+  /* The input dataset may be empty. In this case, the output should also
+     be empty, but with the standard 'uint8' type of a flag (we can have
+     tables and images with 0 rows or pixels!). */
+  if(input->size==0 || input->array==NULL)
+    for(i=0;i<2*ndim;++i)
+      out[i]=GAL_BLANK_SIZE_T;
+
+  /* Do all the checks and allocations if a blank is actually present! */
+  if( gal_blank_present(input, 0) )
+    {
+      /* Go over the pixels and set the output values. */
+      switch(input->type)
+        {
+        /* Numeric types */
+        case GAL_TYPE_UINT8:     NMM_CRDS( uint8_t  );    break;
+        case GAL_TYPE_INT8:      NMM_CRDS( int8_t   );    break;
+        case GAL_TYPE_UINT16:    NMM_CRDS( uint16_t );    break;
+        case GAL_TYPE_INT16:     NMM_CRDS( int16_t  );    break;
+        case GAL_TYPE_UINT32:    NMM_CRDS( uint32_t );    break;
+        case GAL_TYPE_INT32:     NMM_CRDS( int32_t  );    break;
+        case GAL_TYPE_UINT64:    NMM_CRDS( uint64_t );    break;
+        case GAL_TYPE_INT64:     NMM_CRDS( int64_t  );    break;
+        case GAL_TYPE_FLOAT32:   NMM_CRDS( float    );    break;
+        case GAL_TYPE_FLOAT64:   NMM_CRDS( double   );    break;
+
+        /* String. */
+        case GAL_TYPE_STRING:
+          for(i=0;i<input->size;++i)
+            if(strcmp(strarr[i],GAL_BLANK_STRING))
+              {
+                gal_dimension_index_to_coord(i, ndim, input->dsize, c);
+                for(i=0;i<ndim;++i)
+                  { if(c[i]<min[i]) min[i]=c[i];
+                    if(c[i]>max[i]) max[i]=c[i]; }
+            }
+          break;
+
+        /* Currently unsupported types. */
+        case GAL_TYPE_BIT:
+        case GAL_TYPE_COMPLEX32:
+        case GAL_TYPE_COMPLEX64:
+          error(EXIT_FAILURE, 0, "%s: %s type not yet supported",
+                __func__, gal_type_name(input->type, 1));
+
+        /* Bad input. */
+        default:
+          error(EXIT_FAILURE, 0, "%s: type value (%d) not recognized",
+                __func__, input->type);
+        }
+
+      /* Write the values into the output. For the maximum ranges, we are
+         adding by one so the callers can simply calculate the number of
+         pixels by subtracting the two (since counting starts from 0). */
+      for(i=0;i<ndim;++i) { out[i*2]=min[i]; out[i*2+1]=max[i]+1; }
+    }
+
+  /* Input had no blanks, just fill the output using the size of the
+     input. */
+  else for(i=0;i<ndim;++i) { out[i*2]=0; out[i*2+1]=input->dsize[i]; }
+
+  /* For a check:
+  for(i=0;i<ndim;++i)
+    printf("%s:%zu: %zu:%zu\n", __func__, i, out[i*2], out[i*2+1]);
+  printf("%s: GOOD\n", __func__); exit(0);
+  */
+
+  /* Clean up and return. */
+  free(min);
+  free(max);
+  return out;
+}
+
+
+
+
+
+/* Trim all NaN-valued rows (in 1D) or columns/rows (in 2D). If 'inplace'
+   is non-zero, no new array will be allocated. */
+gal_data_t *
+gal_blank_trim(gal_data_t *input, int inplace)
+{
+  int coversall=1;
+  void *to, *from;
+  gal_data_t *out=NULL;
+  struct wcsprm *owcs=NULL;
+  size_t *odsize, *idsize, *mmc;
+  size_t i, j, cbytes, osize, opsize, ipsize, ndim;
+
+  /* Sanity checks. */
+  if(input==NULL) error(EXIT_FAILURE, 0, "%s: input is NULL", __func__);
+  ndim=input->ndim;
+  if(ndim>3)
+    error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at '%s' to "
+          "fix the problem. This function is currently not implemented "
+          "for %zu-dimensional inputs", __func__, PACKAGE_BUGREPORT,
+          ndim);
+
+  /* Find the smallest/largest coordinates containing the  */
+  mmc=gal_blank_not_minmax_coords(input);
+
+  /* In case the extrema cover the full image, then just return the input
+     (no trimming necessary!). We first assume that that 'coversall' is
+     true (1). We then parse over the dimensions and check the minimum and
+     maximum and multiply the result of the check (0 or 1) to
+     'coversall'. As a result, if a single dimesion doesn't cover the full
+     range, 'coversall' will be zero.*/
+  for(i=0;i<ndim;++i)
+    coversall *= mmc[i*2]==0 && mmc[i*2+1]==input->dsize[i];
+  if(coversall) return input;
+
+  /* Triming is necessary, so prepare the output. If the input can be
+     freed, then we'll just use its already allocated space. Otherwise,
+     we'll allocate a new dataset. */
+  odsize=gal_pointer_allocate(GAL_TYPE_SIZE_T, ndim, 0, __func__,
+                              "odsize");
+  for(i=0;i<ndim;++i) odsize[i]=mmc[i*2+1]-mmc[i*2];
+  if(inplace) out=input;
+  else
+    {
+      owcs=gal_wcs_copy(input->wcs);
+      out=gal_data_alloc(NULL, input->type, input->ndim, odsize, owcs,
+                         0, input->minmapsize, input->quietmmap, NULL,
+                         NULL, NULL);
+    }
+
+  /* Copy (along the fastest dimension). */
+  idsize=input->dsize;
+  cbytes = odsize[ndim-1] * gal_type_sizeof(input->type);
+  switch(ndim)
+    {
+    /* 1D data. */
+    case 1:
+      to=out->array;
+      from=gal_pointer_increment(input->array, mmc[0], input->type);
+      if(inplace) memmove(to, from, cbytes); /* Overlap is possible. */
+      else        memcpy(to, from, cbytes); /* Overlap not possible. */
+      break;
+
+    /* 2D data. */
+    case 2:
+      for(i=mmc[0]; i<mmc[1]; ++i)
+        {
+          to=gal_pointer_increment(out->array, (i-mmc[0])*odsize[1],
+                                   out->type);
+          from=gal_pointer_increment(input->array,
+                                     i*idsize[1]+mmc[2],
+                                     input->type);
+          if(inplace) memmove(to, from, cbytes); /* Overlap is possible. */
+          else        memcpy(to, from, cbytes); /* Overlap not possible. */
+        }
+      break;
+
+    /* 3D data. */
+    case 3:
+      opsize=odsize[1]*odsize[2]; /* These are "plane"-sizes: number of */
+      ipsize=idsize[1]*idsize[2]; /* elements to change the slowest dim. */
+      for(i=mmc[0]; i<mmc[1]; ++i)
+        for(j=mmc[2]; j<mmc[3]; ++j)
+          {
+            to=gal_pointer_increment(out->array,
+                                     (i-mmc[0])*opsize+(j-mmc[2])*odsize[2],
+                                     out->type);
+            from=gal_pointer_increment(input->array,
+                                       i*ipsize+j*idsize[2]+mmc[4],
+                                       input->type);
+            if(inplace) memmove(to, from, cbytes); /* Overlap is possible. */
+            else        memcpy(to, from, cbytes); /* Overlap not possible. */
+          }
+      break;
+
+    /* Other dimensions. */
+    default:
+      error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at '%s' to "
+            "find and fix it. This function does not support "
+            "%zu-dimensional inputs", __func__, PACKAGE_BUGREPORT, ndim);
+    }
+
+  /* Correct the dimensionality of the output (only relevant when the
+     output is not "in-place"). */
+  osize=1;
+  if(inplace)
+    {
+      for(i=0;i<ndim;++i) osize *= (out->dsize[i]=odsize[i]);
+      out->size=osize;
+    }
+
+  /* Correct the WCS of the output (if it has any!). Recall that in WCSLIB,
+     the coordinates are in FITS order, not C order.*/
+  if(out->wcs) for(i=0;i<ndim;++i) out->wcs->crpix[ndim-1-i] -= mmc[i*2];
+
+  /* Clean up and return the output. */
+  free(mmc);
+  free(odsize);
+  return out;
 }
 
 

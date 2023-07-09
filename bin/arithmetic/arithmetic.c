@@ -1520,6 +1520,11 @@ arithmetic_operator_run(struct arithmeticparams *p, int operator,
           d1=arithmetic_prepare_meta(d1, d2, d3);
           break;
 
+        /* Operators that also modify the reference WCS. */
+        case GAL_ARITHMETIC_OP_TRIM:
+          d1->wcs=gal_wcs_copy(p->refdata.wcs);
+          break;
+
         /* Operators that need/modify the WCS. */
         case GAL_ARITHMETIC_OP_POOLMAX:
         case GAL_ARITHMETIC_OP_POOLMIN:
@@ -1558,6 +1563,14 @@ arithmetic_operator_run(struct arithmeticparams *p, int operator,
       operands_add(p, NULL, gal_arithmetic(operator, p->cp.numthreads,
                                            flags, d1, d2, d3, d4));
 
+      /* Operators with special attention afterwards. */
+      switch(operator)
+        {
+        case GAL_ARITHMETIC_OP_TRIM:
+          gal_wcs_free(p->refdata.wcs);
+          p->refdata.wcs=gal_wcs_copy(p->operands->data->wcs);
+          break;
+        }
     }
 
   /* No need to call the arithmetic library, call the proper wrappers

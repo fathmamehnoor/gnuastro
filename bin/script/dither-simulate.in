@@ -327,7 +327,11 @@ fi
 # this configuration file (and the variables within it).
 counter=1;
 config=$tmpdir/dither-simulate.conf
-ndither=$(astfits $cat --hdu=$hdu --keyvalue=NAXIS2 --quiet)
+if astfits $cat &> /dev/null; then
+    ndither=$(astfits $cat --hdu=$hdu --keyvalue=NAXIS2 --quiet)
+else
+    ndither=$(awk '!/^#/ && NF>1' $cat | wc -l)
+fi
 echo "img = $img" > $config
 echo "width = $width" >> $config
 echo "quiet = $quiet" >> $config
