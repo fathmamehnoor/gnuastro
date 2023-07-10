@@ -8,7 +8,18 @@ See the end of the file for license conditions.
 
 ** New features
 
+  New program:
+  - 'astscript-dither-simulate': a new installed script that will simplify
+    the process of designing the best dither pattern for your observing
+    strategy. It takes into account the distortion of the camera and runs
+    in parallel. A new tutorial has been added in the Tutorials chapter on
+    how to use it.
+
   Book:
+  - New tutorial on a low surface brightness optimized design of a dither
+    pattern using the newly added installed script in Gnuastro for
+    simulating the exposure map of a dither pattern stack (it is called as
+    'astscript-dither-simulate' on the command-line).
   - New "Standard deviation vs. error" sub-section added under the
     MakeCatalog section. It uses real examples to clearly show the
     fundamental difference between the two (which are sometimes confused
@@ -26,9 +37,10 @@ See the end of the file for license conditions.
     program without overwriting them. See the example in the book.
 
   Arithmetic:
-  - New operators:
+  - New operators (see book for a full description):
     - to-1d: convert the input operand into a 1D array, no matter how many
       dimensions it has. Suggested by Faezeh Bidjarchian.
+    - trim: remove all fully-blank outer regions of the input dataset.
     - pool-min: Min-pooling to reduce the size of the input by calculating
                 the minimum of a the pixels within the pooling window. See
                 the new "Pooling opeators" section of the book for
@@ -44,16 +56,20 @@ See the end of the file for license conditions.
     this string, it will be repeated independently for all the columns of
     the input table.
 
-  astscript-zeropoint: --mksrc: use a custom Makefile for estimating the
-  zeropoint, not the default installed Makefile. This is primarily intended
-  for debugging or developing this script, not for normal usage.
+  astscript-zeropoint:
+  --mksrc: use a custom Makefile for estimating the zeropoint, not the
+  default installed Makefile. This is primarily intended for debugging or
+  developing this script, not for normal usage.
 
   Library:
-  -gal_pool_min: min-pooling function, see 'pool-min' above.
-  -gal_pool_max: max-pooling function, see 'pool-min' above.
-  -gal_pool_sum: sum-pooling function, see 'pool-min' above.
-  -gal_pool_mean: mean-pooling function, see 'pool-min' above.
-  -gal_pool_median: median-pooling function, see 'pool-min' above.
+  - gal_blank_not_minmax_coords: returns the minimum/maximum coordinates of
+    non-blank regions of input dataset.
+  - gal_blank_trim: trim all outer blank regions from the input dataset.
+  - gal_pool_min: min-pooling function, see 'pool-min' above.
+  - gal_pool_max: max-pooling function, see 'pool-min' above.
+  - gal_pool_sum: sum-pooling function, see 'pool-min' above.
+  - gal_pool_mean: mean-pooling function, see 'pool-min' above.
+  - gal_pool_median: median-pooling function, see 'pool-min' above.
 
 ** Removed features
 

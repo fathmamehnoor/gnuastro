@@ -8751,55 +8751,68 @@ We'll leave those as an exercise for you to try your self using @ref{Warp} and/o
 @node Dither pattern design,  , Color channels in same pixel grid, Tutorials
 @section Dither pattern design
 
-Dithering is one of the most important steps when planning your observation strategy.
-Dithering is the process of (slightly) moving each exposure compared to the previous one and is done for several reasons like increasing resolution, expending the area of the observation and etc.
+@cindex Dithering
+Deciding a suitable dithering pattern is one of the most important steps when planning your observation strategy.
+Dithering is the process of moving each exposure compared to the previous one and is done for several reasons like increasing resolution, expending the area of the observation and etc.
 For a more complete introduction to dithering, see @ref{Dithering pattern simulation}.
-As of version 0.21, Gnuastro comes with the @command{astscript-dither-simulate} script to help design the best observation strategy for your scientific goal.
+Gnuastro has a script (@command{astscript-dither-simulate}) for simplifying the process of choosing the best dither pattern to optimizing your observation strategy for your scientific goal.
 
-In this tutorial, let's assume you want to make a deep observation of @url{https://en.wikipedia.org/wiki/Messier_94, M94} in the H-alpha and rSDSS filters@footnote{For the full list of available filters, see the @url{https://oaj.cefca.es/telescopes/t80cam, T80Cam description}.} (to study the extended star formation in the outer rings of this beautiful galaxy!).
+In this tutorial, let's assume you want to observe @url{https://en.wikipedia.org/wiki/Messier_94, M94} in the H-alpha and rSDSS filters@footnote{For the full list of available filters, see the @url{https://oaj.cefca.es/telescopes/t80cam, T80Cam description}.} (to study the extended star formation in the outer rings of this beautiful galaxy!).
 Including the outer parts of the rings, the galaxy is half a degree in diameter!
 This is very large, and you want to design a dither pattern that will cover this area with the maximum depth!
 Therefore, you need an instrument with a large field of view.
-Here, we'll assume you want to write a proposal for the @url{https://oaj.cefca.es/telescopes/jast80, JAST80 telescope} at @url{https://oaj.cefca.es, Observatorio Astrofísico de Javalambre}, OAJ@footnote{For full disclosure, Gnuastro is being developed at CEFCA (Centro de Estudios de F@'isica del Cosmos de Arag@'on); which also hosts OAJ.}, in Teruel (Spain).
+Let's assume that after some searching, you decide to write a proposal for the @url{https://oaj.cefca.es/telescopes/jast80, JAST80 telescope} at the @url{https://oaj.cefca.es, Observatorio Astrofísico de Javalambre}, OAJ@footnote{For full disclosure, Gnuastro is being developed at CEFCA (Centro de Estudios de F@'isica del Cosmos de Arag@'on); which also hosts OAJ.}, in Teruel (Spain).
+The field of view of this telescope's camera is almost 1.5 degrees wide, nicely fitting M94!
 
-As described in @ref{Dithering pattern simulation}, it is just important to remember that the ideal dither pattern depends primarily on your scientific objective for the observation, as well as the limitations of the instrument you are observing with.
+Before we start, as described in @ref{Dithering pattern simulation}, it is just important to remember that the ideal dither pattern depends primarily on your scientific objective, as well as the limitations of the instrument you are observing with.
 Therefore, there is no single dither pattern for all purposes.
-However, the tools and methods to check if your dither pattern satisfies your scientific requirement are similar.
-Therefore, you can use the same methods/tools here to simulate or verify that your dither pattern will produce the products you expect after the observation.
+However, the tools, methods, criteria or logic to check if your dither pattern satisfies your scientific requirement are similar.
+Therefore, you can use the same methods, tools or logic here to simulate or verify that your dither pattern will produce the products you expect after the observation.
 The hypothetical scenario above is just an example to show the usage.
+As with any tutorial, do not blindly follow the same final solution for any scenario; this is just an example to show you @emph{how to} find your own solution, not to give you the universal solution to any scenario!
 
 To start simulating a dither pattern for a certain telescope, you just need a single-exposure image of that telescope with WCS information.
 In other words, after astrometry, but before warping into any other pixel grid (to combine into a deeper stack).
-The image will give us the default number of the camera's pixels, its pixel scale (width of pixel on the in arcseconds) and the camera distortion.
+The image will give us the default number of the camera's pixels, its pixel scale (width of pixel in arcseconds) and the camera distortion.
 These are reference parameters that are independent of the position of the image on the sky.
 
-Because the actual position of the reference image is irrelevant, let's assume that in a previous project, persumably on @url{https://en.wikipedia.org/wiki/NGC_4395, NGC 4395}, you had the download command of the following single exposure image.
+Because the actual position of the reference image is irrelevant, let's assume that in a previous project, persumably on @url{https://en.wikipedia.org/wiki/NGC_4395, NGC 4395}, you already had the download command of the following single exposure image:
 
 @example
+$ mkdir dither-tutorial
+$ cd dither-tutorial
+$ mkdir input
 $ siapurl=https://archive.cefca.es/catalogues/vo/siap
 $ wget $siapurl/jplus-dr3/reduced/get_fits?id=1050345 \
-       -Ojplus-1050345.fits.fz
+       -O input/jplus-1050345.fits.fz
+
+$ astscript-fits-view input/jplus-1050345.fits.fz
 @end example
 
-In case you haven't already used images from your target telescope (to use as reference), you can find such images from their public archives; or contacting them.
+@cartouche
+@noindent
+@strong{This is the first time I am using an instrument:} In case you haven't already used images from your desired instrument (to use as reference), you can find such images from their public archives; or contacting them.
 A single exposure images is rarely of any scientific value (post-processing and stacking is necessary to make high-level and science-ready products).
+Therefore, they become publicly available very soon after the observation date; furthermore, calibration images are usually public immediately.
+@end cartouche
 
-The T80Cam images are large (9216 by 9232 pixels).
-Therefore, to simplify the dither testing, let's down-sample the image above by a factor of 10 to help speed up the testing.
-This step is optional and you can safely use the full resolution, which will give you a more precise stack, but which will be slower.
-We will call the output @file{ref.fits} because it is the reference image).
+As you see from the image above, the T80Cam images are large (9216 by 9232 pixels).
+Therefore, to speed up the dither testing, let's down-sample the image above by a factor of 10.
+This step is optional and you can safely use the full resolution, which will give you a more precise stack, but which will be much slower (maybe good after you have an approximate solution on the down-sampled image).
+We will call the output @file{ref.fits} (since it is the ``reference'' for our test).
+We are putting these two ``input'' files (to the script) in a dedicated directory to keep the running directory clean (be able to easily delete temporary/test files for a fresh start with a `@command{rm *.fits}').
 
 @example
-$ astwarp jplus-1050345.fits.fz --scale=1/10 -oref.fits
+$ astwarp input/jplus-1050345.fits.fz --scale=1/10 -oinput/ref.fits
 @end example
 
-For a first trial, let's create a cross-shaped dither pattern around M94 (which is centered at RA and Dec of 192.721250, 41.120556).
-We'll center one exposure on the center of the galaxy, and include 4 more exposures that are each 10 arcminutes away along the RA and Dec axies.
-To simplify the actual command, we'll include the column names through two lines of metadata.
-Instead of this, you could use the @option{--racol=1} and @option{--deccol=2} options, but having metadata is always preferred (will avoid many bugs!).
+For a first trial, let's create a cross-shaped dither pattern around M94 (which is centered at its center on the RA and Dec of 192.721250, 41.120556).
+We'll center one exposure on the center of the galaxy, and include 4 more exposures that are each 1 arc-minute away along the RA and Dec axes.
+To simplify the actual command later@footnote{Instead of this, later, when you called @command{astscript-dither-simulate}, you could pass the @option{--racol=1} and @option{--deccol=2} options.
+But having metadata is always preferred (will avoid many bugs/frustrations in the long-run!).}, let's also include the column names through two lines of metadata.
 
 @example
-$ step_arcmin=10
+$ step_arcmin=1
 $ center_ra=192.721250
 $ center_dec=41.120556
 
@@ -8807,36 +8820,197 @@ $ echo "# Column 1: RA  [deg, f64] Right Ascension"  > dither.txt
 $ echo "# Column 2: Dec [deg, f64] Declination"     >> dither.txt
 
 $ echo $center_ra $center_dec \
-       | awk '@{step='$step_arcmin'/60; fmt="%-10.6f %-10.6f\n"; \
-               printf fmt, $1,      $2; \
-               printf fmt, $1+step, $2; \
-               printf fmt, $1,      $2+step; \
-               printf fmt, $1-step, $2; \
-               printf fmt, $1,      $2-step@}' \
+       | awk '@{s='$step_arcmin'/60; fmt="%-10.6f %-10.6f\n"; \
+               printf fmt, $1,   $2; \
+               printf fmt, $1+s, $2; \
+               printf fmt, $1,   $2+s; \
+               printf fmt, $1-s, $2; \
+               printf fmt, $1,   $2-s@}' \
        >> dither.txt
 
 $ cat dither.txt
 # Column 1: RA  [deg, f64] Right Ascension
-# Column 2: DEC [deg, f64] Declination
+# Column 2: Dec [deg, f64] Declination
 192.721250 41.120556
-192.887917 41.120556
-192.721250 41.287223
-192.554583 41.120556
-192.721250 40.953889
+192.804583 41.120556
+192.721250 41.203889
+192.637917 41.120556
+192.721250 41.037223
 @end example
 
 We are now ready to generate the exposure map of the dither pattern above using the reference image that we made before it.
-We'll put the center of our final stack to be on the center of the galaxy, and we'll assume the stack has a size of 2 degrees.
+Let's put the center of our final stack to be on the center of the galaxy, and we'll assume the stack has a size of 2 degrees.
 With the second command, you can see the exposure map of the final stack.
 Recall that in this image, each pixel shows the number of input images that went into it.
 
 @example
 $ astscript-dither-simulate dither.txt --output=stack.fits \
-           --img=ref.fits --center=$center_ra,$center_dec \
+           --img=input/ref.fits --center=$center_ra,$center_dec \
            --width=2
 
 $ astscript-fits-view stack.fits
 @end example
+
+Because the step size is so small (compared to the field of view), we see that except for a thin boundary, we almost have 5 exposures over the full field of view.
+Let's see what the width of the deepest part of the image is.
+First, we'll use Arithmetic to set all pixels that contain less than 5 exposures to NaN (the outer pixels).
+In the same Arithmetic command, we'll trim all the blank rows and columns to only contain the non-blank region.
+Afterwards, we'll view the deep region with the second command.
+Finally, with the third command below, we'll use the @option{--skycoverage} option of the Fits program to see the coverage of deep part on the sky.
+
+@example
+$ deep_thresh=5
+$ astarithmetic stack.fits set-s s s $deep_thresh lt nan where trim \
+                --output=deep.fits
+
+$ astscript-fits-view deep.fits
+
+$ astfits deep.fits --skycoverage
+...
+Sky coverage by center and (full) width:
+  Center: 192.72125      41.120556
+  Width:  1.880835157    1.392461166
+...
+@end example
+
+@cindex Sky value
+@cindex Flat field
+As we see, the width of this deep field is about 1.4 degrees (in Dec; the coverage in RA depends on the Dec).
+This nicely covers the outers parts of M94.
+However, there is a problem: with a step size of 1 arc-minute, the brighter central parts of this large galaxy will always be on very similar pixels; making it hard to calibrate those pixels properly.
+If you are interested in the low surface brightness parts of this galaxy, it is even worse: the outer parts of the galaxy will always cover similar parts of the detector in all the exposures.
+To be able to accurately calibrate the image (in particular to estimate the flat field pattern and subtract the sky), you do not want this to happen!
+You want each exposure to cover very different sources of astrophysical signal, so you can accurately calibrate the instrument (for example flat field) and natural (for example the Sky) artifacts.
+
+Before we consider other alternatives, let's first get an accurate measure of the area that is covered by all 5 exposures.
+A first hint would be to simply multiply the widths along RA and Dec reported above: @mymath{1.8808\times1.3924=2.6189} degrees squared.
+
+However, the sky coverage reported above has two caveates:
+1) it doesn't take into account the blank pixels (NaN) that are on the four corners of the @file{deep.fits} image.
+2) the differing area of the pixels on the spherical sky in relation to those blank values can result in wrong estimations of the area.
+So far, these blank areas are very small (and do not constitute a large portion of the image).
+As a result, these effects are negligible.
+However, as you get more creative with the dither pattern to optimize your scientific goal, such blank areas will cover a larger fraction of your final stack.
+
+So let's get a very accurate estimation of the area that will not be affected by the issues above.
+With the first command below, we'll use the @option{--pixelareaonwcs} option of the Fits program that will return the area of each pixel (in pixel units of degrees squared).
+After running the second command, please have a look at the output of the first:
+
+@example
+$ astfits deep.fits --pixelareaonwcs --output=deep-pix-area.fits
+
+$ astscript-fits-view deep-pix-area.fits
+@end example
+
+@cindex Gnomonic projection
+The gradient you see in this image (that gets slightly curved towards the top of the image) is the effect of the default @url{https://en.wikipedia.org/wiki/Gnomonic_projection, Gnomonic projection} (summarized as @code{TAN} in the FITS WCS standard).
+Since this image is aligned with the celestial coordinates, as we increase the declination, the pixel area also increases.
+For a comparison, please run the Fits program with the @option{--pixelareaonwcs} option on the originally downloaded @file{jplus-1050345.fits.fz} to see the distortion pattern of the camera's optics which domintes there.
+We can now use Arithmetic to set the areas of all the pixels that were NaN in @file{deep.fits} and sum all the values to get an accurate estimate of the area we get from this dither pattern:
+
+@example
+$ astarithmetic deep-pix-area.fits deep.fits isblank nan where -g1 \
+                sumvalue --quiet
+2.57318473063151e+00
+@end example
+
+As expected, this is very close to the simple multiplication that we did above.
+But it will allow us to accurately estimate the size of the deep field with any ditter pattern.
+
+As mentioned above, M94 is about half a degree in diameter; so let's set @code{step_arcmin=15}.
+This is one quarter of a degree and will put the center of the four exposures on the four corners of the M94's main ring.
+You are now ready to repeat the commands above with this changed value.
+
+@cartouche
+@noindent
+@strong{Writing scripts:}
+It is better to write the steps above as a script so you can easily change the basic settings and see the output fast.
+For more on writing scripts, see as described in @ref{Writing scripts to automate the steps}.
+@end cartouche
+
+After you run the commands above with this single change, you will get a total area of 2.1597 degrees squared.
+This is just roughly @mymath{15\%} smaller than the previous area; but it is much more easier to calibrate.
+However, since each pointing's center will fall on one edge of the galaxy, M94 will be present in all the exposures while doing the calibrations.
+We already see a large ring around this galaxy, and when we do a low surface brightness optimized reduction, there is a chance that the size of the galaxy is much larger.
+
+Ideally, you want your target to be on the four edges/corners of each image.
+This will make sure that a large fraction of each exposure will not be covered by your final target, allowing you to clibrate much more accurately.
+Let's try setting @code{step_arcmin=40} (almost half the width of the detector).
+You will notice that the area is now 0.05013 degrees squared!
+This is 51 times smaller!
+
+Take a look at @file{deep.fits}, and you will see that it is a horizontally elongated rectangle!
+To see the cause, have a look at the @file{stack.fits}: the part with 5 exposures is now very small; covered by a cross-like pattern (which is thicker along the horizontal) that is four exposures deep and even a larger square-like region which is three exposures deep.
+
+The difference between 3 exposures and 5 exposures seems a lot at first.
+But let's calculate how much it actually affects the achieved signal-to-noise ratio and the surface brightness limit (for more, see @ref{Quantifying measurement limits}).
+The surface brightness limit (or upper-limit surface brightness) are both calculated by applying the definition of magnitude to the standard deviation of the background.
+So let's calculate how much this difference in depth affects the sky standard deviation.
+
+Deep images will usually be dominated by @ref{Photon counting noise} (or Poisson noise).
+Therefore, if a single exposure image has a sky standard deviation of @mymath{\sigma_s}, and we combine @mymath{N} such exposures, the sky standard deviation on the stack will be @mymath{\sigma_s/\sqrt{N}}.
+As a result, the surface brightness limit between the regions with @mymath{N} exposures and @mymath{M} exposures differs by @mymath{2.5\times log_{10}(\sqrt{N/M}) = 1.25\times log_{10}(N/M)} magnitudes.
+If we set @mymath{N=3} and @mymath{M=5}, we get a surface brightness magnitude difference of 0.27!
+
+This is a very small difference (given all the other sources of error that will be present).
+Let's see how much we increase our stack area if we set @code{deep_thresh=3}.
+The newly calculated area is 2.6706 degrees squared!
+This is just slightly larger than the first trial (with @code{step_arcmin=1})!
+Therefore at the cost of decreasing our surface brightness limit by 0.27 magnitudes, we are now able to perfectly calibrate the individual exposures, and even cover a larger area!
+
+@cartouche
+@noindent
+@strong{Calibration is very important:} Better calibration can result in a fainter surface brightness limit than more exposures with poor calibration; especially for very low surface brightness signal that covers a large area and is systematically affected by calibrationn issues.
+@end cartouche
+
+Based on the argument above, let's define our deep region to be the pixels with 3 or more exposures.
+Now, let's lave a look at the horizontally stretched cross that we see for the regions with 4 exposures.
+The reason that the vertical component is thicker is that the same change in RA and Dec (defined on a curved sphere) will result in different numbers of pixels on this flat image pixel grid.
+
+To have the same size in both, we should divide the RA step by the cosine of the declination.
+In the command below, we have shown the relevant changes in the dither table construction above.
+
+@example
+$ echo $center_ra $center_dec \
+       | awk '@{s='$step_arcmin'/60; fmt="%-10.6f %-10.6f\n"; \
+               pi=atan2(0, -1); r=pi/180; \
+               printf fmt, $1,               $2; \
+               printf fmt, $1+(s/cos($2*r)), $2; \
+               printf fmt, $1,               $2+s; \
+               printf fmt, $1-(s/cos($2*r)), $2; \
+               printf fmt, $1,               $2-s@}' \
+          >> dither.txt
+@end example
+
+@noindent
+Here are two important points to consider when comparing the previous AWK command with this one:
+@itemize
+@item
+The cosine function of AWK (@code{cos}) assumes that the input is in radians, not degrees.
+We therefore have to multiply each declination (in degrees) by a variable @code{r} that contains the conversion factor (@mymath{\pi/180}).
+@item
+AWK doesn't have the value of @mymath{\pi} in memory.
+We need to calculate it, and to do that, we use the @code{atan2} function (as recommended in the AWK manual, for its definition in Gnuastro, see @ref{Trigonometric and hyperbolic operators}).
+@end itemize
+
+Please use the new AWK command above in your script of the steps above, run it with everything else unchanged.
+Afterwards, open @file{deep.fits}.
+You will see that the widths of both the horizontal and vertical regions are the same.
+
+@cartouche
+@noindent
+@strong{RA and Dec should be treated differently:} As shown above, when considering differences between two points in your dither pattern, it is important to remember that the RA is only defined on the equator of the celestial sphere.
+So when you shift @mymath{+\delta} degrees parallel to the equator, from a point that is located in RA and Dec of [@mymath{r}, @mymath{d}], the RA and Dec of the new point are [@mymath{r+\delta{}/cos(d), d}].
+@end cartouche
+
+You can try making the cross-like region as thin as possible by slightly increasing the step size.
+For example, set it to @code{step_arcmin=42}.
+When you open @file{deep.fits}, you will see that the depth across this image is almost contiguous (which is another positive factor!).
+
+You can construct any complex dither pattern (with more than 5 points) based on the logic and reasoning above to help extract the most science from the valuable telescope time that you will be getting.
+Of course, factors like the optimal exposure time are also critical, but is was beyond the scope of this tutorial.
+
+
 
 
 
