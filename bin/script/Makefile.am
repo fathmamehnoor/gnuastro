@@ -27,9 +27,9 @@
 pkgdata_DATA = zeropoint.mk \
                dither-simulate.mk \
                astscript-fits-view.desktop
-astscript-fits-view.desktop: $(srcdir)/fits-view.desktop.in Makefile
+astscript-fits-view.desktop: $(srcdir)/fits-view.desktop.desktop Makefile
 	sed -e 's|@PREFIX[@]|$(exec_prefix)|g' \
-	    $(srcdir)/fits-view.desktop.in > $@
+	    $(srcdir)/fits-view.desktop.desktop > $@
 
 
 
@@ -51,20 +51,20 @@ bin_SCRIPTS = astscript-fits-view \
               astscript-psf-scale-factor \
               astscript-psf-select-stars
 
-EXTRA_DIST = fits-view.in \
-             psf-unite.in \
-             psf-stamp.in \
-             zeropoint.in \
+EXTRA_DIST = fits-view.sh \
+             psf-unite.sh \
+             psf-stamp.sh \
+             zeropoint.sh \
              zeropoint.mk \
-             ds9-region.in \
-             psf-subtract.in \
-             sort-by-night.in \
-             radial-profile.in \
-             dither-simulate.in \
+             ds9-region.sh \
+             psf-subtract.sh \
+             sort-by-night.sh \
+             radial-profile.sh \
+             dither-simulate.sh \
              dither-simulate.mk \
-             psf-select-stars.in \
-             psf-scale-factor.in \
-             fits-view.desktop.in
+             psf-select-stars.sh \
+             psf-scale-factor.sh \
+             fits-view.desktop.desktop
 
 CLEANFILES = $(bin_SCRIPTS) \
              astscript-fits-view.desktop
@@ -84,46 +84,46 @@ do_subst = sed -e 's,[@]PREFIX[@],$(exec_prefix),g' \
 
 
 ## Rules to install the scripts.
-astscript-dither-simulate: dither-simulate.in Makefile
-	$(do_subst) < $(srcdir)/dither-simulate.in > $@
+astscript-dither-simulate: dither-simulate.sh Makefile
+	$(do_subst) < $(srcdir)/dither-simulate.sh > $@
 	chmod +x $@
 
-astscript-ds9-region: ds9-region.in Makefile
-	$(do_subst) < $(srcdir)/ds9-region.in > $@
+astscript-ds9-region: ds9-region.sh Makefile
+	$(do_subst) < $(srcdir)/ds9-region.sh > $@
 	chmod +x $@
 
-astscript-fits-view: fits-view.in Makefile
-	$(do_subst) < $(srcdir)/fits-view.in > $@
+astscript-fits-view: fits-view.sh Makefile
+	$(do_subst) < $(srcdir)/fits-view.sh > $@
 	chmod +x $@
 
-astscript-psf-unite: psf-unite.in Makefile
-	$(do_subst) < $(srcdir)/psf-unite.in > $@
+astscript-psf-unite: psf-unite.sh Makefile
+	$(do_subst) < $(srcdir)/psf-unite.sh > $@
 	chmod +x $@
 
-astscript-psf-stamp: psf-stamp.in Makefile
-	$(do_subst) < $(srcdir)/psf-stamp.in > $@
+astscript-psf-stamp: psf-stamp.sh Makefile
+	$(do_subst) < $(srcdir)/psf-stamp.sh > $@
 	chmod +x $@
 
-astscript-psf-scale-factor: psf-scale-factor.in Makefile
-	$(do_subst) < $(srcdir)/psf-scale-factor.in > $@
+astscript-psf-scale-factor: psf-scale-factor.sh Makefile
+	$(do_subst) < $(srcdir)/psf-scale-factor.sh > $@
 	chmod +x $@
 
-astscript-psf-select-stars: psf-select-stars.in Makefile
-	$(do_subst) < $(srcdir)/psf-select-stars.in > $@
+astscript-psf-select-stars: psf-select-stars.sh Makefile
+	$(do_subst) < $(srcdir)/psf-select-stars.sh > $@
 	chmod +x $@
 
-astscript-psf-subtract: psf-subtract.in Makefile
-	$(do_subst) < $(srcdir)/psf-subtract.in > $@
+astscript-psf-subtract: psf-subtract.sh Makefile
+	$(do_subst) < $(srcdir)/psf-subtract.sh > $@
 	chmod +x $@
 
-astscript-radial-profile: radial-profile.in Makefile
-	$(do_subst) < $(srcdir)/radial-profile.in > $@
+astscript-radial-profile: radial-profile.sh Makefile
+	$(do_subst) < $(srcdir)/radial-profile.sh > $@
 	chmod +x $@
 
-astscript-sort-by-night: sort-by-night.in Makefile
-	$(do_subst) < $(srcdir)/sort-by-night.in > $@
+astscript-sort-by-night: sort-by-night.sh Makefile
+	$(do_subst) < $(srcdir)/sort-by-night.sh > $@
 	chmod +x $@
 
-astscript-zeropoint: zeropoint.in Makefile
-	$(do_subst) < $(srcdir)/zeropoint.in > $@
+astscript-zeropoint: zeropoint.sh Makefile
+	$(do_subst) < $(srcdir)/zeropoint.sh > $@
 	chmod +x $@
