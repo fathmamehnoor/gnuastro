@@ -2,6 +2,7 @@ Alphabetically ordered list to acknowledge in the next release.
 
 Aaron Watkins
 Agata Rożek
+Colin Orion Chandler
 Irene Pintos Castro
 Rashid Yaaqib
 Raul Infante-Sainz

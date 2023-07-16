@@ -1771,7 +1771,8 @@ gal_wcs_decompose_pc_cdelt(struct wcsprm *wcs)
 void
 gal_wcs_to_cd(struct wcsprm *wcs)
 {
-  size_t i, j, naxis;
+  size_t i, j, n;
+  double er=1e-10;
 
   /* If there is on WCS, then don't do anything. */
   if(wcs==NULL) return;
@@ -1779,7 +1780,7 @@ gal_wcs_to_cd(struct wcsprm *wcs)
   /* 'wcs->altlin' identifies which rotation element is being used (PCi_j,
      CDi_J or CROTAi). For PCi_j, the first bit will be 1 (==1), for CDi_j,
      the second bit is 1 (==2) and for CROTAi, the third bit is 1 (==4). */
-  naxis=wcs->naxis;
+  n=wcs->naxis;
   switch(wcs->altlin)
     {
    /* PCi_j: Convert it to CDi_j. */
@@ -1791,10 +1792,10 @@ gal_wcs_to_cd(struct wcsprm *wcs)
          multiply the PC and CDELT matrices, then set cdelt=1 in all
          dimensions. This is actually how WCSLIB reads a FITS header with
          only a CD matrix. */
-      for(i=0;i<naxis;++i)
+      for(i=0;i<n;++i)
         {
-          for(j=0;j<naxis;++j)
-            wcs->cd[i*naxis+j] = wcs->pc[i*naxis+j] *= wcs->cdelt[i];
+          for(j=0;j<n;++j)
+            wcs->cd[i*n+j] = wcs->pc[i*n+j] *= wcs->cdelt[i];
           wcs->cdelt[i]=1;
         }
 
@@ -1804,6 +1805,28 @@ gal_wcs_to_cd(struct wcsprm *wcs)
 
     /* CDi_j: No need to do any conversion. */
     case 2: return; break;
+
+    /* Both PCi_j and CDi_j are present! If they are the same (within
+       floating point errors), we'll just set WCS to use the 'CD' matrix
+       (as demanded from this function). If they are not the same, then
+       print an error. */
+    case 3:
+      for(i=0;i<n;++i)
+        for(j=0;j<n;++j)
+          if(wcs->cd[i*n+j] - wcs->pc[i*n+j] * wcs->cdelt[i] > er)
+            error(EXIT_FAILURE, 0, "%s: the given WCS has both the "
+                  "CDi_j and PCi_j+CDELTi conventions for defining "
+                  "the rotation and scale. However, they do not match! "
+                  "Please inspect the file and remove the wrong set of "
+                  "keywords (you can use 'astfits file.fits "
+                  "--delete=KEYNAME' to delete the keyword 'KEYNAME'; "
+                  "and you can call '--delete' multiple times). For "
+                  "more on the definition of the different "
+                  "representations, see the FITS standard: "
+                  "https://fits.gsfc.nasa.gov/fits_standard.html",
+                  __func__);
+      wcs->altlin=2;
+      break;
 
     /* CROTAi: not yet supported. */
     case 4:
