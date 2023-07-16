@@ -98,7 +98,9 @@ struct tableparams
   char               *wcsfile;  /* File with WCS.                       */
   char                *wcshdu;  /* HDU in file with WCS.                */
   gal_list_str_t     *columns;  /* List of given columns.               */
-  uint8_t         information;  /* ==1: only print FITS information.    */
+  uint8_t         information;  /* ==1: only print input information.   */
+  uint8_t         infonumrows;  /* ==1: only print input's num rows.    */
+  uint8_t         infonumcols;  /* ==1: only print input's num columns. */
   uint8_t     colinfoinstdout;  /* ==1: print column metadata in CL.    */
   uint8_t            rowfirst;  /* Do row-based operations first.       */
   gal_data_t           *range;  /* Range to limit output.               */

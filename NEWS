@@ -57,6 +57,8 @@ See the end of the file for license conditions.
     Mehnoor.
 
   Table:
+  --info-num-cols: print the number of the input table's columns and abort.
+  --info-num-rows: print the number of the input table's rows and abort.
   - '$_all' in column arithmetic: when an arithmetic expression contains
     this string, it will be repeated independently for all the columns of
     the input table.

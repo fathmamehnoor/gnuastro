@@ -607,27 +607,40 @@ ui_colpack_free(struct column_pack *list)
 /**************************************************************/
 /***************       Preparations         *******************/
 /**************************************************************/
+  /* Read the table metadata to print information. */
+static gal_data_t *
+ui_info_read(struct tableparams *p, size_t *numcols, size_t *numrows,
+             int *tableformat)
+{
+  gal_data_t *allcols;
+  gal_list_str_t *lines;
+  lines=gal_options_check_stdin(p->filename, p->cp.stdintimeout, "input");
+  allcols=gal_table_info(p->filename, p->cp.hdu, lines, numcols,
+                         numrows, tableformat, "--hdu");
+  if(p->filename==NULL) p->filename="Standard-input";
+  gal_list_str_free(lines, 1);
+  return allcols;
+}
+
+
+
+
+
+/* Print full column and row information. */
 static void
 ui_print_info_exit(struct tableparams *p)
 {
   char *tmp;
   int tableformat;
   gal_data_t *allcols;
-  gal_list_str_t *lines;
   size_t numcols, numrows;
 
-  /* Read the table information for the number of columns and rows. */
-  lines=gal_options_check_stdin(p->filename, p->cp.stdintimeout, "input");
-  allcols=gal_table_info(p->filename, p->cp.hdu, lines, &numcols,
-                         &numrows, &tableformat, "--hdu");
-  if(p->filename==NULL) p->filename="Standard-input";
-  gal_list_str_free(lines, 1);
-
+  /* Read the input. */
+  allcols=ui_info_read(p, &numcols, &numrows, &tableformat);
 
   /* If there was no actual data in the file, then inform the user */
   if(allcols==NULL)
     error(EXIT_FAILURE, 0, "%s: no usable data rows", p->filename);
-
 
   /* Print the file information. */
   printf("--------\n");
@@ -635,18 +648,44 @@ ui_print_info_exit(struct tableparams *p)
   printf("%s\n", tmp);
   free(tmp);
 
-
   /* Print each column's information. */
   gal_table_print_info(allcols, numcols, numrows);
-
 
   /* Free the information from all the columns. */
   gal_data_array_free(allcols, numcols, 0);
 
+  /* Free the allocated spaces and exit. */
+  ui_free_report(p);
+  exit(EXIT_SUCCESS);
+}
 
-  /* Free the allocated spaces and exit. Otherwise, add the number of
-     columns to the list if the user wanted to print the columns
-     (didn't just want their information. */
+
+
+
+
+/* Print number of rows or columns */
+static void
+ui_print_info_nums_exit(struct tableparams *p)
+{
+  int tableformat;
+  gal_data_t *allcols;
+  size_t numcols, numrows;
+
+  /* Read the input metadata and free the column information (which is not
+     needed here: we just want the numbers). */
+  allcols=ui_info_read(p, &numcols, &numrows, &tableformat);
+  gal_data_array_free(allcols, numcols, 0);
+
+  /* Print the respective information. */
+  if(p->infonumcols) printf("%zu\n", numcols);
+  else if(p->infonumrows) printf("%zu\n", numrows);
+  else
+    error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at '%s' to fix "
+          "the problem. This function should only be activated when "
+          "'--info-num-cols' or '--info-num-rows' are called", __func__,
+          PACKAGE_BUGREPORT);
+
+  /* Free the allocated spaces and exit. */
   ui_free_report(p);
   exit(EXIT_SUCCESS);
 }
@@ -1291,8 +1330,8 @@ ui_preparations(struct tableparams *p)
 
   /* If there were no columns specified or the user has asked for
      information on the columns, we want the full set of columns. */
-  if(p->information)
-    ui_print_info_exit(p);
+  if(p->information)                   ui_print_info_exit(p);
+  if(p->infonumcols || p->infonumrows) ui_print_info_nums_exit(p);
 
 
   /* If the input is from stdin, save it as 'lines'. */
