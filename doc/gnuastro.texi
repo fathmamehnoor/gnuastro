@@ -274,6 +274,7 @@ Tutorials
 * Sufi simulates a detection::  Simulating a detection.
 * Detecting lines and extracting spectra in 3D data::  Extracting spectra and emission line properties.
 * Color channels in same pixel grid::  Aligning images to same grid to build color image.
+* Zero point of an image::      Estimate the zero point of an image.
 * Dither pattern design::       Simulate the output image of a given dither pattern.
 
 General program usage tutorial
@@ -330,6 +331,11 @@ Detecting lines and extracting spectra in 3D data
 * 3D measurements and spectra::  Measuring 3d properties including spectra.
 * Extracting a single spectrum and plotting it::  Extracting a single vector row.
 * Pseudo narrow-band images::   Collapsing the third dimension into a 2D image.
+
+Zero point of an image
+
+* Zero point tutorial with reference image::  Using a reference image.
+* Zero point tutorial with reference catalog::  Using a reference catalog.
 
 Installation
 
@@ -770,8 +776,6 @@ Viewing FITS file contents with DS9 or TOPCAT
 
 Zero point estimation
 
-* Zero point tutorial with reference image::  Using SDSS images to find J-PLUS zero point
-* Zero point tutorial with reference catalog::  Using SDSS catalog to find J-PLUS zero point
 * Invoking astscript-zeropoint::  How to call the script
 
 Invoking astscript-zeropoint
@@ -2013,6 +2017,12 @@ Showing how Abd al-rahman Sufi (903 -- 986 A.D., the first recorded description 
 Because all conditions are under control in a simulated/mock environment/dataset, mock datasets can be a valuable tool to inspect the limitations of your data analysis and processing.
 But they need to be as realistic as possible, so this tutorial is dedicated to this important step of an analysis (simulations).
 
+There are other tutorials also, on things that are commonly necessary in astronomical research:
+In @ref{Detecting lines and extracting spectra in 3D data}, we use MUSE cubes (an IFU dataset) to show how you can subtract the continuum, detect emission-line features, extract spectra and build pseudo narrow-band images.
+In @ref{Color channels in same pixel grid} we demonstrate how you can warp multiple images into a single pixel grid (often necessary with mult-wavelength data), and build a single color image.
+In @ref{Zero point of an image} we review the process of estimating the zero point of an image using a reference image or catalog.
+Finally, in @ref{Dither pattern design} we show the process by which you can simulate a dither pattern to find the best observing strategy for your next exciting scientific project.
+
 In these tutorials, we have intentionally avoided too many cross references to make it more easy to read.
 For more information about a particular program, you can visit the section with the same name as the program in this book.
 Each program section in the subsequent chapters starts by explaining the general concepts behind what it does, for example, see @ref{Convolve}.
@@ -2026,6 +2036,7 @@ For an explanation of the conventions we use in the example codes through the bo
 * Sufi simulates a detection::  Simulating a detection.
 * Detecting lines and extracting spectra in 3D data::  Extracting spectra and emission line properties.
 * Color channels in same pixel grid::  Aligning images to same grid to build color image.
+* Zero point of an image::      Estimate the zero point of an image.
 * Dither pattern design::       Simulate the output image of a given dither pattern.
 @end menu
 
@@ -8680,7 +8691,7 @@ Click on the scroll-down menu in front of ``Table'' and select @file{2: collapse
 Afterwards, you will see the optimized pseudo-narrow-band image radial profile as blue points.
 @end enumerate
 
-@node Color channels in same pixel grid, Dither pattern design, Detecting lines and extracting spectra in 3D data, Tutorials
+@node Color channels in same pixel grid, Zero point of an image, Detecting lines and extracting spectra in 3D data, Tutorials
 @section Color channels in same pixel grid
 
 In order to use different images as color channels, it is important that the images be properly aligned and on the same pixel grid.
@@ -8747,7 +8758,538 @@ This shows how green and red channels have been slightly shifted to put your ast
 If you don't want to have those, or if you want the outer parts of the final image (where there was no data) to be white, some more complex commands are necessary.
 We'll leave those as an exercise for you to try your self using @ref{Warp} and/or @ref{Crop} to pre-process the inputs before converting it to a color image.
 
-@node Dither pattern design,  , Color channels in same pixel grid, Tutorials
+@node Zero point of an image, Dither pattern design, Color channels in same pixel grid, Tutorials
+@section Zero point of an image
+
+The ``zero point'' of an image is astronomical jargon for the calibration factor of its pixel values; allowing us to convert the raw pixel values to physical units.
+It is therefore a critical step during data reduction.
+For more on the definition and importance of the zero point magnitude, see @ref{Brightness flux magnitude} and @ref{Zero point estimation}.
+
+@cindex SDSS
+In this tutorial, we will use Gnuastro's @command{astscript-zeropoint}, to estimate the zero point of a single exposure image from the @url{https://www.j-plus.es, J-PLUS survey}, while using an @url{http://www.sdss.org, SDSS} image as reference (recall that all SDSS images have been calibrated to have a fixed zero point of 22.5).
+In this case, both images that we are using were taken with the SDSS @emph{r} filter.
+
+@cartouche
+@cindex Johnson filters
+@cindex Johnson vs. SDSS filters
+@cindex SDSS vs. Johnson filters
+@cindex Filter transmission curve
+@cindex Transmission curve of filters
+@cindex SVO database (filter transmission curve)
+@noindent
+@strong{Same filters and SVO filter database:} It is very important that both your images are taken with the same filter.
+When looking at filter names, don't forget that different filter systems sometimes have the same names for one filter, such as the name ``R''; which is used in both the Johnson and SDSS filter systems.
+Hence if you confront an image in the ``R'' or ``r'' filter, double check to see exactly which filter system it corresponds to.
+If you know which observatory your data came from, you can use the @url{http://svo2.cab.inta-csic.es/theory/fps, SVO database} to confirm the similarity of the transmission curves of the filters of your input and reference images.
+SVO contains the filter data for many of the observatories world-wide.
+@end cartouche
+
+@menu
+* Zero point tutorial with reference image::  Using a reference image.
+* Zero point tutorial with reference catalog::  Using a reference catalog.
+@end menu
+
+@node Zero point tutorial with reference image, Zero point tutorial with reference catalog, Zero point of an image, Zero point of an image
+@subsection Zero point tutorial with reference image
+
+First, let’s create a directory named @file{tutorial-zeropoint} to keep things clean and work in that.
+Then, with the commands below, you can download an image from J-PLUS and SDSS.
+To speed up the analysis, the image is cropped to have a smaller region around its center.
+
+@example
+$ mkdir tutorial-zeropoint
+$ cd tutorial-zeropoint
+$ jplusdr2=http://archive.cefca.es/catalogues/vo/siap/jplus-dr2/reduced
+$ wget $jplusdr2/get_fits?id=771463 -O jplus.fits.fz
+$ astcrop jplus.fits.fz --center=107.7263,40.1754 \
+          --width=0.6 --output=jplus-crop.fits
+@end example
+
+Although we cropped the J-PLUS image, it is still very large in comparison with the SDSS image (the J-PLUS field of view is almost @mymath{1.5\times1.5} deg@mymath{^2}, while the field of view of SDSS in each filter is almost @mymath{0.3\times0.5} deg@mymath{^2}).
+Therefore, let's download two SDSS images (and then decompress them) in the region of the cropped J-PLUS image to have a more accurate result compared to a single SDSS footprint: generally, your zero point estimation will have less scatter with more overlap between your reference image(s) and your input image.
+
+@example
+$ sdssbase=https://dr12.sdss.org/sas/dr12/boss/photoObj/frames
+$ wget $sdssbase/301/6509/5/frame-r-006509-5-0115.fits.bz2 \
+       -O sdss1.fits.bz2
+$ wget $sdssbase/301/6573/5/frame-r-006573-5-0174.fits.bz2 \
+       -O sdss2.fits.bz2
+$ bunzip2 sdss1.fits.bz2
+$ bunzip2 sdss2.fits.bz2
+@end example
+
+To have a feeling of the data, let's open the three images with @command{astscript-fits-view} using the command below.
+Wait a few seconds to see the three images ``blinking'' one after another.
+The largest one is the J-PLUS crop and the two smaller ones that partially cover it in different regions are from SDSS.
+
+@example
+$ astscript-fits-view sdss1.fits sdss2.fits jplus-crop.fits \
+           --ds9extra="-lock frame wcs -single -zoom to fit -blink yes"
+@end example
+
+The test above showed that the three images are already astrometrically calibrated (the coverage of the pixel positions on the sky is correct in both).
+To confirm, you can zoom-in to a certain object and confirm it on a pixel level.
+It is always good to do the visual check above when you are confronted with new images (and may not be confident about the accuracy of the astrometry).
+Do not forget that the goal here is to find the calibration of pixel values; and that we assume pixel positions are already calibrated (the image already has a good astrometry).
+
+The SDSS images are Sky subtracted, while this single-exposure J-PLUS image still contains the counts related to the Sky emission within them.
+In the J-PLUS survey, the sky-level in each pixel is kept in a separate @code{BACKGROUND_MODEL} HDU of @file{jplus.fits.fz}; this allows you to use a different sky if you like.
+The SDSS image FITS files also have multiple extensions.
+To understand our inputs, let's have a fast look at the basic info of each:
+
+@example
+$ astfits sdss1.fits
+Fits (GNU Astronomy Utilities) @value{VERSION}
+Run on Fri Apr 14 11:24:03 2023
+-----
+HDU (extension) information: 'sdss1.fits'.
+ Column 1: Index (counting from 0, usable with '--hdu').
+ Column 2: Name ('EXTNAME' in FITS standard, usable with '--hdu').
+           ('n/a': no name in HDU metadata)
+ Column 3: Image data type or 'table' format (ASCII or binary).
+ Column 4: Size of data in HDU.
+ Column 5: Units of data in HDU (only images).
+           ('n/a': no unit in HDU metadata, or HDU is a table)
+-----
+0      n/a             float32         2048x1489 nanomaggy
+1      n/a             float32         2048      n/a
+2      n/a             table_binary    1x3       n/a
+3      n/a             table_binary    1x31      n/a
+
+
+
+$ astfits jplus.fits.fz
+Fits (GNU Astronomy Utilities) @value{VERSION}
+Run on Fri Apr 14 11:21:30 2023
+-----
+HDU (extension) information: 'jplus.fits.fz'.
+ Column 1: Index (counting from 0, usable with '--hdu').
+ Column 2: Name ('EXTNAME' in FITS standard, usable with '--hdu').
+           ('n/a': no name in HDU metadata)
+ Column 3: Image data type or 'table' format (ASCII or binary).
+ Column 4: Size of data in HDU.
+ Column 5: Units of data in HDU (only images).
+           ('n/a': no unit in HDU metadata, or HDU is a table)
+-----
+0      n/a              no-data         0         n/a
+1      IMAGE            float32         9216x9232 adu
+2      MASKED_PIXELS    int16           9216x9232 n/a
+3      BACKGROUND_MODEL float32         9216x9232 n/a
+4      MASK_MODEL       uint8           9216x9232 n/a
+@end example
+
+Therefore, in order to be able to compare the SDSS and J-PLUS images, we should first subtract the sky from the J-PLUS image.
+To do that, we can either subtract the @code{BACKGROUND_MODEL} HDU from the @code{IMAGE} HDU using @ref{Arithmetic}, or we can use @ref{NoiseChisel} to find a good sky ourselves.
+As scientists we like to tweak and be creative, so let's estimate it ourselves!
+Also, in some cases, you may not have a pre-estimated Sky estimation, so you should be prepared:
+
+@example
+$ astnoisechisel jplus-crop.fits --output=jplus-nc.fits
+$ astscript-fits-view jplus-nc.fits
+@end example
+
+Notice that there is a relatively bright star in the center-bottom of the image.
+In the ``Cube'' window, click on the ``Next'' button to see the @code{DETECTIONS} HDU.
+The large footprint of the bright star is obvious.
+Press the ``Next'' button one more time to get to the @code{SKY} HDU.
+You see that in the center-bottom, the footprint of the large star is clearly visible in the measured Sky level.
+This is not good!
+With Sky values above 54 ADU in the center of the star (the white pixels).
+This over-subtracted Sky level in part of the image will affect your magnitude measurements and thus the zero point!
+
+In @ref{General program usage tutorial}, we have a section on @ref{NoiseChisel optimization for detection}, there is also a full tutorial on this in @ref{Detecting large extended targets}.
+Therefore, we will not go into the details of NoiseChisel optimization here.
+Given the large images of J-PLUS, we will increase the tile-size to @mymath{100\times100} pixels and the number of neighbors to identify outlying tiles to 50 (these are usually the first parameters you should start editing when you are confronted with a new image).
+After the second command, check the @code{SKY} extension to confirm that there is no footprint of any bright object there.
+You will still see a gradient, but note the minimum and maximum values of the Sky level: their difference is more than 26 times smaller than the noise standard deviation (so statistically speaking, it is pretty flat!)
+
+@example
+$ astnoisechisel jplus-crop.fits --output=jplus-nc.fits \
+                 --tilesize=100,100 --outliernumngb=50
+$ astscript-fits-view jplus-nc.fits
+
+
+## Check that the gradient in the sky is statistically negligible.
+$ aststatistics jplus-nc.fits -hSKY --minimum --maximum \
+                | awk '@{print $2-$1@}'
+0.32809
+$ aststatistics jplus-nc.fits -hSKY_STD --median
+8.377977e+00
+@end example
+
+We are now ready to find the zero point!
+First, let's run the @command{astscript-zeropoint} with @option{--help} to see the option names (recall that you can see more details of each option in @ref{Invoking astscript-zeropoint}).
+For the first time, let's use the script in the most simple state possible.
+We will keep only the essential options: the names of the input and reference images (and their HDUs), the name of the output, and also two apertures with radii of 3 arcsec to start with:
+
+@example
+$ astscript-zeropoint --help
+$ astscript-zeropoint jplus-nc.fits --hdu=INPUT-NO-SKY \
+                      --refimgs=sdss1.fits,sdss2.fits \
+                      --output=jplus-zeropoint.fits \
+                      --refimgszp=22.5,22.5 \
+                      --refimgshdu=0,0 \
+                      --aperarcsec=3
+@end example
+
+The output is a FITS table (because generally, you will give more apertures and choose the best one based on a higher-level analysis).
+Let's check the output's internal structure with Gnuastro's @command{astfits} program.
+
+@example
+$ astfits jplus-zeropoint.fits
+-----
+0      n/a             no-data         0     n/a
+1      ZEROPOINTS      table_binary    1x3   n/a
+2      APER-3          table_binary    321x2 n/a
+@end example
+
+You can see that there are two HDUs in this file.
+The HDU names give a hint, so let's have a look at each extension with Gnuastro's @command{asttable} program:
+
+@example
+$ asttable jplus-zeropoint.fits --hdu=1 -i
+--------
+jplus-zeropoint.fits (hdu: 1)
+-------       -----   ----     -------
+No.Name       Units   Type     Comment
+-------       -----   ----     -------
+1  APERTURE   arcsec  float32  n/a
+2  ZEROPOINT  mag     float32  n/a
+3  ZPSTD      mag     float32  n/a
+--------
+Number of rows: 1
+--------
+@end example
+
+@noindent
+As you can see, in the first extension, for each of the apertures you requested (@code{APERTURE}), there is a zero point (@code{ZEROPOINT}) and the standard deviation of the measurements on the apertures (@code{ZPSTD}).
+In this case, we only requested one aperture, so it only has one row.
+Now, let's have a look at the next extension:
+
+@example
+$ asttable jplus-zeropoint.fits --hdu=2 -i
+--------
+jplus-zeropoint.fits (hdu: 2)
+-------      -----  ----     -------
+No.Name      Units  Type     Comment
+-------      -----  ----     -------
+1  MAG-REF   f32    float32  Magnitude of reference.
+2  MAG-DIFF  f32    float32  Magnitude diff with input.
+--------
+Number of rows: 321
+--------
+@end example
+
+It contains a table of measurements for the aperture with the least scatter.
+In this case, we only gave one aperture, so it is the same.
+If you give multiple apertures, only the one with least scatter will be present by default.
+In the @code{MAG-REF} column you see the magnitudes within each aperture on the reference (SDSS) image(s).
+The @code{MAG-DIFF} column contains the difference of the input (J-PLUS) and reference (SDSS) magnitudes for each aperture (see @ref{Zero point estimation}).
+The two catalogs, created by the aperture photometry from the SDSS images, are merged into one so that there are more stars to compare.
+Therefore, no matter how many reference images you provide, there will only be a single table here.
+If the two SDSS images overlapped, each object in the overlap region would have two rows (one row for the measurement from one SDSS image, and another from the measurement from the other).
+
+Now that we have obtained the zero point of the J-PLUS image, let's go a little deeper into lower-level details of how this script operates.
+This will help you better understand what happened and how to interpret and improve the outputs when you are confronted with a new image and strange outputs.
+
+To keep intermediate results the @command{astscript-zeropoint} script keeps temporary files in a temporary directory and later deletes it (and all the intermediate products).
+If you like to check the temporary files of the intermediate steps, you can use @option{--keeptmp} option to not remove them.
+
+Let's take a closer look into the contents of each HDU.
+First, we'll use Gnuastro’s @command{asttable} to see the measured zeropoint for this aperture.
+We are using @option{-Y} to have human-friendly (non-scientific!) numbers (which are sufficient here) and @option{-O} to also show the metadata of each column at the start.
+
+@example
+$ asttable jplus-zeropoint.fits -Y -O
+# Column 1: APERTURE  [arcsec,f32,] Aperture used.
+# Column 2: ZEROPOINT [mag   ,f32,] Zero point (sig-clip median).
+# Column 3: ZPSTD     [mag   ,f32,] Zero point Standard deviation.
+3.000          26.435         0.057
+@end example
+
+@noindent
+Now, let's have a look at the first 10 rows of the second (@code{APER-3}) extension.
+From the previous check we did above, we see that it contains 321 rows!
+
+@example
+$ asttable jplus-zeropoint.fits -Y -O --hdu=APER-3 --head=10
+# Column 1: MAG-REF  [f32,f32,] Magnitude of reference.
+# Column 2: MAG-DIFF [f32,f32,] Magnitude diff with input.
+16.461         30.035
+16.243         28.209
+15.427         26.427
+20.064         26.459
+17.334         26.425
+20.518         26.504
+17.100         26.400
+16.919         26.428
+17.654         26.373
+15.392         26.429
+@end example
+
+But the table above is hard to interpret, so let's plot it.
+To do this, we'll use the same @command{astscript-fits-view} command above that we used for images.
+It detects if the file has a image or table HDU and will call DS9 or TOPCAT respectively.
+You can also use any other plotter you like (TOPCAT is not part of Gnuastro), this script just calls it.
+
+@example
+$ astscript-fits-view jplus-zeropoint.fits --hdu=APER-3
+@end example
+
+After @code{TOPCAT} opens, you can select the ``Graphics'' menu and then ``Plain plot''.
+This will show a plot with the SDSS (reference image) magnitude on the horizontal axis and the difference of magnitudes between the the input and reference (the zero point) on the vertical axis.
+
+In an ideal world, the zero point should be independent of the magnitude of the different stars that were used.
+Therefore, this plot should be a horizontal line (with some scatter as we go to fainter stars).
+But as you can see in the plot, in the real world, this expected behavior is seen only for stars with magnitudes about 16 to 19 in the reference SDSS images.
+The stars that are brighter than 16 are saturated in one (or both) surveys@footnote{To learn more about saturated pixels and recognition of the saturated level of the image, please see @ref{Saturated pixels and Segment's clumps}}.
+Therefore, they do not have the correct magnitude or mag-diff.
+You can check some of these stars visually by using the blinking command above and zooming into some of the brighter stars in the SDSS images.
+
+@cindex Depth of data
+On the other hand, it is natural that we cannot measure accurate magnitudes for the fainter stars because the noise level (or ``depth'') of each image is limited.
+As a result, the horizontal line becomes wider (scattered) as we go to the right (fainter magnitudes on the horizontal axis).
+So, let's limit the range of used magnitudes from the SDSS catalog to calculate a more accurate zero point for the J-PLUS image.
+For this reason, we have the @option{--magnituderange} option in @command{astscript-zeropoint}.
+
+@cartouche
+@noindent
+@strong{Necessity of sky subtraction:}
+To obtain this horizontal line, it is very important that both your images have been sky subtracted.
+Please, repeat the last @command{astscript-zeropoint} command above only by changing the input file to @file{jplus-crop.fits}.
+Then use Gnuastro’s @command{astscript-fits-view} again to draw a plot with @code{TOPCAT} (also same as above).
+Instead of a horizontal line, you will see @emph{a sloped line} in the magnitude range above!
+This happens because the sky level acts as a source of constant signal in all apertures, so the magnitude difference will not be independent of the star's magnitude, but dependent on it (the measurement on a fainter star will be dominated by the sky level).
+
+@strong{Remember:} if you see a sloped line instead of a horizontal line, the input or reference image(s) are not sky subtracted.
+@end cartouche
+
+Another key parameter of this script is the aperture size (@option{--aperarcsec}) for the aperture photometry of images.
+On one hand, if the selected aperture is too small, you will be at the mercy of the differing PSFs between your input and reference image(s): part of the light of the star will be lost in the image with the worse PSF.
+On the other hand, with large aperture size, the light of neighboring objects (stars/galaxies) can affect the photometry.
+We should select an aperture radius of the same order than the one used in the reference image, typically 2 to 3 times the PSF FWHM of the images.
+For now, let's assume the values 2, 3, 4, 5, and 6 arcsec for the aperture sizes parameter.
+The script will compare the result for several aperture sizes and choose the one with least standard deviation value, @code{ZPSTD} column of the @code{ZEROPOINTS} HDU.
+
+Let's re-run the script with the following changes:
+@itemize
+@item
+Using @option{--magnituderange} to limit the stars used for estimating the zero point.
+@item
+Giving more values for aperture size to find the best for these two images as explained above.
+@item
+Call @option{--keepzpap} option to keep the result of matching the catalogs done with the selected apertures in the different extensions of the output file.
+@end itemize
+
+@example
+$ astscript-zeropoint jplus-nc.fits --hdu=INPUT-NO-SKY \
+                      --refimgs=sdss1.fits,sdss2.fits \
+                      --output=jplus-zeropoint.fits \
+                      --refimgszp=22.5,22.5 \
+                      --aperarcsec=2,3,4,5,6 \
+                      --magnituderange=16,18 \
+                      --refimgshdu=0,0 \
+                      --keepzpap
+@end example
+
+Now, check number of HDU extensions by @command{astfits}.
+
+@example
+$ astfits jplus-zeropoint.fits
+-----
+0      n/a             no-data         0     n/a
+1      ZEROPOINTS      table_binary    5x3   n/a
+2      APER-2          table_binary    319x2 n/a
+3      APER-3          table_binary    321x2 n/a
+4      APER-4          table_binary    323x2 n/a
+5      APER-5          table_binary    323x2 n/a
+6      APER-6          table_binary    325x2 n/a
+@end example
+
+You can see that the output file now has a separate HDU for each aperture (thanks to @option{--keepzpap}.)
+The @code{ZEROPOINTS} hdu contains the final zero point values for each aperture and their error.
+The best zero point value belongs to the aperture that has the least scatter (has the lowest standard deviation).
+The rest of extensions contain the zero point value computed within each aperture (as discussed above).
+
+Let's check the different tables by plotting all magnitude tables at the same time with @code{TOPCAT}.
+
+@example
+$ astscript-fits-view jplus-zeropoint.fits
+@end example
+
+@noindent
+After @code{TOPCAT} has opened take the following steps:
+@enumerate
+@item
+From the ``Graphics'' menu, select ``Plain plot''.
+You will see the last HDU's scatter plot open in a new window (for @code{APER-6}, with red points).
+The Bottom-left panel has the logo of a red-blue scatter plot that has written @code{6:jplus-zeropoint.fits} in front of it (showing that this is the 6th HDU of this file).
+In the bottom-right panel, you see the names of the columns that are being displayed.
+@item
+In the ``Layers'' menu, Click on ``Add Position Control''.
+On the bottom-left panel, you will notice that a new blue-red scatter plot has appeared but it just says @code{<no table>}.
+In the bottom-right panel, in front of ``Table:'', select any other extension.
+This will plot the same two columns of that extension as blue points.
+Zoom-in to the region of the horizontal line to see/compare the different scatters.
+
+Change the HDU given to ``Table:'' and see the distribution of zero points for the different apertures.
+@end enumerate
+
+The manual/visual operation above is critical if this is your first time with a new dataset (it shows all kinds of systematic biases (like the Sky issue above)!
+But once you know your data has no systematic biases, choosing between the different apertures is not easy visually!
+Let's have a look at the table the @code{ZEROPOINTS} HDU (we don't need to explicitly call this HDU since it is the first one):
+
+@example
+$ asttable jplus-zeropoint.fits -O -Y
+# Column 1: APERTURE  [arcsec,f32,] Aperture used.
+# Column 2: ZEROPOINT [mag   ,f32,] Zero point (sig-clip median).
+# Column 3: ZPSTD     [mag   ,f32,] Zero point Standard deviation.
+2.000          26.405         0.028
+3.000          26.436         0.030
+4.000          26.448         0.035
+5.000          26.458         0.042
+6.000          26.466         0.056
+@end example
+
+The most accurate zero point is the one where @code{ZPSTD} is the smallest.
+In this case, minimum of @code{ZPSTD} is with radii of 2 and 3 arcseconds.
+Run the @command{astscript-fits-view} command above again to open TOPCAT.
+Let's focus on the magnitude plots in these two apertures and determine a more accurate range of magnitude.
+The more reliable option is the range between 16.4 (where we have no saturated stars) and 18.5 mag (fainter than this, the scatter becomes too strong).
+Finally, let's set some more apertures between 2 and 3 arcseconds radius:
+
+@example
+$ astscript-zeropoint jplus-nc.fits --hdu=INPUT-NO-SKY \
+                      --refimgs=sdss1.fits,sdss2.fits \
+                      --output=jplus-zeropoint.fits \
+                      --magnituderange=16.4,18.5 \
+                      --refimgszp=22.5,22.5 \
+                      --aperarcsec=2,2.5,3,3.5,4 \
+                      --refimgshdu=0,0 \
+                      --keepzpap
+
+$ asttable jplus-zeropoint.fits -Y
+2.000          26.405         0.037
+2.500          26.425         0.033
+3.000          26.436         0.034
+3.500          26.442         0.039
+4.000          26.449         0.044
+@end example
+
+The aperture with the least scatter is therefore the 2.5 arcsec radius aperture, giving a zero point of 26.425 magnitudes for this image.
+However, you can see that the scatter for the 3 arcsec aperture is also acceptable.
+Actually, the @code{ZPSTD} for of the 2.5 and 3 arcsec apertures only have a difference of @mymath{3\%} (@mymath{= (0.034−0.0333)/0.033\times100}).
+So simply choosing the minimum is just a first-order approximation (which is accurate within @mymath{26.436−26.425=0.011} magnitudes)
+
+Note that in aperture photometry, the PSF plays an important role (because the aperture is fixed but the two images can have very different PSFs).
+The aperture with the least scatter should also account for the differing PSFs.
+Overall, please, always check the different and intermediate steps to make sure the parameters are the good so the estimation of the zero point is correct.
+
+If you are happy with the minimum, you don't have to search for the minimum aperture or its corresponding zero point yourself.
+This script has written it in @code{ZPVALUE} keyword of the table.
+With the first command, we also see the name of the file also, (you can use this on many files for example).
+With the second command, we are only printing the number by adding the @option{-q} (or @option{--quiet}) option (this is useful in a script where you want to write the value in a shell variable to use later).
+
+@example
+$ astfits jplus-zeropoint.fits --keyvalue=ZPVALUE
+jplus-zeropoint.fits 2.642512e+01
+
+$ astfits jplus-zeropoint.fits --keyvalue=ZPVALUE -q
+2.642512e+01
+@end example
+
+Generally, this script will write the following FITS keywords (all starting with @code{ZP}) for your future reference in its output:
+
+@example
+$ astfits jplus-zeropoint.fits -h1 | grep ^ZP
+ZPAPER  =                  2.5 / Best aperture.
+ZPVALUE =             26.42512 / Best zero point.
+ZPSTD   =           0.03276644 / Best std. dev. of zeropoint.
+ZPMAGMIN=                 16.4 / Min mag for obtaining zeropoint.
+ZPMAGMAX=                 18.5 / Max mag for obtaining zeropoint.
+@end example
+
+Using the @option{--keyvalue} option of the @ref{Fits} program, you can easily get multiple of the values in one run (where necessary):
+
+@example
+$ astfits jplus-zeropoint.fits --hdu=1 --quiet \
+          --keyvalue=ZPAPER,ZPVALUE,ZPSTD
+2.500000e+00   2.642512e+01   3.276644e-02
+@end example
+
+@node Zero point tutorial with reference catalog,  , Zero point tutorial with reference image, Zero point of an image
+@subsection Zero point tutorial with reference catalog
+
+In @ref{Zero point tutorial with reference image}, we explained how to use the @command{astscript-zeropoint} for estimating the zero point of one image based on a reference image.
+Sometimes there is not a reference image and we need to use a reference catalog.
+Fortunately, @command{astscript-zeropoint} can also use the catalog instead of the image to find the zero point.
+
+To show this, let's download a catalog of SDSS in the area that overlaps with the cropped J-PLUS image (used in the previous section).
+For more on Gnuastro's Query program, please see @ref{Query}.
+The columns of ID, RA, Dec and magnitude in the SDSS @emph{r} filter are called by their name in the SDSS catalog.
+
+@example
+$ astquery vizier \
+           --dataset=sdss12 \
+           --overlapwith=jplus-crop.fits \
+           --column=objID,RA_ICRS,DE_ICRS,rmag \
+           --output=sdss-catalog.fits
+@end example
+
+To visualize the position of the SDSS objects over the J-PLUS image, let's use @command{astscript-ds9-region} (for more details please see @ref{SAO DS9 region files from table}) with the command below (it will automatically open DS9 and load the regions it created):
+
+@example
+$ astscript-ds9-region sdss-catalog.fits \
+                       --column=RA_ICRS,DE_ICRS \
+                       --color=red --width=3 --output=sdss.reg \
+                       --command="ds9 jplus-nc.fits[INPUT-NO-SKY] \
+                                      -scale zscale"
+@end example
+
+Now, we are ready to estimate the zero point of the J-PLUS image based on the SDSS catalog.
+To download the input image and understand how to use the @command{astscript-zeropoint}, please see @ref{Zero point tutorial with reference image}.
+
+Many of the options (like the aperture size) and magnitude range are the same so we will not discuss them further.
+You will notice that the only substantive difference of the command below with the last command in the previous section is that we are using @option{--refcat} instead of @option{--refimgs}.
+There are also some cosmetic differences for example a new output name, not using @option{--refimgszp} since it is only necessary for images) and the @option{--*column} options which are used to identify the names of the necessary columns of the input catalog:
+
+@example
+$ astscript-zeropoint jplus-nc.fits --hdu=INPUT-NO-SKY \
+                      --refcat=sdss-catalog.fits \
+                      --refcatmag=rmag \
+                      --refcatra=RA_ICRS \
+                      --refcatdec=DE_ICRS \
+                      --output=jplus-zeropoint-cat.fits \
+                      --magnituderange=16.4,18.5 \
+                      --aperarcsec=2,2.5,3,3.5,4 \
+                      --keepzpap
+@end example
+
+@noindent
+Let's inspect the output with the command below.
+
+@example
+$ asttable jplus-zeropoint-cat.fits -Y
+2.000          26.337         0.034
+2.500          26.386         0.036
+3.000          26.417         0.041
+3.500          26.439         0.043
+4.000          26.455         0.050
+@end example
+
+As you see, the values and standard deviations are very similar to the results we got previously in @ref{Zero point tutorial with reference image}.
+The Standard deviations are generally a little higher here because we didn't do the photometry ourselves, but they are statistically similar.
+
+Before we finish, let's open the two outputs (from a reference image and reference catalog) with the command below.
+To confirm how they compare, we are showing the result for @code{APER-3} extension in both (following the TOPCAT plotting recipe in @ref{Zero point tutorial with reference image}).
+
+@example
+$ astscript-fits-view jplus-zeropoint.fits jplus-zeropoint-cat.fits \
+                      -hAPER-3
+@end example
+
+
+@node Dither pattern design,  , Zero point of an image, Tutorials
 @section Dither pattern design
 
 @cindex Dithering
@@ -31408,8 +31950,11 @@ With this option, you can have separate color bars under each image.
 
 
 
-@c Update the ``previous'' and next items: C-c C-u C-e
-@c Update the menu:                        C-u C-c C-u m
+
+
+
+
+
 @node Zero point estimation, Dithering pattern simulation, Viewing FITS file contents with DS9 or TOPCAT, Installed scripts
 @section Zero point estimation
 
@@ -31443,537 +31988,15 @@ This does not hold when the stars are saturated in one/both the images (giving u
 Since a zero point of 0 was used for the input image, the magnitude difference above (in the reliable magnitude range) is the zero point of the input image.
 @end enumerate
 
-In the sections below we have prepared two tutorials on the use of this script.
+In the ``Tutorials'' chapter of this Gnuastro book, there are two tutorials dedicated to the usage of this script.
 The first uses an image as a reference (@ref{Zero point tutorial with reference image}) and the second uses a catalog (@ref{Zero point tutorial with reference catalog}).
-Afterwards, in @ref{Invoking astscript-zeropoint}, the details of all the options and how to run this script are provided.
+For the full set of options an a detailed description of each, see @ref{Invoking astscript-zeropoint}.
 
 @menu
-* Zero point tutorial with reference image::  Using SDSS images to find J-PLUS zero point
-* Zero point tutorial with reference catalog::  Using SDSS catalog to find J-PLUS zero point
 * Invoking astscript-zeropoint::  How to call the script
 @end menu
 
-@node Zero point tutorial with reference image, Zero point tutorial with reference catalog, Zero point estimation, Zero point estimation
-@subsection Zero point tutorial with reference image
-
-@cindex SDSS
-In this tutorial on how to use the @command{astscript-zeropoint}, we will find the zero point of a single exposure image from the @url{https://www.j-plus.es, J-PLUS survey}, while using an @url{http://www.sdss.org, SDSS} image as reference (recall that all SDSS images have been calibrated to have a fixed zero point of 22.5).
-In this case, both images that we are using were taken with the SDSS @emph{r} filter.
-
-@cartouche
-@cindex Johnson filters
-@cindex Johnson vs. SDSS filters
-@cindex SDSS vs. Johnson filters
-@cindex Filter transmission curve
-@cindex Transmission curve of filters
-@cindex SVO database (filter transmission curve)
-@noindent
-@strong{Same filters and SVO filter database:} It is very important that both your images are taken with the same filter.
-When looking at filter names, don't forget that different filter systems sometimes have the same names for one filter, such as the name ``R''; which is used in both the Johnson and SDSS filter systems.
-Hence if you confront an image in the ``R'' or ``r'' filter, double check to see exactly which filter system it corresponds to.
-If you know which observatory your data came from, you can use the @url{http://svo2.cab.inta-csic.es/theory/fps, SVO database} to confirm the similarity of the transmission curves of the filters of your input and reference images.
-SVO contains the filter data for many of the observatories world-wide.
-@end cartouche
-
-First, let’s create a directory named @file{tutorial-zeropoint} to keep things clean and work in that.
-Then, with the commands below, you can download an image from J-PLUS and SDSS.
-To speed up the analysis, the image is cropped to have a smaller region around its center.
-
-@example
-$ mkdir tutorial-zeropoint
-$ cd tutorial-zeropoint
-$ jplusdr2=http://archive.cefca.es/catalogues/vo/siap/jplus-dr2/reduced
-$ wget $jplusdr2/get_fits?id=771463 -O jplus.fits.fz
-$ astcrop jplus.fits.fz --center=107.7263,40.1754 \
-          --width=0.6 --output=jplus-crop.fits
-@end example
-
-Although we cropped the J-PLUS image, it is still very large in comparison with the SDSS image (the J-PLUS field of view is almost @mymath{1.5\times1.5} deg@mymath{^2}, while the field of view of SDSS in each filter is almost @mymath{0.3\times0.5} deg@mymath{^2}).
-Therefore, let's download two SDSS images (and then decompress them) in the region of the cropped J-PLUS image to have a more accurate result compared to a single SDSS footprint: generally, your zero point estimation will have less scatter with more overlap between your reference image(s) and your input image.
-
-@example
-$ sdssbase=https://dr12.sdss.org/sas/dr12/boss/photoObj/frames
-$ wget $sdssbase/301/6509/5/frame-r-006509-5-0115.fits.bz2 \
-       -O sdss1.fits.bz2
-$ wget $sdssbase/301/6573/5/frame-r-006573-5-0174.fits.bz2 \
-       -O sdss2.fits.bz2
-$ bunzip2 sdss1.fits.bz2
-$ bunzip2 sdss2.fits.bz2
-@end example
-
-To have a feeling of the data, let's open the three images with @command{astscript-fits-view} using the command below.
-Wait a few seconds to see the three images ``blinking'' one after another.
-The largest one is the J-PLUS crop and the two smaller ones that partially cover it in different regions are from SDSS.
-
-@example
-$ astscript-fits-view sdss1.fits sdss2.fits jplus-crop.fits \
-           --ds9extra="-lock frame wcs -single -zoom to fit -blink yes"
-@end example
-
-The test above showed that the three images are already astrometrically calibrated (the coverage of the pixel positions on the sky is correct in both).
-To confirm, you can zoom-in to a certain object and confirm it on a pixel level.
-It is always good to do the visual check above when you are confronted with new images (and may not be confident about the accuracy of the astrometry).
-Do not forget that the goal here is to find the calibration of pixel values; and that we assume pixel positions are already calibrated (the image already has a good astrometry).
-
-The SDSS images are Sky subtracted, while this single-exposure J-PLUS image still contains the counts related to the Sky emission within them.
-In the J-PLUS survey, the sky-level in each pixel is kept in a separate @code{BACKGROUND_MODEL} HDU of @file{jplus.fits.fz}; this allows you to use a different sky if you like.
-The SDSS image FITS files also have multiple extensions.
-To understand our inputs, let's have a fast look at the basic info of each:
-
-@example
-$ astfits sdss1.fits
-Fits (GNU Astronomy Utilities) @value{VERSION}
-Run on Fri Apr 14 11:24:03 2023
------
-HDU (extension) information: 'sdss1.fits'.
- Column 1: Index (counting from 0, usable with '--hdu').
- Column 2: Name ('EXTNAME' in FITS standard, usable with '--hdu').
-           ('n/a': no name in HDU metadata)
- Column 3: Image data type or 'table' format (ASCII or binary).
- Column 4: Size of data in HDU.
- Column 5: Units of data in HDU (only images).
-           ('n/a': no unit in HDU metadata, or HDU is a table)
------
-0      n/a             float32         2048x1489 nanomaggy
-1      n/a             float32         2048      n/a
-2      n/a             table_binary    1x3       n/a
-3      n/a             table_binary    1x31      n/a
-
-
-
-$ astfits jplus.fits.fz
-Fits (GNU Astronomy Utilities) @value{VERSION}
-Run on Fri Apr 14 11:21:30 2023
------
-HDU (extension) information: 'jplus.fits.fz'.
- Column 1: Index (counting from 0, usable with '--hdu').
- Column 2: Name ('EXTNAME' in FITS standard, usable with '--hdu').
-           ('n/a': no name in HDU metadata)
- Column 3: Image data type or 'table' format (ASCII or binary).
- Column 4: Size of data in HDU.
- Column 5: Units of data in HDU (only images).
-           ('n/a': no unit in HDU metadata, or HDU is a table)
------
-0      n/a              no-data         0         n/a
-1      IMAGE            float32         9216x9232 adu
-2      MASKED_PIXELS    int16           9216x9232 n/a
-3      BACKGROUND_MODEL float32         9216x9232 n/a
-4      MASK_MODEL       uint8           9216x9232 n/a
-@end example
-
-Therefore, in order to be able to compare the SDSS and J-PLUS images, we should first subtract the sky from the J-PLUS image.
-To do that, we can either subtract the @code{BACKGROUND_MODEL} HDU from the @code{IMAGE} HDU using @ref{Arithmetic}, or we can use @ref{NoiseChisel} to find a good sky ourselves.
-As scientists we like to tweak and be creative, so let's estimate it ourselves!
-Also, in some cases, you may not have a pre-estimated Sky estimation, so you should be prepared:
-
-@example
-$ astnoisechisel jplus-crop.fits --output=jplus-nc.fits
-$ astscript-fits-view jplus-nc.fits
-@end example
-
-Notice that there is a relatively bright star in the center-bottom of the image.
-In the ``Cube'' window, click on the ``Next'' button to see the @code{DETECTIONS} HDU.
-The large footprint of the bright star is obvious.
-Press the ``Next'' button one more time to get to the @code{SKY} HDU.
-You see that in the center-bottom, the footprint of the large star is clearly visible in the measured Sky level.
-This is not good!
-With Sky values above 54 ADU in the center of the star (the white pixels).
-This over-subtracted Sky level in part of the image will affect your magnitude measurements and thus the zero point!
-
-In @ref{General program usage tutorial}, we have a section on @ref{NoiseChisel optimization for detection}, there is also a full tutorial on this in @ref{Detecting large extended targets}.
-Therefore, we will not go into the details of NoiseChisel optimization here.
-Given the large images of J-PLUS, we will increase the tile-size to @mymath{100\times100} pixels and the number of neighbors to identify outlying tiles to 50 (these are usually the first parameters you should start editing when you are confronted with a new image).
-After the second command, check the @code{SKY} extension to confirm that there is no footprint of any bright object there.
-You will still see a gradient, but note the minimum and maximum values of the Sky level: their difference is more than 26 times smaller than the noise standard deviation (so statistically speaking, it is pretty flat!)
-
-@example
-$ astnoisechisel jplus-crop.fits --output=jplus-nc.fits \
-                 --tilesize=100,100 --outliernumngb=50
-$ astscript-fits-view jplus-nc.fits
-
-
-## Check that the gradient in the sky is statistically negligible.
-$ aststatistics jplus-nc.fits -hSKY --minimum --maximum \
-                | awk '@{print $2-$1@}'
-0.32809
-$ aststatistics jplus-nc.fits -hSKY_STD --median
-8.377977e+00
-@end example
-
-We are now ready to find the zero point!
-First, let's run the @command{astscript-zeropoint} with @option{--help} to see the option names (recall that you can see more details of each option in @ref{Invoking astscript-zeropoint}).
-For the first time, let's use the script in the most simple state possible.
-We will keep only the essential options: the names of the input and reference images (and their HDUs), the name of the output, and also two apertures with radii of 3 arcsec to start with:
-
-@example
-$ astscript-zeropoint --help
-$ astscript-zeropoint jplus-nc.fits --hdu=INPUT-NO-SKY \
-                      --refimgs=sdss1.fits,sdss2.fits \
-                      --output=jplus-zeropoint.fits \
-                      --refimgszp=22.5,22.5 \
-                      --refimgshdu=0,0 \
-                      --aperarcsec=3
-@end example
-
-The output is a FITS table (because generally, you will give more apertures and choose the best one based on a higher-level analysis).
-Let's check the output's internal structure with Gnuastro's @command{astfits} program.
-
-@example
-$ astfits jplus-zeropoint.fits
------
-0      n/a             no-data         0     n/a
-1      ZEROPOINTS      table_binary    1x3   n/a
-2      APER-3          table_binary    321x2 n/a
-@end example
-
-You can see that there are two HDUs in this file.
-The HDU names give a hint, so let's have a look at each extension with Gnuastro's @command{asttable} program:
-
-@example
-$ asttable jplus-zeropoint.fits --hdu=1 -i
---------
-jplus-zeropoint.fits (hdu: 1)
--------       -----   ----     -------
-No.Name       Units   Type     Comment
--------       -----   ----     -------
-1  APERTURE   arcsec  float32  n/a
-2  ZEROPOINT  mag     float32  n/a
-3  ZPSTD      mag     float32  n/a
---------
-Number of rows: 1
---------
-@end example
-
-@noindent
-As you can see, in the first extension, for each of the apertures you requested (@code{APERTURE}), there is a zero point (@code{ZEROPOINT}) and the standard deviation of the measurements on the apertures (@code{ZPSTD}).
-In this case, we only requested one aperture, so it only has one row.
-Now, let's have a look at the next extension:
-
-@example
-$ asttable jplus-zeropoint.fits --hdu=2 -i
---------
-jplus-zeropoint.fits (hdu: 2)
--------      -----  ----     -------
-No.Name      Units  Type     Comment
--------      -----  ----     -------
-1  MAG-REF   f32    float32  Magnitude of reference.
-2  MAG-DIFF  f32    float32  Magnitude diff with input.
---------
-Number of rows: 321
---------
-@end example
-
-It contains a table of measurements for the aperture with the least scatter.
-In this case, we only gave one aperture, so it is the same.
-If you give multiple apertures, only the one with least scatter will be present by default.
-In the @code{MAG-REF} column you see the magnitudes within each aperture on the reference (SDSS) image(s).
-The @code{MAG-DIFF} column contains the difference of the input (J-PLUS) and reference (SDSS) magnitudes for each aperture (see @ref{Zero point estimation}).
-The two catalogs, created by the aperture photometry from the SDSS images, are merged into one so that there are more stars to compare.
-Therefore, no matter how many reference images you provide, there will only be a single table here.
-If the two SDSS images overlapped, each object in the overlap region would have two rows (one row for the measurement from one SDSS image, and another from the measurement from the other).
-
-Now that we have obtained the zero point of the J-PLUS image, let's go a little deeper into lower-level details of how this script operates.
-This will help you better understand what happened and how to interpret and improve the outputs when you are confronted with a new image and strange outputs.
-
-To keep intermediate results the @command{astscript-zeropoint} script keeps temporary files in a temporary directory and later deletes it (and all the intermediate products).
-If you like to check the temporary files of the intermediate steps, you can use @option{--keeptmp} option to not remove them.
-
-Let's take a closer look into the contents of each HDU.
-First, we'll use Gnuastro’s @command{asttable} to see the measured zeropoint for this aperture.
-We are using @option{-Y} to have human-friendly (non-scientific!) numbers (which are sufficient here) and @option{-O} to also show the metadata of each column at the start.
-
-@example
-$ asttable jplus-zeropoint.fits -Y -O
-# Column 1: APERTURE  [arcsec,f32,] Aperture used.
-# Column 2: ZEROPOINT [mag   ,f32,] Zero point (sig-clip median).
-# Column 3: ZPSTD     [mag   ,f32,] Zero point Standard deviation.
-3.000          26.435         0.057
-@end example
-
-@noindent
-Now, let's have a look at the first 10 rows of the second (@code{APER-3}) extension.
-From the previous check we did above, we see that it contains 321 rows!
-
-@example
-$ asttable jplus-zeropoint.fits -Y -O --hdu=APER-3 --head=10
-# Column 1: MAG-REF  [f32,f32,] Magnitude of reference.
-# Column 2: MAG-DIFF [f32,f32,] Magnitude diff with input.
-16.461         30.035
-16.243         28.209
-15.427         26.427
-20.064         26.459
-17.334         26.425
-20.518         26.504
-17.100         26.400
-16.919         26.428
-17.654         26.373
-15.392         26.429
-@end example
-
-But the table above is hard to interpret, so let's plot it.
-To do this, we'll use the same @command{astscript-fits-view} command above that we used for images.
-It detects if the file has a image or table HDU and will call DS9 or TOPCAT respectively.
-You can also use any other plotter you like (TOPCAT is not part of Gnuastro), this script just calls it.
-
-@example
-$ astscript-fits-view jplus-zeropoint.fits --hdu=APER-3
-@end example
-
-After @code{TOPCAT} opens, you can select the ``Graphics'' menu and then ``Plain plot''.
-This will show a plot with the SDSS (reference image) magnitude on the horizontal axis and the difference of magnitudes between the the input and reference (the zero point) on the vertical axis.
-
-In an ideal world, the zero point should be independent of the magnitude of the different stars that were used.
-Therefore, this plot should be a horizontal line (with some scatter as we go to fainter stars).
-But as you can see in the plot, in the real world, this expected behavior is seen only for stars with magnitudes about 16 to 19 in the reference SDSS images.
-The stars that are brighter than 16 are saturated in one (or both) surveys@footnote{To learn more about saturated pixels and recognition of the saturated level of the image, please see @ref{Saturated pixels and Segment's clumps}}.
-Therefore, they do not have the correct magnitude or mag-diff.
-You can check some of these stars visually by using the blinking command above and zooming into some of the brighter stars in the SDSS images.
-
-@cindex Depth of data
-On the other hand, it is natural that we cannot measure accurate magnitudes for the fainter stars because the noise level (or ``depth'') of each image is limited.
-As a result, the horizontal line becomes wider (scattered) as we go to the right (fainter magnitudes on the horizontal axis).
-So, let's limit the range of used magnitudes from the SDSS catalog to calculate a more accurate zero point for the J-PLUS image.
-For this reason, we have the @option{--magnituderange} option in @command{astscript-zeropoint}.
-
-@cartouche
-@noindent
-@strong{Necessity of sky subtraction:}
-To obtain this horizontal line, it is very important that both your images have been sky subtracted.
-Please, repeat the last @command{astscript-zeropoint} command above only by changing the input file to @file{jplus-crop.fits}.
-Then use Gnuastro’s @command{astscript-fits-view} again to draw a plot with @code{TOPCAT} (also same as above).
-Instead of a horizontal line, you will see @emph{a sloped line} in the magnitude range above!
-This happens because the sky level acts as a source of constant signal in all apertures, so the magnitude difference will not be independent of the star's magnitude, but dependent on it (the measurement on a fainter star will be dominated by the sky level).
-
-@strong{Remember:} if you see a sloped line instead of a horizontal line, the input or reference image(s) are not sky subtracted.
-@end cartouche
-
-Another key parameter of this script is the aperture size (@option{--aperarcsec}) for the aperture photometry of images.
-On one hand, if the selected aperture is too small, you will be at the mercy of the differing PSFs between your input and reference image(s): part of the light of the star will be lost in the image with the worse PSF.
-On the other hand, with large aperture size, the light of neighboring objects (stars/galaxies) can affect the photometry.
-We should select an aperture radius of the same order than the one used in the reference image, typically 2 to 3 times the PSF FWHM of the images.
-For now, let's assume the values 2, 3, 4, 5, and 6 arcsec for the aperture sizes parameter.
-The script will compare the result for several aperture sizes and choose the one with least standard deviation value, @code{ZPSTD} column of the @code{ZEROPOINTS} HDU.
-
-Let's re-run the script with the following changes:
-@itemize
-@item
-Using @option{--magnituderange} to limit the stars used for estimating the zero point.
-@item
-Giving more values for aperture size to find the best for these two images as explained above.
-@item
-Call @option{--keepzpap} option to keep the result of matching the catalogs done with the selected apertures in the different extensions of the output file.
-@end itemize
-
-@example
-$ astscript-zeropoint jplus-nc.fits --hdu=INPUT-NO-SKY \
-                      --refimgs=sdss1.fits,sdss2.fits \
-                      --output=jplus-zeropoint.fits \
-                      --refimgszp=22.5,22.5 \
-                      --aperarcsec=2,3,4,5,6 \
-                      --magnituderange=16,18 \
-                      --refimgshdu=0,0 \
-                      --keepzpap
-@end example
-
-Now, check number of HDU extensions by @command{astfits}.
-
-@example
-$ astfits jplus-zeropoint.fits
------
-0      n/a             no-data         0     n/a
-1      ZEROPOINTS      table_binary    5x3   n/a
-2      APER-2          table_binary    319x2 n/a
-3      APER-3          table_binary    321x2 n/a
-4      APER-4          table_binary    323x2 n/a
-5      APER-5          table_binary    323x2 n/a
-6      APER-6          table_binary    325x2 n/a
-@end example
-
-You can see that the output file now has a separate HDU for each aperture (thanks to @option{--keepzpap}.)
-The @code{ZEROPOINTS} hdu contains the final zero point values for each aperture and their error.
-The best zero point value belongs to the aperture that has the least scatter (has the lowest standard deviation).
-The rest of extensions contain the zero point value computed within each aperture (as discussed above).
-
-Let's check the different tables by plotting all magnitude tables at the same time with @code{TOPCAT}.
-
-@example
-$ astscript-fits-view jplus-zeropoint.fits
-@end example
-
-@noindent
-After @code{TOPCAT} has opened take the following steps:
-@enumerate
-@item
-From the ``Graphics'' menu, select ``Plain plot''.
-You will see the last HDU's scatter plot open in a new window (for @code{APER-6}, with red points).
-The Bottom-left panel has the logo of a red-blue scatter plot that has written @code{6:jplus-zeropoint.fits} in front of it (showing that this is the 6th HDU of this file).
-In the bottom-right panel, you see the names of the columns that are being displayed.
-@item
-In the ``Layers'' menu, Click on ``Add Position Control''.
-On the bottom-left panel, you will notice that a new blue-red scatter plot has appeared but it just says @code{<no table>}.
-In the bottom-right panel, in front of ``Table:'', select any other extension.
-This will plot the same two columns of that extension as blue points.
-Zoom-in to the region of the horizontal line to see/compare the different scatters.
-
-Change the HDU given to ``Table:'' and see the distribution of zero points for the different apertures.
-@end enumerate
-
-The manual/visual operation above is critical if this is your first time with a new dataset (it shows all kinds of systematic biases (like the Sky issue above)!
-But once you know your data has no systematic biases, choosing between the different apertures is not easy visually!
-Let's have a look at the table the @code{ZEROPOINTS} HDU (we don't need to explicitly call this HDU since it is the first one):
-
-@example
-$ asttable jplus-zeropoint.fits -O -Y
-# Column 1: APERTURE  [arcsec,f32,] Aperture used.
-# Column 2: ZEROPOINT [mag   ,f32,] Zero point (sig-clip median).
-# Column 3: ZPSTD     [mag   ,f32,] Zero point Standard deviation.
-2.000          26.405         0.028
-3.000          26.436         0.030
-4.000          26.448         0.035
-5.000          26.458         0.042
-6.000          26.466         0.056
-@end example
-
-The most accurate zero point is the one where @code{ZPSTD} is the smallest.
-In this case, minimum of @code{ZPSTD} is with radii of 2 and 3 arcseconds.
-Run the @command{astscript-fits-view} command above again to open TOPCAT.
-Let's focus on the magnitude plots in these two apertures and determine a more accurate range of magnitude.
-The more reliable option is the range between 16.4 (where we have no saturated stars) and 18.5 mag (fainter than this, the scatter becomes too strong).
-Finally, let's set some more apertures between 2 and 3 arcseconds radius:
-
-@example
-$ astscript-zeropoint jplus-nc.fits --hdu=INPUT-NO-SKY \
-                      --refimgs=sdss1.fits,sdss2.fits \
-                      --output=jplus-zeropoint.fits \
-                      --magnituderange=16.4,18.5 \
-                      --refimgszp=22.5,22.5 \
-                      --aperarcsec=2,2.5,3,3.5,4 \
-                      --refimgshdu=0,0 \
-                      --keepzpap
-
-$ asttable jplus-zeropoint.fits -Y
-2.000          26.405         0.037
-2.500          26.425         0.033
-3.000          26.436         0.034
-3.500          26.442         0.039
-4.000          26.449         0.044
-@end example
-
-The aperture with the least scatter is therefore the 2.5 arcsec radius aperture, giving a zero point of 26.425 magnitudes for this image.
-However, you can see that the scatter for the 3 arcsec aperture is also acceptable.
-Actually, the @code{ZPSTD} for of the 2.5 and 3 arcsec apertures only have a difference of @mymath{3\%} (@mymath{= (0.034−0.0333)/0.033\times100}).
-So simply choosing the minimum is just a first-order approximation (which is accurate within @mymath{26.436−26.425=0.011} magnitudes)
-
-Note that in aperture photometry, the PSF plays an important role (because the aperture is fixed but the two images can have very different PSFs).
-The aperture with the least scatter should also account for the differing PSFs.
-Overall, please, always check the different and intermediate steps to make sure the parameters are the good so the estimation of the zero point is correct.
-
-If you are happy with the minimum, you don't have to search for the minimum aperture or its corresponding zero point yourself.
-This script has written it in @code{ZPVALUE} keyword of the table.
-With the first command, we also see the name of the file also, (you can use this on many files for example).
-With the second command, we are only printing the number by adding the @option{-q} (or @option{--quiet}) option (this is useful in a script where you want to write the value in a shell variable to use later).
-
-@example
-$ astfits jplus-zeropoint.fits --keyvalue=ZPVALUE
-jplus-zeropoint.fits 2.642512e+01
-
-$ astfits jplus-zeropoint.fits --keyvalue=ZPVALUE -q
-2.642512e+01
-@end example
-
-Generally, this script will write the following FITS keywords (all starting with @code{ZP}) for your future reference in its output:
-
-@example
-$ astfits jplus-zeropoint.fits -h1 | grep ^ZP
-ZPAPER  =                  2.5 / Best aperture.
-ZPVALUE =             26.42512 / Best zero point.
-ZPSTD   =           0.03276644 / Best std. dev. of zeropoint.
-ZPMAGMIN=                 16.4 / Min mag for obtaining zeropoint.
-ZPMAGMAX=                 18.5 / Max mag for obtaining zeropoint.
-@end example
-
-Using the @option{--keyvalue} option of the @ref{Fits} program, you can easily get multiple of the values in one run (where necessary):
-
-@example
-$ astfits jplus-zeropoint.fits --hdu=1 --quiet \
-          --keyvalue=ZPAPER,ZPVALUE,ZPSTD
-2.500000e+00   2.642512e+01   3.276644e-02
-@end example
-
-@node Zero point tutorial with reference catalog, Invoking astscript-zeropoint, Zero point tutorial with reference image, Zero point estimation
-@subsection Zero point tutorial with reference catalog
-
-In @ref{Zero point tutorial with reference image}, we explained how to use the @command{astscript-zeropoint} for estimating the zero point of one image based on a reference image.
-Sometimes there is not a reference image and we need to use a reference catalog.
-Fortunately, @command{astscript-zeropoint} can also use the catalog instead of the image to find the zero point.
-
-To show this, let's download a catalog of SDSS in the area that overlaps with the cropped J-PLUS image (used in the previous section).
-For more on Gnuastro's Query program, please see @ref{Query}.
-The columns of ID, RA, Dec and magnitude in the SDSS @emph{r} filter are called by their name in the SDSS catalog.
-
-@example
-$ astquery vizier \
-           --dataset=sdss12 \
-           --overlapwith=jplus-crop.fits \
-           --column=objID,RA_ICRS,DE_ICRS,rmag \
-           --output=sdss-catalog.fits
-@end example
-
-To visualize the position of the SDSS objects over the J-PLUS image, let's use @command{astscript-ds9-region} (for more details please see @ref{SAO DS9 region files from table}) with the command below (it will automatically open DS9 and load the regions it created):
-
-@example
-$ astscript-ds9-region sdss-catalog.fits \
-                       --column=RA_ICRS,DE_ICRS \
-                       --color=red --width=3 --output=sdss.reg \
-                       --command="ds9 jplus-nc.fits[INPUT-NO-SKY] \
-                                      -scale zscale"
-@end example
-
-Now, we are ready to estimate the zero point of the J-PLUS image based on the SDSS catalog.
-To download the input image and understand how to use the @command{astscript-zeropoint}, please see @ref{Zero point tutorial with reference image}.
-
-Many of the options (like the aperture size) and magnitude range are the same so we will not discuss them further.
-You will notice that the only substantive difference of the command below with the last command in the previous section is that we are using @option{--refcat} instead of @option{--refimgs}.
-There are also some cosmetic differences for example a new output name, not using @option{--refimgszp} since it is only necessary for images) and the @option{--*column} options which are used to identify the names of the necessary columns of the input catalog:
-
-@example
-$ astscript-zeropoint jplus-nc.fits --hdu=INPUT-NO-SKY \
-                      --refcat=sdss-catalog.fits \
-                      --refcatmag=rmag \
-                      --refcatra=RA_ICRS \
-                      --refcatdec=DE_ICRS \
-                      --output=jplus-zeropoint-cat.fits \
-                      --magnituderange=16.4,18.5 \
-                      --aperarcsec=2,2.5,3,3.5,4 \
-                      --keepzpap
-@end example
-
-@noindent
-Let's inspect the output with the command below.
-
-@example
-$ asttable jplus-zeropoint-cat.fits -Y
-2.000          26.337         0.034
-2.500          26.386         0.036
-3.000          26.417         0.041
-3.500          26.439         0.043
-4.000          26.455         0.050
-@end example
-
-As you see, the values and standard deviations are very similar to the results we got previously in @ref{Zero point tutorial with reference image}.
-The Standard deviations are generally a little higher here because we didn't do the photometry ourselves, but they are statistically similar.
-
-Before we finish, let's open the two outputs (from a reference image and reference catalog) with the command below.
-To confirm how they compare, we are showing the result for @code{APER-3} extension in both (following the TOPCAT plotting recipe in @ref{Zero point tutorial with reference image}).
-
-@example
-$ astscript-fits-view jplus-zeropoint.fits jplus-zeropoint-cat.fits \
-                      -hAPER-3
-@end example
-
-
-
-@node Invoking astscript-zeropoint,  , Zero point tutorial with reference catalog, Zero point estimation
+@node Invoking astscript-zeropoint,  , Zero point estimation, Zero point estimation
 @subsection Invoking astscript-zeropoint
 This installed script will calculate the zero point of an input image to calibrate it.
 The reference can be an image or catalog (which have been previously calibrated)

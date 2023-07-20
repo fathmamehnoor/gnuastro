@@ -20,6 +20,8 @@ See the end of the file for license conditions.
     pattern using the newly added installed script in Gnuastro for
     simulating the exposure map of a dither pattern stack (it is called as
     'astscript-dither-simulate' on the command-line).
+  - Smaller tutorials that were distributed within the documentation of
+    different programs are brought into the "Tutorials" chapter.
   - New "Standard deviation vs. error" sub-section added under the
     MakeCatalog section. It uses real examples to clearly show the
     fundamental difference between the two (which are sometimes confused
