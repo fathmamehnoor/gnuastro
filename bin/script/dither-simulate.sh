@@ -38,10 +38,13 @@ deccol="DEC"
 widthinpix=0
 numthreads=0
 version=@VERSION@
+hook_warp_after=""
+hook_warp_before=""
+stack_operator="sum"
 scriptname=@SCRIPT_NAME@
+ctype="RA---TAN,DEC--TAN"
 output=dither-simulate.fits
 installdir=@PREFIX@/share/gnuastro
-
 
 
 
@@ -66,13 +69,21 @@ $scriptname options:
   -H, --imghdu=STR/INT    HDU name or number of the input image.
   -r, --racol=STR/INT     Name/number of column containing RA.
   -d, --deccol=STR/INT    Name/number of column containing Declination.
-  -C, --center=FLT,FLT    Center of output stack (in RA,Dec).
-  -w, --width=FLT,FLT     Width of output stack (in WCS).
-      --widthinpix        Interpret '--width' values in pixels.
       --mksrc=STR         Makefile (for developers when debugging).
+
+ Hooks:
+      --hook-warp-before='COMMAND' Before warping each exposure;
+                          Input: '$EXPOSURE'. Output: '$TOWARP'.
+      --hook-warp-after='COMMAND' After warping each exposure;
+                          Input: '$WARPED'. Output: '$TARGET'.
 
  Output:
   -o, --output=STR        Name of finally stacked image.
+  -C, --center=FLT,FLT    Center of output stack (in RA,Dec).
+  -w, --width=FLT,FLT     Width of output stack (in WCS).
+      --ctype=STR,STR     Projection of output (CTYPEi in WCS).
+      --widthinpix        Interpret '--width' values in pixels.
+      --stack-operator="STR" Arithmetic operator to use for stacking.
   -t, --tmpdir=STR        Directory to keep temporary files.
   -k, --keeptmp           Keep temporal/auxiliar files.
 
@@ -219,27 +230,36 @@ do
     -d|--deccol)     deccol="$2";                                 check_v "$1" "$deccol"; shift;shift;;
     -d=*|--deccol=*) deccol="${1#*=}";                            check_v "$1" "$deccol"; shift;;
     -d*)             deccol=$(echo "$1" | sed -e's/-d//');        check_v "$1" "$deccol"; shift;;
+    --mksrc)         mksrc="$2";                                  check_v "$1" "$mksrc";  shift;shift;;
+    --mksrc=*)       mksrc="${1#*=}";                             check_v "$1" "$mksrc";  shift;;
+
+    # Hooks
+    --hook-warp-after) hook_warp_after=$(echo "$2" | sed -e's@\$@\$\$@g'); check_v "$1" "$hook_warp_after"; shift;;
+    --hook-warp-after=*) v="${1#*=}"; hook_warp_after=$(echo "$v" | sed -e's@\$@\$\$@g'); check_v "$1" "$hook_warp_after"; shift;;
+    --hook-warp-before) hook_warp_before=$(echo "$2" | sed -e's@\$@\$\$@g'); check_v "$1" "$hook_warp_before"; shift;;
+    --hook-warp-before=*) v="${1#*=}"; hook_warp_before=$(echo "$v" | sed -e's@\$@\$\$@g'); check_v "$1" "$hook_warp_before"; shift;;
+
+    # Output:
+    -o|--output)     output="$2";                                 check_v "$1" "$output"; shift;shift;;
+    -o=*|--output=*) output="${1#*=}";                            check_v "$1" "$output"; shift;;
+    -o*)             output=$(echo "$1" | sed -e's/-o//');        check_v "$1" "$output"; shift;;
     -C|--center)     center="$2";                                 check_v "$1" "$center"; shift;shift;;
     -C=*|--center=*) center="${1#*=}";                            check_v "$1" "$center"; shift;;
     -C*)             center=$(echo "$1" | sed -e's/-C//');        check_v "$1" "$center"; shift;;
     -w|--width)      width="$2";                                  check_v "$1" "$width";  shift;shift;;
     -w=*|--width=*)  width="${1#*=}";                             check_v "$1" "$width";  shift;;
     -w*)             width=$(echo "$1" | sed -e's/-w//');         check_v "$1" "$width";  shift;;
-    --mksrc)         mksrc="$2";                                  check_v "$1" "$mksrc";  shift;shift;;
-    --mksrc=*)       mksrc="${1#*=}";                             check_v "$1" "$mksrc";  shift;;
+    --ctype)         ctype="$2";                                  check_v "$1" "$ctype";  shift;shift;;
+    --ctype=*)       ctype="${1#*=}";                             check_v "$1" "$ctype";  shift;;
     --widthinpix)    widthinpix=1;                                                        shift;;
     --widthinpix=*)  on_off_option_error --quiet -q;;
-
-
-   # Output parameters
-   -k|--keeptmp)           keeptmp=1; shift;;
-   -k*|--keeptmp=*)        on_off_option_error --keeptmp -k;;
-   -t|--tmpdir)            tmpdir="$2";                                  check_v "$1" "$tmpdir";  shift;shift;;
-   -t=*|--tmpdir=*)        tmpdir="${1#*=}";                             check_v "$1" "$tmpdir";  shift;;
-   -t*)                    tmpdir=$(echo "$1" | sed -e's/-t//');         check_v "$1" "$tmpdir";  shift;;
-   -o|--output)            output="$2";                                  check_v "$1" "$output"; shift;shift;;
-   -o=*|--output=*)        output="${1#*=}";                             check_v "$1" "$output"; shift;;
-   -o*)                    output=$(echo "$1" | sed -e's/-o//');         check_v "$1" "$output"; shift;;
+    --stack-operator) stack_operator="$2";                        check_v "$1" "$stack_operator";  shift;shift;;
+    --stack-operator=*) stack_operator="${1#*=}";                 check_v "$1" "$stack_operator";  shift;;
+    -k|--keeptmp)           keeptmp=1; shift;;
+    -k*|--keeptmp=*)        on_off_option_error --keeptmp -k;;
+    -t|--tmpdir)            tmpdir="$2";                                  check_v "$1" "$tmpdir";  shift;shift;;
+    -t=*|--tmpdir=*)        tmpdir="${1#*=}";                             check_v "$1" "$tmpdir";  shift;;
+    -t*)                    tmpdir=$(echo "$1" | sed -e's/-t//');         check_v "$1" "$tmpdir";  shift;;
 
     # Non-operating options.
     -q|--quiet)             quiet="--quiet"; shift;;
@@ -286,8 +306,28 @@ fi
 if [ x"$width" = x ]; then
     echo "$scriptname: no stack width given to '--width'"; exit 1
 fi
+if [ x"$ctype" = x ]; then
+    echo "$scriptname: no projection given to '--ctype'"; exit 1
+fi
 if [ x"$center" = x ]; then
     echo "$scriptname: no stack center given to '--center'"; exit 1
+else
+    ncenter=$(echo $center | awk 'BEGIN{FS=","}\
+                                  {for(i=1;i<=NF;++i) c+=$i!=""}\
+                                  END{print c}')
+    if [ x$ncenter != x2 ]; then
+        cat <<EOF
+$scriptname: ERROR: '--center' (or '-c') only takes two values, but $ncenter value(s) ywere given in '$center'
+EOF
+        exit 1
+    fi
+fi
+ndither=$(asttable $cat --info-num-rows)
+if [ x$ndither = x0 ]; then
+        cat <<EOF
+$scriptname: ERROR: $cat: input dither pointing table is empty! It should contain at least one row, containing two columns for the RA and Dec of each pointing of the dither pattern. Please see the documentation with this command: 'info astscript-dither-simulate'
+EOF
+        exit 1
 fi
 
 
@@ -327,18 +367,18 @@ fi
 # this configuration file (and the variables within it).
 counter=1;
 config=$tmpdir/dither-simulate.conf
-if astfits $cat &> /dev/null; then
-    ndither=$(astfits $cat --hdu=$hdu --keyvalue=NAXIS2 --quiet)
-else
-    ndither=$(awk '!/^#/ && NF>1' $cat | wc -l)
-fi
 echo "img = $img" > $config
+echo "ctype = $ctype" >> $config
 echo "width = $width" >> $config
 echo "quiet = $quiet" >> $config
 echo "center = $center" >> $config
 echo "output = $output" >> $config
 echo "imghdu = $imghdu" >> $config
+echo "scriptname = $scriptname" >> $config
+echo "stack-operator = $stack_operator" >> $config
 echo "dithers = $(seq $ndither | tr '\n' ' ')" >> $config
+echo "hook-warp-before=$hook_warp_before" >> $config
+echo "hook-warp-after=$hook_warp_after" >> $config
 if [ $widthinpix = 1 ]; then
     echo "widthinpix = --widthinpix" >> $config
 else
@@ -380,10 +420,12 @@ fi
 # Call the Makefile
 # -----------------
 #
-# Here, Makefile is invoked.
-if [ x$mksrc = x ]; then
-    mksrc=$installdir/dither-simulate.mk
-fi
+# Make is invoked with the requested Makefile. We cannot put 'tmpdir' into
+# the configuration file because the configuration file is within the
+# temporary directory. Also, the number of threads should be given when
+# calling Make. Otherwise, all other settings should be taken inside the
+# configuration file.
+if [ x"$mksrc" = x ]; then mksrc=$installdir/dither-simulate.mk; fi
 make -f $mksrc tmpdir=$tmpdir --jobs=$numthreads
 
 

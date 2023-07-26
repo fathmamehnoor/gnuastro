@@ -108,15 +108,16 @@ A copy of the license is included in the section entitled ``GNU Free Documentati
 * astwarp: (gnuastro)Invoking astwarp. Options to Warp.
 
 * astscript: (gnuastro)Installed scripts. Gnuastro's installed scripts.
-* astscript-sort-by-night: (gnuastro)Invoking astscript-sort-by-night. Options to this script
-* astscript-radial-profile: (gnuastro)Invoking astscript-radial-profile. Options to this script
+* astscript-dither-simulate: (gnuastro)Invoking astscript-dither-simulate. Options to this script
 * astscript-ds9-region: (gnuastro)Invoking astscript-ds9-region. Options to this script
 * astscript-fits-view: (gnuastro)Invoking astscript-fits-view. Options to this script
+* astscript-psf-scale-factor: (gnuastro)Invoking astscript-psf-scale-factor. Options to this script
 * astscript-psf-select-stars: (gnuastro)Invoking astscript-psf-select-stars. Options to this script
 * astscript-psf-stamp: (gnuastro)Invoking astscript-psf-stamp. Options to this script
-* astscript-psf-unite: (gnuastro)Invoking astscript-psf-unite. Options to this script
-* astscript-psf-scale-factor: (gnuastro)Invoking astscript-psf-scale-factor. Options to this script
 * astscript-psf-subtract: (gnuastro)Invoking astscript-psf-subtract. Options to this script
+* astscript-psf-unite: (gnuastro)Invoking astscript-psf-unite. Options to this script
+* astscript-radial-profile: (gnuastro)Invoking astscript-radial-profile. Options to this script
+* astscript-sort-by-night: (gnuastro)Invoking astscript-sort-by-night. Options to this script
 * astscript-zeropoint: (gnuastro)Invoking astscript-zeropoint. Options to this script
 @end direntry
 
@@ -274,6 +275,7 @@ Tutorials
 * Sufi simulates a detection::  Simulating a detection.
 * Detecting lines and extracting spectra in 3D data::  Extracting spectra and emission line properties.
 * Color channels in same pixel grid::  Aligning images to same grid to build color image.
+* Moire pattern in stacking and its correction::  How to avoid this grid-based artifact.
 * Zero point of an image::      Estimate the zero point of an image.
 * Dither pattern design::       Simulate the output image of a given dither pattern.
 
@@ -336,6 +338,10 @@ Zero point of an image
 
 * Zero point tutorial with reference image::  Using a reference image.
 * Zero point tutorial with reference catalog::  Using a reference catalog.
+
+Dither pattern design
+
+* Triming vignetted area::      Effect of triming the edges on your dither pattern.
 
 Installation
 
@@ -583,7 +589,6 @@ Warp
 * Linear warping basics::       Basics of coordinate transformation.
 * Merging multiple warpings::   How to merge multiple matrices.
 * Resampling::                  Warping an image is re-sampling it.
-* Moire pattern and its correction::  Spatial resonance of the grid pattern on output.
 * Invoking astwarp::            Arguments and options for Warp.
 
 Invoking Warp
@@ -2020,6 +2025,7 @@ But they need to be as realistic as possible, so this tutorial is dedicated to t
 There are other tutorials also, on things that are commonly necessary in astronomical research:
 In @ref{Detecting lines and extracting spectra in 3D data}, we use MUSE cubes (an IFU dataset) to show how you can subtract the continuum, detect emission-line features, extract spectra and build pseudo narrow-band images.
 In @ref{Color channels in same pixel grid} we demonstrate how you can warp multiple images into a single pixel grid (often necessary with mult-wavelength data), and build a single color image.
+In @ref{Moire pattern in stacking and its correction} we show how you can avoid the un-wanted Moir@'e pattern which happens when warping separate exposures to build a stacked/co-add deeper image.
 In @ref{Zero point of an image} we review the process of estimating the zero point of an image using a reference image or catalog.
 Finally, in @ref{Dither pattern design} we show the process by which you can simulate a dither pattern to find the best observing strategy for your next exciting scientific project.
 
@@ -2036,6 +2042,7 @@ For an explanation of the conventions we use in the example codes through the bo
 * Sufi simulates a detection::  Simulating a detection.
 * Detecting lines and extracting spectra in 3D data::  Extracting spectra and emission line properties.
 * Color channels in same pixel grid::  Aligning images to same grid to build color image.
+* Moire pattern in stacking and its correction::  How to avoid this grid-based artifact.
 * Zero point of an image::      Estimate the zero point of an image.
 * Dither pattern design::       Simulate the output image of a given dither pattern.
 @end menu
@@ -8691,7 +8698,7 @@ Click on the scroll-down menu in front of ``Table'' and select @file{2: collapse
 Afterwards, you will see the optimized pseudo-narrow-band image radial profile as blue points.
 @end enumerate
 
-@node Color channels in same pixel grid, Zero point of an image, Detecting lines and extracting spectra in 3D data, Tutorials
+@node Color channels in same pixel grid, Moire pattern in stacking and its correction, Detecting lines and extracting spectra in 3D data, Tutorials
 @section Color channels in same pixel grid
 
 In order to use different images as color channels, it is important that the images be properly aligned and on the same pixel grid.
@@ -8758,7 +8765,230 @@ This shows how green and red channels have been slightly shifted to put your ast
 If you don't want to have those, or if you want the outer parts of the final image (where there was no data) to be white, some more complex commands are necessary.
 We'll leave those as an exercise for you to try your self using @ref{Warp} and/or @ref{Crop} to pre-process the inputs before converting it to a color image.
 
-@node Zero point of an image, Dither pattern design, Color channels in same pixel grid, Tutorials
+@node Moire pattern in stacking and its correction, Zero point of an image, Color channels in same pixel grid, Tutorials
+@section Moir@'e pattern in stacking and its correction
+
+@cindex Moir@'e pattern or fringes
+After warping some images with the default mode of Warp (see @ref{Align pixels with WCS considering distortions}) you may notice that the background noise is no longer flat.
+Some regions will be smoother and some will be sharper; depending on the orientation and distortion of the input/output pixel grids.
+This is due to the @url{https://en.wikipedia.org/wiki/Moir%C3%A9_pattern, Moir@'e pattern}, which is especially noticeable/significant when two slightly different grids are super-imposed.
+
+With the commands below, we'll download a single exposure image from the @url{https://www.j-plus.es,J-PLUS survey} and run Warp (on a @mymath{8\times8} arcmin@mymath{^2} region to speed it up the demos here).
+Finally, we'll open the image to visually see the artificial Moir@'e pattern on the warped image.
+
+@example
+## Download the image (73.7 MB containing an 9216x9232 pixel image)
+$ jplusdr2=http://archive.cefca.es/catalogues/vo/siap/jplus-dr2/reduced
+$ wget $jplusdr2/get_fits?id=771463 -Ojplus-exp1.fits.fz
+
+## Align a small part of it with the sky coordinates.
+$ astwarp jplus-exp1.fits.fz --center=107.62920,39.72472 \
+          --width=8/60 -ojplus-e1.fits
+
+## Open the aligned region with DS9
+$ astscript-fits-view jplus-e1.fits
+@end example
+
+In the opened DS9 window, you can see the Moir@'e pattern as wave-like patterns in the noise: some parts of the noise are more smooth and some parts are more sharp.
+Right in the center of the image is a blob of sharp noise.
+Warp has the @option{--checkmaxfrac} option for direct inspection of the Moir@'e pattern (described with the other options in @ref{Align pixels with WCS considering distortions}).
+When run with this option, an extra HDU (called @code{MAX-FRAC}) will be added to the output.
+The image in this HDU has the same size as the output.
+However, each output pixel will contain the largest (maximum) fraction of area that it covered over the input pixel grid.
+So if an output pixel has a value of 0.9, this shows that it covered @mymath{90\%} of an input pixel.
+Let's run Warp with @option{--checkmaxfrac} and see the output (after DS9 opens, in the ``Cube'' window, flip between the first and second HDUs):
+
+@example
+$ astwarp jplus-exp1.fits.fz --center=107.62920,39.72472 \
+          --width=8/60 -ojplus-e1.fits --checkmaxfrac
+
+$ astscript-fits-view jplus-e1.fits
+@end example
+
+By comparing the first and second HDUs/extensions, you will clearly see that the regions with a sharp noise pattern fall exactly on parts of the @code{MAX-FRAC} extension with values larger than 0.5.
+In other words, output pixels where one input pixel contributed more than half of the its value.
+As this fraction increases, the sharpness also increases because a single input pixel's value dominates the value of the output pixel.
+On the other hand, when this value is small, we see that many input pixels contribute to that output pixel.
+Since many input pixels contribute to an output pixel, it acts like a convolution, hence that output pixel becomes smoother (see @ref{Spatial domain convolution}).
+Let's have a look at the distribution of the @code{MAX-FRAC} pixel values:
+
+@example
+$ aststatistics jplus-e1.fits -hMAX-FRAC
+Statistics (GNU Astronomy Utilities) @value{VERSION}
+-------
+Input: jplus-e1.fits (hdu: MAX-FRAC)
+-------
+  Number of elements:                      744769
+  Minimum:                                 0.250213461
+  Maximum:                                 0.9987495374
+  Mode:                                    0.5034223567
+  Mode quantile:                           0.3773819498
+  Median:                                  0.5520805544
+  Mean:                                    0.5693956458
+  Standard deviation:                      0.1554693738
+-------
+Histogram:
+ |                      ***
+ |                   **********
+ |                 *****************
+ |              ************************
+ |           *******************************
+ |         **************************************
+ |       *********************************************
+ |     ****************************************************
+ |   ***********************************************************
+ | ******************************************************************
+ |**********************************************************************
+ |----------------------------------------------------------------------
+@end example
+
+The smallest value is 0.25 (=1/4), showing that 4 input pixels contributed to the output pixels value.
+While the maximum is almost 1.0, showing that a single input pixel defined the output pixel value.
+You can also see that the most probable value (the mode) is 0.5, and that the distribution is positively skewed.
+
+@cindex Pixel scale
+@cindex @code{CDELT}
+This is a well-known problem in astronomical imaging and professional photography.
+If you only have a single image (that is already taken!), you can undersample the input: set the angular size of the output pixels to be larger than the input.
+This will decrease the resolution of your image, but will ensure that pixel-mixing will always happen.
+In the example below we are setting the output pixel scale (which is known as @code{CDELT} in the FITS standard) to @mymath{1/0.5=2} of the input's.
+In other words each output pixel edge will cover double the input pixel's edge on the sky, and the output's number of pixels in each dimension will be half of the previous output.
+
+@example
+$ cdelt=$(astfits jplus-exp1.fits.fz --pixelscale -q \
+                  | awk '@{print $1@}')
+$ astwarp jplus-exp1.fits.fz --center=107.62920,39.72472 \
+          --width=8/60 -ojplus-e1.fits --cdelt=$cdelt/0.5 \
+          --checkmaxfrac
+@end example
+
+In the first extension, you can hardly see any Moir@'e pattern in the noise.
+When you go to the next (@code{MAX-FRAC}) extension, you will see that almost all the pixels have a value of 1.
+Of course, decreasing the resolution by half is a little too drastic.
+Depending on your image, you may be able to reach a sufficiently good result without such a drastic degrading of the input image.
+For example, if you want an output pixel scale that is just 1.5 times larger than the input, you can divide the original coordinate-delta (or ``cdelt'') by @mymath{1/1.5=0.6666} and try again.
+In the @code{MAX-FRAC} extension, you will see that the range of pixel values is now between 0.56 to 1.0 (recall that originally, this was between 0.25 and 1.0).
+This shows that the pixels are more similarly mixed and in fact, when you look at the actual warped image, you can hardly distinguish any Moir@'e pattern in the noise.
+
+@cindex Stacking
+@cindex Dithering
+@cindex Coaddition
+However, deep astronomical data are usually built by several exposures (images), not a single one.
+Each image is also taken by (slightly) shifting the telescope compared to the previous exposure.
+This shift is known as ``dithering''.
+We do this for many reasons (for example tracking errors in the telescope, high background values, removing the effect of bad pixels or those affected by cosmic rays, robust flat pattern measurement, etc.@footnote{E.g., @url{https://www.stsci.edu/hst/instrumentation/wfc3/proposing/dithering-strategies}}).
+One of those ``etc.'' reasons is to correct the Moir@'e pattern in the final coadded deep image.
+
+The Moir@'e pattern is fixed to the grid of the image, slightly shifting the telescope will result in the pattern appearing in different parts of the sky.
+Therefore when we later stack, or coadd, the separate exposures into a deep image, the Moir@'e pattern will be decreased there.
+However, dithering has possible drawbacks based on the scientific goal.
+For example when observing time-variable phenomena where cutting the exposures to several shorter ones is not feasible.
+If this is not the case for you (for example in galaxy evolution), continue with the rest of this section.
+
+Because we have multiple exposures that are slightly (sub-pixel) shifted, we can also increase the spatial resolution of the output.
+For example, let's set the output coordinate-delta (or pixel scale) to be 1/2 of the input.
+In other words, the number of pixels in each dimension of the output is double the first Warp command of this section:
+
+@example
+$ astwarp jplus-exp1.fits.fz --center=107.62920,39.72472 \
+          --width=8/60 -ojplus-e1.fits --cdelt=$cdelt/2 \
+          --checkmaxfrac
+
+$ aststatistics jplus-e1.fits -hMAX-FRAC --minimum --maximum
+0.06263604388 0.2506802701
+
+$ astscript-fits-view jplus-e1.fits
+@end example
+
+From the last command, you see that like the previous change in @option{--cdelt}, the range of @code{MAX-FRAC} has decreased.
+However, when you look at the warped image and the @code{MAX-FRAC} image with the last command, you still visually see the Moir@'e pattern in the noise (although it has significantly decreased compared to the original resolution).
+It is still present because 2 is an exact multiple of 1.
+Let's try increasing the resolution (oversampling) by a factor of 1.25 (which isn't an exact multiple of 1):
+
+@example
+$ astwarp jplus-exp1.fits.fz --center=107.62920,39.72472 \
+          --width=8/60 -ojplus-e1.fits --cdelt=$cdelt/1.25 \
+          --checkmaxfrac
+$ astscript-fits-view jplus-e1.fits
+@end example
+
+You don't see any Moir@'e pattern in the noise any more, but when you look at the @code{MAX-FRAC} extension, you see it is very different from the ones you had seen before.
+In the previous @code{MAX-FRAC} image, you could see large blobs of similar values.
+But here, you see that the variation is almost on a pixel scale, and the difference between one pixel to the next is not significant.
+This is why you don't see any Moir@'e pattern in the warped image.
+
+In J-PLUS, each part of the sky was observed with a three-point dithering pattern.
+Let's download the other two exposures and warp the same region of the sky to the same pixel grid (using the @option{--gridfile} feature).
+Then, let's open all three cropped images in one DS9 instance:
+
+@example
+$ wget $jplusdr2/get_fits?id=771465 -Ojplus-exp2.fits.fz
+$ wget $jplusdr2/get_fits?id=771467 -Ojplus-exp3.fits.fz
+
+$ astwarp jplus-exp2.fits.fz --gridfile jplus-e1.fits \
+          -o jplus-e2.fits --checkmaxfrac
+$ astwarp jplus-exp3.fits.fz --gridfile jplus-e1.fits \
+          -o jplus-e3.fits --checkmaxfrac
+
+$ astscript-fits-view jplus-e*.fits
+@end example
+
+@noindent
+In the three warped images, you don't see any Moir@'e pattern, so far so good...
+now, take the following steps:
+@enumerate
+@item
+Click on the ``Frame'' button (in the top row of buttons just on top of the image), and select the ``Single'' button in the bottom row.
+@item
+Open the ``Zoom'' menu, and select ``Zoom 16''.
+@item
+In the bottom row of buttons right on top of the image, press the ``next'' button to flip through each exposure's @code{MAX-FRAC} extension.
+@item
+Focus your eyes on the pixels with the largest value (white colored pixels), while pressing the ``next'' button to flip between the exposures.
+You will see that in each exposure they cover different pixels.
+@end enumerate
+
+The exercise above shows that the effect varying smoothing level (that had already shrank to a per-pixel level) will be further decreased after we stack the images.
+So let's stack these three images with the commands below.
+First, we need to remove the sky-level from each image using @ref{NoiseChisel}, then we'll stack the @code{INPUT-NO-SKY} extensions using sigma-clipping (to reject outliers by @ref{Sigma clipping}, using the @ref{Stacking operators}).
+
+@example
+$ astnoisechisel jplus-e1.fits -ojplus-nc1.fits
+$ astnoisechisel jplus-e2.fits -ojplus-nc2.fits
+$ astnoisechisel jplus-e3.fits -ojplus-nc3.fits
+
+$ astarithmetic jplus-nc*.fits 3 5 0.2 sigclip-mean \
+                -gINPUT-NO-SKY -ojplus-stack.fits
+
+$ astscript-fits-view jplus-nc*.fits jplus-stack.fits
+@end example
+
+@noindent
+After opening the individual exposures and the final stack with the last command, take the following steps to see the comparisons properly:
+@enumerate
+@item
+Click on the stack image so it is selected.
+@item
+Go to the ``Frame'' menu, then the ``Lock'' item, then activate ``Scale and Limits''.
+@item
+Scroll your mouse or touchpad to zoom into the image.
+@end enumerate
+
+@noindent
+You clearly see that the stacked image is deeper and that there is no Moir@'e pattern, while you have slightly @emph{improved} the spatial resolution of the output compared to the input.
+In case you want the stack to have the original pixel resolution, you just need one more warp:
+
+@example
+$ astwarp jplus-stack.fits --cdelt=$cdelt -ojplus-stack-origres.fits
+@end example
+
+For optimal results, the oversampling should be determined by the dithering pattern of the observation:
+For example if you only have two dither points, you want the pixels with maximum value in the @code{MAX-FRAC} image of one exposure to fall on those with a minimum value in the other exposure.
+Ideally, many more dither points should be chosen when you are planning your observation (not just for the Moir@'e pattern, but also for all the other reasons mentioned above).
+Based on the dithering pattern, you want to select the increased resolution such that the maximum @code{MAX-FRAC} values fall on every different pixel of the output grid for each exposure.
+
+
+@node Zero point of an image, Dither pattern design, Moire pattern in stacking and its correction, Tutorials
 @section Zero point of an image
 
 The ``zero point'' of an image is astronomical jargon for the calibration factor of its pixel values; allowing us to convert the raw pixel values to physical units.
@@ -9296,28 +9526,37 @@ $ astscript-fits-view jplus-zeropoint.fits jplus-zeropoint-cat.fits \
 Deciding a suitable dithering pattern is one of the most important steps when planning your observation strategy.
 Dithering is the process of moving each exposure compared to the previous one and is done for several reasons like increasing resolution, expending the area of the observation and etc.
 For a more complete introduction to dithering, see @ref{Dithering pattern simulation}.
-Gnuastro has a script (@command{astscript-dither-simulate}) for simplifying the process of choosing the best dither pattern to optimizing your observation strategy for your scientific goal.
 
-In this tutorial, let's assume you want to observe @url{https://en.wikipedia.org/wiki/Messier_94, M94} in the H-alpha and rSDSS filters@footnote{For the full list of available filters, see the @url{https://oaj.cefca.es/telescopes/t80cam, T80Cam description}.} (to study the extended star formation in the outer rings of this beautiful galaxy!).
+In this tutorial, we'll simulate a hypothetical dither pattern using Gnuastro's @command{astscript-dither-simulate} installed script.
+Let's assume you want to observe @url{https://en.wikipedia.org/wiki/Messier_94, M94} in the H-alpha and rSDSS filters (to study the extended star formation in the outer rings of this beautiful galaxy!).
 Including the outer parts of the rings, the galaxy is half a degree in diameter!
-This is very large, and you want to design a dither pattern that will cover this area with the maximum depth!
+This is very large, and you want to design a dither pattern that will cover this area efficiently!
 Therefore, you need an instrument with a large field of view.
+
+@cartouche
+@noindent
+@strong{Do Not start with this tutorial:} If you are new to Gnuastro and have not already completed @ref{General program usage tutorial}, we recommend going through that tutorial before starting this one.
+Basic features like access to this book on the command-line, the configuration files of Gnuastro's programs, benefiting from the modular nature of the programs, viewing multi-extension FITS files, and many others are discussed in more detail there.
+@end cartouche
+
 Let's assume that after some searching, you decide to write a proposal for the @url{https://oaj.cefca.es/telescopes/jast80, JAST80 telescope} at the @url{https://oaj.cefca.es, Observatorio Astrofísico de Javalambre}, OAJ@footnote{For full disclosure, Gnuastro is being developed at CEFCA (Centro de Estudios de F@'isica del Cosmos de Arag@'on); which also hosts OAJ.}, in Teruel (Spain).
-The field of view of this telescope's camera is almost 1.5 degrees wide, nicely fitting M94!
+The field of view of this telescope's camera is almost 1.4 degrees wide, nicely fitting M94!
+It also has these two filters that you need@footnote{For the full list of available filters, see the @url{https://oaj.cefca.es/telescopes/t80cam, T80Cam description}.}.
 
 Before we start, as described in @ref{Dithering pattern simulation}, it is just important to remember that the ideal dither pattern depends primarily on your scientific objective, as well as the limitations of the instrument you are observing with.
 Therefore, there is no single dither pattern for all purposes.
 However, the tools, methods, criteria or logic to check if your dither pattern satisfies your scientific requirement are similar.
 Therefore, you can use the same methods, tools or logic here to simulate or verify that your dither pattern will produce the products you expect after the observation.
 The hypothetical scenario above is just an example to show the usage.
-As with any tutorial, do not blindly follow the same final solution for any scenario; this is just an example to show you @emph{how to} find your own solution, not to give you the universal solution to any scenario!
+As with any tutorial, do not blindly follow the same final solution for any scenario; this is just an example to show you @emph{how to} find your own solution, not to give you the universal solution to any scenario.
 
 To start simulating a dither pattern for a certain telescope, you just need a single-exposure image of that telescope with WCS information.
 In other words, after astrometry, but before warping into any other pixel grid (to combine into a deeper stack).
 The image will give us the default number of the camera's pixels, its pixel scale (width of pixel in arcseconds) and the camera distortion.
 These are reference parameters that are independent of the position of the image on the sky.
 
-Because the actual position of the reference image is irrelevant, let's assume that in a previous project, persumably on @url{https://en.wikipedia.org/wiki/NGC_4395, NGC 4395}, you already had the download command of the following single exposure image:
+Because the actual position of the reference image is irrelevant, let's assume that in a previous project, persumably on @url{https://en.wikipedia.org/wiki/NGC_4395, NGC 4395}, you already had the download command of the following single exposure image.
+With the last command, please take a look at this image before continuing and explore it.
 
 @example
 $ mkdir dither-tutorial
@@ -9339,18 +9578,21 @@ Therefore, they become publicly available very soon after the observation date; 
 
 As you see from the image above, the T80Cam images are large (9216 by 9232 pixels).
 Therefore, to speed up the dither testing, let's down-sample the image above by a factor of 10.
-This step is optional and you can safely use the full resolution, which will give you a more precise stack, but which will be much slower (maybe good after you have an approximate solution on the down-sampled image).
+This step is optional and you can safely use the full resolution, which will give you a more precise stack.
+But it will be much slower (maybe good after you have an almost final solution on the down-sampled image).
 We will call the output @file{ref.fits} (since it is the ``reference'' for our test).
-We are putting these two ``input'' files (to the script) in a dedicated directory to keep the running directory clean (be able to easily delete temporary/test files for a fresh start with a `@command{rm *.fits}').
+We are putting these two ``input'' files (to the script) in a dedicated directory to keep the running directory clean (and be able to easily delete temporary/test files for a fresh start with a `@command{rm *.fits}').
 
 @example
 $ astwarp input/jplus-1050345.fits.fz --scale=1/10 -oinput/ref.fits
 @end example
 
-For a first trial, let's create a cross-shaped dither pattern around M94 (which is centered at its center on the RA and Dec of 192.721250, 41.120556).
+For a first trial, let's create a cross-shaped dither pattern with 5 points around M94, which is centered at its center on the RA and Dec of 192.721250, 41.120556.
 We'll center one exposure on the center of the galaxy, and include 4 more exposures that are each 1 arc-minute away along the RA and Dec axes.
 To simplify the actual command later@footnote{Instead of this, later, when you called @command{astscript-dither-simulate}, you could pass the @option{--racol=1} and @option{--deccol=2} options.
-But having metadata is always preferred (will avoid many bugs/frustrations in the long-run!).}, let's also include the column names through two lines of metadata.
+But having metadata is always preferred (will avoid many bugs/frustrations in the long-run!).}, let's also include the column names in @file{dither.text} through two lines of metadata.
+Also note that the @file{dither.txt} file can be made in any manner you like, for example, manually or through another programming language, or etc.
+We are using AWK here because it is sufficiently powerful for this job, is a very small program and is available on any Unix-based operating system (allowing you to easily run your programs on any computer).
 
 @example
 $ step_arcmin=1
@@ -9373,13 +9615,13 @@ $ cat dither.txt
 # Column 1: RA  [deg, f64] Right Ascension
 # Column 2: Dec [deg, f64] Declination
 192.721250 41.120556
-192.804583 41.120556
-192.721250 41.203889
-192.637917 41.120556
-192.721250 41.037223
+192.737917 41.120556
+192.721250 41.137223
+192.704583 41.120556
+192.721250 41.103889
 @end example
 
-We are now ready to generate the exposure map of the dither pattern above using the reference image that we made before it.
+We are now ready to generate the exposure map of the dither pattern above using the reference image that we downloaded before.
 Let's put the center of our final stack to be on the center of the galaxy, and we'll assume the stack has a size of 2 degrees.
 With the second command, you can see the exposure map of the final stack.
 Recall that in this image, each pixel shows the number of input images that went into it.
@@ -9392,11 +9634,11 @@ $ astscript-dither-simulate dither.txt --output=stack.fits \
 $ astscript-fits-view stack.fits
 @end example
 
-Because the step size is so small (compared to the field of view), we see that except for a thin boundary, we almost have 5 exposures over the full field of view.
+You will see that except for a thin boundary, we have a depth of 5 exposures over the area of the single exposure.
 Let's see what the width of the deepest part of the image is.
 First, we'll use Arithmetic to set all pixels that contain less than 5 exposures to NaN (the outer pixels).
-In the same Arithmetic command, we'll trim all the blank rows and columns to only contain the non-blank region.
-Afterwards, we'll view the deep region with the second command.
+In the same Arithmetic command, we'll trim all the blank rows and columns, so the output only contains the pixels that are exposed 5 times.
+With the next command, let's view the deep region
 Finally, with the third command below, we'll use the @option{--skycoverage} option of the Fits program to see the coverage of deep part on the sky.
 
 @example
@@ -9407,35 +9649,46 @@ $ astarithmetic stack.fits set-s s s $deep_thresh lt nan where trim \
 $ astscript-fits-view deep.fits
 
 $ astfits deep.fits --skycoverage
-...
+Input file: deep.fits (hdu: 1)
+
 Sky coverage by center and (full) width:
   Center: 192.72125      41.120556
   Width:  1.880835157    1.392461166
-...
+
+Sky coverage by range along dimensions:
+  RA       191.7808324    193.6616676
+  DEC      40.42058203    41.81304319
 @end example
 
 @cindex Sky value
 @cindex Flat field
-As we see, the width of this deep field is about 1.4 degrees (in Dec; the coverage in RA depends on the Dec).
-This nicely covers the outers parts of M94.
-However, there is a problem: with a step size of 1 arc-minute, the brighter central parts of this large galaxy will always be on very similar pixels; making it hard to calibrate those pixels properly.
+As we see, the width of this deep field is about 1.4 degrees (in declination); the coverage in RA depends on the declination (recall that RA is only defined on the equator).
+This area therefore nicely covers the expected outer parts of M94.
+On first thought, it may seem that we are now finished, but that is not the case unfortunately!
+
+There is a problem: with a step size of 1 arc-minute, the brighter central parts of this large galaxy will always be on very similar pixels; making it hard to calibrate those pixels properly.
 If you are interested in the low surface brightness parts of this galaxy, it is even worse: the outer parts of the galaxy will always cover similar parts of the detector in all the exposures.
 To be able to accurately calibrate the image (in particular to estimate the flat field pattern and subtract the sky), you do not want this to happen!
-You want each exposure to cover very different sources of astrophysical signal, so you can accurately calibrate the instrument (for example flat field) and natural (for example the Sky) artifacts.
+You want each exposure to cover very different sources of astrophysical signal, so you can accurately calibrate the artifacts created by the instrument (for example flat field) or of natural causes (for example the Sky).
 
 Before we consider other alternatives, let's first get an accurate measure of the area that is covered by all 5 exposures.
 A first hint would be to simply multiply the widths along RA and Dec reported above: @mymath{1.8808\times1.3924=2.6189} degrees squared.
 
-However, the sky coverage reported above has two caveates:
-1) it doesn't take into account the blank pixels (NaN) that are on the four corners of the @file{deep.fits} image.
-2) the differing area of the pixels on the spherical sky in relation to those blank values can result in wrong estimations of the area.
+The simple sky coverage calculated by multiplication that reported above has two caveates:
+@itemize
+@item
+It doesn't take into account the thin rows/columns of blank pixels (NaN) that are on the four edges of the @file{deep.fits} image.
+@item
+The differing area of the pixels on the spherical sky in relation to those blank values can result in wrong estimations of the area.
+@end itemize
+
 So far, these blank areas are very small (and do not constitute a large portion of the image).
 As a result, these effects are negligible.
 However, as you get more creative with the dither pattern to optimize your scientific goal, such blank areas will cover a larger fraction of your final stack.
 
 So let's get a very accurate estimation of the area that will not be affected by the issues above.
 With the first command below, we'll use the @option{--pixelareaonwcs} option of the Fits program that will return the area of each pixel (in pixel units of degrees squared).
-After running the second command, please have a look at the output of the first:
+After running the second command, please have a look at the produced image:
 
 @example
 $ astfits deep.fits --pixelareaonwcs --output=deep-pix-area.fits
@@ -9444,9 +9697,11 @@ $ astscript-fits-view deep-pix-area.fits
 @end example
 
 @cindex Gnomonic projection
-The gradient you see in this image (that gets slightly curved towards the top of the image) is the effect of the default @url{https://en.wikipedia.org/wiki/Gnomonic_projection, Gnomonic projection} (summarized as @code{TAN} in the FITS WCS standard).
+You see a strong gradient in this image that gets slightly curved towards the top of the image.
+This is the effect of the @url{https://en.wikipedia.org/wiki/Gnomonic_projection, Gnomonic projection}; summarized as @code{TAN} (for ``tangential'') in the FITS WCS standard, the most commonly used in optical astronomical surveys and the default in this script.
 Since this image is aligned with the celestial coordinates, as we increase the declination, the pixel area also increases.
 For a comparison, please run the Fits program with the @option{--pixelareaonwcs} option on the originally downloaded @file{jplus-1050345.fits.fz} to see the distortion pattern of the camera's optics which domintes there.
+
 We can now use Arithmetic to set the areas of all the pixels that were NaN in @file{deep.fits} and sum all the values to get an accurate estimate of the area we get from this dither pattern:
 
 @example
@@ -9458,58 +9713,133 @@ $ astarithmetic deep-pix-area.fits deep.fits isblank nan where -g1 \
 As expected, this is very close to the simple multiplication that we did above.
 But it will allow us to accurately estimate the size of the deep field with any ditter pattern.
 
-As mentioned above, M94 is about half a degree in diameter; so let's set @code{step_arcmin=15}.
+As mentioned above, this small dither pattern is not good for the reduction of data from a large object like M94!
+M94 is about half a degree in diameter; so let's set @code{step_arcmin=15} and re-run the steps above.
 This is one quarter of a degree and will put the center of the four exposures on the four corners of the M94's main ring.
 You are now ready to repeat the commands above with this changed value.
 
 @cartouche
 @noindent
 @strong{Writing scripts:}
-It is better to write the steps above as a script so you can easily change the basic settings and see the output fast.
+From this point on, some of the variables set above will be changed, but the commands will not be repeated (unless a change is necessary).
+Therefore, it is better to write the steps above (after downloading the reference image) as a script.
+In this way, you can simply change those variables and see the final result fast.
 For more on writing scripts, see as described in @ref{Writing scripts to automate the steps}.
+Here are some tips:
+@itemize
+@item
+Where the commands are edited/changed, please also update them in your script.
+@item
+Keep all the variables at the top, even if they are used later.
+This allows to easily view or changed them without digging into the script.
+@end itemize
 @end cartouche
 
-After you run the commands above with this single change, you will get a total area of 2.1597 degrees squared.
-This is just roughly @mymath{15\%} smaller than the previous area; but it is much more easier to calibrate.
-However, since each pointing's center will fall on one edge of the galaxy, M94 will be present in all the exposures while doing the calibrations.
-We already see a large ring around this galaxy, and when we do a low surface brightness optimized reduction, there is a chance that the size of the galaxy is much larger.
+After you run the commands above with the change of @code{step_arcmin} above, you will get a total area (from counting of per-pixel areas) of approximately 1.28 degrees squared.
+This is just roughly half the previous area and will barely fit M94!
+To understand the cause, let's have a look at the full stack (not just the deepest area):
 
-Ideally, you want your target to be on the four edges/corners of each image.
-This will make sure that a large fraction of each exposure will not be covered by your final target, allowing you to clibrate much more accurately.
-Let's try setting @code{step_arcmin=40} (almost half the width of the detector).
-You will notice that the area is now 0.05013 degrees squared!
-This is 51 times smaller!
+@example
+$ astscript-fits-view stack.fits
+@end example
 
-Take a look at @file{deep.fits}, and you will see that it is a horizontally elongated rectangle!
-To see the cause, have a look at the @file{stack.fits}: the part with 5 exposures is now very small; covered by a cross-like pattern (which is thicker along the horizontal) that is four exposures deep and even a larger square-like region which is three exposures deep.
+Compared to the first run (with @code{step_arcmin=1}), we clearly see how there are indeed fewer pixels that get photons in all 5 exposures.
+As the area of the deepest part has decreased, the areas with fewer exposures have grown.
+Based on the argument above, let's define our deep region to be the pixels with 3 or more exposures.
+Please set @code{deep_thresh=3} and re-run the script you have made from the commands above.
+You will see that the final (based on pixel-counting) area is now 2.68 degrees squared!
+This is (slightly) larger than the first run (with @code{step_arcmin=1})!
 
 The difference between 3 exposures and 5 exposures seems a lot at first.
-But let's calculate how much it actually affects the achieved signal-to-noise ratio and the surface brightness limit (for more, see @ref{Quantifying measurement limits}).
+But let's calculate how much it actually affects the achieved signal-to-noise ratio and the surface brightness limit.
 The surface brightness limit (or upper-limit surface brightness) are both calculated by applying the definition of magnitude to the standard deviation of the background.
-So let's calculate how much this difference in depth affects the sky standard deviation.
+So we should first calculate how much this difference in depth affects the sky standard deviation.
+For a complete discussion on the definition of the surface brightness limit, see @ref{Quantifying measurement limits}.
 
+@cindex Poisson noise
 Deep images will usually be dominated by @ref{Photon counting noise} (or Poisson noise).
-Therefore, if a single exposure image has a sky standard deviation of @mymath{\sigma_s}, and we combine @mymath{N} such exposures, the sky standard deviation on the stack will be @mymath{\sigma_s/\sqrt{N}}.
+Therefore, if a single exposure image has a sky standard deviation of @mymath{\sigma_s}, and we combine @mymath{N} such exposures by taking their mean, the final/stacked sky standard deviation (@mymath{\sigma}) will be @mymath{\sigma=\sigma_s/\sqrt{N}}.
 As a result, the surface brightness limit between the regions with @mymath{N} exposures and @mymath{M} exposures differs by @mymath{2.5\times log_{10}(\sqrt{N/M}) = 1.25\times log_{10}(N/M)} magnitudes.
-If we set @mymath{N=3} and @mymath{M=5}, we get a surface brightness magnitude difference of 0.27!
+If we set @mymath{N=3} and @mymath{M=5}, we get a surface brightness magnitude difference of 0.28!
 
-This is a very small difference (given all the other sources of error that will be present).
-Let's see how much we increase our stack area if we set @code{deep_thresh=3}.
-The newly calculated area is 2.6706 degrees squared!
-This is just slightly larger than the first trial (with @code{step_arcmin=1})!
-Therefore at the cost of decreasing our surface brightness limit by 0.27 magnitudes, we are now able to perfectly calibrate the individual exposures, and even cover a larger area!
+This is a very small difference; given all the other sources of error that will be present; and the improvement we gain by the calibrations of artifacts mentioned above.
+Therefore at the cost of decreasing our surface brightness limit by 0.28 magnitudes, we are now able to calibrate the individual exposures much better, and even cover a larger area!
+
+The argument above didn't involve any image and was primarily theoretical.
+For the more visually-inclined readers, let's add raw Gaussian noise (with a @mymath{\sigma} of 100 counts) over each simulated exposure.
+We will then instruct the script to stack them as we would stack actual data (by taking the sigma-clipped mean).
+The command below is identical to the previous call to the dither simulation script with the following differences.
+Note that this is just for demonstration, so you do not need to include this in your script (unless you want to see the noisy stack every time).
+
+@table @option
+@item --output
+We are using a different output name, so we can compare the output of the new command with the previous one.
+@item --stack-operator
+This should be one of the Arithmetic program's @ref{Stacking operators}.
+By default the value is @code{sum}; because by default, each pixel of each exposure is given a value of 1.
+When stacking is defined through the summation operator, we can obtain the exposure map that you have already seen above.
+
+But in this run, we are adding noise to each input exposure (through the hook that is described below) and stacking them (as we would stack actual science images).
+Since the purpose differs here, we are using this option to change the operator.
+
+@item --hook-warp-after
+@cindex Hook (programming)
+This is the most visible difference of this command the previous one.
+Through a ``hook'', you can give any arbitrarily long (series of) command(s) that will be added to the processing of this script at a certain location.
+This particular hook gets applied ``after'' the ``warp''ing phase of each exposure (when the pixels of each exposure are mapped to the final pixel grid; but not yet stacked).
+
+Since the script runs in parallel (the actual work-horse is a Makefile!), you can't assume any fixed file name for the input(s) and output.
+Therefore the inputs to, and output(s) of, hooks are some pre-defined shell variables; that are written in full-caps to be clear.
+In this case, they are the @code{$WARPED} (input) and @code{$TARGET} (output).
+As you see from the command below, through this hook we are calling the Arithmetic program to add noise to all non-zero pixels in the warped image.
+
+After all the images are placed in the same pixel grid, they are stacked in a separate step (described in the point above).
+@end table
+
+@example
+$ astscript-dither-simulate dither.txt --output=stack-noised.fits \
+           --img=input/ref.fits --center=$center_ra,$center_dec \
+           --width=2 --stack-operator="3 0.2 sigclip-mean" \
+           --hook-warp-after='astarithmetic $WARPED set-i \
+                                          i i 0 uint8 eq nan where \
+                                          100 mknoise-sigma \
+                                           --output=$TARGET'
+
+$ astscript-fits-view stack.fits stack-noised.fits
+@end example
+
+When you visually compare the two images of the last command above, you will see that (at least by eye) it is almost impossible to distinguish the differing noise pattern in the regions with 3 exposures from the regions with 5 exposures.
+But the regions with a single exposure are clearly visible!
+This is because the surface brightness limit in the single-exposure regions is @mymath{1.25\times\log_{10}(1/5)=-0.87} magnitudes brighter.
+This almost one magnitude difference in surface brightness is significant and clearly visible in the stacked image (recall that magnitudes are measured in a logarithmic scale).
+
+Thanks to the argument above, we can now have a sufficiently large area with a usable depth.
+However, each pointing's center will still contain the central part of the galaxy.
+In other words, M94 will be present in all the exposures while doing the calibrations.
+Even in not-too-deep observations, we already see a large ring around this galaxy.
+When we do a low surface brightness optimized reduction, there is a good chance that the size of the galaxy is much larger than that ring.
+This very extended structure will make it hard to do the calibrations on very accurate scales.
+Accurate calibration is necessary if you do not want to loose the faint photons that have been recorded in your exposures.
 
 @cartouche
 @noindent
-@strong{Calibration is very important:} Better calibration can result in a fainter surface brightness limit than more exposures with poor calibration; especially for very low surface brightness signal that covers a large area and is systematically affected by calibrationn issues.
+@strong{Calibration is very important:} Better calibration can result in a fainter surface brightness limit than more exposures with poor calibration; especially for very low surface brightness signal that covers a large area and is systematically affected by calibration issues.
 @end cartouche
 
-Based on the argument above, let's define our deep region to be the pixels with 3 or more exposures.
-Now, let's lave a look at the horizontally stretched cross that we see for the regions with 4 exposures.
-The reason that the vertical component is thicker is that the same change in RA and Dec (defined on a curved sphere) will result in different numbers of pixels on this flat image pixel grid.
+Ideally, you want your target to be on the four edges/corners of each image.
+This will make sure that a large fraction of each exposure will not be covered by your final target in each exposure, allowing you to calibrate much more accurately.
+Let's try setting @code{step_arcmin=40} (almost half the width of the detector) in your script@footnote{Assuming that the script is using the original @code{astscript-dither-simulate} command (that produced an exposure map output), not the one that produced a noisy image.}.
+After running the script, take a look at @file{deep.fits}:
 
+@example
+$ astscript-fits-view deep.fits --ds9scale=minmax
+@end example
+
+You will see that the region with 5 exposure depth is a horizontally elongated rectangle
+Let's focus at the horizontally stretched cross that we see for the regions with 4 exposures.
+The reason that the vertical component is thicker is that the same change in RA and Dec (defined on the curvature of a sphere) will result in different changes in each.
 To have the same size in both, we should divide the RA step by the cosine of the declination.
-In the command below, we have shown the relevant changes in the dither table construction above.
+In the command below, we have shown the relevant changes in the dither table construction above (this change should be taken into your script).
 
 @example
 $ echo $center_ra $center_dec \
@@ -9531,12 +9861,11 @@ The cosine function of AWK (@code{cos}) assumes that the input is in radians, no
 We therefore have to multiply each declination (in degrees) by a variable @code{r} that contains the conversion factor (@mymath{\pi/180}).
 @item
 AWK doesn't have the value of @mymath{\pi} in memory.
-We need to calculate it, and to do that, we use the @code{atan2} function (as recommended in the AWK manual, for its definition in Gnuastro, see @ref{Trigonometric and hyperbolic operators}).
+We need to calculate it, and to do that, we use the @code{atan2} function (as recommended in the AWK manual, for the definition of @code{atan2}, see @ref{Trigonometric and hyperbolic operators}).
 @end itemize
 
-Please use the new AWK command above in your script of the steps above, run it with everything else unchanged.
-Afterwards, open @file{deep.fits}.
-You will see that the widths of both the horizontal and vertical regions are the same.
+After updating the AWK command in your script to the one above run it with everything else unchanged.
+Afterwards, open @file{deep.fits} and you will see that the widths of both the horizontal and vertical regions are much more similar.
 
 @cartouche
 @noindent
@@ -9548,8 +9877,121 @@ You can try making the cross-like region as thin as possible by slightly increas
 For example, set it to @code{step_arcmin=42}.
 When you open @file{deep.fits}, you will see that the depth across this image is almost contiguous (which is another positive factor!).
 
-You can construct any complex dither pattern (with more than 5 points) based on the logic and reasoning above to help extract the most science from the valuable telescope time that you will be getting.
-Of course, factors like the optimal exposure time are also critical, but is was beyond the scope of this tutorial.
+You will notice that the vertical region of 4 exposure depth is thinner in the bottom than on the top.
+This is due to the RA/Dec change above, but across the width of the image.
+We can't therefore change this by just changing the position of the pointings, we need to rotate some of the exposures if we want it to be removed.
+But rotation is not yet implemented in this script.
+
+You can construct any complex dither pattern (with more than 5 points and in any shape) based on the logic and reasoning above to help extract the most science from the valuable telescope time that you will be getting.
+Since the output is a FITS file, you can easily download another FITS file of your target, open it with DS9 (and ``lock'' the ``WCS'') with the stack produced by this simulation to make sure that the deep parts correspond to the area of interest for your science case.
+
+Factors like the optimal exposure time are also critical for the final result@footnote{The exposure time will determine the Signal-to-noise ration on a single exposure level.}, but is was beyond the scope of this tutorial.
+One relevant factor however is the effect of vignetting: the pixels on the outer extremes of the field of view are usually exposed to much less flux than the central parts.
+In @ref{Triming vignetted area}, we will show how this can be done within the same test concept that we done here.
+
+
+@menu
+* Triming vignetted area::      Effect of triming the edges on your dither pattern.
+@end menu
+
+@node Triming vignetted area,  , Dither pattern design, Dither pattern design
+@subsection Triming vignetted area
+
+@cindex Baffle
+@cindex Vignetting
+@cindex Bad pixels
+The full area of a detector is not usually used in the final stack.
+This is mostly because of strong @url{https://en.wikipedia.org/wiki/Vignetting,vignetting}.
+But it can also have other causes: for example due to baffles in the optical path (to block stray light), or large regions of bad (unusable) pixels that may be in any place on the detector.
+
+Without accounting for these pixels that do not receive any light, the basic test that we did in @ref{Dither pattern design} will over-estimate the area of the deep region.
+In this sub-section, let's review the necessary modifications you need to do in that section by assuming that the image is affected by vignetting.
+Therefore, before continuing, please make sure that you have already read and done that section (this sub-section builds upon that section).
+
+@cindex Hook (programming)
+Vignetting strongly depends on the optical design of the instrument you are using.
+It can be a constant number of pixels on all the edges the detector, or it can have a more complex shape; for example on cameras that have multiple detectors on the field of view, in this case, the regions to exclude on each detector can be very different!
+Therefore, within Gnuastro's @command{astscript-dither-simulate} script there is no parameter for pre-defined vignetting shapes.
+Instead, you should define a mask that you can apply on each exposure through the provided before warping hook within this script (@option{--hook-warp-before}; recall that previously we used the hook that activated after warping).
+Through the mask, are free to set any un-wanted pixel to NaN (thus ignoring them in the stack) and applying it in any way that best suites your instrument+detector.
+
+The mask image should be same size as the reference image, but only containing two values: 0 or 1.
+Pixels in each exposure that have a value of 1 in the mask will be set to NaN before the stacking process and will not contribute to the final stack.
+Ideally, you can use the master flat field image of the previous reductions to create this mask: any pixel that has a low sensitivity in the master flat (for any reason) can be set to 1, and the rest of the pixels to 0.
+
+Let's build a simple mask by assuming that we only have strong vignetting that is affecting the outer 30 arc seconds of the individual exposures.
+To mask the outer edges of an image we can use Gnuastro's Arithmetic program; and in particular, the @code{indexonly} operator.
+To learn more about this operator, see @ref{Size and position operators}.
+
+But before doing that, we need convert this angular distance to pixels on the detector.
+In @ref{Dither pattern design}, we used an undersampled version of the input image, so we should do this conversion on that image:
+
+@example
+$ margin_arcsec=30
+$ margin_pix=$(astfits input/ref.fits --pixelscale --quiet \
+                     | awk '@{print int('$margin_arcsec'/($1*3600))@}')
+$ echo $margin_pix
+5
+@end example
+
+To build the mask, we can now follow the recipe under ``Image: masking margins'' of the @code{index} operator in Arithmetic (for a full description of what this command is doing@footnote{By learning how this command works, you can customize it.
+For example, to mask different widths along each separate edge: it often happens that the left/right or top/bottom edges are affected differently by vignetting.}, see @ref{Size and position operators}).
+Finally, in the last command, let's look at the mask image in the ``red'' color map of DS9 (which will shows the thin 1-valued pixels to mask on the border more clearly).
+
+@example
+$ width=$(astfits  input/ref.fits --keyvalue=NAXIS1 -q)
+$ height=$(astfits input/ref.fits --keyvalue=NAXIS2 -q)
+
+$ astarithmetic input/ref.fits indexonly     set-i \
+                $width         uint16        set-w \
+                $height        uint16        set-h \
+                $margin_pix    uint16        set-m \
+                i w %          uint16        set-X \
+                i w /          uint16        set-Y \
+                X m lt         X w m - gt       or \
+                Y m lt         Y h m - gt       or \
+                or --output=mask.fits
+
+$ astscript-fits-view mask.fits --ds9extra="-cmap red"
+@end example
+
+We are now ready to run the main dither simulate script.
+With the command below, we will use the @option{--hook-warp-before} to apply this mask on the image of each exposure just before warping.
+The concept of this hook is very similar to that of @option{--hook-warp-after} in @ref{Dither pattern design}.
+As the name suggests, this hook is applied ``before'' the warping.
+The input to the command given to this hook should be called with @code{$EXPOSURE} and the output should be called with @code{$TOWARP}.
+With the second command, let's compare the two outputs:
+
+@example
+$ astscript-dither-simulate dither.txt --output=stack-with-trim.fits \
+           --img=input/ref.fits --center=$center_ra,$center_dec \
+           --width=2 \
+           --hook-warp-before='astarithmetic $EXPOSURE mask.fits \
+                                             nan where -g1 -o$TOWARP'
+
+$ astscript-fits-view stack.fits stack-with-trim.fits
+@end example
+
+As expected, due to the smaller area of the detector that is exposed to photons, the regions with 4 exposures have become much thinner and on the bottom, it has been removed.
+To have contiguous depth in the deeper region, use this new call in your script and decrease the @code{step_arcmin=41}.
+
+You can use the same command on a mask that is created in any way and as realistic as possible.
+More generically, you can use the before and after hooks for any other operation; for example to insert objects from a catalog using @ref{MakeProfiles} as well as adding noise as we did in @ref{Dither pattern design}.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -22632,7 +23074,6 @@ It is therefore necessary to warp the image and correct for those distortions pr
 * Linear warping basics::       Basics of coordinate transformation.
 * Merging multiple warpings::   How to merge multiple matrices.
 * Resampling::                  Warping an image is re-sampling it.
-* Moire pattern and its correction::  Spatial resonance of the grid pattern on output.
 * Invoking astwarp::            Arguments and options for Warp.
 @end menu
 
@@ -22776,7 +23217,7 @@ These three operations can be merged in one operation by calculating the matrix 
 
 
 
-@node Resampling, Moire pattern and its correction, Merging multiple warpings, Warp
+@node Resampling, Invoking astwarp, Merging multiple warpings, Warp
 @subsection Resampling
 
 @cindex Pixel
@@ -22841,7 +23282,7 @@ The output's pixel value is derived by summing all these multiplications for the
 Through this process, pixels are treated as an area not as a point (which is how detectors create the image), also the brightness (see @ref{Brightness flux magnitude}) of an object will be fully preserved.
 Since it involves the mixing of the input's pixel values, this pixel mixing method is a form of @ref{Spatial domain convolution}.
 Therefore, after comparing the input and output, you will notice that the output is slightly smoothed, thus boosting the more diffuse signal, but creating correlated noise.
-In astronomical imaging the correlated noise will be decreased later when you stack many exposures@footnote{If you are working on a single exposure image and see pronounced Moir@'e patterns after Warping, check @ref{Moire pattern and its correction} for a possible way to reduce them}.
+In astronomical imaging the correlated noise will be decreased later when you stack many exposures@footnote{If you are working on a single exposure image and see pronounced Moir@'e patterns after Warping, check @ref{Moire pattern in stacking and its correction} for a possible way to reduce them}.
 
 If there are very high spatial-frequency signals in the image (for example, fringes) which vary on a scale @emph{smaller than} your output image pixel size (this is rarely the case in astronomical imaging), pixel mixing can cause ailiasing@footnote{@url{http://en.wikipedia.org/wiki/Aliasing}}.
 Therefore, in case such fringes are present, they have to be calculated and removed separately (which would naturally be done in any astronomical reduction pipeline).
@@ -22854,229 +23295,10 @@ However, when a non-linear distortion (for example, @code{SIP} or @code{TPV}) is
 To account for such cases (which can only happen when correcting for non-linear distortions), Warp has the @option{--edgesampling} option to sample the output pixel over more vertices.
 For more, see the description of this option in @ref{Align pixels with WCS considering distortions}.
 
-@node Moire pattern and its correction, Invoking astwarp, Resampling, Warp
-@subsection Moir@'e pattern and its correction
 
-@cindex Moir@'e pattern or fringes
-After warping some images with the default mode of Warp (see @ref{Align pixels with WCS considering distortions}) you may notice that the background noise is no longer flat.
-Some regions will be smoother and some will be sharper; depending on the orientation and distortion of the input/output pixel grids.
-This is due to the @url{https://en.wikipedia.org/wiki/Moir%C3%A9_pattern, Moir@'e pattern}, which is especially noticeable/significant when two slightly different grids are super-imposed.
 
-With the commands below, we'll download a single exposure image from the @url{https://www.j-plus.es,J-PLUS survey} and run Warp (on a @mymath{8\times8} arcmin@mymath{^2} region to speed it up the demos here).
-Finally, we'll open the image to visually see the artificial Moir@'e pattern on the warped image.
 
-@example
-## Download the image (73.7 MB containing an 9216x9232 pixel image)
-$ jplusdr2=http://archive.cefca.es/catalogues/vo/siap/jplus-dr2/reduced
-$ wget $jplusdr2/get_fits?id=771463 -Ojplus-exp1.fits.fz
-
-## Align a small part of it with the sky coordinates.
-$ astwarp jplus-exp1.fits.fz --center=107.62920,39.72472 \
-          --width=8/60 -ojplus-e1.fits
-
-## Open the aligned region with DS9
-$ astscript-fits-view jplus-e1.fits
-@end example
-
-In the opened DS9 window, you can see the Moir@'e pattern as wave-like patterns in the noise: some parts of the noise are more smooth and some parts are more sharp.
-Right in the center of the image is a blob of sharp noise.
-Warp has the @option{--checkmaxfrac} option for direct inspection of the Moir@'e pattern (described with the other options in @ref{Align pixels with WCS considering distortions}).
-When run with this option, an extra HDU (called @code{MAX-FRAC}) will be added to the output.
-The image in this HDU has the same size as the output.
-However, each output pixel will contain the largest (maximum) fraction of area that it covered over the input pixel grid.
-So if an output pixel has a value of 0.9, this shows that it covered @mymath{90\%} of an input pixel.
-Let's run Warp with @option{--checkmaxfrac} and see the output (after DS9 opens, in the ``Cube'' window, flip between the first and second HDUs):
-
-@example
-$ astwarp jplus-exp1.fits.fz --center=107.62920,39.72472 \
-          --width=8/60 -ojplus-e1.fits --checkmaxfrac
-
-$ astscript-fits-view jplus-e1.fits
-@end example
-
-By comparing the first and second HDUs/extensions, you will clearly see that the regions with a sharp noise pattern fall exactly on parts of the @code{MAX-FRAC} extension with values larger than 0.5.
-In other words, output pixels where one input pixel contributed more than half of the its value.
-As this fraction increases, the sharpness also increases because a single input pixel's value dominates the value of the output pixel.
-On the other hand, when this value is small, we see that many input pixels contribute to that output pixel.
-Since many input pixels contribute to an output pixel, it acts like a convolution, hence that output pixel becomes smoother (see @ref{Spatial domain convolution}).
-Let's have a look at the distribution of the @code{MAX-FRAC} pixel values:
-
-@example
-$ aststatistics jplus-e1.fits -hMAX-FRAC
-Statistics (GNU Astronomy Utilities) @value{VERSION}
--------
-Input: jplus-e1.fits (hdu: MAX-FRAC)
--------
-  Number of elements:                      744769
-  Minimum:                                 0.250213461
-  Maximum:                                 0.9987495374
-  Mode:                                    0.5034223567
-  Mode quantile:                           0.3773819498
-  Median:                                  0.5520805544
-  Mean:                                    0.5693956458
-  Standard deviation:                      0.1554693738
--------
-Histogram:
- |                      ***
- |                   **********
- |                 *****************
- |              ************************
- |           *******************************
- |         **************************************
- |       *********************************************
- |     ****************************************************
- |   ***********************************************************
- | ******************************************************************
- |**********************************************************************
- |----------------------------------------------------------------------
-@end example
-
-The smallest value is 0.25 (=1/4), showing that 4 input pixels contributed to the output pixels value.
-While the maximum is almost 1.0, showing that a single input pixel defined the output pixel value.
-You can also see that the most probable value (the mode) is 0.5, and that the distribution is positively skewed.
-
-@cindex Pixel scale
-@cindex @code{CDELT}
-This is a well-known problem in astronomical imaging and professional photography.
-If you only have a single image (that is already taken!), you can undersample the input: set the angular size of the output pixels to be larger than the input.
-This will decrease the resolution of your image, but will ensure that pixel-mixing will always happen.
-In the example below we are setting the output pixel scale (which is known as @code{CDELT} in the FITS standard) to @mymath{1/0.5=2} of the input's.
-In other words each output pixel edge will cover double the input pixel's edge on the sky, and the output's number of pixels in each dimension will be half of the previous output.
-
-@example
-$ cdelt=$(astfits jplus-exp1.fits.fz --pixelscale -q \
-                  | awk '@{print $1@}')
-$ astwarp jplus-exp1.fits.fz --center=107.62920,39.72472 \
-          --width=8/60 -ojplus-e1.fits --cdelt=$cdelt/0.5 \
-          --checkmaxfrac
-@end example
-
-In the first extension, you can hardly see any Moir@'e pattern in the noise.
-When you go to the next (@code{MAX-FRAC}) extension, you will see that almost all the pixels have a value of 1.
-Of course, decreasing the resolution by half is a little too drastic.
-Depending on your image, you may be able to reach a sufficiently good result without such a drastic degrading of the input image.
-For example, if you want an output pixel scale that is just 1.5 times larger than the input, you can divide the original coordinate-delta (or ``cdelt'') by @mymath{1/1.5=0.6666} and try again.
-In the @code{MAX-FRAC} extension, you will see that the range of pixel values is now between 0.56 to 1.0 (recall that originally, this was between 0.25 and 1.0).
-This shows that the pixels are more similarly mixed and in fact, when you look at the actual warped image, you can hardly distinguish any Moir@'e pattern in the noise.
-
-@cindex Stacking
-@cindex Dithering
-@cindex Coaddition
-However, deep astronomical data are usually built by several exposures (images), not a single one.
-Each image is also taken by (slightly) shifting the telescope compared to the previous exposure.
-This shift is known as ``dithering''.
-We do this for many reasons (for example tracking errors in the telescope, high background values, removing the effect of bad pixels or those affected by cosmic rays, robust flat pattern measurement, etc.@footnote{E.g., @url{https://www.stsci.edu/hst/instrumentation/wfc3/proposing/dithering-strategies}}).
-One of those ``etc.'' reasons is to correct the Moir@'e pattern in the final coadded deep image.
-
-The Moir@'e pattern is fixed to the grid of the image, slightly shifting the telescope will result in the pattern appearing in different parts of the sky.
-Therefore when we later stack, or coadd, the separate exposures into a deep image, the Moir@'e pattern will be decreased there.
-However, dithering has possible drawbacks based on the scientific goal.
-For example when observing time-variable phenomena where cutting the exposures to several shorter ones is not feasible.
-If this is not the case for you (for example in galaxy evolution), continue with the rest of this section.
-
-Because we have multiple exposures that are slightly (sub-pixel) shifted, we can also increase the spatial resolution of the output.
-For example, let's set the output coordinate-delta (or pixel scale) to be 1/2 of the input.
-In other words, the number of pixels in each dimension of the output is double the first Warp command of this section:
-
-@example
-$ astwarp jplus-exp1.fits.fz --center=107.62920,39.72472 \
-          --width=8/60 -ojplus-e1.fits --cdelt=$cdelt/2 \
-          --checkmaxfrac
-
-$ aststatistics jplus-e1.fits -hMAX-FRAC --minimum --maximum
-0.06263604388 0.2506802701
-
-$ astscript-fits-view jplus-e1.fits
-@end example
-
-From the last command, you see that like the previous change in @option{--cdelt}, the range of @code{MAX-FRAC} has decreased.
-However, when you look at the warped image and the @code{MAX-FRAC} image with the last command, you still visually see the Moir@'e pattern in the noise (although it has significantly decreased compared to the original resolution).
-It is still present because 2 is an exact multiple of 1.
-Let's try increasing the resolution (oversampling) by a factor of 1.25 (which isn't an exact multiple of 1):
-
-@example
-$ astwarp jplus-exp1.fits.fz --center=107.62920,39.72472 \
-          --width=8/60 -ojplus-e1.fits --cdelt=$cdelt/1.25 \
-          --checkmaxfrac
-$ astscript-fits-view jplus-e1.fits
-@end example
-
-You don't see any Moir@'e pattern in the noise any more, but when you look at the @code{MAX-FRAC} extension, you see it is very different from the ones you had seen before.
-In the previous @code{MAX-FRAC} image, you could see large blobs of similar values.
-But here, you see that the variation is almost on a pixel scale, and the difference between one pixel to the next is not significant.
-This is why you don't see any Moir@'e pattern in the warped image.
-
-In J-PLUS, each part of the sky was observed with a three-point dithering pattern.
-Let's download the other two exposures and warp the same region of the sky to the same pixel grid (using the @option{--gridfile} feature).
-Then, let's open all three cropped images in one DS9 instance:
-
-@example
-$ wget $jplusdr2/get_fits?id=771465 -Ojplus-exp2.fits.fz
-$ wget $jplusdr2/get_fits?id=771467 -Ojplus-exp3.fits.fz
-
-$ astwarp jplus-exp2.fits.fz --gridfile jplus-e1.fits \
-          -o jplus-e2.fits --checkmaxfrac
-$ astwarp jplus-exp3.fits.fz --gridfile jplus-e1.fits \
-          -o jplus-e3.fits --checkmaxfrac
-
-$ astscript-fits-view jplus-e*.fits
-@end example
-
-@noindent
-In the three warped images, you don't see any Moir@'e pattern, so far so good...
-now, take the following steps:
-@enumerate
-@item
-Click on the ``Frame'' button (in the top row of buttons just on top of the image), and select the ``Single'' button in the bottom row.
-@item
-Open the ``Zoom'' menu, and select ``Zoom 16''.
-@item
-In the bottom row of buttons right on top of the image, press the ``next'' button to flip through each exposure's @code{MAX-FRAC} extension.
-@item
-Focus your eyes on the pixels with the largest value (white colored pixels), while pressing the ``next'' button to flip between the exposures.
-You will see that in each exposure they cover different pixels.
-@end enumerate
-
-The exercise above shows that the effect varying smoothing level (that had already shrank to a per-pixel level) will be further decreased after we stack the images.
-So let's stack these three images with the commands below.
-First, we need to remove the sky-level from each image using @ref{NoiseChisel}, then we'll stack the @code{INPUT-NO-SKY} extensions using sigma-clipping (to reject outliers by @ref{Sigma clipping}, using the @ref{Stacking operators}).
-
-@example
-$ astnoisechisel jplus-e1.fits -ojplus-nc1.fits
-$ astnoisechisel jplus-e2.fits -ojplus-nc2.fits
-$ astnoisechisel jplus-e3.fits -ojplus-nc3.fits
-
-$ astarithmetic jplus-nc*.fits 3 5 0.2 sigclip-mean \
-                -gINPUT-NO-SKY -ojplus-stack.fits
-
-$ astscript-fits-view jplus-nc*.fits jplus-stack.fits
-@end example
-
-@noindent
-After opening the individual exposures and the final stack with the last command, take the following steps to see the comparisons properly:
-@enumerate
-@item
-Click on the stack image so it is selected.
-@item
-Go to the ``Frame'' menu, then the ``Lock'' item, then activate ``Scale and Limits''.
-@item
-Scroll your mouse or touchpad to zoom into the image.
-@end enumerate
-
-@noindent
-You clearly see that the stacked image is deeper and that there is no Moir@'e pattern, while you have slightly @emph{improved} the spatial resolution of the output compared to the input.
-In case you want the stack to have the original pixel resolution, you just need one more warp:
-
-@example
-$ astwarp jplus-stack.fits --cdelt=$cdelt -ojplus-stack-origres.fits
-@end example
-
-For optimal results, the oversampling should be determined by the dithering pattern of the observation:
-For example if you only have two dither points, you want the pixels with maximum value in the @code{MAX-FRAC} image of one exposure to fall on those with a minimum value in the other exposure.
-Ideally, many more dither points should be chosen when you are planning your observation (not just for the Moir@'e pattern, but also for all the other reasons mentioned above).
-Based on the dithering pattern, you want to select the increased resolution such that the maximum @code{MAX-FRAC} values fall on every different pixel of the output grid for each exposure.
-
-@node Invoking astwarp,  , Moire pattern and its correction, Warp
+@node Invoking astwarp,  , Resampling, Warp
 @subsection Invoking Warp
 
 Warp will warp an input image into a new pixel grid by pixel mixing (see @ref{Resampling}).
@@ -23202,12 +23424,12 @@ It is a normal/statistical error in measuring the astrometry.
 On a large image, these slight differences can cause different output sizes (of one or two pixels on a very large image).
 
 You can fix this by explicitly setting the pixel scale of each warped exposure with Warp's @option{--cdelt} option that is described below.
-For good strategies of setting the pixel scale, see @ref{Moire pattern and its correction}.
+For good strategies of setting the pixel scale, see @ref{Moire pattern in stacking and its correction}.
 @end cartouche
 
 Another problem that may arise when aligning images to new pixel grids is the aliasing or visible Moir@'e patterns on the output image.
 This artifact should be removed if you are stacking several exposures, especially with a dithering pattern.
-If not see @ref{Moire pattern and its correction} for ways to mitigate the visible patterns.
+If not see @ref{Moire pattern in stacking and its correction} for ways to mitigate the visible patterns.
 See the description of @option{--gridfile} below for more.
 
 @cartouche
@@ -23441,7 +23663,7 @@ To visually inspect the curvature effect on pixel area of the input image, see o
 @item --checkmaxfrac
 Check each output pixel's maximum coverage on the input data and append as the `@code{MAX-FRAC}' HDU/extension to the output aligned image.
 This option provides an easy visual inspection for possible recurring patterns or fringes caused by aligning to a new pixel grid.
-For more detail about the origin of these patterns and how to mitigate them see @ref{Moire pattern and its correction}.
+For more detail about the origin of these patterns and how to mitigate them see @ref{Moire pattern in stacking and its correction}.
 
 Note that the `@code{MAX-FRAC}' HDU/extension is not showing the patterns themselves;
 It represents the largest area coverage on the input data for that particular pixel.
@@ -32258,7 +32480,7 @@ In most cases this movement is small compared to the field of view, so most of t
 @cindex Exposure map
 For example see Figures 3 and 4 of @url{https://arxiv.org/pdf/1305.1931.pdf, Illingworth et al. 2013} which show the exposures that went into the XDF survey.
 The dither pattern can also be large compared to the field of view, for example see Figure 1 of @url{https://arxiv.org/pdf/2109.07478.pdf, Trujillo et al. 2021}, which show the dithering strategy for the LIGHTS survey.
-These types of images (where each pixel contains the number of exposures, or time, that were used in it)
+These types of images (where each pixel contains the number of exposures, or time, that were used in it) are known as exposure maps.
 
 The dithering pattern therefore is strongly defined by the science case (high-level purpose of the observation) and your telescope's field of view.
 For example in the XDF survey is focused on very high redshift (most distant!) galaxies.
@@ -32267,7 +32489,7 @@ However, the LIGHTS survey is focused on the halos of large nearby galaxies (tha
 
 In @ref{Invoking astscript-dither-simulate} of Gnuastro's @ref{Installed scripts} is described in detail.
 This script is designed to simplify the process of selecting the best dithering pattern for your observation strategy.
-For a more practical tutorial, see @ref{Dither pattern design}.
+For a practical tutorial on using this script, see @ref{Dither pattern design}.
 
 @menu
 * Invoking astscript-dither-simulate::  Options and running mode.
@@ -32361,6 +32583,48 @@ If @option{--widthinpix} is given, the two values given to this option will be i
 
 @item --widthinpix
 Interpret the values given to @option{--width} as number of pixels along each dimension), and not as degrees.
+
+@item --ctype=STR,STR
+The projection of the output stack (@code{CTYPEi} keyword in the FITS WCS standard).
+For more, see the description of the same option in @ref{Align pixels with WCS considering distortions}.
+
+@item --hook-warp-before='STR'
+Command to run before warping each exposure into the output pixel grid.
+By default, the exposure is immediately warped to the final pixel grid, but in some scenarios it is necessary to do some operations on the exposure before warping (for example account for vignetting; see @ref{Triming vignetted area}).
+The warping of each exposure is done in parallel by default; therefore there are pre-defined variables that you should use for the input and output file names of your command:
+@table @code
+@item $EXPOSURE
+Input: name of file with the same size as the reference image with all pixels having a fixed value of 1.
+The WCS has also been corrected based on the dither pattern.
+@item $TOWARP
+Output: name of the expected output of your hook.
+If it is not created by your script, the script will complain and abort.
+This file will be given to Warp to be warped into the output pixel grid.
+@end table
+
+For an example of using hooks with an exteded discussion, see @ref{Dither pattern design} and @ref{Triming vignetted area}.
+
+To develop your command, you can use @command{--hook-warp-before='...; echo GOOD; exit 1'} (where @code{...} can be replaced by any command) and run the script on a single thread (with @option{--numthreads=1}) to produce a single file and simplify the checking that your desired operation works as expected.
+All the files will be within the temporary directory (see @option{--tmpdir}).
+
+@item --hook-warp-after='STR'
+Command to run after the warp of each exposure into the output pixel grid, but before the stacking of all exposures.
+For more on hooks, see the description of @code{--hook-warp-before}, @ref{Dither pattern design} and @ref{Triming vignetted area}.
+
+@table @code
+@item $WARPED
+Input: name of file containing the warped exposure in the output pixel grid.
+@item $TOWARP
+Output: name of the expected output of your hook.
+If it is not created by your script, the script will complain and abort.
+This file will be stacked from the same file for all exposures into the final output.
+@end table
+
+@item --stack-operator="STR"
+The operator to use for stacking the warped individual exposures into the final output of this script.
+For the full list, see @ref{Stacking operators}.
+By default it is the @code{sum} operator (to produce an output exposure map).
+For an example usage, see the tutorial in @ref{Dither pattern design}.
 
 @item --mksrc=STR
 Use a non-standard Makefile for the Makefile to call.
@@ -40982,7 +41246,7 @@ This dataset should have a type of @code{GAL_TYPE_FLOAT64} and contain exactly t
 @item uint8_t checkmaxfrac
 When this is non-zero, the output will be a two-element @ref{List of gal_data_t}.
 The second element shows the @url{https://en.wikipedia.org/wiki/Moir%C3%A9_pattern, Moir@'e pattern} of the warp.
-For more, see @ref{Moire pattern and its correction}.
+For more, see @ref{Moire pattern in stacking and its correction}.
 
 @end table
 @end deftp

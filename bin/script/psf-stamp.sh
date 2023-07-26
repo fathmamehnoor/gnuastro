@@ -391,10 +391,12 @@ $scriptname: WARNING: no center provided ('--center' or '-c'). Considering that 
 EOF
     fi
 else
-    ncenter=$(echo $center | awk 'BEGIN{FS=","}END{print NF}')
+    ncenter=$(echo $center | awk 'BEGIN{FS=","} \
+                                  {for(i=1;i<=NF;++i) c+=$i!=""} \
+                                  END{print c}')
     if [ x$ncenter != x2 ]; then
         cat <<EOF
-$scriptname: ERROR: '--center' (or '-c') only take two values, but $ncenter were given in '$center'
+$scriptname: ERROR: '--center' (or '-c') only takes two values, but $ncenter were given in '$center'
 EOF
         exit 1
     fi

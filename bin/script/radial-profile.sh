@@ -322,9 +322,11 @@ fi
 
 # If a '--center' has been given, make sure it only has two numbers.
 if [ x"$center" != x ]; then
-    ncenter=$(echo $center | awk 'BEGIN{FS=","}END{print NF}')
+    ncenter=$(echo $center | awk 'BEGIN{FS=","} \
+                                  {for(i=1;i<=NF;++i) c+=$i!=""} \
+                                  END{print c}')
     if [ x$ncenter != x2 ]; then
-        echo "$scriptname: '--center' (or '-c') only take two values, but $ncenter were given"
+        echo "$scriptname: '--center' (or '-c') only takes two values, but $ncenter were given in '$center'"
         exit 1
     fi
 fi
@@ -341,9 +343,11 @@ fi
 
 # If a '--azimuth' has been given, make sure it only has two numbers.
 if [ x"$azimuth" != x ]; then
-    nazimuth=$(echo $azimuth | awk 'BEGIN{FS=","}END{print NF}')
+    nazimuth=$(echo $azimuth | awk 'BEGIN{FS=","} \
+                                    {for(i=1;i<=NF;++i) c+=$i!=""} \
+                                    END{print c}')
     if [ x$nazimuth != x2 ]; then
-        echo "$scriptname: '--azimuth' (or '-a') only take two values, but $nazimuth were given"
+        echo "$scriptname: '--azimuth' (or '-a') only takes two values, but $nazimuth were given"
         exit 1
     fi
 fi

@@ -355,7 +355,9 @@ $scriptname: ERROR: no center coordinates provided (for the star that should be 
 EOF
     exit 1
 else
-    ncenter=$(echo $center | awk 'BEGIN{FS=","}END{print NF}')
+    ncenter=$(echo $center | awk 'BEGIN{FS=","} \
+                                  {for(i=1;i<=NF;++i) c+=$i!=""} \
+                                  END{print c}')
     if [ x$ncenter != x2 ]; then
         cat <<EOF
 $scriptname: ERROR: $scriptname: '--center' (or '-c') only takes two values, but $ncenter were given

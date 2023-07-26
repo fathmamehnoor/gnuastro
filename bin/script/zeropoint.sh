@@ -370,10 +370,12 @@ fi
 
 # If the brighter and fainter range of magnitude are not given at all.
 if [ x$magnituderange != x ]; then
-    nmagrange=$(echo $magnituderange | awk 'BEGIN{FS=","}END{print NF}')
-    if [ x$nmagrange != x2 ]; then
+    nmagrng=$(echo $magnituderange | awk 'BEGIN{FS=","} \
+                                          {for(i=1;i<=NF;++i) c+=$i!=""} \
+                                          END{print c}')
+    if [ x$nmagrng != x2 ]; then
         cat<<EOF
-$scriptname: ERROR: '--magnituderange' (or '-m') only take two values, but $nmagrange were given
+$scriptname: ERROR: '--magnituderange' (or '-m') only takes two values, but $nmagrng were given
 EOF
         exit 1
     fi

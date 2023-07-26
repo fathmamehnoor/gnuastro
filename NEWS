@@ -11,9 +11,11 @@ See the end of the file for license conditions.
   New program:
   - 'astscript-dither-simulate': a new installed script that will simplify
     the process of designing the best dither pattern for your observing
-    strategy. It takes into account the distortion of the camera and runs
-    in parallel. A new tutorial has been added in the Tutorials chapter on
-    how to use it.
+    strategy. It takes into account the distortion of the camera, runs in
+    parallel and allows customizations (for example to account for
+    vignetting or large blobs of bad pixels) through hooks at relevant
+    steps. A new tutorial has been added in the Tutorials chapter of the
+    book on how to use this new script.
 
   Book:
   - New tutorial on a low surface brightness optimized design of a dither

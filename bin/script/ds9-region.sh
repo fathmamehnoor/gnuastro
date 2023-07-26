@@ -254,7 +254,9 @@ if [ x"$col" = x ]; then
     echo "$scriptname: no columns specified, you can use '--column' (or '-c')"
     exit 1
 else
-    ncols=$(echo $col | awk 'BEGIN{FS=","}END{print NF}')
+    ncols=$(echo $col | awk 'BEGIN{FS=","} \
+                             {for(i=1;i<=NF;++i) c+=$i!=""} \
+                             END{print c}')
     if [ x$ncols != x2 ]; then
         echo "$scriptname: only two columns should be given with '--column' (or '-c'), but $ncols were given"
         exit 1

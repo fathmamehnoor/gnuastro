@@ -398,10 +398,12 @@ $scriptname: ERROR:no magnitude range provided. Values to '--magnituderange' (or
 EOF
     exit 1
 else
-    nmagrange=$(echo $magnituderange | awk 'BEGIN{FS=","}END{print NF}')
-    if [ x$nmagrange != x2 ]; then
+    nmagrng=$(echo $magnituderange | awk 'BEGIN{FS=","} \
+                                          {for(i=1;i<=NF;++i) c+=$i!=""} \
+                                          END{print c}')
+    if [ x$nmagrng != x2 ]; then
         cat<<EOF
-$scriptname: ERROR: '--magnituderange' (or '-m') only take two values, but $nmagrange were given
+$scriptname: ERROR: '--magnituderange' (or '-m') only takes two values, but $nmagrng were given
 EOF
         exit 1
     fi
@@ -411,10 +413,13 @@ fi
 if [ x$parallaxanderrorcolumn = x ]; then
     columnquery=$racolumn,$deccolumn,$field
 else
-    nmparallax=$(echo $parallaxanderrorcolumn | awk 'BEGIN{FS=","}END{print NF}')
+    nmparallax=$(echo $parallaxanderrorcolumn \
+                      | awk 'BEGIN{FS=","} \
+                                  {for(i=1;i<=NF;++i) c+=$i!=""} \
+                                  END{print c}')
     if [ x$nmparallax != x2 ]; then
         cat<<EOF
-$scriptname: ERROR: '--parallaxanderrorcolumn' (or '-p') only take two values, but $nmparallax were given
+$scriptname: ERROR: '--parallaxanderrorcolumn' (or '-p') only takes two values, but $nmparallax were given
 EOF
         exit 1
     else
