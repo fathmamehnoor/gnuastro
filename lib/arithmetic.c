@@ -817,10 +817,12 @@ arithmetic_mknoise(int operator, int flags, gal_data_t *in,
 {
   size_t i;
   gsl_rng *rng;
+  uint32_t *u32;
   const char *rng_name;
   unsigned long rng_seed;
   gal_data_t *out, *targ;
-  double *d, *aarr, arg_v;
+  int otype=GAL_TYPE_INVALID;
+  double *id, *od, *aarr, arg_v;
 
   /* The dataset may be empty. In this case, the output should also be
      empty (we can have tables and images with 0 rows or pixels!). */
@@ -841,15 +843,26 @@ arithmetic_mknoise(int operator, int flags, gal_data_t *in,
           "it has a string type",
           gal_arithmetic_operator_string(operator));
 
-  /* Convert the input and argument into 'double' (and immediately free it
-     if it is no longer necessary). */
-  if(in->type==GAL_TYPE_FLOAT64) out=in;
-  else
+  /* Prepare the output dataset (for the Poisson distribution, it should
+     be 32-bit integers). */
+  switch(operator)
     {
-      out=gal_data_copy_to_new_type(in, GAL_TYPE_FLOAT64);
-      if(flags & GAL_ARITHMETIC_FLAG_FREE)
-        { gal_data_free(in); in=NULL; }
+    case GAL_ARITHMETIC_OP_MKNOISE_SIGMA:
+    case GAL_ARITHMETIC_OP_MKNOISE_UNIFORM:
+    case GAL_ARITHMETIC_OP_MKNOISE_SIGMA_FROM_MEAN:
+      otype=GAL_TYPE_FLOAT64; break;
+    case GAL_ARITHMETIC_OP_MKNOISE_POISSON: otype=GAL_TYPE_UINT32;  break;
+    default:
+      error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to "
+            "fix the problem. The operator code %d isn't recognized "
+            "in this function", __func__, PACKAGE_BUGREPORT, operator);
     }
+  in=gal_data_copy_to_new_type_free(in, GAL_TYPE_FLOAT64);
+  out = ( in->type==otype
+          ? in
+          : gal_data_alloc(NULL, otype, in->ndim, in->dsize, in->wcs,
+                           0, in->minmapsize, in->quietmmap, NULL, NULL,
+                           NULL) );
   targ=gal_data_copy_to_new_type(arg, GAL_TYPE_FLOAT64);
   aarr=targ->array;
 
@@ -858,7 +871,8 @@ arithmetic_mknoise(int operator, int flags, gal_data_t *in,
                                 gal_arithmetic_operator_string(operator));
 
   /* Add the noise. */
-  d=out->array;
+  id=in->array;
+  od=out->array;
   for(i=0;i<out->size;++i)
     {
       /* Set the argument value. */
@@ -875,13 +889,17 @@ arithmetic_mknoise(int operator, int flags, gal_data_t *in,
       switch(operator)
         {
         case GAL_ARITHMETIC_OP_MKNOISE_SIGMA:
-          d[i] += gsl_ran_gaussian(rng, arg_v);
+          od[i] = id[i] + gsl_ran_gaussian(rng, arg_v);
+          break;
+        case GAL_ARITHMETIC_OP_MKNOISE_SIGMA_FROM_MEAN:
+          od[i] = id[i] + arg_v + gsl_ran_gaussian(rng, sqrt(arg_v+id[i]));
           break;
         case GAL_ARITHMETIC_OP_MKNOISE_POISSON:
-          d[i] += arg_v + gsl_ran_gaussian(rng, sqrt( arg_v + d[i] ));
+          u32=out->array;
+          u32[i] = gsl_ran_poisson(rng, arg_v + id[i]);
           break;
         case GAL_ARITHMETIC_OP_MKNOISE_UNIFORM:
-          d[i] += ( (gsl_rng_uniform(rng)*arg_v) - (arg_v/2) );
+          od[i] = id[i] + gsl_rng_uniform(rng)*arg_v - arg_v/2;
           break;
         default:
           error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to "
@@ -891,7 +909,8 @@ arithmetic_mknoise(int operator, int flags, gal_data_t *in,
     }
 
   /* Clean up and return */
-  if(flags & GAL_ARITHMETIC_FLAG_FREE) gal_data_free(arg);
+  if(flags & GAL_ARITHMETIC_FLAG_FREE)
+    { gal_data_free(arg); if(in!=out) gal_data_free(in);}
   gal_data_free(targ);
   gsl_rng_free(rng);
   return out;
@@ -3330,6 +3349,8 @@ gal_arithmetic_set_operator(char *string, size_t *num_operands)
   /* Adding noise operators. */
   else if (!strcmp(string, "mknoise-sigma"))
     { op=GAL_ARITHMETIC_OP_MKNOISE_SIGMA;     *num_operands=2; }
+  else if (!strcmp(string, "mknoise-sigma-from-mean"))
+    { op=GAL_ARITHMETIC_OP_MKNOISE_SIGMA_FROM_MEAN; *num_operands=2; }
   else if (!strcmp(string, "mknoise-poisson"))
     { op=GAL_ARITHMETIC_OP_MKNOISE_POISSON;   *num_operands=2; }
   else if (!strcmp(string, "mknoise-uniform"))
@@ -3574,6 +3595,7 @@ gal_arithmetic_operator_string(int operator)
     case GAL_ARITHMETIC_OP_SIGCLIP_STD:     return "sigclip-number";
 
     case GAL_ARITHMETIC_OP_MKNOISE_SIGMA:   return "mknoise-sigma";
+    case GAL_ARITHMETIC_OP_MKNOISE_SIGMA_FROM_MEAN: return "mknoise-sigma-from-mean";
     case GAL_ARITHMETIC_OP_MKNOISE_POISSON: return "mknoise-poisson";
     case GAL_ARITHMETIC_OP_MKNOISE_UNIFORM: return "mknoise-uniform";
     case GAL_ARITHMETIC_OP_RANDOM_FROM_HIST:return "random-from-hist";
@@ -3806,6 +3828,7 @@ gal_arithmetic(int operator, size_t numthreads, int flags, ...)
     case GAL_ARITHMETIC_OP_MKNOISE_UNIFORM:
     case GAL_ARITHMETIC_OP_RANDOM_FROM_HIST:
     case GAL_ARITHMETIC_OP_RANDOM_FROM_HIST_RAW:
+    case GAL_ARITHMETIC_OP_MKNOISE_SIGMA_FROM_MEAN:
       d1 = va_arg(va, gal_data_t *);
       d2 = va_arg(va, gal_data_t *);
       if(operator==GAL_ARITHMETIC_OP_RANDOM_FROM_HIST

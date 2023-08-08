@@ -275,9 +275,9 @@ Tutorials
 * Sufi simulates a detection::  Simulating a detection.
 * Detecting lines and extracting spectra in 3D data::  Extracting spectra and emission line properties.
 * Color channels in same pixel grid::  Aligning images to same grid to build color image.
-* Moire pattern in stacking and its correction::  How to avoid this grid-based artifact.
 * Zero point of an image::      Estimate the zero point of an image.
 * Dither pattern design::       Simulate the output image of a given dither pattern.
+* Moire pattern in stacking and its correction::  How to avoid this grid-based artifact.
 
 General program usage tutorial
 
@@ -1144,6 +1144,10 @@ In Gnuastro, higher-level operations (combining multiple programs, or running a 
 They can be run just like a program and behave very similarly (with minor differences, see @ref{Installed scripts}).
 
 @table @code
+@item astscript-dither-simulate
+(See @ref{Dithering pattern simulation}) Given a table of pointings on the sky, create and a reference image that contain's your camera's distortions and properties, generate a stacked exposure map.
+This is very useful in testing the coverage of dither patterns when designing your observing strategy and it is highly customizable, see the tutorial in @ref{Dither pattern design}.
+
 @item astscript-ds9-region
 (See @ref{SAO DS9 region files from table}) Given a table (either as a file or from standard input), create an SAO DS9 region file from the requested positional columns (WCS or image coordinates).
 
@@ -2042,9 +2046,9 @@ For an explanation of the conventions we use in the example codes through the bo
 * Sufi simulates a detection::  Simulating a detection.
 * Detecting lines and extracting spectra in 3D data::  Extracting spectra and emission line properties.
 * Color channels in same pixel grid::  Aligning images to same grid to build color image.
-* Moire pattern in stacking and its correction::  How to avoid this grid-based artifact.
 * Zero point of an image::      Estimate the zero point of an image.
 * Dither pattern design::       Simulate the output image of a given dither pattern.
+* Moire pattern in stacking and its correction::  How to avoid this grid-based artifact.
 @end menu
 
 
@@ -8698,7 +8702,7 @@ Click on the scroll-down menu in front of ``Table'' and select @file{2: collapse
 Afterwards, you will see the optimized pseudo-narrow-band image radial profile as blue points.
 @end enumerate
 
-@node Color channels in same pixel grid, Moire pattern in stacking and its correction, Detecting lines and extracting spectra in 3D data, Tutorials
+@node Color channels in same pixel grid, Zero point of an image, Detecting lines and extracting spectra in 3D data, Tutorials
 @section Color channels in same pixel grid
 
 In order to use different images as color channels, it is important that the images be properly aligned and on the same pixel grid.
@@ -8765,230 +8769,11 @@ This shows how green and red channels have been slightly shifted to put your ast
 If you don't want to have those, or if you want the outer parts of the final image (where there was no data) to be white, some more complex commands are necessary.
 We'll leave those as an exercise for you to try your self using @ref{Warp} and/or @ref{Crop} to pre-process the inputs before converting it to a color image.
 
-@node Moire pattern in stacking and its correction, Zero point of an image, Color channels in same pixel grid, Tutorials
-@section Moir@'e pattern in stacking and its correction
-
-@cindex Moir@'e pattern or fringes
-After warping some images with the default mode of Warp (see @ref{Align pixels with WCS considering distortions}) you may notice that the background noise is no longer flat.
-Some regions will be smoother and some will be sharper; depending on the orientation and distortion of the input/output pixel grids.
-This is due to the @url{https://en.wikipedia.org/wiki/Moir%C3%A9_pattern, Moir@'e pattern}, which is especially noticeable/significant when two slightly different grids are super-imposed.
-
-With the commands below, we'll download a single exposure image from the @url{https://www.j-plus.es,J-PLUS survey} and run Warp (on a @mymath{8\times8} arcmin@mymath{^2} region to speed it up the demos here).
-Finally, we'll open the image to visually see the artificial Moir@'e pattern on the warped image.
-
-@example
-## Download the image (73.7 MB containing an 9216x9232 pixel image)
-$ jplusdr2=http://archive.cefca.es/catalogues/vo/siap/jplus-dr2/reduced
-$ wget $jplusdr2/get_fits?id=771463 -Ojplus-exp1.fits.fz
-
-## Align a small part of it with the sky coordinates.
-$ astwarp jplus-exp1.fits.fz --center=107.62920,39.72472 \
-          --width=8/60 -ojplus-e1.fits
-
-## Open the aligned region with DS9
-$ astscript-fits-view jplus-e1.fits
-@end example
-
-In the opened DS9 window, you can see the Moir@'e pattern as wave-like patterns in the noise: some parts of the noise are more smooth and some parts are more sharp.
-Right in the center of the image is a blob of sharp noise.
-Warp has the @option{--checkmaxfrac} option for direct inspection of the Moir@'e pattern (described with the other options in @ref{Align pixels with WCS considering distortions}).
-When run with this option, an extra HDU (called @code{MAX-FRAC}) will be added to the output.
-The image in this HDU has the same size as the output.
-However, each output pixel will contain the largest (maximum) fraction of area that it covered over the input pixel grid.
-So if an output pixel has a value of 0.9, this shows that it covered @mymath{90\%} of an input pixel.
-Let's run Warp with @option{--checkmaxfrac} and see the output (after DS9 opens, in the ``Cube'' window, flip between the first and second HDUs):
-
-@example
-$ astwarp jplus-exp1.fits.fz --center=107.62920,39.72472 \
-          --width=8/60 -ojplus-e1.fits --checkmaxfrac
-
-$ astscript-fits-view jplus-e1.fits
-@end example
-
-By comparing the first and second HDUs/extensions, you will clearly see that the regions with a sharp noise pattern fall exactly on parts of the @code{MAX-FRAC} extension with values larger than 0.5.
-In other words, output pixels where one input pixel contributed more than half of the its value.
-As this fraction increases, the sharpness also increases because a single input pixel's value dominates the value of the output pixel.
-On the other hand, when this value is small, we see that many input pixels contribute to that output pixel.
-Since many input pixels contribute to an output pixel, it acts like a convolution, hence that output pixel becomes smoother (see @ref{Spatial domain convolution}).
-Let's have a look at the distribution of the @code{MAX-FRAC} pixel values:
-
-@example
-$ aststatistics jplus-e1.fits -hMAX-FRAC
-Statistics (GNU Astronomy Utilities) @value{VERSION}
--------
-Input: jplus-e1.fits (hdu: MAX-FRAC)
--------
-  Number of elements:                      744769
-  Minimum:                                 0.250213461
-  Maximum:                                 0.9987495374
-  Mode:                                    0.5034223567
-  Mode quantile:                           0.3773819498
-  Median:                                  0.5520805544
-  Mean:                                    0.5693956458
-  Standard deviation:                      0.1554693738
--------
-Histogram:
- |                      ***
- |                   **********
- |                 *****************
- |              ************************
- |           *******************************
- |         **************************************
- |       *********************************************
- |     ****************************************************
- |   ***********************************************************
- | ******************************************************************
- |**********************************************************************
- |----------------------------------------------------------------------
-@end example
-
-The smallest value is 0.25 (=1/4), showing that 4 input pixels contributed to the output pixels value.
-While the maximum is almost 1.0, showing that a single input pixel defined the output pixel value.
-You can also see that the most probable value (the mode) is 0.5, and that the distribution is positively skewed.
-
-@cindex Pixel scale
-@cindex @code{CDELT}
-This is a well-known problem in astronomical imaging and professional photography.
-If you only have a single image (that is already taken!), you can undersample the input: set the angular size of the output pixels to be larger than the input.
-This will decrease the resolution of your image, but will ensure that pixel-mixing will always happen.
-In the example below we are setting the output pixel scale (which is known as @code{CDELT} in the FITS standard) to @mymath{1/0.5=2} of the input's.
-In other words each output pixel edge will cover double the input pixel's edge on the sky, and the output's number of pixels in each dimension will be half of the previous output.
-
-@example
-$ cdelt=$(astfits jplus-exp1.fits.fz --pixelscale -q \
-                  | awk '@{print $1@}')
-$ astwarp jplus-exp1.fits.fz --center=107.62920,39.72472 \
-          --width=8/60 -ojplus-e1.fits --cdelt=$cdelt/0.5 \
-          --checkmaxfrac
-@end example
-
-In the first extension, you can hardly see any Moir@'e pattern in the noise.
-When you go to the next (@code{MAX-FRAC}) extension, you will see that almost all the pixels have a value of 1.
-Of course, decreasing the resolution by half is a little too drastic.
-Depending on your image, you may be able to reach a sufficiently good result without such a drastic degrading of the input image.
-For example, if you want an output pixel scale that is just 1.5 times larger than the input, you can divide the original coordinate-delta (or ``cdelt'') by @mymath{1/1.5=0.6666} and try again.
-In the @code{MAX-FRAC} extension, you will see that the range of pixel values is now between 0.56 to 1.0 (recall that originally, this was between 0.25 and 1.0).
-This shows that the pixels are more similarly mixed and in fact, when you look at the actual warped image, you can hardly distinguish any Moir@'e pattern in the noise.
-
-@cindex Stacking
-@cindex Dithering
-@cindex Coaddition
-However, deep astronomical data are usually built by several exposures (images), not a single one.
-Each image is also taken by (slightly) shifting the telescope compared to the previous exposure.
-This shift is known as ``dithering''.
-We do this for many reasons (for example tracking errors in the telescope, high background values, removing the effect of bad pixels or those affected by cosmic rays, robust flat pattern measurement, etc.@footnote{E.g., @url{https://www.stsci.edu/hst/instrumentation/wfc3/proposing/dithering-strategies}}).
-One of those ``etc.'' reasons is to correct the Moir@'e pattern in the final coadded deep image.
-
-The Moir@'e pattern is fixed to the grid of the image, slightly shifting the telescope will result in the pattern appearing in different parts of the sky.
-Therefore when we later stack, or coadd, the separate exposures into a deep image, the Moir@'e pattern will be decreased there.
-However, dithering has possible drawbacks based on the scientific goal.
-For example when observing time-variable phenomena where cutting the exposures to several shorter ones is not feasible.
-If this is not the case for you (for example in galaxy evolution), continue with the rest of this section.
-
-Because we have multiple exposures that are slightly (sub-pixel) shifted, we can also increase the spatial resolution of the output.
-For example, let's set the output coordinate-delta (or pixel scale) to be 1/2 of the input.
-In other words, the number of pixels in each dimension of the output is double the first Warp command of this section:
-
-@example
-$ astwarp jplus-exp1.fits.fz --center=107.62920,39.72472 \
-          --width=8/60 -ojplus-e1.fits --cdelt=$cdelt/2 \
-          --checkmaxfrac
-
-$ aststatistics jplus-e1.fits -hMAX-FRAC --minimum --maximum
-0.06263604388 0.2506802701
-
-$ astscript-fits-view jplus-e1.fits
-@end example
-
-From the last command, you see that like the previous change in @option{--cdelt}, the range of @code{MAX-FRAC} has decreased.
-However, when you look at the warped image and the @code{MAX-FRAC} image with the last command, you still visually see the Moir@'e pattern in the noise (although it has significantly decreased compared to the original resolution).
-It is still present because 2 is an exact multiple of 1.
-Let's try increasing the resolution (oversampling) by a factor of 1.25 (which isn't an exact multiple of 1):
-
-@example
-$ astwarp jplus-exp1.fits.fz --center=107.62920,39.72472 \
-          --width=8/60 -ojplus-e1.fits --cdelt=$cdelt/1.25 \
-          --checkmaxfrac
-$ astscript-fits-view jplus-e1.fits
-@end example
-
-You don't see any Moir@'e pattern in the noise any more, but when you look at the @code{MAX-FRAC} extension, you see it is very different from the ones you had seen before.
-In the previous @code{MAX-FRAC} image, you could see large blobs of similar values.
-But here, you see that the variation is almost on a pixel scale, and the difference between one pixel to the next is not significant.
-This is why you don't see any Moir@'e pattern in the warped image.
-
-In J-PLUS, each part of the sky was observed with a three-point dithering pattern.
-Let's download the other two exposures and warp the same region of the sky to the same pixel grid (using the @option{--gridfile} feature).
-Then, let's open all three cropped images in one DS9 instance:
-
-@example
-$ wget $jplusdr2/get_fits?id=771465 -Ojplus-exp2.fits.fz
-$ wget $jplusdr2/get_fits?id=771467 -Ojplus-exp3.fits.fz
-
-$ astwarp jplus-exp2.fits.fz --gridfile jplus-e1.fits \
-          -o jplus-e2.fits --checkmaxfrac
-$ astwarp jplus-exp3.fits.fz --gridfile jplus-e1.fits \
-          -o jplus-e3.fits --checkmaxfrac
-
-$ astscript-fits-view jplus-e*.fits
-@end example
-
-@noindent
-In the three warped images, you don't see any Moir@'e pattern, so far so good...
-now, take the following steps:
-@enumerate
-@item
-Click on the ``Frame'' button (in the top row of buttons just on top of the image), and select the ``Single'' button in the bottom row.
-@item
-Open the ``Zoom'' menu, and select ``Zoom 16''.
-@item
-In the bottom row of buttons right on top of the image, press the ``next'' button to flip through each exposure's @code{MAX-FRAC} extension.
-@item
-Focus your eyes on the pixels with the largest value (white colored pixels), while pressing the ``next'' button to flip between the exposures.
-You will see that in each exposure they cover different pixels.
-@end enumerate
-
-The exercise above shows that the effect varying smoothing level (that had already shrank to a per-pixel level) will be further decreased after we stack the images.
-So let's stack these three images with the commands below.
-First, we need to remove the sky-level from each image using @ref{NoiseChisel}, then we'll stack the @code{INPUT-NO-SKY} extensions using sigma-clipping (to reject outliers by @ref{Sigma clipping}, using the @ref{Stacking operators}).
-
-@example
-$ astnoisechisel jplus-e1.fits -ojplus-nc1.fits
-$ astnoisechisel jplus-e2.fits -ojplus-nc2.fits
-$ astnoisechisel jplus-e3.fits -ojplus-nc3.fits
-
-$ astarithmetic jplus-nc*.fits 3 5 0.2 sigclip-mean \
-                -gINPUT-NO-SKY -ojplus-stack.fits
-
-$ astscript-fits-view jplus-nc*.fits jplus-stack.fits
-@end example
-
-@noindent
-After opening the individual exposures and the final stack with the last command, take the following steps to see the comparisons properly:
-@enumerate
-@item
-Click on the stack image so it is selected.
-@item
-Go to the ``Frame'' menu, then the ``Lock'' item, then activate ``Scale and Limits''.
-@item
-Scroll your mouse or touchpad to zoom into the image.
-@end enumerate
-
-@noindent
-You clearly see that the stacked image is deeper and that there is no Moir@'e pattern, while you have slightly @emph{improved} the spatial resolution of the output compared to the input.
-In case you want the stack to have the original pixel resolution, you just need one more warp:
-
-@example
-$ astwarp jplus-stack.fits --cdelt=$cdelt -ojplus-stack-origres.fits
-@end example
-
-For optimal results, the oversampling should be determined by the dithering pattern of the observation:
-For example if you only have two dither points, you want the pixels with maximum value in the @code{MAX-FRAC} image of one exposure to fall on those with a minimum value in the other exposure.
-Ideally, many more dither points should be chosen when you are planning your observation (not just for the Moir@'e pattern, but also for all the other reasons mentioned above).
-Based on the dithering pattern, you want to select the increased resolution such that the maximum @code{MAX-FRAC} values fall on every different pixel of the output grid for each exposure.
 
 
-@node Zero point of an image, Dither pattern design, Moire pattern in stacking and its correction, Tutorials
+
+
+@node Zero point of an image, Dither pattern design, Color channels in same pixel grid, Tutorials
 @section Zero point of an image
 
 The ``zero point'' of an image is astronomical jargon for the calibration factor of its pixel values; allowing us to convert the raw pixel values to physical units.
@@ -9519,7 +9304,7 @@ $ astscript-fits-view jplus-zeropoint.fits jplus-zeropoint-cat.fits \
 @end example
 
 
-@node Dither pattern design,  , Zero point of an image, Tutorials
+@node Dither pattern design, Moire pattern in stacking and its correction, Zero point of an image, Tutorials
 @section Dither pattern design
 
 @cindex Dithering
@@ -9977,6 +9762,232 @@ To have contiguous depth in the deeper region, use this new call in your script 
 
 You can use the same command on a mask that is created in any way and as realistic as possible.
 More generically, you can use the before and after hooks for any other operation; for example to insert objects from a catalog using @ref{MakeProfiles} as well as adding noise as we did in @ref{Dither pattern design}.
+
+
+
+
+
+@node Moire pattern in stacking and its correction,  , Dither pattern design, Tutorials
+@section Moir@'e pattern in stacking and its correction
+
+@cindex Moir@'e pattern or fringes
+After warping some images with the default mode of Warp (see @ref{Align pixels with WCS considering distortions}) you may notice that the background noise is no longer flat.
+Some regions will be smoother and some will be sharper; depending on the orientation and distortion of the input/output pixel grids.
+This is due to the @url{https://en.wikipedia.org/wiki/Moir%C3%A9_pattern, Moir@'e pattern}, which is especially noticeable/significant when two slightly different grids are super-imposed.
+
+With the commands below, we'll download a single exposure image from the @url{https://www.j-plus.es,J-PLUS survey} and run Warp (on a @mymath{8\times8} arcmin@mymath{^2} region to speed it up the demos here).
+Finally, we'll open the image to visually see the artificial Moir@'e pattern on the warped image.
+
+@example
+## Download the image (73.7 MB containing an 9216x9232 pixel image)
+$ jplusdr2=http://archive.cefca.es/catalogues/vo/siap/jplus-dr2/reduced
+$ wget $jplusdr2/get_fits?id=771463 -Ojplus-exp1.fits.fz
+
+## Align a small part of it with the sky coordinates.
+$ astwarp jplus-exp1.fits.fz --center=107.62920,39.72472 \
+          --width=8/60 -ojplus-e1.fits
+
+## Open the aligned region with DS9
+$ astscript-fits-view jplus-e1.fits
+@end example
+
+In the opened DS9 window, you can see the Moir@'e pattern as wave-like patterns in the noise: some parts of the noise are more smooth and some parts are more sharp.
+Right in the center of the image is a blob of sharp noise.
+Warp has the @option{--checkmaxfrac} option for direct inspection of the Moir@'e pattern (described with the other options in @ref{Align pixels with WCS considering distortions}).
+When run with this option, an extra HDU (called @code{MAX-FRAC}) will be added to the output.
+The image in this HDU has the same size as the output.
+However, each output pixel will contain the largest (maximum) fraction of area that it covered over the input pixel grid.
+So if an output pixel has a value of 0.9, this shows that it covered @mymath{90\%} of an input pixel.
+Let's run Warp with @option{--checkmaxfrac} and see the output (after DS9 opens, in the ``Cube'' window, flip between the first and second HDUs):
+
+@example
+$ astwarp jplus-exp1.fits.fz --center=107.62920,39.72472 \
+          --width=8/60 -ojplus-e1.fits --checkmaxfrac
+
+$ astscript-fits-view jplus-e1.fits
+@end example
+
+By comparing the first and second HDUs/extensions, you will clearly see that the regions with a sharp noise pattern fall exactly on parts of the @code{MAX-FRAC} extension with values larger than 0.5.
+In other words, output pixels where one input pixel contributed more than half of the its value.
+As this fraction increases, the sharpness also increases because a single input pixel's value dominates the value of the output pixel.
+On the other hand, when this value is small, we see that many input pixels contribute to that output pixel.
+Since many input pixels contribute to an output pixel, it acts like a convolution, hence that output pixel becomes smoother (see @ref{Spatial domain convolution}).
+Let's have a look at the distribution of the @code{MAX-FRAC} pixel values:
+
+@example
+$ aststatistics jplus-e1.fits -hMAX-FRAC
+Statistics (GNU Astronomy Utilities) @value{VERSION}
+-------
+Input: jplus-e1.fits (hdu: MAX-FRAC)
+-------
+  Number of elements:                      744769
+  Minimum:                                 0.250213461
+  Maximum:                                 0.9987495374
+  Mode:                                    0.5034223567
+  Mode quantile:                           0.3773819498
+  Median:                                  0.5520805544
+  Mean:                                    0.5693956458
+  Standard deviation:                      0.1554693738
+-------
+Histogram:
+ |                      ***
+ |                   **********
+ |                 *****************
+ |              ************************
+ |           *******************************
+ |         **************************************
+ |       *********************************************
+ |     ****************************************************
+ |   ***********************************************************
+ | ******************************************************************
+ |**********************************************************************
+ |----------------------------------------------------------------------
+@end example
+
+The smallest value is 0.25 (=1/4), showing that 4 input pixels contributed to the output pixels value.
+While the maximum is almost 1.0, showing that a single input pixel defined the output pixel value.
+You can also see that the most probable value (the mode) is 0.5, and that the distribution is positively skewed.
+
+@cindex Pixel scale
+@cindex @code{CDELT}
+This is a well-known problem in astronomical imaging and professional photography.
+If you only have a single image (that is already taken!), you can undersample the input: set the angular size of the output pixels to be larger than the input.
+This will decrease the resolution of your image, but will ensure that pixel-mixing will always happen.
+In the example below we are setting the output pixel scale (which is known as @code{CDELT} in the FITS standard) to @mymath{1/0.5=2} of the input's.
+In other words each output pixel edge will cover double the input pixel's edge on the sky, and the output's number of pixels in each dimension will be half of the previous output.
+
+@example
+$ cdelt=$(astfits jplus-exp1.fits.fz --pixelscale -q \
+                  | awk '@{print $1@}')
+$ astwarp jplus-exp1.fits.fz --center=107.62920,39.72472 \
+          --width=8/60 -ojplus-e1.fits --cdelt=$cdelt/0.5 \
+          --checkmaxfrac
+@end example
+
+In the first extension, you can hardly see any Moir@'e pattern in the noise.
+When you go to the next (@code{MAX-FRAC}) extension, you will see that almost all the pixels have a value of 1.
+Of course, decreasing the resolution by half is a little too drastic.
+Depending on your image, you may be able to reach a sufficiently good result without such a drastic degrading of the input image.
+For example, if you want an output pixel scale that is just 1.5 times larger than the input, you can divide the original coordinate-delta (or ``cdelt'') by @mymath{1/1.5=0.6666} and try again.
+In the @code{MAX-FRAC} extension, you will see that the range of pixel values is now between 0.56 to 1.0 (recall that originally, this was between 0.25 and 1.0).
+This shows that the pixels are more similarly mixed and in fact, when you look at the actual warped image, you can hardly distinguish any Moir@'e pattern in the noise.
+
+@cindex Stacking
+@cindex Dithering
+@cindex Coaddition
+However, deep astronomical data are usually built by several exposures (images), not a single one.
+Each image is also taken by (slightly) shifting the telescope compared to the previous exposure.
+This shift is known as ``dithering''.
+We do this for many reasons (for example tracking errors in the telescope, high background values, removing the effect of bad pixels or those affected by cosmic rays, robust flat pattern measurement, etc.@footnote{E.g., @url{https://www.stsci.edu/hst/instrumentation/wfc3/proposing/dithering-strategies}}).
+One of those ``etc.'' reasons is to correct the Moir@'e pattern in the final coadded deep image.
+
+The Moir@'e pattern is fixed to the grid of the image, slightly shifting the telescope will result in the pattern appearing in different parts of the sky.
+Therefore when we later stack, or coadd, the separate exposures into a deep image, the Moir@'e pattern will be decreased there.
+However, dithering has possible drawbacks based on the scientific goal.
+For example when observing time-variable phenomena where cutting the exposures to several shorter ones is not feasible.
+If this is not the case for you (for example in galaxy evolution), continue with the rest of this section.
+
+Because we have multiple exposures that are slightly (sub-pixel) shifted, we can also increase the spatial resolution of the output.
+For example, let's set the output coordinate-delta (or pixel scale) to be 1/2 of the input.
+In other words, the number of pixels in each dimension of the output is double the first Warp command of this section:
+
+@example
+$ astwarp jplus-exp1.fits.fz --center=107.62920,39.72472 \
+          --width=8/60 -ojplus-e1.fits --cdelt=$cdelt/2 \
+          --checkmaxfrac
+
+$ aststatistics jplus-e1.fits -hMAX-FRAC --minimum --maximum
+0.06263604388 0.2506802701
+
+$ astscript-fits-view jplus-e1.fits
+@end example
+
+From the last command, you see that like the previous change in @option{--cdelt}, the range of @code{MAX-FRAC} has decreased.
+However, when you look at the warped image and the @code{MAX-FRAC} image with the last command, you still visually see the Moir@'e pattern in the noise (although it has significantly decreased compared to the original resolution).
+It is still present because 2 is an exact multiple of 1.
+Let's try increasing the resolution (oversampling) by a factor of 1.25 (which isn't an exact multiple of 1):
+
+@example
+$ astwarp jplus-exp1.fits.fz --center=107.62920,39.72472 \
+          --width=8/60 -ojplus-e1.fits --cdelt=$cdelt/1.25 \
+          --checkmaxfrac
+$ astscript-fits-view jplus-e1.fits
+@end example
+
+You don't see any Moir@'e pattern in the noise any more, but when you look at the @code{MAX-FRAC} extension, you see it is very different from the ones you had seen before.
+In the previous @code{MAX-FRAC} image, you could see large blobs of similar values.
+But here, you see that the variation is almost on a pixel scale, and the difference between one pixel to the next is not significant.
+This is why you don't see any Moir@'e pattern in the warped image.
+
+In J-PLUS, each part of the sky was observed with a three-point dithering pattern.
+Let's download the other two exposures and warp the same region of the sky to the same pixel grid (using the @option{--gridfile} feature).
+Then, let's open all three cropped images in one DS9 instance:
+
+@example
+$ wget $jplusdr2/get_fits?id=771465 -Ojplus-exp2.fits.fz
+$ wget $jplusdr2/get_fits?id=771467 -Ojplus-exp3.fits.fz
+
+$ astwarp jplus-exp2.fits.fz --gridfile jplus-e1.fits \
+          -o jplus-e2.fits --checkmaxfrac
+$ astwarp jplus-exp3.fits.fz --gridfile jplus-e1.fits \
+          -o jplus-e3.fits --checkmaxfrac
+
+$ astscript-fits-view jplus-e*.fits
+@end example
+
+@noindent
+In the three warped images, you don't see any Moir@'e pattern, so far so good...
+now, take the following steps:
+@enumerate
+@item
+Click on the ``Frame'' button (in the top row of buttons just on top of the image), and select the ``Single'' button in the bottom row.
+@item
+Open the ``Zoom'' menu, and select ``Zoom 16''.
+@item
+In the bottom row of buttons right on top of the image, press the ``next'' button to flip through each exposure's @code{MAX-FRAC} extension.
+@item
+Focus your eyes on the pixels with the largest value (white colored pixels), while pressing the ``next'' button to flip between the exposures.
+You will see that in each exposure they cover different pixels.
+@end enumerate
+
+The exercise above shows that the effect varying smoothing level (that had already shrank to a per-pixel level) will be further decreased after we stack the images.
+So let's stack these three images with the commands below.
+First, we need to remove the sky-level from each image using @ref{NoiseChisel}, then we'll stack the @code{INPUT-NO-SKY} extensions using sigma-clipping (to reject outliers by @ref{Sigma clipping}, using the @ref{Stacking operators}).
+
+@example
+$ astnoisechisel jplus-e1.fits -ojplus-nc1.fits
+$ astnoisechisel jplus-e2.fits -ojplus-nc2.fits
+$ astnoisechisel jplus-e3.fits -ojplus-nc3.fits
+
+$ astarithmetic jplus-nc*.fits 3 5 0.2 sigclip-mean \
+                -gINPUT-NO-SKY -ojplus-stack.fits
+
+$ astscript-fits-view jplus-nc*.fits jplus-stack.fits
+@end example
+
+@noindent
+After opening the individual exposures and the final stack with the last command, take the following steps to see the comparisons properly:
+@enumerate
+@item
+Click on the stack image so it is selected.
+@item
+Go to the ``Frame'' menu, then the ``Lock'' item, then activate ``Scale and Limits''.
+@item
+Scroll your mouse or touchpad to zoom into the image.
+@end enumerate
+
+@noindent
+You clearly see that the stacked image is deeper and that there is no Moir@'e pattern, while you have slightly @emph{improved} the spatial resolution of the output compared to the input.
+In case you want the stack to have the original pixel resolution, you just need one more warp:
+
+@example
+$ astwarp jplus-stack.fits --cdelt=$cdelt -ojplus-stack-origres.fits
+@end example
+
+For optimal results, the oversampling should be determined by the dithering pattern of the observation:
+For example if you only have two dither points, you want the pixels with maximum value in the @code{MAX-FRAC} image of one exposure to fall on those with a minimum value in the other exposure.
+Ideally, many more dither points should be chosen when you are planning your observation (not just for the Moir@'e pattern, but also for all the other reasons mentioned above).
+Based on the dithering pattern, you want to select the increased resolution such that the maximum @code{MAX-FRAC} values fall on every different pixel of the output grid for each exposure.
 
 
 
@@ -20994,32 +21005,30 @@ The internal conversion of C will be used.
 When you simulate data (for example, see @ref{Sufi simulates a detection}), everything is ideal and there is no noise!
 The final step of the process is to add simulated noise to the data.
 The operators in this section are designed for that purpose.
+To learn more about the definition and implementation ``noise'', see @ref{Noise basics}.
 
-@table @command
+In case each data element's random distribution should have an independent parameter (for example @mymath{\sigma} in a Gaussian distribution), the first popped operand can be a dataset of the same size as the second.
+In this case (when the parameter is not a single value, but an array), each element will have a different parameter.
 
-@item mknoise-sigma
-Add a fixed noise (Gaussian standard deviation) to each element of the input dataset.
-This operator takes two arguments: the top/first popped operand is the noise standard deviation, the next popped operand is the dataset that the noise should be added to.
-
-When @option{--quiet} is not given, a statement will be printed on each invocation of this operator (if there are multiple calls to the @code{mknoise-*}, the statement will be printed multiple times).
-It will show the random number generator function and seed that was used in that invocation, see @ref{Generating random numbers}.
-Reproducibility of the outputs can be ensured with the @option{--envseed} option, see below for more.
-
+When @option{--quiet} is not given, a statement will be printed on each invocation of these operators (if there are multiple calls to the @code{mknoise-*} operators, the statement will be printed multiple times).
+It will show the random number generator function and seed that was used in that invocation.
+These are necessary for the future reproducibility of the outputs using the @option{--envseed} option, for more, see @ref{Generating random numbers}.
 For example, with the first command below, @file{image.fits} will be degraded by a noise of standard deviation 3 units.
 @example
 $ astarithmetic image.fits 3 mknoise-sigma
 @end example
 
-Alternatively, you can use this operator within column arithmetic in the Table program, to generate a random number like below (centered on 0, with @mymath{\sigma=3}) like the first command below.
+Alternatively, you can use the operators in this section within the @ref{Column arithmetic} feature of the Table program.
+For example, with the command below, you can generate a random number (centered on 0, with @mymath{\sigma=3}).
 With the second command, you can put it into a shell variable for later usage.
 
 @example
 $ echo 0 | asttable -c'arith $1 3 mknoise-sigma'
-$ value=$(echo 0 | asttable -c'arith $1 3 mknoise-sigma')
+$ value=$(echo 0 | asttable -c'arith $1 3 mknoise-sigma' --quiet)
 $ echo $value
 @end example
 
-You can also use this operator in combination with AWK to easily generate an arbitrarily large table with random columns.
+You can also use the operators here in combination with AWK to easily generate an arbitrarily large table with random columns.
 In the example below, we will create a two column table with 20 rows.
 The first column will be centered on 5 and @mymath{\sigma_1=2}, the second will be centered on 10 and @mymath{\sigma_2=3}:
 
@@ -21033,7 +21042,7 @@ $ echo 5 10 \
 By adding an extra @option{--output=random.fits}, the table will be saved into a file called @file{random.fits}, and you can change the @code{i<20} to @code{i<5000} to have 5000 rows instead.
 Of course, if your input table has different values in the desired column the noisy distribution will be centered on each input element, but all will have the same scatter/sigma.
 
-You can use the @option{--envseed} option to fix the random number generator seed (and thus get a reproducible result).
+As mentioned above, you can use the @option{--envseed} option to pre-define the random number generator seed (and thus get a reproducible result).
 For more on @option{--envseed}, see @ref{Generating random numbers}.
 When using column arithmetic in Table, it may happen that multiple columns need random numbers (with any of the @code{mknoise-*} operators) in one call of @command{asttable}.
 In such cases, the value given to @code{GSL_RNG_SEED} is incremented by one on every call to the @code{mknoise-*} operators.
@@ -21041,14 +21050,80 @@ Without this increment, when the column values are the same (happens a lot, for 
 But this feature has a side-effect: that if the order of calling the @code{mknoise-*} operators changes, the seeds used for each operator will change@footnote{We have defined @url{https://savannah.gnu.org/task/?15971, Task 15971} in Gnuastro's project management system to address this.
 If you need this feature please send us an email at @code{bug-gnuastro@@gnu.org} (to motivate us in its implementation).}.
 
-In case each data element should have an independent sigma, the first popped operand can be a dataset of the same size as the second.
-In this case, for each element, a different noise measure (for example, sigma in @code{mknoise-sigma}) will be used.
+@table @command
 
-@item mknoise-poisson
+@item mknoise-sigma
+Add a Gaussian noise with pre-defined @mymath{\sigma} to each element of the input dataset (independent of the input pixel value).
+@mymath{\sigma} is the standard deviation of the @url{https://en.wikipedia.org/wiki/Normal_distribution, Gaussian or Normal distribution}.
+This operator takes two arguments: the top/first popped operand is the noise standard deviation, the next popped operand is the dataset that the noise should be added to.
+
+For example, with the first command below, let's put a S@'ersic profile with S@'ersic index 1 and effective radius 10 pixels, tructated at 5 times the effective radius in the center of a mock image that is @mymath{100\times100} pixels wide.
+We will also give it a position angle of 45 degrees and an axis ratio of 0.8, and set it to have a total electron count of 10000 (@code{1e4} in the command).
+Note that this example is focused on this operator, for a robust simulation, see the tutorial in @ref{Sufi simulates a detection}.
+With the second command, let's add noise to this image and with the third command, we'll subtract the raw image from the noised image.
+Finally, we'll view them both together:
+
+@example
+$ echo "1 50 50 1 10 1 45 0.8 1e4 5" \
+       | astmkprof --mergedsize=100,100 --oversample=1 \
+                   --mcolissum --output=raw.fits
+
+$ astarithmetic raw.fits 2 mknoise-sigma --output=sigma.fits
+
+$ astarithmetic raw.fits sigma.fits - -g1 \
+                --output=diff-sigma.fits
+
+$ astscript-fits-view raw.fits sigma.fits diff-sigma.fits
+@end example
+
+You see that the final @file{diff-sigma.fits} distribution was independent of the pixel values of the input.
+You will also notice that within @file{sigma.fits} the noisy pixels that had a zero value in @file{raw.fits}, the noise fluctuates around zero (is negative in half of those pixels).
+These behaviors will be different in the case for @code{mknoise-sigma-from-mean} below, which is more ``realistic'' (or Poisson-like).
+
+@item mknoise-sigma-from-mean
 @cindex Poisson noise
-Add Poisson noise to each element of the input dataset (see @ref{Photon counting noise}).
+Replace each input element (e.g., pixel in an image) of the input with a random value taken from a Gaussian distribution (for pixel @mymath{i}) with mean @mymath{\mu_i} and standard deviation @mymath{\sigma_i}.
+Where, @mymath{\sigma_i=\sqrt{I_i+B_i}} and @mymath{\mu_i=I_i+B_i} and @mymath{I_i} and @mymath{B_i} are respectively the values of the input image, and background in that same pixel.
+In other words, this can be seen as approximating a Poisson distribution at high mean values (where the Poisson distribution becomes identical to the Guassian distribution).
+
 This operator takes two arguments: 1. the first popped operand (just before the operator) is the @emph{per-pixel} background value (in units of electron counts).
 2. The second popped operand is the dataset that the noise should be added to.
+
+To demonstrate the effect of this noise pattern, please run the example commands in the description of @code{mknoise-sigma}.
+With the first command below, let's add this Poisson-like noise (assuming a background level of 4 electron counts, to be similar to a @mymath{\sigma=2} of the example in @code{mknoise-sigma}).
+With the second command, let's subtract the raw image from this noise pattern:
+
+@example
+$ astarithmetic raw.fits 4 mknoise-sigma-from-mean \
+                --output=sigma-from-mean.fits
+
+$ astarithmetic raw.fits sigma-from-mean.fits - -g1 \
+                --output=diff-sigma-from-mean.fits
+
+$ astscript-fits-view diff-sigma.fits \
+                      diff-sigma-from-mean.fits
+@end example
+
+You clearly see how the noise in the center of the S@'ersic profile is much stronger than the outer parts.
+As described, above, this is behaviour we would expect in a ``real'' observation: the regions with stronger signal, also have stronger noise as defined through the @url{https://en.wikipedia.org/wiki/Poisson_distribution, Poisson distribution}!
+The reason we described this operator as ``Poisson-like'' is that, it has some shortcomings as opposed to the @code{mknoise-poisson} operator (that is described below):
+@itemize
+@item
+For low mean values (less than 3 for example), this will produce a symmetric Gaussian distribution, while the Poisson distribution will not be symmetric.
+@item
+The random values from this distribution are floating point (unlike the Poisson distribution that produces integers.
+@item
+The random values can be negative (which is not possible in a Poisson distribution).
+@end itemize
+
+@cindex Coadds
+@cindex Stacking
+@cindex Photon-starved images
+Therefore to simulate photon-starved images (for example UV or X-ray data), the @code{mknoise-poisson} operator should always be used, not this one.
+However, in optical (or redder bands) data, the background is very bright (much brighter than 10 counts for example).
+In such cases (as the mean increases), the Poisson distributions becomes identical to the Gaussian distribution.
+Furthermore, processed co-add/stacked images are no longer integers, but floating points with the Sky-level already subtracted (see @ref{Sky value}).
+Therefore if you are trying to simulate a processed, photon-rich dataset, you can safely use this operator.
 
 @cindex Dark night
 @cindex Gray night
@@ -21064,15 +21139,74 @@ The main difference with @code{mknoise-sigma} is that in a Poisson distribution 
 
 For example, let's assume you have made a mock image called @file{mock.fits} with @ref{MakeProfiles} and it is assumed zero point is 22.5 (for more on the zero point, see @ref{Brightness flux magnitude}).
 Let's assume the background level for the Poisson noise has a value of 19 magnitudes.
-You can first use the @code{mag-to-counts} operator to convert this background magnitude into counts, then feed the background value in counts to @code{mknoise-poisson} operator:
+You can first use the @code{mag-to-counts} operator to convert this background magnitude into counts, then feed the background value in counts to @code{mknoise-sigma-from-mean} operator:
 
 @example
 $ astarithmetic mock.fits 19 22.5 mag-to-counts \
-                mknoise-poisson
+                mknoise-sigma-from-mean
 @end example
 
 Try changing the background value from 19 to 10 to see the effect!
 Recall that the tutorial @ref{Sufi simulates a detection} shows how you can use MakeProfiles to build mock images.
+
+@item mknoise-poisson
+Replace every pixel of the input with a random integer taken from a Poisson distribution with the mean value of that input pixel.
+Similar to @code{mknoise-sigma-from-mean}, it takes two operands:
+1. The first popped operand (just before the operator) is the per-pixel background value (in units of electron counts).
+2. The second popped operand is the dataset that the noise should be added to.
+
+To demonstrate this noise pattern, let's use @code{mknoise-poisson} in the example of the description of @code{mknoise-sigma-from-mean} with the first command below.
+The second command below will show you the two images side-by-side, you will notice that the Poisson distribution's un-detected regions are slightly darker (this is because of the skewness of the Poisson distribution).
+Finally, with the last two commands, you can see the histograms of the two distributions:
+
+@example
+$ astarithmetic raw.fits 4 mknoise-poisson \
+                --output=poisson.fits
+
+$ astscript-fits-view sigma-from-mean.fits poisson.fits
+
+$ astatistics sigma-from-mean.fits --lessthan=10
+-------
+Histogram:
+ |                       ***
+ |                      ******
+ |                    **********
+ |                    ***********
+ |                  **************
+ |                 ****************
+ |                ******************
+ |              **********************
+ |             **************************
+ |          **********************************  *
+ |* **********************************************************
+ |------------------------------------------------------------
+
+$ aststatistics poisson.fits --lessthan=10
+-------
+Histogram:
+ |                    *     *
+ |                    *     *
+ |                    *     *      *
+ |             *      *     *      *
+ |             *      *     *      *      *
+ |             *      *     *      *      *
+ |      *      *      *     *      *      *     *
+ |      *      *      *     *      *      *     *
+ |      *      *      *     *      *      *     *      *
+ |      *      *      *     *      *      *     *      *
+ |      *      *      *     *      *      *     *      *
+ |------------------------------------------------------------
+@end example
+
+The extra skew-ness in the Poisson distribution, and the fact that it only returns integers is therefore clear with the commands above.
+The comparison was further made above in the description of @code{mknoise-sigma-from-mean}.
+In summary, you should prefer the Poisson distribution when you are simulating the following scenarios:
+@itemize
+@item
+A photon-starved image (as in UV or X-ray).
+@item
+A raw exposure of a photon-rich image (which may be photon-rich, but always integers).
+@end itemize
 
 @item mknoise-uniform
 Add uniform noise to each element of the input dataset.

@@ -88,6 +88,17 @@ See the end of the file for license conditions.
 
 ** Changed features
 
+  Arithmetic:
+    - mknoise-sigma-from-mean: new name for the old 'mknoise-poisson'
+      random number distribution.
+    - mknoise-poisson: now produces correct Poisson distribution output,
+      which can be non-symmetric in low background values and is always
+      integers. For a complete description and hands-on example of the
+      differences with 'mknoise-sigma-from-mean' and 'mknoise-sigma', see
+      the description of these three operators in the "Random number
+      generators" operators sub-section of the "Arithmetic operators"
+      section of the Gnuastro book.
+
   MakeCatalog:
   - The dash in the column names of the following measurement names has
     been replced by underscore to conform with the general stardard of

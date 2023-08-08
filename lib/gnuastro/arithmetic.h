@@ -190,6 +190,7 @@ enum gal_arithmetic_operators
   GAL_ARITHMETIC_OP_SIGCLIP_STD,  /* Sigma-clipped STD of multiple arrays. */
 
   GAL_ARITHMETIC_OP_MKNOISE_SIGMA,/* Fixed-sigma noise to every element.   */
+  GAL_ARITHMETIC_OP_MKNOISE_SIGMA_FROM_MEAN, /* Sigma comes from background. */
   GAL_ARITHMETIC_OP_MKNOISE_POISSON,/* Poission noise on every element.    */
   GAL_ARITHMETIC_OP_MKNOISE_UNIFORM,/* Uniform noise on every element.     */
   GAL_ARITHMETIC_OP_RANDOM_FROM_HIST,/* Randoms from a histogram (uniform).*/
