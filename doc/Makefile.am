@@ -120,9 +120,6 @@ endif
 if COND_MKCATALOG
   MAYBE_MKCATALOG_MAN = man/astmkcatalog.1
 endif
-if COND_MKNOISE
-  MAYBE_MKNOISE_MAN = man/astmknoise.1
-endif
 if COND_MKPROF
   MAYBE_MKPROF_MAN = man/astmkprof.1
 endif
@@ -158,7 +155,6 @@ dist_man_MANS = $(MAYBE_ARITHMETIC_MAN) \
   $(MAYBE_FITS_MAN) \
   $(MAYBE_MATCH_MAN) \
   $(MAYBE_MKCATALOG_MAN) \
-  $(MAYBE_MKNOISE_MAN) \
   $(MAYBE_MKPROF_MAN) \
   $(MAYBE_NOISECHISEL_MAN) \
   $(MAYBE_QUERY_MAN) \
@@ -204,67 +200,63 @@ man/astbuildprog.1: $(top_srcdir)/bin/buildprog/args.h  $(ALLMANSDEP)
 	                  --libtool $(toputildir)/buildprog/astbuildprog
 
 man/astconvertt.1: $(top_srcdir)/bin/convertt/args.h  $(ALLMANSDEP)
-	$(MAYBE_HELP2MAN) -n "convert known data types to each other"      \
+	$(MAYBE_HELP2MAN) -n "convert known data types to each other" \
 	                  --libtool $(toputildir)/convertt/astconvertt
 
 man/astconvolve.1: $(top_srcdir)/bin/convolve/args.h  $(ALLMANSDEP)
-	$(MAYBE_HELP2MAN) -n "convolve an image with a given kernel"       \
+	$(MAYBE_HELP2MAN) -n "convolve an image with a given kernel" \
 	                  --libtool $(toputildir)/convolve/astconvolve
 
 man/astcosmiccal.1: $(top_srcdir)/bin/cosmiccal/args.h  $(ALLMANSDEP)
-	$(MAYBE_HELP2MAN) -n "estimate cosmological values"                \
+	$(MAYBE_HELP2MAN) -n "estimate cosmological values" \
 	                  --libtool $(toputildir)/cosmiccal/astcosmiccal
 
 man/astcrop.1: $(top_srcdir)/bin/crop/args.h  $(ALLMANSDEP)
-	$(MAYBE_HELP2MAN) -n "crop regions of a dataset"                   \
+	$(MAYBE_HELP2MAN) -n "crop regions of a dataset" \
 	                  --libtool $(toputildir)/crop/astcrop
 
 man/astfits.1: $(top_srcdir)/bin/fits/args.h  $(ALLMANSDEP)
-	$(MAYBE_HELP2MAN) -n "view and manipulate FITS headers"            \
+	$(MAYBE_HELP2MAN) -n "view and manipulate FITS headers" \
 	                  --libtool $(toputildir)/fits/astfits
 
 man/astmatch.1: $(top_srcdir)/bin/match/args.h  $(ALLMANSDEP)
-	$(MAYBE_HELP2MAN) -n "match catalogs by 1D or 2D positions"        \
+	$(MAYBE_HELP2MAN) -n "match catalogs by 1D or 2D positions" \
 	                  --libtool $(toputildir)/match/astmatch
 
 man/astmkcatalog.1: $(top_srcdir)/bin/mkcatalog/args.h  $(ALLMANSDEP)
-	$(MAYBE_HELP2MAN) -n "Make a catalog from labeled input images"    \
+	$(MAYBE_HELP2MAN) -n "Make a catalog from labeled input images" \
 	                  --libtool $(toputildir)/mkcatalog/astmkcatalog
 
-man/astmknoise.1: $(top_srcdir)/bin/mknoise/args.h  $(ALLMANSDEP)
-	$(MAYBE_HELP2MAN) -n "add noise to an image"                       \
-	                  --libtool $(toputildir)/mknoise/astmknoise
-
 man/astmkprof.1: $(top_srcdir)/bin/mkprof/args.h  $(ALLMANSDEP)
-	$(MAYBE_HELP2MAN) -n "make standard 2D profiles on an image"       \
+	$(MAYBE_HELP2MAN) -n "make standard 2D profiles on an image" \
 	                  --libtool $(toputildir)/mkprof/astmkprof
 
 man/astnoisechisel.1: $(top_srcdir)/bin/noisechisel/args.h  $(ALLMANSDEP)
-	$(MAYBE_HELP2MAN) -n "detect signal in a noisy image"              \
+	$(MAYBE_HELP2MAN) -n "detect signal in a noisy image" \
 	                  --libtool $(toputildir)/noisechisel/astnoisechisel
 
 man/astquery.1: $(top_srcdir)/bin/query/args.h  $(ALLMANSDEP)
-	$(MAYBE_HELP2MAN) -n "query remote data servers and download"      \
+	$(MAYBE_HELP2MAN) -n "query remote data servers and download" \
 	                  --libtool $(toputildir)/query/astquery
 
 man/astsegment.1: $(top_srcdir)/bin/segment/args.h  $(ALLMANSDEP)
-	$(MAYBE_HELP2MAN) -n "segmentation based on signal structure"      \
+	$(MAYBE_HELP2MAN) -n "segmentation based on signal structure" \
 	                  --libtool $(toputildir)/segment/astsegment
 
 man/aststatistics.1: $(top_srcdir)/bin/statistics/args.h  $(ALLMANSDEP)
-	$(MAYBE_HELP2MAN) -n "calculate statistics of a dataset"           \
+	$(MAYBE_HELP2MAN) -n "calculate statistics of a dataset" \
 	                  --libtool $(toputildir)/statistics/aststatistics
 
 man/asttable.1: $(top_srcdir)/bin/table/args.h  $(ALLMANSDEP)
-	$(MAYBE_HELP2MAN) -n "read and write ASCII and FITS tables"        \
+	$(MAYBE_HELP2MAN) -n "read and write ASCII and FITS tables" \
 	                  --libtool $(toputildir)/table/asttable
 
 #man/astTEMPLATE.1: $(top_srcdir)/bin/TEMPLATE/args.h  $(ALLMANSDEP)
-#	$(MAYBE_HELP2MAN) -n "put a short description here"                \
+#	$(MAYBE_HELP2MAN) -n "put a short description here"  \
 	                  $(toputildir)/TEMPLATE/astTEMPLATE
 
 man/astwarp.1: $(top_srcdir)/bin/warp/args.h  $(ALLMANSDEP)
-	$(MAYBE_HELP2MAN) -n "warp (transform) input dataset"              \
+	$(MAYBE_HELP2MAN) -n "warp (transform) input dataset" \
 	                  --libtool $(toputildir)/warp/astwarp
 
 
@@ -272,57 +264,63 @@ man/astwarp.1: $(top_srcdir)/bin/warp/args.h  $(ALLMANSDEP)
 
 
 # The Scripts:
-man/astscript-dither-simulate.1: $(top_srcdir)/bin/script/dither-simulate.sh   \
-                            $(ALLMANSDEP)
+man/astscript-dither-simulate.1: $(top_srcdir)/bin/script/dither-simulate.sh \
+                                 $(ALLMANSDEP)
 	$(MAYBE_HELP2MAN) -n "Simulate the exposure map of a dither pattern" \
-	                  --libtool $(toputildir)/script/astscript-dither-simulate
+	                  --libtool \
+	                  $(toputildir)/script/astscript-dither-simulate
 
-man/astscript-ds9-region.1: $(top_srcdir)/bin/script/ds9-region.sh   \
+man/astscript-ds9-region.1: $(top_srcdir)/bin/script/ds9-region.sh \
                             $(ALLMANSDEP)
 	$(MAYBE_HELP2MAN) -n "Create an SAO DS9 region file from a table" \
 	                  --libtool $(toputildir)/script/astscript-ds9-region
 
-man/astscript-fits-view.1: $(top_srcdir)/bin/script/fits-view.sh   \
+man/astscript-fits-view.1: $(top_srcdir)/bin/script/fits-view.sh \
                             $(ALLMANSDEP)
-	$(MAYBE_HELP2MAN) -n "View FITS images in DS9 and tables in TOPCAT based on contents" \
+	$(MAYBE_HELP2MAN) -n "View FITS images in DS9 and tables in TOPCAT" \
 	                  --libtool $(toputildir)/script/astscript-fits-view
 
 man/astscript-psf-scale-factor.1: $(top_srcdir)/bin/script/psf-scale-factor.sh \
                                   $(ALLMANSDEP)
-	$(MAYBE_HELP2MAN) -n "Find factor to scale PSF to a given star in an image" \
-	                  --libtool $(toputildir)/script/astscript-psf-scale-factor
+	$(MAYBE_HELP2MAN) -n "Find factor to scale PSF to a given star" \
+	                  --libtool \
+	                  $(toputildir)/script/astscript-psf-scale-factor
 
 man/astscript-psf-select-stars.1: $(top_srcdir)/bin/script/psf-select-stars.sh \
                                   $(ALLMANSDEP)
 	$(MAYBE_HELP2MAN) -n "Select good stars for constructing the PSF" \
-	                  --libtool $(toputildir)/script/astscript-psf-select-stars
+	                  --libtool \
+	                  $(toputildir)/script/astscript-psf-select-stars
 
 man/astscript-psf-stamp.1: $(top_srcdir)/bin/script/psf-stamp.sh \
                            $(ALLMANSDEP)
-	$(MAYBE_HELP2MAN) -n "Make normalized stamp of star with background objects masked" \
+	$(MAYBE_HELP2MAN) -n "Make normalized stamp with other sources masked" \
 	                  --libtool $(toputildir)/script/astscript-psf-stamp
 
 man/astscript-psf-subtract.1: $(top_srcdir)/bin/script/psf-subtract.sh \
                               $(ALLMANSDEP)
-	$(MAYBE_HELP2MAN) -n "Subtract a given PSF model from the image of star" \
-	                  --libtool $(toputildir)/script/astscript-psf-subtract
+	$(MAYBE_HELP2MAN) -n "Subtract a given PSF model from the image" \
+	                  --libtool \
+	                  $(toputildir)/script/astscript-psf-subtract
 
 man/astscript-psf-unite.1: $(top_srcdir)/bin/script/psf-unite.sh \
                            $(ALLMANSDEP)
-	$(MAYBE_HELP2MAN) -n "Unite the outer and inner regions of the PSF into one" \
+	$(MAYBE_HELP2MAN) -n "Unite the outer and inner regions of the PSF" \
 	                  --libtool $(toputildir)/script/astscript-psf-unite
 
-man/astscript-radial-profile.1: $(top_srcdir)/bin/script/radial-profile.sh   \
+man/astscript-radial-profile.1: $(top_srcdir)/bin/script/radial-profile.sh \
                                 $(ALLMANSDEP)
 	$(MAYBE_HELP2MAN) -n "Create a radial profile of an object in an image" \
-	                  --libtool $(toputildir)/script/astscript-radial-profile
+	                  --libtool \
+	                  $(toputildir)/script/astscript-radial-profile
 
-man/astscript-sort-by-night.1: $(top_srcdir)/bin/script/sort-by-night.sh   \
+man/astscript-sort-by-night.1: $(top_srcdir)/bin/script/sort-by-night.sh \
                                $(ALLMANSDEP)
-	$(MAYBE_HELP2MAN) -n "Sort input FITS files by night"              \
-	                  --libtool $(toputildir)/script/astscript-sort-by-night
+	$(MAYBE_HELP2MAN) -n "Sort input FITS files by night" \
+	                  --libtool \
+	                  $(toputildir)/script/astscript-sort-by-night
 
-man/astscript-zeropoint.1: $(top_srcdir)/bin/script/zeropoint.sh   \
+man/astscript-zeropoint.1: $(top_srcdir)/bin/script/zeropoint.sh \
                            $(ALLMANSDEP)
 	$(MAYBE_HELP2MAN) -n "Estimate zero point of an image" \
 	                  --libtool $(toputildir)/script/astscript-zeropoint

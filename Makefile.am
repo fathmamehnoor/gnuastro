@@ -83,9 +83,6 @@ endif
 if COND_MKCATALOG
   MAYBE_MKCATALOG = bin/mkcatalog
 endif
-if COND_MKNOISE
-  MAYBE_MKNOISE = bin/mknoise
-endif
 if COND_MKPROF
   MAYBE_MKPROF = bin/mkprof
 endif
@@ -121,19 +118,44 @@ endif
 
 ## Subdirectories to build
 ## =======================
-##
+## In the list below, ORDER MATTERS:
+##  1. Build Gnulib (and its tests if requested)
+##  2. Build Gnuastro's library.
+##  3. Build the programs (order doesn't matter within the programs, so
+##     they are sorted alphabetically).
+##  4. Build the installed scripts.
+##  5. Build the documentation.
+##  6. Build the tests.
+#
 ## Note that by default 'COND_TEMPLATE' is not set in configure, it is
 ## commented, and exists only as a template for you to copy and paste to
 ## name your new utility. The same rule is applied here (in the 'if'
 ## conditions above). When 'MAYBE_TEMPLATE' is not defined, then Make will
 ## see it as a blank string and igonore it, so there is no problem with
 ## having an uncommented 'MAYBE_TEMPLATE' as a value in 'SUBDIRS'.
-SUBDIRS = bootstrapped/lib $(MAYBE_GNULIBCHECK) lib $(MAYBE_ARITHMETIC) \
-  $(MAYBE_BUILDPROG) $(MAYBE_CONVERTT) $(MAYBE_CONVOLVE) \
-  $(MAYBE_COSMICCAL) $(MAYBE_CROP) $(MAYBE_FITS) $(MAYBE_MATCH) \
-  $(MAYBE_MKCATALOG) $(MAYBE_MKNOISE) $(MAYBE_MKPROF) $(MAYBE_NOISECHISEL) \
-  $(MAYBE_QUERY) $(MAYBE_SEGMENT) $(MAYBE_STATISTICS) $(MAYBE_TABLE) \
-  $(MAYBE_TEMPLATE) $(MAYBE_WARP) bin/script doc tests
+SUBDIRS = bootstrapped/lib \
+          $(MAYBE_GNULIBCHECK) \
+          lib \
+          $(MAYBE_ARITHMETIC) \
+          $(MAYBE_BUILDPROG) \
+          $(MAYBE_CONVERTT) \
+          $(MAYBE_CONVOLVE) \
+          $(MAYBE_COSMICCAL) \
+          $(MAYBE_CROP) \
+          $(MAYBE_FITS) \
+          $(MAYBE_MATCH) \
+          $(MAYBE_MKCATALOG) \
+          $(MAYBE_MKPROF) \
+          $(MAYBE_NOISECHISEL) \
+          $(MAYBE_QUERY) \
+          $(MAYBE_SEGMENT) \
+          $(MAYBE_STATISTICS) \
+          $(MAYBE_TABLE) \
+          $(MAYBE_TEMPLATE) \
+          $(MAYBE_WARP) \
+          bin/script \
+          doc \
+          tests
 
 
 

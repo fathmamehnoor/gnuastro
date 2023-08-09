@@ -60,39 +60,48 @@ if COND_HASCXX
   versioncxx_SOURCES = lib/versioncxx.cpp
 endif
 if COND_ARITHMETIC
-  MAYBE_ARITHMETIC_TESTS = arithmetic/snimage.sh arithmetic/onlynumbers.sh \
-  arithmetic/where.sh arithmetic/or.sh arithmetic/connected-components.sh
-
-  arithmetic/onlynumbers.sh: prepconf.sh.log
-  arithmetic/connected-components.sh: noisechisel/noisechisel.sh.log
-  arithmetic/snimage.sh: noisechisel/noisechisel.sh.log
-  arithmetic/where.sh: noisechisel/noisechisel.sh.log
+  MAYBE_ARITHMETIC_TESTS = arithmetic/or.sh \
+                           arithmetic/where.sh \
+                           arithmetic/snimage.sh \
+                           arithmetic/onlynumbers.sh \
+                           arithmetic/connected-components.sh \
+                           arithmetic/mknoise-sigma-from-mean.sh \
+                           arithmetic/mknoise-sigma-from-mean-3d.sh
   arithmetic/or.sh: segment/segment.sh.log
+  arithmetic/onlynumbers.sh: prepconf.sh.log
+  arithmetic/where.sh: noisechisel/noisechisel.sh.log
+  arithmetic/snimage.sh: noisechisel/noisechisel.sh.log
+  arithmetic/mknoise-sigma-from-mean.sh: warp/warp_scale.sh.log
+  arithmetic/mknoise-sigma-from-mean-3d.sh: mkprof/3d-cat.sh.log
+  arithmetic/connected-components.sh: noisechisel/noisechisel.sh.log
 endif
 if COND_BUILDPROG
   MAYBE_BUILDPROG_TESTS = buildprog/simpleio.sh
-
   buildprog/simpleio.sh: mkprof/mosaic1.sh.log
 endif
 if COND_CONVERTT
-  MAYBE_CONVERTT_TESTS = convertt/fitstotxt.sh convertt/fitstojpeg.sh	\
-  convertt/blankch.sh convertt/jpegtotxt.sh convertt/fitstojpegcmyk.sh	\
-  convertt/jpegtofits.sh convertt/fitstopdf.sh convertt/fitstotiff.sh
-
+  MAYBE_CONVERTT_TESTS = convertt/blankch.sh \
+                         convertt/fitstotxt.sh \
+                         convertt/jpegtotxt.sh \
+                         convertt/fitstopdf.sh \
+                         convertt/jpegtofits.sh \
+                         convertt/fitstotiff.sh \
+                         convertt/fitstojpeg.sh \
+                         convertt/fitstojpegcmyk.sh
+  convertt/fitstopdf.sh: crop/section.sh.log
+  convertt/blankch.sh: mkprof/mosaic1.sh.log
   convertt/fitstotxt.sh: mkprof/mosaic1.sh.log
   convertt/fitstojpeg.sh: mkprof/mosaic1.sh.log
-  convertt/blankch.sh: mkprof/mosaic1.sh.log
+  convertt/fitstotiff.sh: mkprof/mosaic1.sh.log
+  convertt/jpegtofits.sh: convertt/blankch.sh.log
   convertt/jpegtotxt.sh: convertt/fitstojpeg.sh.log
   convertt/fitstojpegcmyk.sh: mkprof/mosaic1.sh.log
-  convertt/jpegtofits.sh: convertt/blankch.sh.log
-  convertt/fitstopdf.sh: crop/section.sh.log
-  convertt/fitstotiff.sh: mkprof/mosaic1.sh.log
-
 endif
 if COND_CONVOLVE
-  MAYBE_CONVOLVE_TESTS = convolve/spatial.sh convolve/frequency.sh \
-                         convolve/psf-match.sh convolve/spectrum-1d.sh
-
+  MAYBE_CONVOLVE_TESTS = convolve/spatial.sh \
+                         convolve/frequency.sh \
+                         convolve/psf-match.sh \
+                         convolve/spectrum-1d.sh
   convolve/spectrum-1d.sh: prepconf.sh.log
   convolve/spatial.sh: mkprof/mosaic1.sh.log
   convolve/psf-match.sh: mkprof/mosaic1.sh.log
@@ -104,64 +113,78 @@ if COND_COSMICCAL
   cosmiccal/simpletest.sh: prepconf.sh.log
 endif
 if COND_CROP
-  MAYBE_CROP_TESTS = crop/imgcat.sh crop/wcscat.sh crop/imgcenter.sh    \
-  crop/imgcenternoblank.sh crop/section.sh crop/wcscenter.sh            \
-  crop/imgpolygon.sh crop/imgpolygonout.sh crop/wcspolygon.sh
-
+  MAYBE_CROP_TESTS = crop/imgcat.sh \
+                     crop/wcscat.sh \
+                     crop/section.sh \
+                     crop/imgcenter.sh \
+                     crop/wcscenter.sh \
+                     crop/imgpolygon.sh \
+                     crop/wcspolygon.sh \
+                     crop/imgpolygonout.sh \
+                     crop/imgcenternoblank.sh
   crop/imgcat.sh: mkprof/mosaic1.sh.log
-  crop/wcscat.sh: mkprof/mosaic1.sh.log mkprof/mosaic2.sh.log     \
-                  mkprof/mosaic3.sh.log mkprof/mosaic4.sh.log
-  crop/imgcenter.sh: mkprof/mosaic1.sh.log
-  crop/imgcenternoblank.sh: mkprof/mosaic1.sh.log
+  crop/wcscat.sh: mkprof/mosaic1.sh.log \
+                  mkprof/mosaic2.sh.log \
+                  mkprof/mosaic3.sh.log \
+                  mkprof/mosaic4.sh.log
   crop/section.sh: mkprof/mosaic1.sh.log
-  crop/wcscenter.sh: mkprof/mosaic1.sh.log mkprof/mosaic2.sh.log      \
-                     mkprof/mosaic3.sh.log mkprof/mosaic4.sh.log
+  crop/imgcenter.sh: mkprof/mosaic1.sh.log
+  crop/wcscenter.sh: mkprof/mosaic1.sh.log \
+                     mkprof/mosaic2.sh.log \
+                     mkprof/mosaic3.sh.log \
+                     mkprof/mosaic4.sh.log
   crop/imgpolygon.sh: mkprof/mosaic1.sh.log
+  crop/wcspolygon.sh: mkprof/mosaic1.sh.log \
+                      mkprof/mosaic2.sh.log \
+                      mkprof/mosaic3.sh.log \
+                      mkprof/mosaic4.sh.log
   crop/imgpolygonout.sh: mkprof/mosaic1.sh.log
-  crop/wcspolygon.sh: mkprof/mosaic1.sh.log mkprof/mosaic2.sh.log \
-                      mkprof/mosaic3.sh.log mkprof/mosaic4.sh.log
+  crop/imgcenternoblank.sh: mkprof/mosaic1.sh.log
+
 endif
 if COND_FITS
-  MAYBE_FITS_TESTS = fits/write.sh fits/print.sh fits/update.sh	\
-  fits/delete.sh fits/copyhdu.sh
-
-  fits/write.sh: mkprof/mosaic1.sh.log
+  MAYBE_FITS_TESTS = fits/write.sh \
+                     fits/print.sh \
+                     fits/update.sh \
+                     fits/delete.sh \
+                     fits/copyhdu.sh
   fits/print.sh: fits/write.sh.log
   fits/update.sh: fits/write.sh.log
   fits/delete.sh: fits/write.sh.log
+  fits/write.sh: mkprof/mosaic1.sh.log
   fits/copyhdu.sh: fits/write.sh.log mkprof/mosaic2.sh.log
 endif
 if COND_MATCH
-  MAYBE_MATCH_TESTS = match/sort-based.sh match/merged-cols.sh \
-  match/kdtree-internal.sh match/kdtree-separate.sh
-
+  MAYBE_MATCH_TESTS = match/sort-based.sh \
+                      match/merged-cols.sh \
+                      match/kdtree-internal.sh \
+                      match/kdtree-separate.sh
   match/sort-based.sh: prepconf.sh.log
   match/merged-cols.sh: prepconf.sh.log
   match/kdtree-internal.sh: prepconf.sh.log
   match/kdtree-separate.sh: prepconf.sh.log
 endif
 if COND_MKCATALOG
-  MAYBE_MKCATALOG_TESTS = mkcatalog/detections.sh mkcatalog/simple-3d.sh   \
-  mkcatalog/objects-clumps.sh mkcatalog/aperturephot.sh
-
-  mkcatalog/objects-clumps.sh: segment/segment.sh.log
-  mkcatalog/detections.sh: arithmetic/connected-components.sh.log
+  MAYBE_MKCATALOG_TESTS = mkcatalog/detections.sh \
+                          mkcatalog/simple-3d.sh \
+                          mkcatalog/objects-clumps.sh \
+                          mkcatalog/aperturephot.sh
   mkcatalog/simple-3d.sh: segment/segment-3d.sh.log
-  mkcatalog/aperturephot.sh: noisechisel/noisechisel.sh.log          \
+  mkcatalog/objects-clumps.sh: segment/segment.sh.log
+  mkcatalog/aperturephot.sh: noisechisel/noisechisel.sh.log \
                              mkprof/clearcanvas.sh.log
-endif
-if COND_MKNOISE
-  MAYBE_MKNOISE_TESTS = mknoise/addnoise.sh mknoise/addnoise-3d.sh
-
-  mknoise/addnoise.sh: warp/warp_scale.sh.log
-  mknoise/addnoise-3d.sh: mkprof/3d-cat.sh.log
+  mkcatalog/detections.sh: arithmetic/connected-components.sh.log
 endif
 if COND_MKPROF
-  MAYBE_MKPROF_TESTS = mkprof/mosaic1.sh mkprof/mosaic2.sh         \
-  mkprof/mosaic3.sh mkprof/mosaic4.sh mkprof/radeccat.sh           \
-  mkprof/ellipticalmasks.sh mkprof/clearcanvas.sh mkprof/3d-cat.sh \
-  mkprof/3d-kernel.sh
-
+  MAYBE_MKPROF_TESTS = mkprof/3d-cat.sh \
+                       mkprof/mosaic1.sh \
+                       mkprof/mosaic2.sh \
+                       mkprof/mosaic3.sh \
+                       mkprof/mosaic4.sh \
+                       mkprof/radeccat.sh \
+                       mkprof/3d-kernel.sh \
+                       mkprof/clearcanvas.sh \
+                       mkprof/ellipticalmasks.sh
   mkprof/3d-cat.sh: prepconf.sh.log
   mkprof/mosaic1.sh: prepconf.sh.log
   mkprof/mosaic2.sh: prepconf.sh.log
@@ -169,19 +192,18 @@ if COND_MKPROF
   mkprof/mosaic4.sh: prepconf.sh.log
   mkprof/radeccat.sh: prepconf.sh.log
   mkprof/3d-kernel.sh: prepconf.sh.log
-  mkprof/ellipticalmasks.sh: mknoise/addnoise.sh.log
-  mkprof/clearcanvas.sh: mknoise/addnoise.sh.log
+  mkprof/clearcanvas.sh: arithmetic/mknoise-sigma-from-mean.sh.log
+  mkprof/ellipticalmasks.sh: arithmetic/mknoise-sigma-from-mean.sh.log
 endif
 if COND_NOISECHISEL
-  MAYBE_NOISECHISEL_TESTS = noisechisel/noisechisel.sh          \
-  noisechisel/noisechisel-3d.sh
-
-  noisechisel/noisechisel.sh: mknoise/addnoise.sh.log
-  noisechisel/noisechisel-3d.sh: mknoise/addnoise-3d.sh.log
+  MAYBE_NOISECHISEL_TESTS = noisechisel/noisechisel.sh \
+                            noisechisel/noisechisel-3d.sh
+  noisechisel/noisechisel.sh: arithmetic/mknoise-sigma-from-mean.sh.log
+  noisechisel/noisechisel-3d.sh: arithmetic/mknoise-sigma-from-mean-3d.sh.log
 endif
 if COND_SEGMENT
-  MAYBE_SEGMENT_TESTS = segment/segment.sh segment/segment-3d.sh
-
+  MAYBE_SEGMENT_TESTS = segment/segment.sh \
+                        segment/segment-3d.sh
   segment/segment.sh: noisechisel/noisechisel.sh.log
   segment/segment-3d.sh: noisechisel/noisechisel-3d.sh.log
 endif
@@ -190,28 +212,28 @@ if COND_STATISTICS
                            statistics/from-stdin.sh \
                            statistics/estimate_sky.sh \
                            statistics/fitting-polynomial-robust.sh
-
   statistics/from-stdin.sh: prepconf.sh.log
-  statistics/basicstats.sh: mknoise/addnoise.sh.log
-  statistics/estimate_sky.sh: mknoise/addnoise.sh.log
   statistics/fitting-polynomial-robust.sh: prepconf.sh.log
+  statistics/basicstats.sh: arithmetic/mknoise-sigma-from-mean.sh.log
+  statistics/estimate_sky.sh: arithmetic/mknoise-sigma-from-mean.sh.log
 endif
 if COND_TABLE
-  MAYBE_TABLE_TESTS = table/txt-to-fits-binary.sh \
-  table/fits-binary-to-txt.sh table/txt-to-fits-ascii.sh \
-  table/fits-ascii-to-txt.sh table/sexagesimal-to-deg.sh \
-  table/arith-img-to-wcs.sh
-
-  table/txt-to-fits-binary.sh: prepconf.sh.log
-  table/fits-binary-to-txt.sh: table/txt-to-fits-binary.sh.log
+  MAYBE_TABLE_TESTS = table/arith-img-to-wcs.sh \
+                      table/txt-to-fits-ascii.sh \
+                      table/fits-ascii-to-txt.sh \
+                      table/txt-to-fits-binary.sh \
+                      table/fits-binary-to-txt.sh \
+                      table/sexagesimal-to-deg.sh
   table/txt-to-fits-ascii.sh: prepconf.sh.log
-  table/fits-ascii-to-txt.sh: table/txt-to-fits-ascii.sh.log
+  table/txt-to-fits-binary.sh: prepconf.sh.log
   table/sexagesimal-to-deg.sh: prepconf.sh.log
-  table/arith-img-to-wcs.sh: mknoise/addnoise.sh.log
+  table/fits-ascii-to-txt.sh: table/txt-to-fits-ascii.sh.log
+  table/fits-binary-to-txt.sh: table/txt-to-fits-binary.sh.log
+  table/arith-img-to-wcs.sh: arithmetic/mknoise-sigma-from-mean.sh.log
 endif
 if COND_WARP
-  MAYBE_WARP_TESTS = warp/warp_scale.sh warp/homographic.sh
-
+  MAYBE_WARP_TESTS = warp/warp_scale.sh \
+                     warp/homographic.sh
   warp/warp_scale.sh: convolve/spatial.sh.log
   warp/homographic.sh: convolve/spatial.sh.log
 endif
@@ -283,14 +305,26 @@ lib/multithread.sh: mkprof/mosaic1.sh.log
 
 # Final Tests
 # ===========
-TESTS = prepconf.sh lib/multithread.sh $(MAYBE_CXX_TESTS)                  \
-  $(MAYBE_ARITHMETIC_TESTS) $(MAYBE_BUILDPROG_TESTS)                       \
-  $(MAYBE_CONVERTT_TESTS) $(MAYBE_CONVOLVE_TESTS) $(MAYBE_COSMICCAL_TESTS) \
-  $(MAYBE_CROP_TESTS) $(MAYBE_FITS_TESTS) $(MAYBE_MATCH_TESTS)             \
-  $(MAYBE_MKCATALOG_TESTS) $(MAYBE_MKNOISE_TESTS) $(MAYBE_MKPROF_TESTS)    \
-  $(MAYBE_NOISECHISEL_TESTS) $(MAYBE_SEGMENT_TESTS)                        \
-  $(MAYBE_STATISTICS_TESTS) $(MAYBE_SUBTRACTSKY_TESTS)                     \
-  $(MAYBE_TABLE_TESTS) $(MAYBE_WARP_TESTS) $(SCRIPT_TESTS)
+TESTS = prepconf.sh \
+        lib/multithread.sh \
+        $(MAYBE_CXX_TESTS) \
+        $(MAYBE_ARITHMETIC_TESTS) \
+        $(MAYBE_BUILDPROG_TESTS) \
+        $(MAYBE_CONVERTT_TESTS) \
+        $(MAYBE_CONVOLVE_TESTS) \
+        $(MAYBE_COSMICCAL_TESTS) \
+        $(MAYBE_CROP_TESTS) \
+        $(MAYBE_FITS_TESTS) \
+        $(MAYBE_MATCH_TESTS) \
+        $(MAYBE_MKCATALOG_TESTS) \
+        $(MAYBE_MKPROF_TESTS) \
+        $(MAYBE_NOISECHISEL_TESTS) \
+        $(MAYBE_SEGMENT_TESTS) \
+        $(MAYBE_STATISTICS_TESTS) \
+        $(MAYBE_SUBTRACTSKY_TESTS) \
+        $(MAYBE_TABLE_TESTS) \
+        $(MAYBE_WARP_TESTS) \
+        $(SCRIPT_TESTS)
 
 
 
@@ -301,12 +335,12 @@ EXTRA_DIST = $(TESTS) during-dev.sh \
   buildprog/simpleio.c \
   convolve/spectrum.txt \
   crop/cat.txt \
-  mkprof/3d-cat.txt \
   match/positions-1.txt \
   match/positions-2.txt \
-  mkprof/mkprofcat1.txt \
+  mkprof/3d-cat.txt \
   mkprof/clearcanvas.txt \
   mkprof/ellipticalmasks.txt \
+  mkprof/mkprofcat1.txt \
   mkprof/mkprofcat2.txt \
   mkprof/mkprofcat3.txt \
   mkprof/mkprofcat4.txt \

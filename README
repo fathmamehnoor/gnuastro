@@ -70,9 +70,6 @@ categories/chapters.
     NoiseChisel). The catalogs are highly customizable and adding new
     calculations/columns is very streightforward.
 
-  - MakeNoise (astmknoise): Make (add) noise to an image, with a large set
-    of random number generators and any seed.
-
   - MakeProfiles (astmkprof): Make mock 2D profiles in an image. The
     central regions of radial profiles are made with a configurable 2D
     Monte Carlo integration. It can also build the profiles on an

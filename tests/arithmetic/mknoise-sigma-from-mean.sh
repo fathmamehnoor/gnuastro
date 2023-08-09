@@ -1,11 +1,12 @@
-# Add noise to an input cube.
+# Add noise to an input image.
 #
 # See the Tests subsection of the manual for a complete explanation
 # (in the Installing gnuastro section).
 #
 # Original author:
-#     Mohammad Akhlaghi <akhlaghi@gnu.org>
+#     Mohammad Akhlaghi <mohammad@akhlaghi.org>
 # Contributing author(s):
+# Copyright (C) 2015-2023 Free Software Foundation, Inc.
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -27,9 +28,12 @@
 # care about the size of the image, but the larger one will be used by
 # those that do: for example SubtractSky and NoiseChisel will be better
 # tested on a larger image.
-prog=mknoise
-img=3d-cat.fits
+prog=arithmetic
+img1=convolve_spatial.fits
 execname=../bin/$prog/ast$prog
+out1=convolve_spatial_noised.fits
+img2=convolve_spatial_scaled.fits
+out2=convolve_spatial_scaled_noised.fits
 
 
 
@@ -46,7 +50,8 @@ execname=../bin/$prog/ast$prog
 #   - The input data was not made (for example the test that created the
 #     data file failed).
 if [ ! -f $execname ]; then echo "$execname doesn't exist."; exit 77; fi
-if [ ! -f $img      ]; then echo "$img does not exist.";     exit 77; fi
+if [ ! -f $img1     ]; then echo "$img1 does not exist.";    exit 77; fi
+if [ ! -f $img2     ]; then echo "$img2 does not exist.";    exit 77; fi
 
 
 
@@ -54,7 +59,19 @@ if [ ! -f $img      ]; then echo "$img does not exist.";     exit 77; fi
 
 # Actual test script
 # ==================
+#
+# 'check_with_program' can be something like Valgrind or an empty
+# string. Such programs will execute the command if present and help in
+# debugging when the developer doesn't have access to the user's system.
+zeropoint=0
+background=-10
 export GSL_RNG_SEED=1
 export GSL_RNG_TYPE=ranlxs2
-options="--background=-10 --zeropoint=0 --envseed"
-$check_with_program $execname $img $options
+
+$check_with_program $execname --envseed --output=$out1 \
+                    $img1 $background $zeropoint mag-to-counts \
+                    mknoise-sigma-from-mean
+
+$check_with_program $execname --envseed --output=$out2 \
+                    $img2 $background $zeropoint mag-to-counts \
+                    mknoise-sigma-from-mean

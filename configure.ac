@@ -993,12 +993,6 @@ AC_ARG_ENABLE([mkcatalog],
               [AS_IF([test "x$enable_mkcatalog" != xno],
                      [enable_mkcatalog=yes; ayes=true])],
               [enable_mkcatalog=notset])
-AC_ARG_ENABLE([mknoise],
-              [AS_HELP_STRING([--enable-mknoise],
-                    [Install MakeNoise and other enabled programs.])],
-              [AS_IF([test "x$enable_mknoise" != xno],
-                     [enable_mknoise=yes; ayes=true])],
-              [enable_mknoise=notset])
 AC_ARG_ENABLE([mkprof],
               [AS_HELP_STRING([--enable-mkprof],
                     [Install MakeProfile and other enabled programs.])],
@@ -1067,7 +1061,6 @@ AS_IF([test $ayes = true ],
        AS_IF([test $enable_fits = notset],        [enable_fits=no])
        AS_IF([test $enable_match = notset],       [enable_match=no])
        AS_IF([test $enable_mkcatalog = notset],   [enable_mkcatalog=no])
-       AS_IF([test $enable_mknoise = notset],     [enable_mknoise=no])
        AS_IF([test $enable_mkprof = notset],      [enable_mkprof=no])
        AS_IF([test $enable_noisechisel = notset], [enable_noisechisel=no])
        AS_IF([test $enable_query = notset],       [enable_query=no])
@@ -1088,7 +1081,6 @@ AS_IF([test $ayes = true ],
        AS_IF([test $enable_fits = notset],        [enable_fits=yes])
        AS_IF([test $enable_match = notset],       [enable_match=yes])
        AS_IF([test $enable_mkcatalog = notset],   [enable_mkcatalog=yes])
-       AS_IF([test $enable_mknoise = notset],     [enable_mknoise=yes])
        AS_IF([test $enable_mkprof = notset],      [enable_mkprof=yes])
        AS_IF([test $enable_noisechisel = notset], [enable_noisechisel=yes])
        AS_IF([test $enable_query = notset],       [enable_query=yes])
@@ -1122,7 +1114,6 @@ AM_CONDITIONAL([COND_CROP],        [test $enable_crop = yes])
 AM_CONDITIONAL([COND_FITS],        [test $enable_fits = yes])
 AM_CONDITIONAL([COND_MATCH],       [test $enable_match = yes])
 AM_CONDITIONAL([COND_MKCATALOG],   [test $enable_mkcatalog = yes])
-AM_CONDITIONAL([COND_MKNOISE],     [test $enable_mknoise = yes])
 AM_CONDITIONAL([COND_MKPROF],      [test $enable_mkprof = yes])
 AM_CONDITIONAL([COND_NOISECHISEL], [test $enable_noisechisel = yes])
 AM_CONDITIONAL([COND_QUERY],       [test $enable_query = yes])
@@ -1150,9 +1141,10 @@ AC_DEFINE_UNQUOTED([CONFIG_GNUASTRO_LDADD], ["$LDADD"],
 
 
 
-# Tell autoconf what to work on: TEMPLATE cannot be put and then
-# commented here like the cases above, so don't forget to add your new
-# utility name here.
+# Tell autoconf what to work on:
+#  1. Order does NOT matter here.
+#  2. TEMPLATE cannot be put and then commented here like the cases above,
+#     so don't forget to add your new utility name here.
 AC_CONFIG_FILES([Makefile
                  doc/Makefile
                  lib/Makefile
@@ -1165,7 +1157,6 @@ AC_CONFIG_FILES([Makefile
                  bin/query/Makefile
                  bin/mkprof/Makefile
                  bin/script/Makefile
-                 bin/mknoise/Makefile
                  bin/segment/Makefile
                  bin/convertt/Makefile
                  bin/convolve/Makefile

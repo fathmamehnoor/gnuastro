@@ -86,6 +86,14 @@ See the end of the file for license conditions.
 
 ** Removed features
 
+  MakeNoise:
+    - MakeNoise (with executable name 'astmknoise') has been removed from
+      Gnuastro. This is because the 'mknoise-*' operators of Arithmetic do
+      the same job, but in a much more customizable, modular and managable
+      manner; allowing to mix with other operators. The "Noise basics"
+      sub-section of the book has been moved under the Arithmetic program's
+      documentation also.
+
 ** Changed features
 
   Arithmetic:

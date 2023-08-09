@@ -80,9 +80,6 @@ A copy of the license is included in the section entitled ``GNU Free Documentati
 * MakeCatalog: (gnuastro)MakeCatalog. Make a catalog from labeled image.
 * astmkcatalog: (gnuastro)Invoking astmkcatalog. Options to MakeCatalog.
 
-* MakeNoise: (gnuastro)MakeNoise. Make (add) noise to an image.
-* astmknoise: (gnuastro)Invoking astmknoise. Options to MakeNoise.
-
 * MakeProfiles: (gnuastro)MakeProfiles. Make mock profiles.
 * astmkprof: (gnuastro)Invoking astmkprof. Options to MakeProfiles.
 
@@ -532,8 +529,16 @@ Arithmetic
 
 * Reverse polish notation::     The current notation style for Arithmetic
 * Integer benefits and pitfalls::  Integers have major benefits, but require care
+* Noise basics::
 * Arithmetic operators::        List of operators known to Arithmetic
 * Invoking astarithmetic::      How to run Arithmetic: options and output
+
+Noise basics
+
+* Photon counting noise::       Poisson noise
+* Instrumental noise::          Readout, dark current and other sources.
+* Final noised pixel value::    How the final noised value is calculated.
+* Generating random numbers::   How random numbers are generated.
 
 Arithmetic operators
 
@@ -552,7 +557,7 @@ Arithmetic operators
 * Bitwise operators::           Work on bits within one pixel.
 * Numerical type conversion operators::  Convert the numeric datatype of a dataset.
 * Random number generators::    Random numbers can be used to add noise for example.
-* Box shape operators::         Dealing with box shapes and coordinates of vertices.
+* Box shape operators::
 * Loading external columns::    Read a column from a table into the stack.
 * Size and position operators::  Extracting image size and pixel positions.
 * Building new dataset and stack management::  How to construct an empty dataset from scratch.
@@ -700,7 +705,6 @@ Match
 Data modeling
 
 * MakeProfiles::                Making mock galaxies and stars.
-* MakeNoise::                   Make (add) noise to an image.
 
 MakeProfiles
 
@@ -724,18 +728,6 @@ Invoking MakeProfiles
 * MakeProfiles profile settings::  Configuration parameters for all profiles.
 * MakeProfiles output dataset::  The canvas/dataset to build profiles over.
 * MakeProfiles log file::       A description of the optional log file.
-
-MakeNoise
-
-* Noise basics::                Noise concepts and definitions.
-* Invoking astmknoise::         Options and arguments to MakeNoise.
-
-Noise basics
-
-* Photon counting noise::       Poisson noise
-* Instrumental noise::          Readout, dark current and other sources.
-* Final noised pixel value::    How the final noised value is calculated.
-* Generating random numbers::   How random numbers are generated.
 
 High-level calculations
 
@@ -1102,9 +1094,6 @@ Input coordinates can be in pixel coordinates or world coordinates.
 @item MakeCatalog
 (@file{astmkcatalog}, see @ref{MakeCatalog}) Make catalog of labeled image (output of NoiseChisel).
 The catalogs are highly customizable and adding new calculations/columns is very straightforward.
-
-@item MakeNoise
-(@file{astmknoise}, see @ref{MakeNoise}) Make (add) noise to an image, with a large set of random number generators and any seed.
 
 @item MakeProfiles
 (@file{astmkprof}, see @ref{MakeProfiles}) Make mock 2D profiles in an image.
@@ -7692,15 +7681,14 @@ All this trouble was certainly worth it because now there is no dimming on the e
 The final step to simulate a real observation would be to add noise to the image.
 Sufi set the zero point magnitude to the same value that he set when making the mock profiles and looking again at his observation log, he had measured the background flux near the nebula had a @emph{per-pixel} magnitude of 7 that night.
 For more on how the background value determines the noise, see @ref{Noise basics}.
-So using these values he ran MakeNoise, and with the second command, he visually inspected the image.
+So using these values he ran Arithmetic's @code{mknoise-sigma-from-mean} operator, and with the second command, he visually inspected the image.
+The @code{mknoise-sigma-from-mean} operator takes the noise standard deviation in linear units, not magnitudes (which are logarithmic).
+Therefore within the same Arithmetic command, he has converted the sky background magnitude to counts using Arithmetic's @code{counts-to-mag} operator.
 
 @example
-$ astmknoise --zeropoint=18 --background=7 --output=out.fits    \
-             cat_convolved_scaled_cropped.fits
-MakeNoise @value{VERSION} started on Sat Oct  6 17:05:06 953
-  - Generator type: ranlxs1
-  - Generator seed: 1428318100
-MakeNoise finished in:  0.033491 (seconds)
+$ astarithmetic cat_convolved_scaled_cropped.fits \
+                7 18 mag-to-counts mknoise-sigma-from-mean \
+                --output=out.fits
 
 $ astscript-fits-view out.fits
 @end example
@@ -7754,8 +7742,9 @@ astcrop "$base"_convolved_scaled.fits --zeroisnotblank \
         --mode=img --section=$st_edge:*-$edge,$st_edge:*-$edge
 
 # Add noise to the image.
-astmknoise --zeropoint=18 --background=7 --output=out.fits \
-           "$base"_convolved_scaled_cropped.fits
+$ astarithmetic "$base"_convolved_scaled_cropped.fits \
+                7 18 mag-to-counts mknoise-sigma-from-mean \
+                --output=out.fits
 
 # Remove all the temporary files.
 rm 0*.fits "$base"*.fits
@@ -19143,6 +19132,7 @@ For more information on how to run Arithmetic, please see @ref{Invoking astarith
 @menu
 * Reverse polish notation::     The current notation style for Arithmetic
 * Integer benefits and pitfalls::  Integers have major benefits, but require care
+* Noise basics::
 * Arithmetic operators::        List of operators known to Arithmetic
 * Invoking astarithmetic::      How to run Arithmetic: options and output
 @end menu
@@ -19232,7 +19222,7 @@ This is a very powerful notation and is used in languages like Postscript @footn
 
 
 
-@node Integer benefits and pitfalls, Arithmetic operators, Reverse polish notation, Arithmetic
+@node Integer benefits and pitfalls, Noise basics, Reverse polish notation, Arithmetic
 @subsection Integer benefits and pitfalls
 
 Integers are the simplest numerical data types (@ref{Numeric data types}).
@@ -19320,7 +19310,231 @@ It is possible to do internal checks in Gnuastro and catch integer overflows and
 However, we have not opted for this solution because all those checks will consume significant resources and slow down the program (especially with large datasets where RAM, storage and running time become important).
 To be optimal, we therefore trust that you (the wise Gnuastro user!) make the appropriate type conversion in your commands where necessary (recall that the operators are available in @ref{Numerical type conversion operators}).
 
-@node Arithmetic operators, Invoking astarithmetic, Integer benefits and pitfalls, Arithmetic
+@node Noise basics, Arithmetic operators, Integer benefits and pitfalls, Arithmetic
+@subsection Noise basics
+
+@cindex Noise
+@cindex Image noise
+Deep astronomical images, like those used in extragalactic studies, seriously suffer from noise in the data.
+Generally speaking, the sources of noise in an astronomical image are photon counting noise and Instrumental noise which are discussed in @ref{Photon counting noise} and @ref{Instrumental noise}.
+This review finishes with @ref{Generating random numbers} which is a short introduction on how random numbers are generated.
+We will see that while software random number generators are not perfect, they allow us to obtain a reproducible series of random numbers through setting the random number generator function and seed value.
+Therefore in this section, we will also discuss how you can set these two parameters in Gnuastro's programs (including the arithmetic operators in @ref{Random number generators}).
+
+@menu
+* Photon counting noise::       Poisson noise
+* Instrumental noise::          Readout, dark current and other sources.
+* Final noised pixel value::    How the final noised value is calculated.
+* Generating random numbers::   How random numbers are generated.
+@end menu
+
+@node Photon counting noise, Instrumental noise, Noise basics, Noise basics
+@subsubsection Photon counting noise
+
+@cindex Counting error
+@cindex de Moivre, Abraham
+@cindex Poisson distribution
+@cindex Photon counting noise
+@cindex Poisson, Sim@'eon Denis
+With the very accurate electronics used in today's detectors, photon counting noise@footnote{In practice, we are actually counting the electrons that are produced by each photon, not the actual photons.} is the most significant source of uncertainty in most datasets.
+To understand this noise (error in counting) and its effect on the images of astronomical targets, let's start by reviewing how a distribution produced by counting can be modeled as a parametric function.
+
+Counting is an inherently discrete operation, which can only produce positive integer outputs (including zero).
+For example, we cannot count @mymath{3.2} or @mymath{-2} of anything.
+We only count @mymath{0}, @mymath{1}, @mymath{2}, @mymath{3} and so on.
+The distribution of values, as a result of counting efforts is formally known as the @url{https://en.wikipedia.org/wiki/Poisson_distribution, Poisson distribution}.
+It is associated to Sim@'eon Denis Poisson, because he discussed it while working on the number of wrongful convictions in court cases in his 1837 book@footnote{[From Wikipedia] Poisson's result was also derived in a previous study by Abraham de Moivre in 1711.
+Therefore some people suggest it should rightly be called the de Moivre distribution.}.
+
+@cindex Probability density function
+Let's take @mymath{\lambda} to represent the expected mean count of something.
+Furthermore, let's take @mymath{k} to represent the output of a counting attempt (hence @mymath{k} is a positive integer).
+The probability density function of getting @mymath{k} counts (in each attempt, given the expected/mean count of @mymath{\lambda}) can be written as:
+
+@cindex Poisson distribution
+@dispmath{f(k)={\lambda^k \over k!} e^{-\lambda},\quad k\in @{0, 1, 2, 3, \dots @}}
+
+@cindex Skewed Poisson distribution
+Because the Poisson distribution is only applicable to positive integer values (note the factorial operator, which only applies to non-negative integers), naturally it is very skewed when @mymath{\lambda} is near zero.
+One qualitative way to understand this behavior is that for smaller values near zero, there simply are not enough integers smaller than the mean, than integers that are larger.
+Therefore to accommodate all possibilities/counts, it has to be strongly skewed to the positive when the mean is small.
+For more on Skewness, see @ref{Skewness caused by signal and its measurement}.
+
+@cindex Compare Poisson and Gaussian
+As @mymath{\lambda} becomes larger, the distribution becomes more and more symmetric, and the variance of that distribution is equal to its mean.
+In other words, the standard deviation is the square root of the mean.
+It can also be proved that when the mean is large, say @mymath{\lambda>1000}, the Poisson distribution approaches the @url{https://en.wikipedia.org/wiki/Normal_distribution, Normal (Gaussian) distribution} with mean @mymath{\mu=\lambda} and standard deviation @mymath{\sigma=\sqrt{\lambda}}.
+In other words, a Poisson distribution (with a sufficiently large @mymath{\lambda}) is simply a Gaussian that has one free parameter (@mymath{\mu=\lambda} and @mymath{\sigma=\sqrt{\lambda}}), instead of the two parameters that the Gaussian distribution originally has (independent @mymath{\mu} and @mymath{\sigma}).
+
+@cindex Sky value
+@cindex Background flux
+@cindex Undetected objects
+In real situations, the photons/flux from our targets are combined with photons from a certain background (observationally, the @emph{Sky} value).
+The Sky value is defined to be the average flux of a region in the dataset with no targets.
+Its physical origin can be the brightness of the atmosphere (for ground-based instruments), possible stray light within the imaging instrument, the average flux of undetected targets, etc.
+The Sky value is thus an ideal definition, because in real datasets, what lies deep in the noise (far lower than the detection limit) is never known@footnote{In a real image, a relatively large number of very faint objects can be fully buried in the noise and never detected.
+These undetected objects will bias the background measurement to slightly larger values.
+Our best approximation is thus to simply assume they are uniform, and consider their average effect.
+See Figure 1 (a.1 and a.2) and Section 2.2 in @url{https://arxiv.org/abs/1505.01664, Akhlaghi and Ichikawa [2015]}.}.
+To account for all of these, the sky value is defined to be the average count/value of the undetected regions in the image.
+In a mock image/dataset, we have the luxury of setting the background (Sky) value.
+
+@cindex Simulating noise
+@cindex Noise simulation
+In summary, the value in each element of the dataset (pixel in an image) is the sum of contributions from various galaxies and stars (after convolution by the PSF, see @ref{PSF}).
+Let's name the convolved sum of possibly overlapping objects in each pixel as @mymath{I_{nn}}.
+@mymath{nn} represents `no noise'.
+For now, let's assume the background (@mymath{B}) is constant and sufficiently high for the Poisson distribution to be approximated by a Gaussian.
+Then the flux of that pixel, after adding noise, is @emph{a random value} taken from a Gaussian distribution with the following mean (@mymath{\mu}) and standard deviation (@mymath{\sigma}):
+
+@dispmath{\mu=B+I_{nn}, \quad \sigma=\sqrt{B+I_{nn}}}
+
+@cindex Bias level in detectors
+@cindex Dark level in detectors
+In astronomical instruments, @mymath{B} is enhanced by adding a ``bias'' level to each pixel before the shutter is even opened (for the exposure to start).
+As the exposure is ongoing and photo-electrons are accumulating from the astronomical objects, a ``dark'' current (due to thermal radiation of the instrument) also builds up in the pixels.
+The ``dark'' current will accumulate even when the shutter is closed, but the CCD electronics are working (hence the name ``dark'').
+This added dark level further enhances the mean value in a real observation compared to the raw background value (from the atmosphere for example).
+
+Since this type of noise is inherent in the objects we study, it is usually measured on the same scale as the astronomical objects, namely the magnitude system, see @ref{Brightness flux magnitude}.
+It is then internally converted to the flux scale for further processing.
+
+The equations above clearly show the importance of the background value and its effect on the final signal to noise ratio in each pixel of a science image.
+It is therefore, one of the most important factors in understanding the noise (and properly simulating observations where necessary).
+An inappropriately bright background value can hide the signal of the mock profile hide behind the noise.
+In other words, a brighter background has larger standard deviation and vice versa.
+As a result, the only necessary parameter to define photon-counting noise over a mock image of simulated profiles is the background.
+For a complete example, see @ref{Sufi simulates a detection}.
+
+To better understand the correlation between the mean (or background) value and the noise standard deviation, let's use an analogy.
+Consider the profile of your galaxy to be analogous to the profile of a ship that is sailing in the sea.
+The height of the ship would therefore be analogous to the maximum flux difference between your galaxy's minimum and maximum values.
+Furthermore, let's take the depth of the sea to represent the background value: a deeper sea, corresponds to a brighter background.
+In this analogy, the ``noise'' would be the height of the waves that surround the ship: in deeper waters, the waves would also be taller (the square root of the mean depth at the ship's position).
+
+If the ship is in deep waters, the height of waves are greater than when the ship is near to the beach (at lower depths).
+Therefore, when the ship is in the middle of the sea, there are high waves that are capable of hiding a significant part of the ship from our perspective.
+This corresponds to a brighter background value in astronomical images: the resulting noise from that brighter background can completely wash out the signal from a fainter galaxy, star or solar system object.
+
+@node Instrumental noise, Final noised pixel value, Photon counting noise, Noise basics
+@subsubsection Instrumental noise
+
+@cindex Readout noise
+@cindex Instrumental noise
+@cindex Noise, instrumental
+While taking images with a camera, a bias current is fed to the pixels, the variation of the value of this bias current over the pixels, also adds to the final image noise.
+Another source of noise is the readout noise that is produced by the electronics in the detector.
+Specifically, the parts that attempt to digitize the voltage produced by the photo-electrons in the analog to digital converter.
+With the current generation of instruments, this source of noise is not as significant as the noise due to the background Sky discussed in @ref{Photon counting noise}.
+
+Let @mymath{C} represent the combined standard deviation of all these instrumental sources of noise.
+When only this source of noise is present, the noised pixel value would be a random value chosen from a Gaussian distribution with
+
+@dispmath{\mu=I_{nn}, \quad \sigma=\sqrt{C^2+I_{nn}}}
+
+@cindex ADU
+@cindex Gain
+@cindex Counts
+This type of noise is independent of the signal in the dataset, it is only determined by the instrument.
+So the flux scale (and not magnitude scale) is most commonly used for this type of noise.
+In practice, this value is usually reported in analog-to-digital units or ADUs, not flux or electron counts.
+The gain value of the device can be used to convert between these two, see @ref{Brightness flux magnitude}.
+
+@node Final noised pixel value, Generating random numbers, Instrumental noise, Noise basics
+@subsubsection Final noised pixel value
+Based on the discussions in @ref{Photon counting noise} and @ref{Instrumental noise}, depending on the values you specify for @mymath{B} and @mymath{C} from the above, the final noised value for each pixel is a random value chosen from a Gaussian distribution with
+
+@dispmath{\mu=B+I_{nn}, \quad \sigma=\sqrt{C^2+B+I_{nn}}}
+
+
+
+@node Generating random numbers,  , Final noised pixel value, Noise basics
+@subsubsection Generating random numbers
+
+@cindex Random numbers
+@cindex Numbers, random
+As discussed above, to generate noise we need to make random samples of a particular distribution.
+So it is important to understand some general concepts regarding the generation of random numbers.
+For a very complete and nice introduction we strongly advise reading Donald Knuth's ``The art of computer programming'', volume 2, chapter 3@footnote{Knuth, Donald. 1998.
+The art of computer programming. Addison--Wesley. ISBN 0-201-89684-2 }.
+Quoting from the GNU Scientific Library manual, ``If you do not own it, you should stop reading right now, run to the nearest bookstore, and buy it''@footnote{For students, running to the library might be more affordable!}!
+
+@cindex Psuedo-random numbers
+@cindex Numbers, psuedo-random
+Using only software, we can only produce what is called a psuedo-random sequence of numbers.
+A true random number generator is a hardware (let's assume we have made sure it has no systematic biases), for example, throwing dice or flipping coins (which have remained from the ancient times).
+More modern hardware methods use atmospheric noise, thermal noise or other types of external electromagnetic or quantum phenomena.
+All pseudo-random number generators (software) require a seed to be the basis of the generation.
+The advantage of having a seed is that if you specify the same seed for multiple runs, you will get an identical sequence of random numbers which allows you to reproduce the same final noised image.
+
+@cindex Environment variables
+@cindex GNU Scientific Library
+The programs in GNU Astronomy Utilities (for example, MakeNoise or MakeProfiles) use the GNU Scientific Library (GSL) to generate random numbers.
+GSL allows the user to set the random number generator through environment variables, see @ref{Installation directory} for an introduction to environment variables.
+In the chapter titled ``Random Number Generation'' they have fully explained the various random number generators that are available (there are a lot of them!).
+Through the two environment variables @code{GSL_RNG_TYPE} and @code{GSL_RNG_SEED} you can specify the generator and its seed respectively.
+
+@cindex Seed, Random number generator
+@cindex Random number generator, Seed
+If you do not specify a value for @code{GSL_RNG_TYPE}, GSL will use its default random number generator type.
+The default type is sufficient for most general applications.
+If no value is given for the @code{GSL_RNG_SEED} environment variable and you have asked Gnuastro to read the seed from the environment (through the @option{--envseed} option), then GSL will use the default value of each generator to give identical outputs.
+If you do not explicitly tell Gnuastro programs to read the seed value from the environment variable, then they will use the system time (accurate to within a microsecond) to generate (apparently random) seeds.
+In this manner, every time you run the program, you will get a different random number distribution.
+
+There are two ways you can specify values for these environment variables.
+You can call them on the same command-line for example:
+
+@example
+$ GSL_RNG_TYPE="taus" GSL_RNG_SEED=345 astarithmetic input.fits \
+                                                     mknoise-sigma \
+                                                     --envseed
+@end example
+
+@noindent
+In this manner the values will only be used for this particular execution of Arithmetic.
+However, it makes your code hard to read!
+Alternatively, you can define them for the full period of your terminal session or script, using the shell's @command{export} command with the two separate commands below (for a script remove the @code{$} signs):
+
+@example
+$ export GSL_RNG_TYPE="taus"
+$ export GSL_RNG_SEED=345
+@end example
+
+@cindex Startup scripts
+@cindex @file{.bashrc}
+@noindent
+The subsequent programs which use GSL's random number generators will hence forth use these values in this session of the terminal you are running or while executing this script.
+In case you want to set fixed values for these parameters every time you use the GSL random number generator, you can add these two lines to your @file{.bashrc} startup script@footnote{Do Not forget that if you are going to give your scripts (that use the GSL random number generator) to others you have to make sure you also tell them to set these environment variable separately.
+So for scripts, it is best to keep all such variable definitions within the script, even if they are within your @file{.bashrc}.}, see @ref{Installation directory}.
+
+@strong{IMPORTANT NOTE:} If the two environment variables @code{GSL_RNG_TYPE} and @code{GSL_RNG_SEED} are defined, GSL will report them by default, even if you do not use the @option{--envseed} option.
+For example, see this call to MakeProfiles:
+
+@example
+$ export GSL_RNG_TYPE=taus
+$ export GSL_RNG_SEED=345
+$ astmkprof -s1 --kernel=gaussian,2,5
+GSL_RNG_TYPE=taus
+GSL_RNG_SEED=345
+MakeProfiles V.VV started on DDD MMM DDD HH:MM:SS YYYY
+  - Building one gaussian kernel
+  - Random number generator (RNG) type: taus
+  - Basic RNG seed: 1618960836
+  ---- ./kernel.fits created.
+  -- Output: ./kernel.fits
+MakeProfiles finished in 0.068945 seconds
+@end example
+
+@noindent
+@cindex Seed, Random number generator
+@cindex Random number generator, Seed
+The first two output lines (showing the names and values of the GSL environment variables) are printed by GSL before MakeProfiles actually starts generating random numbers.
+Gnuastro's programs will report the actual values they use independently (after the name of the program), you should check them for the final values used, not GSL's printed values.
+In the example above, did you notice how the random number generator seed above is different between GSL and MakeProfiles?
+However, if @option{--envseed} was given, both printed seeds would be the same.
+
+@node Arithmetic operators, Invoking astarithmetic, Noise basics, Arithmetic
 @subsection Arithmetic operators
 
 In this section, list of recognized operators in Arithmetic (and the Table program's @ref{Column arithmetic}) and discussed in detail with examples.
@@ -19390,7 +19604,7 @@ Reading NaN as a floating point number in Gnuastro is not case-sensitive.
 * Bitwise operators::           Work on bits within one pixel.
 * Numerical type conversion operators::  Convert the numeric datatype of a dataset.
 * Random number generators::    Random numbers can be used to add noise for example.
-* Box shape operators::         Dealing with box shapes and coordinates of vertices.
+* Box shape operators::
 * Loading external columns::    Read a column from a table into the stack.
 * Size and position operators::  Extracting image size and pixel positions.
 * Building new dataset and stack management::  How to construct an empty dataset from scratch.
@@ -29412,13 +29626,12 @@ The tools in this chapter create model galaxies and will provide 2D fittings to 
 
 @menu
 * MakeProfiles::                Making mock galaxies and stars.
-* MakeNoise::                   Make (add) noise to an image.
 @end menu
 
 
 
 
-@node MakeProfiles, MakeNoise, Data modeling, Data modeling
+@node MakeProfiles,  , Data modeling, Data modeling
 @section MakeProfiles
 
 @cindex Checking detection algorithms
@@ -30494,333 +30707,6 @@ If an individual image was created, this column will have a value of @code{1}, o
 @end itemize
 
 
-
-
-
-
-
-
-
-
-
-
-@node MakeNoise,  , MakeProfiles, Data modeling
-@section MakeNoise
-
-@cindex Noise
-Real data are always buried in noise, therefore to finalize a simulation of real data (for example, to test our observational algorithms) it is essential to add noise to the mock profiles created with MakeProfiles, see @ref{MakeProfiles}.
-Below, the general principles and concepts to help understand how noise is quantified is discussed.
-MakeNoise options and argument are then discussed in @ref{Invoking astmknoise}.
-
-@menu
-* Noise basics::                Noise concepts and definitions.
-* Invoking astmknoise::         Options and arguments to MakeNoise.
-@end menu
-
-
-
-@node Noise basics, Invoking astmknoise, MakeNoise, MakeNoise
-@subsection Noise basics
-
-@cindex Noise
-@cindex Image noise
-Deep astronomical images, like those used in extragalactic studies, seriously suffer from noise in the data.
-Generally speaking, the sources of noise in an astronomical image are photon counting noise and Instrumental noise which are discussed in @ref{Photon counting noise} and @ref{Instrumental noise}.
-This review finishes with @ref{Generating random numbers} which is a short introduction on how random numbers are generated.
-We will see that while software random number generators are not perfect, they allow us to obtain a reproducible series of random numbers through setting the random number generator function and seed value.
-Therefore in this section, we will also discuss how you can set these two parameters in Gnuastro's programs (including MakeNoise).
-
-@menu
-* Photon counting noise::       Poisson noise
-* Instrumental noise::          Readout, dark current and other sources.
-* Final noised pixel value::    How the final noised value is calculated.
-* Generating random numbers::   How random numbers are generated.
-@end menu
-
-@node Photon counting noise, Instrumental noise, Noise basics, Noise basics
-@subsubsection Photon counting noise
-
-@cindex Counting error
-@cindex de Moivre, Abraham
-@cindex Poisson distribution
-@cindex Photon counting noise
-@cindex Poisson, Sim@'eon Denis
-With the very accurate electronics used in today's detectors, photon counting noise@footnote{In practice, we are actually counting the electrons that are produced by each photon, not the actual photons.} is the most significant source of uncertainty in most datasets.
-To understand this noise (error in counting) and its effect on the images of astronomical targets, let's start by reviewing how a distribution produced by counting can be modeled as a parametric function.
-
-Counting is an inherently discrete operation, which can only produce positive integer outputs (including zero).
-For example, we cannot count @mymath{3.2} or @mymath{-2} of anything.
-We only count @mymath{0}, @mymath{1}, @mymath{2}, @mymath{3} and so on.
-The distribution of values, as a result of counting efforts is formally known as the @url{https://en.wikipedia.org/wiki/Poisson_distribution, Poisson distribution}.
-It is associated to Sim@'eon Denis Poisson, because he discussed it while working on the number of wrongful convictions in court cases in his 1837 book@footnote{[From Wikipedia] Poisson's result was also derived in a previous study by Abraham de Moivre in 1711.
-Therefore some people suggest it should rightly be called the de Moivre distribution.}.
-
-@cindex Probability density function
-Let's take @mymath{\lambda} to represent the expected mean count of something.
-Furthermore, let's take @mymath{k} to represent the output of a counting attempt (hence @mymath{k} is a positive integer).
-The probability density function of getting @mymath{k} counts (in each attempt, given the expected/mean count of @mymath{\lambda}) can be written as:
-
-@cindex Poisson distribution
-@dispmath{f(k)={\lambda^k \over k!} e^{-\lambda},\quad k\in @{0, 1, 2, 3, \dots @}}
-
-@cindex Skewed Poisson distribution
-Because the Poisson distribution is only applicable to positive integer values (note the factorial operator, which only applies to non-negative integers), naturally it is very skewed when @mymath{\lambda} is near zero.
-One qualitative way to understand this behavior is that for smaller values near zero, there simply are not enough integers smaller than the mean, than integers that are larger.
-Therefore to accommodate all possibilities/counts, it has to be strongly skewed to the positive when the mean is small.
-For more on Skewness, see @ref{Skewness caused by signal and its measurement}.
-
-@cindex Compare Poisson and Gaussian
-As @mymath{\lambda} becomes larger, the distribution becomes more and more symmetric, and the variance of that distribution is equal to its mean.
-In other words, the standard deviation is the square root of the mean.
-It can also be proved that when the mean is large, say @mymath{\lambda>1000}, the Poisson distribution approaches the @url{https://en.wikipedia.org/wiki/Normal_distribution, Normal (Gaussian) distribution} with mean @mymath{\mu=\lambda} and standard deviation @mymath{\sigma=\sqrt{\lambda}}.
-In other words, a Poisson distribution (with a sufficiently large @mymath{\lambda}) is simply a Gaussian that has one free parameter (@mymath{\mu=\lambda} and @mymath{\sigma=\sqrt{\lambda}}), instead of the two parameters that the Gaussian distribution originally has (independent @mymath{\mu} and @mymath{\sigma}).
-
-@cindex Sky value
-@cindex Background flux
-@cindex Undetected objects
-In real situations, the photons/flux from our targets are combined with photons from a certain background (observationally, the @emph{Sky} value).
-The Sky value is defined to be the average flux of a region in the dataset with no targets.
-Its physical origin can be the brightness of the atmosphere (for ground-based instruments), possible stray light within the imaging instrument, the average flux of undetected targets, etc.
-The Sky value is thus an ideal definition, because in real datasets, what lies deep in the noise (far lower than the detection limit) is never known@footnote{In a real image, a relatively large number of very faint objects can be fully buried in the noise and never detected.
-These undetected objects will bias the background measurement to slightly larger values.
-Our best approximation is thus to simply assume they are uniform, and consider their average effect.
-See Figure 1 (a.1 and a.2) and Section 2.2 in @url{https://arxiv.org/abs/1505.01664, Akhlaghi and Ichikawa [2015]}.}.
-To account for all of these, the sky value is defined to be the average count/value of the undetected regions in the image.
-In a mock image/dataset, we have the luxury of setting the background (Sky) value.
-
-@cindex Simulating noise
-@cindex Noise simulation
-In summary, the value in each element of the dataset (pixel in an image) is the sum of contributions from various galaxies and stars (after convolution by the PSF, see @ref{PSF}).
-Let's name the convolved sum of possibly overlapping objects in each pixel as @mymath{I_{nn}}.
-@mymath{nn} represents `no noise'.
-For now, let's assume the background (@mymath{B}) is constant and sufficiently high for the Poisson distribution to be approximated by a Gaussian.
-Then the flux of that pixel, after adding noise, is @emph{a random value} taken from a Gaussian distribution with the following mean (@mymath{\mu}) and standard deviation (@mymath{\sigma}):
-
-@dispmath{\mu=B+I_{nn}, \quad \sigma=\sqrt{B+I_{nn}}}
-
-@cindex Bias level in detectors
-@cindex Dark level in detectors
-In astronomical instruments, @mymath{B} is enhanced by adding a ``bias'' level to each pixel before the shutter is even opened (for the exposure to start).
-As the exposure is ongoing and photo-electrons are accumulating from the astronomical objects, a ``dark'' current (due to thermal radiation of the instrument) also builds up in the pixels.
-The ``dark'' current will accumulate even when the shutter is closed, but the CCD electronics are working (hence the name ``dark'').
-This added dark level further enhances the mean value in a real observation compared to the raw background value (from the atmosphere for example).
-
-Since this type of noise is inherent in the objects we study, it is usually measured on the same scale as the astronomical objects, namely the magnitude system, see @ref{Brightness flux magnitude}.
-It is then internally converted to the flux scale for further processing.
-
-The equations above clearly show the importance of the background value and its effect on the final signal to noise ratio in each pixel of a science image.
-It is therefore, one of the most important factors in understanding the noise (and properly simulating observations where necessary).
-An inappropriately bright background value can hide the signal of the mock profile hide behind the noise.
-In other words, a brighter background has larger standard deviation and vice versa.
-As a result, the only necessary parameter to define photon-counting noise over a mock image of simulated profiles is the background.
-For a complete example, see @ref{Sufi simulates a detection}.
-
-To better understand the correlation between the mean (or background) value and the noise standard deviation, let's use an analogy.
-Consider the profile of your galaxy to be analogous to the profile of a ship that is sailing in the sea.
-The height of the ship would therefore be analogous to the maximum flux difference between your galaxy's minimum and maximum values.
-Furthermore, let's take the depth of the sea to represent the background value: a deeper sea, corresponds to a brighter background.
-In this analogy, the ``noise'' would be the height of the waves that surround the ship: in deeper waters, the waves would also be taller (the square root of the mean depth at the ship's position).
-
-If the ship is in deep waters, the height of waves are greater than when the ship is near to the beach (at lower depths).
-Therefore, when the ship is in the middle of the sea, there are high waves that are capable of hiding a significant part of the ship from our perspective.
-This corresponds to a brighter background value in astronomical images: the resulting noise from that brighter background can completely wash out the signal from a fainter galaxy, star or solar system object.
-
-@node Instrumental noise, Final noised pixel value, Photon counting noise, Noise basics
-@subsubsection Instrumental noise
-
-@cindex Readout noise
-@cindex Instrumental noise
-@cindex Noise, instrumental
-While taking images with a camera, a bias current is fed to the pixels, the variation of the value of this bias current over the pixels, also adds to the final image noise.
-Another source of noise is the readout noise that is produced by the electronics in the detector.
-Specifically, the parts that attempt to digitize the voltage produced by the photo-electrons in the analog to digital converter.
-With the current generation of instruments, this source of noise is not as significant as the noise due to the background Sky discussed in @ref{Photon counting noise}.
-
-Let @mymath{C} represent the combined standard deviation of all these instrumental sources of noise.
-When only this source of noise is present, the noised pixel value would be a random value chosen from a Gaussian distribution with
-
-@dispmath{\mu=I_{nn}, \quad \sigma=\sqrt{C^2+I_{nn}}}
-
-@cindex ADU
-@cindex Gain
-@cindex Counts
-This type of noise is independent of the signal in the dataset, it is only determined by the instrument.
-So the flux scale (and not magnitude scale) is most commonly used for this type of noise.
-In practice, this value is usually reported in analog-to-digital units or ADUs, not flux or electron counts.
-The gain value of the device can be used to convert between these two, see @ref{Brightness flux magnitude}.
-
-@node Final noised pixel value, Generating random numbers, Instrumental noise, Noise basics
-@subsubsection Final noised pixel value
-Based on the discussions in @ref{Photon counting noise} and @ref{Instrumental noise}, depending on the values you specify for @mymath{B} and @mymath{C} from the above, the final noised value for each pixel is a random value chosen from a Gaussian distribution with
-
-@dispmath{\mu=B+I_{nn}, \quad \sigma=\sqrt{C^2+B+I_{nn}}}
-
-
-
-@node Generating random numbers,  , Final noised pixel value, Noise basics
-@subsubsection Generating random numbers
-
-@cindex Random numbers
-@cindex Numbers, random
-As discussed above, to generate noise we need to make random samples of a particular distribution.
-So it is important to understand some general concepts regarding the generation of random numbers.
-For a very complete and nice introduction we strongly advise reading Donald Knuth's ``The art of computer programming'', volume 2, chapter 3@footnote{Knuth, Donald. 1998.
-The art of computer programming. Addison--Wesley. ISBN 0-201-89684-2 }.
-Quoting from the GNU Scientific Library manual, ``If you do not own it, you should stop reading right now, run to the nearest bookstore, and buy it''@footnote{For students, running to the library might be more affordable!}!
-
-@cindex Psuedo-random numbers
-@cindex Numbers, psuedo-random
-Using only software, we can only produce what is called a psuedo-random sequence of numbers.
-A true random number generator is a hardware (let's assume we have made sure it has no systematic biases), for example, throwing dice or flipping coins (which have remained from the ancient times).
-More modern hardware methods use atmospheric noise, thermal noise or other types of external electromagnetic or quantum phenomena.
-All pseudo-random number generators (software) require a seed to be the basis of the generation.
-The advantage of having a seed is that if you specify the same seed for multiple runs, you will get an identical sequence of random numbers which allows you to reproduce the same final noised image.
-
-@cindex Environment variables
-@cindex GNU Scientific Library
-The programs in GNU Astronomy Utilities (for example, MakeNoise or MakeProfiles) use the GNU Scientific Library (GSL) to generate random numbers.
-GSL allows the user to set the random number generator through environment variables, see @ref{Installation directory} for an introduction to environment variables.
-In the chapter titled ``Random Number Generation'' they have fully explained the various random number generators that are available (there are a lot of them!).
-Through the two environment variables @code{GSL_RNG_TYPE} and @code{GSL_RNG_SEED} you can specify the generator and its seed respectively.
-
-@cindex Seed, Random number generator
-@cindex Random number generator, Seed
-If you do not specify a value for @code{GSL_RNG_TYPE}, GSL will use its default random number generator type.
-The default type is sufficient for most general applications.
-If no value is given for the @code{GSL_RNG_SEED} environment variable and you have asked Gnuastro to read the seed from the environment (through the @option{--envseed} option), then GSL will use the default value of each generator to give identical outputs.
-If you do not explicitly tell Gnuastro programs to read the seed value from the environment variable, then they will use the system time (accurate to within a microsecond) to generate (apparently random) seeds.
-In this manner, every time you run the program, you will get a different random number distribution.
-
-There are two ways you can specify values for these environment variables.
-You can call them on the same command-line for example:
-
-@example
-$ GSL_RNG_TYPE="taus" GSL_RNG_SEED=345 astmknoise input.fits
-@end example
-
-@noindent
-In this manner the values will only be used for this particular execution of MakeNoise.
-Alternatively, you can define them for the full period of your terminal session or script length, using the shell's @command{export} command with the two separate commands below (for a script remove the @code{$} signs):
-
-@example
-$ export GSL_RNG_TYPE="taus"
-$ export GSL_RNG_SEED=345
-@end example
-
-@cindex Startup scripts
-@cindex @file{.bashrc}
-@noindent
-The subsequent programs which use GSL's random number generators will hence forth use these values in this session of the terminal you are running or while executing this script.
-In case you want to set fixed values for these parameters every time you use the GSL random number generator, you can add these two lines to your @file{.bashrc} startup script@footnote{Do Not forget that if you are going to give your scripts (that use the GSL random number generator) to others you have to make sure you also tell them to set these environment variable separately.
-So for scripts, it is best to keep all such variable definitions within the script, even if they are within your @file{.bashrc}.}, see @ref{Installation directory}.
-
-@strong{IMPORTANT NOTE:} If the two environment variables @code{GSL_RNG_TYPE} and @code{GSL_RNG_SEED} are defined, GSL will report them by default, even if you do not use the @option{--envseed} option.
-For example, see this call to MakeProfiles:
-
-@example
-$ export GSL_RNG_TYPE=taus
-$ export GSL_RNG_SEED=345
-$ astmkprof -s1 --kernel=gaussian,2,5
-GSL_RNG_TYPE=taus
-GSL_RNG_SEED=345
-MakeProfiles V.VV started on DDD MMM DDD HH:MM:SS YYYY
-  - Building one gaussian kernel
-  - Random number generator (RNG) type: taus
-  - Basic RNG seed: 1618960836
-  ---- ./kernel.fits created.
-  -- Output: ./kernel.fits
-MakeProfiles finished in 0.068945 seconds
-@end example
-
-@noindent
-@cindex Seed, Random number generator
-@cindex Random number generator, Seed
-The first two output lines (showing the names and values of the GSL environment variables) are printed by GSL before MakeProfiles actually starts generating random numbers.
-Gnuastro's programs will report the actual values they use independently (after the name of the program), you should check them for the final values used, not GSL's printed values.
-In the example above, did you notice how the random number generator seed above is different between GSL and MakeProfiles?
-However, if @option{--envseed} was given, both printed seeds would be the same.
-
-
-@node Invoking astmknoise,  , Noise basics, MakeNoise
-@subsection Invoking MakeNoise
-
-MakeNoise will add noise to an existing image.
-The executable name is @file{astmknoise} with the following general template
-
-@example
-$ astmknoise [OPTION ...] InputImage.fits
-@end example
-
-@noindent
-One line examples:
-
-@example
-## Add noise with a standard deviation of 100 to image.
-## (this is independent of the pixel value: not Poission noise)
-$ astmknoise --sigma=100 image.fits
-
-## Add noise to the input image assuming a per-pixel background
-## magnitude (with zero point magnitude of 0) and an
-## instrumental noise of 20.
-$ astmknoise --background=-10 -z0 --instrumental=20 mockimage.fits
-@end example
-
-@noindent
-If actual processing is to be done, the input image is a mandatory argument.
-The full list of options common to all the programs in Gnuastro can be seen in @ref{Common options}.
-The type (see @ref{Numeric data types}) of the output can be specified with the @option{--type} option, see @ref{Input output options}.
-The header of the output FITS file keeps all the parameters that were influential in making it.
-This is done for future reproducibility.
-
-@table @option
-
-@item -b FLT
-@itemx --background=FLT
-The background value (per pixel) that will be added to each pixel value (internally) to simulate Poisson noise, see @ref{Photon counting noise}.
-By default the units of this value are assumed to be in magnitudes, hence a @option{--zeropoint} is also necessary.
-If the background is in units of counts, you need add @option{--bgisbrightness}, see @ref{Brightness flux magnitude}.
-
-Internally, the value given to this option will be converted to counts (@mymath{b}, when @option{--bgnotmag} is called, the value will be used directly).
-Assuming the pixel value is @mymath{p}, the random value for that pixel will be taken from a Gaussian distribution with mean of @mymath{p+b} and standard deviation of @mymath{\sqrt{p+b}}.
-With this option, the noise will therefore be dependent on the pixel values: according to the Poission noise model, as the pixel value becomes larger, its noise will also become larger.
-This is thus a realistic way to model noise, see @ref{Photon counting noise}.
-
-@item -B
-@itemx --bgnotmag
-The value given to @option{--background} should not be interpreted as a magnitude, but the raw pixel units (usually counts).
-
-@item -z FLT
-@itemx --zeropoint=FLT
-The zero point magnitude used to convert the value of @option{--background} (in units of magnitude) to flux, see @ref{Brightness flux magnitude}.
-
-@item -i FLT
-@itemx --instrumental=FLT
-The instrumental noise which is in units of flux, see @ref{Instrumental noise}.
-
-@item -s FLT
-@item --sigma=FLT
-The total noise sigma in the same units as the pixel values.
-With this option, the @option{--background}, @option{--zeropoint} and @option{--instrumental} will be ignored.
-With this option, the noise will be independent of the pixel values (which is not realistic, see @ref{Photon counting noise}).
-Hence it is only useful if you are working on low surface brightness regions where the change in pixel value (and thus real noise) is insignificant.
-
-Generally, @strong{usage of this option is discouraged} unless you understand the risks of not simulating real noise.
-This is because with this option, you will not get Poisson noise (the common noise model for astronomical imaging), where the noise varies based on pixel value.
-Use @option{--background} for adding Poission noise.
-
-@item -e
-@itemx --envseed
-@cindex Seed, Random number generator
-@cindex Random number generator, Seed
-Use the @code{GSL_RNG_SEED} environment variable for the seed used in the random number generator, see @ref{Generating random numbers}.
-With this option, the output image noise is always going to be identical (or reproducible).
-
-@item -d
-@itemx --doubletype
-Save the output in the double precision floating point format that was used internally.
-This option will be most useful if the input images were of integer types.
-
-@end table
 
 
 
