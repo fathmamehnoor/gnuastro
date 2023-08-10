@@ -123,6 +123,18 @@ See the end of the file for license conditions.
     --sigclip-mean-sb       SIGCLIP_MEAN_SB        SIGCLIP-MEAN-SB
     --sigclip-mean-sb-delta SIGCLIP_MEAN_SB_DELTA  SIGCLIP-MEAN-SB-ERR
     --------------------------------------------------------------
+  - The default extension name for the values image ('--valueshdu') is now
+    'INPUT-NO-SKY'. Until now, it was simply '1' (without any hint on what
+    what is expected by default). Recall that if the sky is not subtracted
+    from the values image you can use '--sky' for MakeCatalog to subtract
+    it before the measurements. Implemented by Sepideh Eskandarlou.
+
+  Segment
+  - The default name of the first extension of Segment's output is now
+    'INPUT-NO-SKY', until now, it was 'INPUT'. This was necessary because
+    the first extension of the output is not the exact input file (if a
+    value is given to '--sky' it will be subtracted from the input in the
+    first extension). Implemented by Sepideh Eskandarlou.
 
 ** Bugs fixed
   bug #64138: Arithmetic's mknoise-poisson only using first pixel value.

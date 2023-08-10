@@ -1386,7 +1386,6 @@ segment_output(struct segmentparams *p)
   if(!p->rawoutput)
     gal_fits_img_write(p->input, p->cp.output, NULL, PROGRAM_NAME);
 
-
   /* The clump labels. */
   gal_fits_key_list_add(&keys, GAL_TYPE_FLOAT32, "CLUMPSN", 0,
                         &p->clumpsnthresh, 0, "Minimum S/N of true clumps",
@@ -1398,7 +1397,6 @@ segment_output(struct segmentparams *p)
   gal_fits_img_write(p->clabel, p->cp.output, keys, PROGRAM_NAME);
   p->clabel->name=NULL;
   keys=NULL;
-
 
   /* The object labels. */
   if(!p->noobjects)

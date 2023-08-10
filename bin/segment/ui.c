@@ -422,9 +422,13 @@ ui_prepare_inputs(struct segmentparams *p)
                                             p->input->dsize,
                                             p->input->wcs);
 
-  /* Set the name. */
+
+  /* Set the name (the sky will be subtracted here in 'ui.c' before any
+     processing. We want the name to be similar to be descriptive and
+     remind the user that the sky (which may be given to Segment) has been
+     subtracted (this is also the same name in NoiseChisel's output). */
   if(p->input->name) free(p->input->name);
-  gal_checkset_allocate_copy("INPUT", &p->input->name);
+  gal_checkset_allocate_copy("INPUT-NO-SKY", &p->input->name);
 
 
   /* Check for blank values to help later processing.  */

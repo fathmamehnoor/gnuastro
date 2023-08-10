@@ -6081,7 +6081,7 @@ You can do this using Arithmetic in a command like below.
 For easy reading of the command, we will define the shell variable @code{i} for the image name and save the output in @file{masked.fits}.
 
 @example
-$ in="r_segmented.fits -hINPUT"
+$ in="r_segmented.fits -hINPUT-NO-SKY"
 $ clumps="r_segmented.fits -hCLUMPS"
 $ astarithmetic $in $clumps 0 gt nan where -oclumps-masked.fits
 @end example
@@ -20700,7 +20700,7 @@ For example, let's assume that you have set @ref{NoiseChisel} and @ref{Segment} 
 With the command below on Segment's output, you will have a smaller image that only contains the sky-subtracted input pixels corresponding to object 263.
 
 @example
-$ astarithmetic seg.fits -hINPUT seg.fits -hOBJECTS \
+$ astarithmetic seg.fits -hINPUT-NO-SKY seg.fits -hOBJECTS \
                 263 ne nan where trim --output=obj-263.fits
 @end example
 
@@ -27071,7 +27071,7 @@ $ astfits image_segmented.fits -h0 | grep -i snquant
 
 @cindex DS9
 @cindex SAO DS9
-By default, besides the @code{CLUMPS} and @code{OBJECTS} extensions, Segment's output will also contain the (technically redundant) input dataset and the sky standard deviation dataset (if it was not a constant number).
+By default, besides the @code{CLUMPS} and @code{OBJECTS} extensions, Segment's output will also contain the (technically redundant) sky-subtracted input dataset (@code{INPUT-NO-SKY}) and the sky standard deviation dataset (@code{SKY_STD}, if it was not a constant number).
 This can help in visually inspecting the result when viewing the images as a ``Multi-extension data cube'' in SAO DS9 for example, (see @ref{Viewing FITS file contents with DS9 or TOPCAT}).
 You can simply flip through the extensions and see the same region of the image and its corresponding clumps/object labels.
 It also makes it easy to feed the output (as one file) into MakeCatalog when you intend to make a catalog afterwards (see @ref{MakeCatalog}.
