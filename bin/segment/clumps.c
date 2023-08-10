@@ -852,11 +852,7 @@ clumps_det_keep_true_relabel(struct clumps_thread_params *cltprm)
                  touching a river or not. */
               istouching=0;
               GAL_DIMENSION_NEIGHBOR_OP(cltprm->topinds[i], ndim, dsize,
-                                        ndim, dinc,
-                                        {
-                                          if(clabel[nind]==0)
-                                            istouching=1;
-                                        });
+                        ndim, dinc, { if(clabel[nind]<1) istouching=1; });
 
               /* If the peak isn't touching a river, then check its S/N and
                  if that is also good, give it a new label. */
