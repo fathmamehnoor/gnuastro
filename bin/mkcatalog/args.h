@@ -1327,6 +1327,34 @@ struct argp_option program_options[] =
       ui_column_codes_ll
     },
     {
+      "river-min",
+      UI_KEY_RIVERMIN,
+      0,
+      0,
+      "Minimum river value around clump.",
+      UI_GROUP_COLUMNS_BRIGHTNESS,
+      0,
+      GAL_TYPE_INVALID,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
+      ui_column_codes_ll
+    },
+    {
+      "river-max",
+      UI_KEY_RIVERMAX,
+      0,
+      0,
+      "Maximum river value around clump.",
+      UI_GROUP_COLUMNS_BRIGHTNESS,
+      0,
+      GAL_TYPE_INVALID,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
+      ui_column_codes_ll
+    },
+    {
       "sn",
       UI_KEY_SN,
       0,

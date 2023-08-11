@@ -28395,7 +28395,7 @@ This can be a good measure to see how much you can trust the random measurements
 
 @item --river-mean
 [Clumps] The average of the river pixel values around this clump.
-River pixels were defined in Akhlaghi and Ichikawa 2015.
+River pixels were defined in @url{https://arxiv.org/abs/1505.01664, Akhlaghi and Ichikawa 2015}.
 In short they are the pixels immediately outside of the clumps.
 This value is used internally to find the sum (or magnitude) and signal to noise ratio of the clumps.
 It can generally also be used as a scale to gauge the base (ambient) flux surrounding the clump.
@@ -28403,8 +28403,13 @@ In case there was no river pixels, then this column will have the value of the S
 So note that this value is @emph{not} sky subtracted.
 
 @item --river-num
-[Clumps] The number of river pixels around this clump, see
-@option{--river-mean}.
+[Clumps] The number of river pixels around this clump, see @option{--river-mean}.
+
+@item --river-min
+[Clumps] Minimum river value around this clump, see @option{--river-mean}.
+
+@item --river-max
+[Clumps] Maximum river value around this clump, see @option{--river-mean}.
 
 @item --sn
 The Signal to noise ratio (S/N) of all clumps or objects.

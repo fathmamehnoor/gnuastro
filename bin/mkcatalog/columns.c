@@ -1619,6 +1619,32 @@ columns_define_alloc(struct mkcatalogparams *p)
           ciflag[ CCOL_RIV_NUM ] = ciflag[ CCOL_RIV_SUM ] = 1;
           break;
 
+        case UI_KEY_RIVERMIN:
+          name           = "RIVER_MIN";
+          unit           = MKCATALOG_NO_UNIT;
+          ocomment       = NULL;
+          ccomment       = "Minimum river value surrounding this clump.";
+          otype          = GAL_TYPE_INVALID;
+          ctype          = GAL_TYPE_FLOAT32;
+          disp_fmt       = GAL_TABLE_DISPLAY_FMT_GENERAL;
+          disp_width     = 10;
+          disp_precision = 5;
+          ciflag[ CCOL_RIV_NUM ] = ciflag[ CCOL_RIV_MIN ] = 1;
+          break;
+
+        case UI_KEY_RIVERMAX:
+          name           = "RIVER_MAX";
+          unit           = MKCATALOG_NO_UNIT;
+          ocomment       = NULL;
+          ccomment       = "Maximum river value surrounding this clump.";
+          otype          = GAL_TYPE_INVALID;
+          ctype          = GAL_TYPE_FLOAT32;
+          disp_fmt       = GAL_TABLE_DISPLAY_FMT_GENERAL;
+          disp_width     = 10;
+          disp_precision = 5;
+          ciflag[ CCOL_RIV_NUM ] = ciflag[ CCOL_RIV_MAX ] = 1;
+          break;
+
         case UI_KEY_RIVERNUM:
           name           = "RIVER_NUM";
           unit           = "counter";
@@ -3372,6 +3398,16 @@ columns_fill(struct mkcatalog_passparams *pp)
             ((float *)colarr)[cind]=(ci[ CCOL_RIV_NUM]
                                      ? ci[ CCOL_RIV_SUM ]/ci[ CCOL_RIV_NUM]
                                      : NAN );
+            break;
+
+          case UI_KEY_RIVERMIN:
+            ((float *)colarr)[cind] = ( ci[ CCOL_RIV_NUM]
+                                        ? ci[ CCOL_RIV_MIN ] : NAN );
+            break;
+
+          case UI_KEY_RIVERMAX:
+            ((float *)colarr)[cind] = ( ci[ CCOL_RIV_NUM]
+                                        ? ci[ CCOL_RIV_MAX ] : NAN );
             break;
 
           case UI_KEY_RIVERNUM:

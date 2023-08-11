@@ -1053,9 +1053,23 @@ parse_clumps(struct mkcatalog_passparams *pp)
                                if(cif[ CCOL_RIV_NUM  ])
                                  cir[ CCOL_RIV_NUM ]++;
 
+                               /* Total sum of values in river. */
                                if(cif[ CCOL_RIV_SUM  ])
                                  cir[ CCOL_RIV_SUM ] += *V;
 
+                               /* Minimum river value. */
+                               if(cif[CCOL_RIV_MIN])
+                                 if(cir[CCOL_RIV_NUM]==1
+                                    || *V < cir[CCOL_RIV_MIN])
+                                   cir[CCOL_RIV_MIN]=*V;
+
+                               /* Maximum river value. */
+                               if(cif[CCOL_RIV_MAX])
+                                 if(cir[CCOL_RIV_NUM]==1
+                                    || *V > cir[CCOL_RIV_MAX])
+                                   cir[CCOL_RIV_MAX]=*V;
+
+                               /* Sum of variances within river. */
                                if(cif[ CCOL_RIV_SUM_VAR  ])
                                  {
                                    sval = ( pp->st_std

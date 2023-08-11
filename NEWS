@@ -60,6 +60,11 @@ See the end of the file for license conditions.
     Gnuastro could only read TIFF files). This step was written by Fathma
     Mehnoor.
 
+  MakeCatalog:
+  - New measurements:
+    --river-min: minimum river value around a clump.
+    --river-max: minimum river value around a clump.
+
   Table:
   --info-num-cols: print the number of the input table's columns and abort.
   --info-num-rows: print the number of the input table's rows and abort.

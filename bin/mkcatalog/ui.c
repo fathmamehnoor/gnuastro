@@ -1123,6 +1123,8 @@ ui_necessary_inputs(struct mkcatalogparams *p, int *values, int *sky,
           case CCOL_SIGCLIPSTD:       *values        = 1;          break;
           case CCOL_RIV_NUM:          /* Only clump labels. */     break;
           case CCOL_RIV_SUM:          *values        = 1;          break;
+          case CCOL_RIV_MIN:          *values        = 1;          break;
+          case CCOL_RIV_MAX:          *values        = 1;          break;
           case CCOL_RIV_SUM_VAR:      *values = *std = 1;          break;
           case CCOL_VX:               *values        = 1;          break;
           case CCOL_VY:               *values        = 1;          break;

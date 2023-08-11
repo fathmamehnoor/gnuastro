@@ -165,6 +165,8 @@ enum clumpcols
     CCOL_SIGCLIPMEDIAN,  /* Sigma-clipped mean of this clump.         */
     CCOL_RIV_NUM,        /* Num river pixels around this clump.       */
     CCOL_RIV_SUM,        /* Sum of rivers around clump.               */
+    CCOL_RIV_MIN,        /* Minimum of rivers around clump.           */
+    CCOL_RIV_MAX,        /* Maximum of rivers around clump.           */
     CCOL_RIV_SUM_VAR,    /* Variance of sum (for error measurements). */
     CCOL_VX,             /* Sum of (value-sky) * x.                   */
     CCOL_VY,             /* Sum of (value-sky) * y.                   */
