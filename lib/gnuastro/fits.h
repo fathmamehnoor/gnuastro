@@ -207,7 +207,7 @@ gal_fits_key_read_from_ptr(fitsfile *fptr, gal_data_t *keysll,
 
 void
 gal_fits_key_read(char *filename, char *hdu, gal_data_t *keysll,
-                  int readcomment, int readunit);
+                  int readcomment, int readunit, char *hdu_option_name);
 
 void
 gal_fits_key_list_add(gal_fits_list_key_t **list, uint8_t type,

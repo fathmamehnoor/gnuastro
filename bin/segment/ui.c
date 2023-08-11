@@ -807,7 +807,8 @@ ui_read_std_and_sky(struct segmentparams *p)
       keys[1].array=&p->minstd;     keys[1].name="MINSTD";
       keys[2].array=&p->maxstd;     keys[2].name="MAXSTD";
       keys[0].type=keys[1].type=keys[2].type=GAL_TYPE_FLOAT32;
-      gal_fits_key_read(p->usedstdname, p->stdhdu, keys, 0, 0);
+      gal_fits_key_read(p->usedstdname, p->stdhdu, keys, 0, 0,
+                        "--stdhdu");
       if(keys[0].status) p->medstd=NAN;
       if(keys[1].status) p->minstd=NAN;
       if(keys[2].status) p->maxstd=NAN;

@@ -831,7 +831,7 @@ ui_read_kdtree(struct matchparams *p)
   /* Read the k-d tree root. */
   keysll[0].type=GAL_TYPE_SIZE_T;
   keysll[0].name=MATCH_KDTREE_ROOT_KEY;
-  gal_fits_key_read(p->kdtree, p->kdtreehdu, keysll, 0, 0);
+  gal_fits_key_read(p->kdtree, p->kdtreehdu, keysll, 0, 0, "--kdtreehdu");
   if(keysll[0].status)
     error(EXIT_FAILURE, 0, "%s (hdu: %s, that was given to "
           "'--kdtree') doesn't have the '%s' keyword, or it "

@@ -174,6 +174,8 @@ See the end of the file for license conditions.
   bug #64541: Segment's --keepmaxnearriver has no effect.
   bug #64544: Arithmetic crashes with tofilefree operator value has a
               directory.
+  bug #64545: Accounting for CFITSIO silently appending '.gz' when file
+              doesn't exist. Reported by Sepideh Eskandarlou.
 
 
 

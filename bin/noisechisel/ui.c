@@ -253,9 +253,6 @@ ui_read_check_only_options(struct noisechiselparams *p)
   /* Kernel checks. */
   if(p->kernelname && strcmp(p->kernelname, UI_NO_CONV_KERNEL_NAME))
     {
-      /* Check if it exists. */
-      gal_checkset_check_file(p->kernelname);
-
       /* If its FITS, see if a HDU has been provided. */
       if( gal_fits_file_recognized(p->kernelname) && p->khdu==NULL )
         error(EXIT_FAILURE, 0, "no HDU specified for kernel. When the "
@@ -268,9 +265,6 @@ ui_read_check_only_options(struct noisechiselparams *p)
   /* Wide kernel checks. */
   if(p->widekernelname)
     {
-      /* Check if it exists. */
-      gal_checkset_check_file(p->widekernelname);
-
       /* If its FITS, see if a HDU has been provided. */
       if( gal_fits_file_recognized(p->widekernelname) && p->whdu==NULL )
         error(EXIT_FAILURE, 0, "no HDU specified for the given wide kernel "
@@ -326,9 +320,6 @@ ui_check_options_and_arguments(struct noisechiselparams *p)
   /* Basic input file checks. */
   if(p->inputname)
     {
-      /* Check if it exists. */
-      gal_checkset_check_file(p->inputname);
-
       /* If its FITS, see if a HDU has been provided. */
       if( gal_fits_file_recognized(p->inputname) && p->cp.hdu==NULL )
         error(EXIT_FAILURE, 0, "no HDU specified for input. When the input "

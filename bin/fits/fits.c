@@ -633,6 +633,10 @@ fits_certain_hdu(struct fitsparams *p, int list1has0,
   gal_list_str_t *names=NULL;
   int has=0, naxis, hducounter=1, hdutype, status=0;
 
+  /* Make sure the given file exists: CFITSIO adds '.gz' silently (see more
+     in the comments within 'gal_fits_hdu_open')*/
+  gal_checkset_check_file(p->input->v);
+
   /* Open the FITS file. */
   fits_open_file(&fptr, p->input->v, READONLY, &status);
   gal_fits_io_error(status, NULL);
@@ -720,6 +724,10 @@ fits_list_all_hdus(struct fitsparams *p)
   fitsfile *fptr;
   gal_list_str_t *names=NULL;
   int hducounter=1, hdutype, status=0;
+
+  /* Make sure the given file exists: CFITSIO adds '.gz' silently (see more
+     in the comments within 'gal_fits_hdu_open')*/
+  gal_checkset_check_file(p->input->v);
 
   /* Open the FITS file. */
   fits_open_file(&fptr, p->input->v, READONLY, &status);

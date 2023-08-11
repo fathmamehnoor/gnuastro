@@ -213,7 +213,8 @@ gal_fits_file_recognized(char *filename)
   /* CFITSIO has some special conventions for file names (for example if
      its '-', which can happen in the Arithmetic program). So before
      passing to CFITSIO, we'll check if a file is actually associated with
-     the string. */
+     the string. For another example see the comments in
+     'gal_fits_hdu_open' about a '.gz' suffix. */
   errno=0;
   tmpfile = fopen(filename, "r");
   if(tmpfile) /* The file existed and opened. */
@@ -696,6 +697,10 @@ gal_fits_hdu_num(char *filename)
   fitsfile *fptr;
   int num, status=0;
 
+  /* Make sure the given file exists: CFITSIO adds '.gz' silently (see more
+     in the comments within 'gal_fits_hdu_open')*/
+  gal_checkset_check_file(filename);
+
   /* We don't need to check for an error everytime, because we don't
      make any non CFITSIO usage of the output. It is necessary to
      check every CFITSIO call, only when you will need to use the
@@ -828,6 +833,13 @@ gal_fits_hdu_open(char *filename, char *hdu, int iomode, int exitonerror,
   char *ffname;
   fitsfile *fptr;
   char *hduon = hdu_option_name ? hdu_option_name : "--hdu";
+
+  /* Make sure the file exists. This is necessary because CFITSIO
+     automatically appends a '.gz' when a file with that extension already
+     exists! For example if the user asked for 'abc.fits', but the
+     directory only includes 'abc.fits.gz', CFITSIO will open that instead
+     (without any status value). */
+  gal_checkset_check_file(filename);
 
   /* Add hdu to filename: */
   if( asprintf(&ffname, "%s[%s#]", filename, hdu)<0 )
@@ -1445,24 +1457,13 @@ gal_fits_key_read_from_ptr(fitsfile *fptr, gal_data_t *keysll,
    as input instead of an already opened CFITSIO 'fitsfile' pointer. */
 void
 gal_fits_key_read(char *filename, char *hdu, gal_data_t *keysll,
-                  int readcomment, int readunit)
+                  int readcomment, int readunit, char *hdu_option_name)
 {
-  size_t len;
   int status=0;
-  char *ffname;
   fitsfile *fptr;
 
-  /* Add hdu to filename: */
-  errno=0;
-  len=strlen(filename)+strlen(hdu)+4;
-  ffname=malloc(len*sizeof *ffname);
-  if(ffname==NULL)
-    error(EXIT_FAILURE, errno, "%s: %zu characters", __func__, len);
-  sprintf(ffname, "%s[%s#]", filename, hdu);
-
-  /* Open the FITS file: */
-  if( fits_open_file(&fptr, ffname, READONLY, &status) )
-    gal_fits_io_error(status, "reading this FITS file");
+  /* Open the input HDU. */
+  fptr=gal_fits_hdu_open(filename, hdu, READONLY, 1, hdu_option_name);
 
   /* Read the keywords. */
   gal_fits_key_read_from_ptr(fptr, keysll, readcomment, readunit);
@@ -1470,9 +1471,6 @@ gal_fits_key_read(char *filename, char *hdu, gal_data_t *keysll,
   /* Close the FITS file. */
   fits_close_file(fptr, &status);
   gal_fits_io_error(status, NULL);
-
-  /* Clean up. */
-  free(ffname);
 }
 
 

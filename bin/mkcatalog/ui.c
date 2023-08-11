@@ -848,7 +848,6 @@ ui_read_labels(struct mkcatalogparams *p)
   p->objects->ndim=gal_dimension_remove_extra(p->objects->ndim,
                                               p->objects->dsize, NULL);
 
-
   /* Make sure it has an integer type. */
   ui_check_type_int(p->objectsfile, p->cp.hdu, p->objects->type);
 
@@ -888,7 +887,7 @@ ui_read_labels(struct mkcatalogparams *p)
   keys[0].name="NUMLABS";
   keys[0].type=GAL_TYPE_SIZE_T;
   keys[0].array=&p->numobjects;
-  gal_fits_key_read(p->objectsfile, p->cp.hdu, keys, 0, 0);
+  gal_fits_key_read(p->objectsfile, p->cp.hdu, keys, 0, 0, "--hdu");
   if(keys[0].status) /* status!=0: the key couldn't be read by CFITSIO. */
     {
       tmp=gal_statistics_maximum(p->objects);
@@ -956,7 +955,8 @@ ui_read_labels(struct mkcatalogparams *p)
       keys[0].name="CLUMPSN";               keys[1].name="NUMLABS";
       keys[0].type=GAL_TYPE_FLOAT32;        keys[1].type=GAL_TYPE_SIZE_T;
       keys[0].array=&p->clumpsn;            keys[1].array=&p->numclumps;
-      gal_fits_key_read(p->usedclumpsfile, p->clumpshdu, keys, 0, 0);
+      gal_fits_key_read(p->usedclumpsfile, p->clumpshdu, keys, 0, 0,
+                        "--clumpshdu");
       if(keys[0].status) p->clumpsn=NAN;
       if(keys[1].status) p->numclumps=ui_num_clumps(p);
 
@@ -1487,7 +1487,8 @@ ui_preparations_read_keywords(struct mkcatalogparams *p)
           keys[0].name="MINSTD";          keys[1].name="MEDSTD";
           keys[0].type=GAL_TYPE_FLOAT32;  keys[1].type=GAL_TYPE_FLOAT32;
           keys[0].array=&minstd;          keys[1].array=&p->medstd;
-          gal_fits_key_read(p->usedstdfile, p->stdhdu, keys, 0, 0);
+          gal_fits_key_read(p->usedstdfile, p->stdhdu, keys, 0, 0,
+                            "--stdhdu");
 
           /* If the two keywords couldn't be read. We don't want to slow
              down the user for the median (which needs sorting). So we'll
