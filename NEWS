@@ -172,6 +172,8 @@ See the end of the file for license conditions.
   bug #64431: gal_wcs_to_cd does not account for altlin==3. Reported by
               Colin Orion Chandler.
   bug #64541: Segment's --keepmaxnearriver has no effect.
+  bug #64544: Arithmetic crashes with tofilefree operator value has a
+              directory.
 
 
 

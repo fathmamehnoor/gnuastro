@@ -1774,7 +1774,7 @@ reversepolish(struct arithmeticparams *p)
                    OPERATOR_PREFIX_LENGTH_TOFILE) )
         arithmetic_tofile(p, token->v, 0);
       else if( !strncmp(OPERATOR_PREFIX_TOFILEFREE, token->v,
-                   OPERATOR_PREFIX_LENGTH_TOFILE) )
+                        OPERATOR_PREFIX_LENGTH_TOFILEFREE) )
         arithmetic_tofile(p, token->v, 1);
       else if( !strncmp(token->v, GAL_ARITHMETIC_SET_PREFIX,
                         GAL_ARITHMETIC_SET_PREFIX_LENGTH) )

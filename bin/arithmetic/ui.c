@@ -255,15 +255,16 @@ static void
 ui_check_options_and_arguments(struct arithmeticparams *p)
 {
   gal_list_str_t *token, *hdu;
-  char *filename, *basename=NULL;
   size_t nummultiext=0, numhdus=0;
+  char *tofilename=NULL, *basename=NULL;
   struct gal_options_common_params *cp=&p->cp;
 
   /* First, make sure that any tokens are actually given. */
   if(p->tokens==NULL)
-    error(EXIT_FAILURE, 0, "no input tokens. Please specify a filename or "
-          "number (as operands) along with operator(s) as input. Please run "
-          "any of the following commands for more information.\n\n"
+    error(EXIT_FAILURE, 0, "no input tokens. Please specify a file name "
+          "or number (as operands) along with operator(s) as input. "
+          "Please run any of the following commands for more "
+          "information.\n\n"
           "    $ astarithmetic --help           # Short info.\n"
           "    $ info astarithmetic             # Full invocation "
           "documentation.\n");
@@ -292,22 +293,23 @@ ui_check_options_and_arguments(struct arithmeticparams *p)
       /* Strings given to the 'tofile' or 'tofilefree' operators are also
          considered as outputs and we should delete them before starting
          the parse. */
-      if( strncmp(OPERATOR_PREFIX_TOFILE, token->v,
-                  OPERATOR_PREFIX_LENGTH_TOFILE)==0
-          || strncmp(OPERATOR_PREFIX_TOFILEFREE, token->v,
-                  OPERATOR_PREFIX_LENGTH_TOFILEFREE)==0 )
-        {
-          filename=&token->v[ OPERATOR_PREFIX_LENGTH_TOFILE ];
-          gal_checkset_writable_remove(filename, basename, cp->keep,
-                                       cp->dontdelete);
-        }
+      tofilename = ( strncmp(OPERATOR_PREFIX_TOFILE, token->v,
+                             OPERATOR_PREFIX_LENGTH_TOFILE)==0
+                     ? &token->v[ OPERATOR_PREFIX_LENGTH_TOFILE ]
+                     : ( strncmp(OPERATOR_PREFIX_TOFILEFREE, token->v,
+                                 OPERATOR_PREFIX_LENGTH_TOFILEFREE)==0
+                         ? &token->v[ OPERATOR_PREFIX_LENGTH_TOFILEFREE ]
+                         : NULL ) );
+      if(tofilename)
+        gal_checkset_writable_remove(tofilename, basename, cp->keep,
+                                     cp->dontdelete);
 
       /* This may be a simple filename. */
       else
         {
           /* This token is a file, count how many mult-extension files we
-             have and use the first to set the output filename (if it has
-             not been set). */
+             have and use the first to set the output file's name (if it
+             has not been set). */
           if( gal_array_name_recognized(token->v)
               || gal_fits_file_recognized(token->v) )
             {
