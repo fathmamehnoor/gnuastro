@@ -5,6 +5,7 @@ Query is part of GNU Astronomy Utilities (Gnuastro) package.
 Original author:
      Mohammad akhlaghi <mohammad@akhlaghi.org>
 Contributing author(s):
+     Fathma Mehnoor <fathmamehnoor@gmail.com>
 Copyright (C) 2021-2023 Free Software Foundation, Inc.
 
 Gnuastro is free software: you can redistribute it and/or modify it
@@ -27,6 +28,7 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 #include <error.h>
 #include <stdlib.h>
 
+#include <curl/curl.h>
 #include <gnuastro/wcs.h>
 
 #include <gnuastro-internal/checkset.h>
@@ -442,4 +444,82 @@ tap_download(struct queryparams *p)
 
   /* Clean up. */
   if(querystr!=p->query) free(querystr);
+}
+
+
+
+
+/* Callback function for writing downloaded data to a file. */
+static size_t
+tap_callback(void *data, size_t size, size_t nmemb, void *stream) {
+    size_t written = fwrite(data, size, nmemb, (FILE *)stream);
+    return written;
+}
+
+
+
+
+/* Function to perform data retrieval using libcurl. */
+void
+tap_libcurl(struct queryparams *p)
+{
+  CURL *curl;
+  CURLcode res;
+  char *querystr;
+  gal_list_str_t *url;
+
+  /* Construct the query string based on conditions. */
+  querystr = ( p->query
+               ? p->query
+               : ( p->information
+                   ? tap_query_construct_meta(p)
+                   : tap_query_construct_data(p) ) );
+  printf("\nQuery String: %s\n",querystr);
+
+  /* Go over the given URLs for this server. */
+  for(url=p->urls; url!=NULL; url=url->next)
+     {
+      /* Initialize a curl handle. */
+       curl = curl_easy_init();
+
+       if(curl)
+         {
+           char postfield[1024];
+           snprintf(postfield, sizeof(postfield),
+                    "LANG=ADQL&FORMAT=fits&REQUEST=doQuery&QUERY=%s",
+                    querystr);
+
+           /* Set various options for the curl handle. */
+           curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postfield);
+           printf("\nDownload status:\n");
+           curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+           curl_easy_setopt(curl, CURLOPT_URL, url->v);
+           curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, tap_callback);
+
+           FILE *fp = fopen(p->downloadname, "wb");
+           if(!fp)
+             error(EXIT_FAILURE, errno, "%s: cannot open file '%s'"
+                  "for writing", __func__, p->downloadname);
+
+           /* Set the file handle as the data destination. */
+           curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+
+           /* Perform the request, res will get the return code. */
+           res = curl_easy_perform(curl);
+
+           /* Check for errors. */
+           if(res != CURLE_OK)
+              error(url->next ? EXIT_SUCCESS : EXIT_FAILURE, 0,
+                          "the query download from URL %s failed: %s",
+                          url->v, curl_easy_strerror(res));
+
+           /* Close the file and cleanup the curl handle. */
+           fclose(fp);
+           curl_easy_cleanup(curl);
+           if (res == CURLE_OK) break;
+          }
+        curl_global_cleanup();
+     }
+     /* Clean up. */
+     if (querystr != p->query) free(querystr);
 }
