@@ -287,6 +287,7 @@ has_gsl=yes
 has_libgit2=1
 has_cmath=yes
 has_wcslib=yes
+has_libcurl=yes
 has_cfitsio=yes
 has_libtiff=yes
 has_libjpeg=yes
@@ -392,12 +393,20 @@ AS_IF([test "x$LIBBZ2" = x], [],
              [LDADD="$LTLIBBZ2 $LDADD"]) ])
 
 
-AC_LIB_HAVE_LINKFLAGS([curl], [], [#include <curl/curl.h>])
-AS_IF([test "x$LIBCURL" = x], [],
+# Libcurl is optional, but it should be checked before CFITSIO.
+AC_ARG_WITH([libcurl],
+            [AS_HELP_STRING([--without-libcurl],
+                            [disable support for libcurl])],
+            [], [with_libcurl=yes])
+AS_IF([test "x$with_libcurl" != xno],
+      [ AC_LIB_HAVE_LINKFLAGS([curl], [], [#include <curl/curl.h>]) ])
+AS_IF([test "x$LIBCURL" = x],
+      [missing_optional_lib=yes; has_libcurl=no; anywarnings=yes],
       [LIBS="$LIBCURL $LIBS"
        AS_IF([ test "x$enable_shared" = "xno" ],
              [LDADD="$LIBCURL   $LDADD"],
              [LDADD="$LTLIBCURL $LDADD"]) ])
+AM_CONDITIONAL([COND_HASLIBCURL], [test "x$has_libcurl" = "xyes"])
 
 
 AC_LIB_HAVE_LINKFLAGS([cfitsio], [], [
@@ -832,6 +841,8 @@ AS_IF([test "x$missing_mandatory" = "xyes"],
                 AS_ECHO(["OPTIONAL warnings/dependencies (for improved functionality):"])
                 AS_IF([test "x$gsl_version_old" = "xyes"],
                       [ AS_ECHO([" - Old GSL version: https://www.gnu.org/s/gsl"])                ])
+                AS_IF([test "x$has_libcurl" = "xno"],
+                      [ AS_ECHO([" - Missing Libcurl (network access): https://curl.se/libcurl/"])])
                 AS_IF([test "x$has_libjpeg" = "xno"],
                       [ AS_ECHO([" - Missing Libjpeg (JPEG files): http://ijg.org"])              ])
                 AS_IF([test "x$has_libtiff" = "xno"],
@@ -1269,6 +1280,15 @@ AS_IF([test x$enable_guide_message = xyes],
                AS_ECHO(["    Galactic coordinates). This build won't crash but the related"])
                AS_ECHO(["    functionalities in Gnuastro will be disabled. If you don't need"])
                AS_ECHO(["    such operations you can ignore this warning."])
+               AS_ECHO([]) ])
+
+        AS_IF([test "x$has_libcurl" = "xno"],
+              [dependency_notice=yes
+               AS_ECHO(["  - libcurl (https://curl.se/libcurl/), could not be linked with in "])
+               AS_ECHO(["    your library search path, or is manually disabled. libcurl is "])
+               AS_ECHO(["    a client-side URL transfer library supporting many network access"])
+               AS_ECHO(["    protocols. In Gnuastro it is used instead of making system-calls"])
+               AS_ECHO(["    to the 'curl' executable, providing more efficient results."])
                AS_ECHO([]) ])
 
         AS_IF([test "x$has_libjpeg" = "xno"],

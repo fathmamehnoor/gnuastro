@@ -287,6 +287,7 @@ gnuastro/config.h: Makefile $(internaldir)/config.h.in
 gnuastro.pc: Makefile $(srcdir)/gnuastro.pc.in
 	rm -f $@ $@.tmp
 	ol=""; \
+	if [ x"$(HAVE_LIBCURL)" = xyes ]; then ol="$$ol libcurl"; fi; \
 	if [ x"$(HAVE_LIBJPEG)" = xyes ]; then ol="$$ol libjpeg"; fi; \
 	if [ x"$(HAVE_LIBLZMA)" = xyes ]; then ol="$$ol liblzma"; fi; \
 	if [ x"$(HAVE_LIBGIT2)" = xyes ]; then ol="$$ol libgit2"; fi; \
