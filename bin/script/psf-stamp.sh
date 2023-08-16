@@ -656,12 +656,19 @@ EOF
                       1 dilate set-cmask \
                       o o $olab eq 0 where set-omask \
                       i omask cmask or nan where
+
     fi
 
-    # Apply the signal-to-noise threshold if the user provided one.
+    # Apply the signal-to-noise threshold if the user provided one, and
+    # only keep the central object.
     if [ x"$snthresh" != x ]; then
+
+        # Mask all the pixels that are below the threshold based on the
+        # signal to noise value which is obtained form the SKY_STD. Finally
+        # label the separate regions.
 	cropsnt=$tmpdir/cropped-snt-$objectid.fits
 	cropstd=$tmpdir/cropped-std-$objectid.fits
+        croplab=$tmpdir/cropped-lab-$objectid.fits
 	astcrop $segment --hdu=SKY_STD --mode=img \
                 --center=$xcenter,$ycenter \
                 --width=$xwidthinpix,$ywidthinpix \
@@ -670,8 +677,20 @@ EOF
 		      $cropstd -h1        set-s \
 		      v s /               set-sn \
 		      v sn $snthresh lt \
-		      2 dilate nan where -o$cropsnt
-	mv $cropsnt $cropped_masked
+		      2 dilate nan where set-all \
+                      all tofilefree-$cropsnt \
+                      all isnotblank 2 connected-components \
+                      --output=$croplab
+
+        # Extract the id of the main object.
+        id=$(astcrop $croplab -h1 --mode=wcs \
+                     --center=$xcoord,$ycoord \
+                     --widthinpix --width=1 --oneelemstdout -q)
+
+        # Mask all the pixels that does not belong to the main object.
+        msk=$tmpdir/mask-$objectid.fits
+        astarithmetic $cropsnt $croplab $id ne nan where -g1 --output=$msk
+	mv $msk $cropped_masked
     fi
 
 else

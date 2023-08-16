@@ -33085,6 +33085,9 @@ This option is only valid with the @option{--segment} option (it will use the @c
 This threshold is applied prior to the possible normalization or centering of the stamp.
 After all pixels below the given threshold are masked, the mask is also dilated by one level to avoid single pixels above the threshold (which are mainly due to noise when the threshold is lower).
 
+After applying the signal-to-noise threshold (if it is requested), any extra pixels that are not connected to the central target are also masked.
+Such pixels can remain in rivers between bright clumps and will cause problem in the final stack, if they are not masked.
+
 This is useful for increasing the S/N of inner parts of each region of the finally stacked PSF.
 As the stars (that are to be stacked) become fainter, the S/N of their outer parts (at a fixed radius) decreases.
 The stack of a higher-S/N image with a lower-S/N image will have an S/N that is lower than the higher one.

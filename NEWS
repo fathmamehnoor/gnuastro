@@ -74,8 +74,8 @@ See the end of the file for license conditions.
 
   astscript-zeropoint:
   --mksrc: use a custom Makefile for estimating the zeropoint, not the
-  default installed Makefile. This is primarily intended for debugging or
-  developing this script, not for normal usage.
+    default installed Makefile. This is primarily intended for debugging or
+    developing this script, not for normal usage.
 
   Library:
   - gal_blank_not_minmax_coords: returns the minimum/maximum coordinates of
@@ -140,6 +140,14 @@ See the end of the file for license conditions.
     the first extension of the output is not the exact input file (if a
     value is given to '--sky' it will be subtracted from the input in the
     first extension). Implemented by Sepideh Eskandarlou.
+
+  astscript-psf-stamp:
+  - After applying the signal-to-noise threshold (if it is requested), any
+    extra pixels that are not connected to the central target are also
+    masked. Such pixels can remain in rivers between bright clumps and
+    would cause problem in the final stack and were not removed until now.
+    Implemented by Sepideh Eskandarlou
+
 
 ** Bugs fixed
   bug #64138: Arithmetic's mknoise-poisson only using first pixel value.
