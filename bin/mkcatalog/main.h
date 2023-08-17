@@ -281,7 +281,6 @@ struct mkcatalogparams
   float     spatialresolution;  /* Error in area (used in SB error).    */
 
   /* Internal. */
-  char           *relabclumps;  /* Name of new file for clump labels.   */
   time_t              rawtime;  /* Starting time of the program.        */
   gal_data_t          *values;  /* Input.                               */
   gal_data_t         *objects;  /* Object labels.                       */
@@ -293,6 +292,7 @@ struct mkcatalogparams
   float               cpscorr;  /* Counts-per-second correction.        */
   int32_t            *outlabs;  /* Labels in output cat (when necessary)*/
   int32_t         *outlabsinv;  /* Inverse of the 'outlabs' array.      */
+  int32_t         **origclpid;  /* Original clump labels in objects.    */
   size_t           numobjects;  /* Number of object labels in image.    */
   float               clumpsn;  /* Clump S/N threshold.                 */
   size_t            numclumps;  /* Number of clumps in image.           */

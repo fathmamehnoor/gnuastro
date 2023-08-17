@@ -3159,7 +3159,9 @@ columns_fill(struct mkcatalog_passparams *pp)
             break;
 
           case UI_KEY_IDINHOSTOBJ:
-            ((int32_t *)colarr)[cind]=coind+1;
+            ((int32_t *)colarr)[cind] = ( p->origclpid
+                                          ? p->origclpid[pp->object][coind]
+                                          : coind+1 );
             break;
 
           case UI_KEY_AREA:

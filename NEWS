@@ -133,6 +133,15 @@ See the end of the file for license conditions.
     what is expected by default). Recall that if the sky is not subtracted
     from the values image you can use '--sky' for MakeCatalog to subtract
     it before the measurements. Implemented by Sepideh Eskandarlou.
+  - When the input clump labels do not have the 'NUMLABS' keyword
+    (specifying how many clumps there are in the image, independent of the
+    number of objects), MakeCatalog will no longer re-label the input
+    clumps: the output catalog will have the same clump ids as the
+    labels. Until now, it would generate new labels for the clumps in such
+    cases (along with a new FITS image containing the clumps with the new
+    labels to allow you to match them). The output catalog also had the new
+    label, not the original labels (the old behavior was therefore very
+    inconvenient!).
 
   Segment
   - The default name of the first extension of Segment's output is now

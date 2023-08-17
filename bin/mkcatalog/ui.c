@@ -575,26 +575,35 @@ ui_wcs_info(struct mkcatalogparams *p)
 
 
 
+/* When the number of clumps is not specified a priori (through the
+   'NUMLABS' keyword in the clumps array, we need to map the original
+   labels to new labels that start counting from one and are
+   congtiguous. */
 static size_t
-ui_num_clumps(struct mkcatalogparams *p)
+ui_num_clumps_orig_labs(struct mkcatalogparams *p)
 {
-  int32_t olab;
-  char *basename;
-  int keepinputdir;
-  size_t i, counter, numclumps=0;
-  gal_list_i32_t *tmp, **labsinobj;
-  int32_t *o=p->objects->array, *of=o+p->objects->size, *c=p->clumps->array;
+  size_t ncinobj;
+  gal_list_i32_t *tmp, **origclumplist;
+  int32_t olab, **origclpid, *c=p->clumps->array;
+  size_t i, j, numclumps=0, nobjpone=p->numobjects+1;
+  int32_t *o=p->objects->array, *of=o+p->objects->size;
 
-  /* Allocate array of lists to keep the unique labels within each
-     object. */
+  /* Allocate array of lists and arrays to keep the unique labels within
+     each object. The list is used in the first run and the array is later
+     filled based on the list.*/
   errno=0;
-  labsinobj=calloc(p->numobjects+1, sizeof *labsinobj);
-  if(labsinobj==NULL)
+  origclumplist=calloc(nobjpone, sizeof *origclumplist);
+  if(origclumplist==NULL)
     error(EXIT_FAILURE, 0, "%s: couldn't allocate %zu bytes for "
-          "'labsinobj'", __func__, p->numobjects * sizeof *labsinobj);
+          "'origclumplist'", __func__, nobjpone * sizeof *origclumplist);
+  errno=0;
+  origclpid=calloc(nobjpone, sizeof *origclpid);
+  if(origclpid==NULL)
+    error(EXIT_FAILURE, 0, "%s: couldn't allocate %zu bytes for "
+          "'origclpid'", __func__, nobjpone * sizeof *origclpid);
+  p->origclpid=origclpid; /* To avoid 'p->' in the lines below. */
 
-  /* Go over each pixel and find the unique clump labels within each
-     object. */
+  /* Go over each pixel and find the list of original clump labels. */
   do
     {
       /* Do the steps if we are on a clump. */
@@ -602,14 +611,14 @@ ui_num_clumps(struct mkcatalogparams *p)
         {
           /* See if the label has already been found. */
           olab = p->outlabsinv ? p->outlabsinv[*o] : *o;
-          for(tmp=labsinobj[olab];tmp!=NULL;tmp=tmp->next)
+          for(tmp=origclumplist[olab];tmp!=NULL;tmp=tmp->next)
             if(tmp->v==*c) break;
 
           /* When it wasn't found, 'tmp==NULL'. */
           if(tmp==NULL)
             {
               ++numclumps;
-              gal_list_i32_add(&labsinobj[olab], *c);
+              gal_list_i32_add(&origclumplist[olab], *c);
             }
         }
 
@@ -618,8 +627,67 @@ ui_num_clumps(struct mkcatalogparams *p)
     }
   while(++o<of);
 
-  /* Re-write the clump values so their numbering is contiguous, since this
-     is assumed during the later steps. */
+  /* For a check of the list.
+  for(i=1;i<p->numobjects+1;++i)
+    {
+      printf("list%zu: ", i);
+      for(tmp=origclumplist[i];tmp!=NULL;tmp=tmp->next)
+        printf("%d%s", tmp->v, tmp->next?" ":"");
+      printf("\n");
+    }
+  */
+
+  /* Build a separate array of original labels for each objects. */
+  for(i=1;i<p->numobjects+1;++i)
+    {
+      /* Find the number of clumps in this object and allocate. */
+      ncinobj=gal_list_i32_number(origclumplist[i]);
+      origclpid[i]=gal_pointer_allocate(GAL_TYPE_INT32, ncinobj+1, 0,
+                                          __func__, "origclpid");
+
+      /* Put the list into the array in reverse because it was filled as
+         last-in-last-out. We are also setting the last element to blank so
+         we can parse through the labels when necessary. */
+      j=ncinobj;
+      origclpid[i][j--]=GAL_BLANK_INT32;
+      for(tmp=origclumplist[i];tmp!=NULL;tmp=tmp->next)
+        origclpid[i][j--]=tmp->v;
+    }
+
+  /* For a check of the array.
+  for(i=1;i<p->numobjects+1;++i)
+    if(i==9)
+    {
+      printf("arr%zu: ", i);
+      for(j=0; origclpid[i][j]!=GAL_BLANK_INT32; ++j)
+        printf("%d%s", origclpid[i][j],
+               origclpid[i][j+1]==GAL_BLANK_INT32?"":" ");
+      printf("\n");
+    }
+  */
+
+  /* Clean up and return the total number of clumps. */
+  for(i=1;i<p->numobjects;++i) gal_list_i32_free(origclumplist[i]);
+  free(origclumplist);
+  return numclumps;
+}
+
+
+
+
+static size_t
+ui_num_clumps(struct mkcatalogparams *p)
+{
+  size_t i, numclumps=0;
+  int32_t olab, *c=p->clumps->array;
+  int32_t *o=p->objects->array, *of=o+p->objects->size;
+
+  /* Count the total number of clumps and extract the original labels
+     within the clumps into an array ('p->origclpid'). */
+  numclumps=ui_num_clumps_orig_labs(p);
+
+  /* Re-write the clump values so their numbering is contiguous (this is
+     assumed during the later steps). */
   o=p->objects->array;
   c=p->clumps->array;
   do
@@ -627,10 +695,9 @@ ui_num_clumps(struct mkcatalogparams *p)
       /* Do the steps if we are on a clump. */
       if(*o>0 && *c>0)
         {
-          counter=0;
           olab = p->outlabsinv ? p->outlabsinv[*o] : *o;
-          for(tmp=labsinobj[olab];tmp!=NULL;tmp=tmp->next)
-            { counter++; if(tmp->v==*c) {*c=counter; break;} }
+          for(i=0;p->origclpid[olab][i]!=GAL_BLANK_INT32;++i)
+            if(p->origclpid[olab][i]==*c) { *c=i+1; break; }
         }
 
       /* Increment the clumps pointer.*/
@@ -638,19 +705,18 @@ ui_num_clumps(struct mkcatalogparams *p)
     }
   while(++o<of);
 
-  /* Write the created file into a file for the user to inspect. */
+  /* For a check
+  char *basename;
+  char *checkname;
+  int keepinputdir;
   keepinputdir=p->cp.keepinputdir;
   p->cp.keepinputdir = p->cp.output ? 1 : 0;
   basename = p->cp.output ? p->cp.output : p->objectsfile;
-  p->relabclumps=gal_checkset_automatic_output(&p->cp, basename,
-                                               "-clumps-relab.fits");
-  gal_fits_img_write(p->clumps, p->relabclumps, NULL, PROGRAM_STRING);
+  checkname=gal_checkset_automatic_output(&p->cp, basename,
+                                          "-clumps-relab.fits");
+  gal_fits_img_write(p->clumps, checkname, NULL, PROGRAM_STRING);
   p->cp.keepinputdir=keepinputdir;
-
-  /* Clean up. */
-  for(i=0;i<p->numobjects;++i)
-    if(labsinobj[i]) gal_list_i32_free(labsinobj[i]);
-  free(labsinobj);
+  */
 
   /* Return the number of clumps. */
   return numclumps;
@@ -1898,9 +1964,6 @@ ui_read_check_inputs_setup(int argc, char *argv[],
       if(p->clumps)
         printf("  - Clumps:  %s (hdu: %s)\n", p->usedclumpsfile,
                p->clumpshdu);
-      if(p->relabclumps)
-        printf("  - RELABELED CLUMPS (no NUMLABS in original): %s\n",
-               p->relabclumps);
       if(p->values)
         printf("  - Values:  %s (hdu: %s)\n", p->usedvaluesfile,
                p->valueshdu);
@@ -1964,7 +2027,7 @@ ui_read_check_inputs_setup(int argc, char *argv[],
 void
 ui_free_report(struct mkcatalogparams *p, struct timeval *t1)
 {
-  size_t d;
+  size_t i, d;
 
   /* The temporary arrays for WCS coordinates. */
   if(p->wcs_vo ) gal_list_data_free(p->wcs_vo);
@@ -2016,6 +2079,16 @@ ui_free_report(struct mkcatalogparams *p, struct timeval *t1)
   if(p->outlabsinv) free(p->outlabsinv);
   if(p->upcheckout) free(p->upcheckout);
   gal_data_array_free(p->tiles, p->numobjects, 0);
+
+  /* The original clump labels. */
+  if(p->origclpid)
+    {
+      for(i=1;i<p->numobjects+1;++i)
+        if(p->origclpid[i])
+          free(p->origclpid[i]);
+      free(p->origclpid);
+    }
+  /**/
 
   /* If the Sky or its STD image were given in tiles, then we defined a
      tile structure to deal with them. The initialization of the tile
