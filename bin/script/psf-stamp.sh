@@ -361,12 +361,12 @@ done
 # If an input image is not given at all.
 if [ x"$inputs" = x ]; then
     cat <<EOF
-$scriptname: ERROR: no input FITS image files (outer part of the PSF to unite with an inner part). Run with '--help' for more information on how to run
+$scriptname: no input FITS image files (outer part of the PSF to unite with an inner part). Run with '--help' for more information on how to run
 EOF
     exit 1
 elif [ ! -f $inputs ]; then
     cat <<EOF
-$scriptname: ERROR: $inputs, no such file or directory
+$scriptname: $inputs, no such file or directory
 EOF
     exit 1
 fi
@@ -396,7 +396,7 @@ else
                                   END{print c}')
     if [ x$ncenter != x2 ]; then
         cat <<EOF
-$scriptname: ERROR: '--center' (or '-c') only takes two values, but $ncenter were given in '$center'
+$scriptname: '--center' (or '-c') only takes two values, but $ncenter were given in '$center'
 EOF
         exit 1
     fi
@@ -423,7 +423,7 @@ EOF
         xwidthinpix=$xsize
     else
         cat <<EOF
-$scriptname: ERROR: the size of the image along the first dimension (NAXIS1) can not be obtained
+$scriptname: the size of the image along the first dimension (NAXIS1) can not be obtained
 EOF
         exit 1
     fi
@@ -438,7 +438,7 @@ EOF
         ywidthinpix=$ysize
     else
         cat <<EOF
-$scriptname: ERROR: the size of the image along the second dimension (NAXIS2) can not be obtained
+$scriptname: the size of the image along the second dimension (NAXIS2) can not be obtained
 EOF
         exit 1
     fi
@@ -471,7 +471,7 @@ else
     nnormradii=$(echo $normradii | awk 'BEGIN{FS=","}END{print NF}')
     if [ x$nnormradii != x2 ]; then
         cat <<EOF
-$scriptname: ERROR: '--normradii' (or '-n') only take two values, but $nnormradii were given in '$normradii'
+$scriptname: '--normradii' (or '-n') only take two values, but $nnormradii were given in '$normradii'
 EOF
         exit 1
     fi
@@ -487,7 +487,7 @@ if [ "$mode" = wcs     -o      $mode = "img" ]; then
     junk=1
 else
     cat <<EOF
-$scriptname: ERROR: value to '--mode' (or '-O') is not recognized ('$mode'). This option takes one of the following two values: 'img' (for pixel coordinates) or 'wcs' (for celestial coordinates)
+$scriptname: value to '--mode' (or '-O') is not recognized ('$mode'). This option takes one of the following two values: 'img' (for pixel coordinates) or 'wcs' (for celestial coordinates)
 EOF
     exit 1
 fi
@@ -723,7 +723,7 @@ first_pix_in_img () {
         max=$(echo "$overlaprange" | awk '{print $4}')
     else
         cat <<EOF
-$scriptname: ERROR: a bug! Please contact with us at bug-gnuastro@gnu.org. The value of 'dim' is "$dim" and not recognized
+$scriptname: a bug! Please contact with us at bug-gnuastro@gnu.org. The value of 'dim' is "$dim" and not recognized
 EOF
         exit 1
     fi

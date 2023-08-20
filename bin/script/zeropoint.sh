@@ -358,12 +358,12 @@ done
 # If an input image is not given at all.
 if [ x"$inputs" = x ]; then
     cat <<EOF
-$scriptname: ERROR: no input FITS image files. Run with '--help' for more information on how to run
+$scriptname: no input FITS image files. Run with '--help' for more information on how to run
 EOF
     exit 1
 elif [ ! -f $inputs ]; then
     cat <<EOF
-$scriptname: ERROR: $inputs, no such file or directory
+$scriptname: $inputs, no such file or directory
 EOF
     exit 1
 fi
@@ -375,7 +375,7 @@ if [ x$magnituderange != x ]; then
                                           END{print c}')
     if [ x$nmagrng != x2 ]; then
         cat<<EOF
-$scriptname: ERROR: '--magnituderange' (or '-m') only takes two values, but $nmagrng were given
+$scriptname: '--magnituderange' (or '-m') only takes two values, but $nmagrng were given
 EOF
         exit 1
     fi
@@ -384,7 +384,7 @@ fi
 # If an aperture size is not given.
 if [ x"$aperarcsec" = x ]; then
     cat <<EOF
-$scriptname: ERROR: '--aperarcsec' (or '-a') is necessary at least with one value. Run with '--help' for more information
+$scriptname: '--aperarcsec' (or '-a') is necessary at least with one value. Run with '--help' for more information
 EOF
     exit 1
 fi
@@ -392,13 +392,13 @@ fi
 # If atleast one of '--refcat' or '--refimgs' are given, but not together.
 if [ x"$refcat$refimgs" = x ]; then
     cat <<EOF
-$scriptname: ERROR: no reference image(s)/catalog provided! Please use '--refcat' or '--refimgs' to specify the reference
+$scriptname: no reference image(s)/catalog provided! Please use '--refcat' or '--refimgs' to specify the reference
 EOF
     exit 1
 fi
 if [ x"$refcat" != x ] && [ x"$refimgs" != x ]; then
     cat <<EOF
-$scriptname: ERROR: only one of '--refimgs' or '--refcat' should be given
+$scriptname: only one of '--refimgs' or '--refcat' should be given
 EOF
     exit 1
 fi

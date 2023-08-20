@@ -339,7 +339,7 @@ done
 # If an input image is not given at all.
 if [ x"$inputs" = x ]; then
     cat <<EOF
-$scriptname: ERROR: no input FITS image files. Run with '--help' for more information on how to run
+$scriptname: no input FITS image files. Run with '--help' for more information on how to run
 EOF
     exit 1
 elif [ ! -f "$inputs" ]; then
@@ -350,7 +350,7 @@ fi
 # If a PSF image (--psf) is not given.
 if [ x"$psf" = x ]; then
     cat <<EOF
-$scriptname: ERROR: no PSF image or profile provided. A PSF image (profile) has to be specified with '--psf' (or '-p').
+$scriptname: no PSF image or profile provided. A PSF image (profile) has to be specified with '--psf' (or '-p')
 EOF
     exit 1
 fi
@@ -358,7 +358,7 @@ fi
 # If center coordinates (--center) is not given at all.
 if [ x"$center" = x ]; then
     cat <<EOF
-$scriptname: ERROR: no center coordinates provided. You can specify the object's central coordinate with '--center' ('-c')
+$scriptname: no center coordinates provided. You can specify the object's central coordinate with '--center' ('-c')
 EOF
     exit 1
 else
@@ -367,7 +367,7 @@ else
                                   END{print c}')
     if [ x$ncenter != x2 ]; then
         cat <<EOF
-$scriptname: ERROR: '--center' (or '-c') only takes two values, but $ncenter were given in '$center'
+$scriptname: '--center' (or '-c') only takes two values, but $ncenter were given in '$center'
 EOF
         exit 1
     fi
@@ -376,14 +376,14 @@ fi
 # If a normalization range is not given at all.
 if [ x"$normradii" = x ]; then
     cat <<EOF
-$scriptname: ERROR: no rign of normalization provided. You can use '--normradii' ('-n') to give the radial interval to define normalization
+$scriptname: no rign of normalization provided. You can use '--normradii' ('-n') to give the radial interval to define normalization
 EOF
     exit 1
 else
     nnormradii=$(echo $normradii | awk 'BEGIN{FS=","}END{print NF}')
     if [ x$nnormradii != x2 ]; then
         cat <<EOF
-$scriptname: ERROR: '--normradii' (or '-n') only takes two values, but $nnormradii were given
+$scriptname: '--normradii' (or '-n') only takes two values, but $nnormradii were given
 EOF
         exit 1
     fi
@@ -392,7 +392,7 @@ fi
 # If mode (--mode) is not given at all.
 if [ x"$mode" = x ]; then
     cat <<EOF
-$scriptname: ERROR: no coordinate mode provided. You can use '--mode' (or '-O'), acceptable values are 'img' (for pixel coordinate) or 'wcs' (for celestial coordinates)
+$scriptname: no coordinate mode provided. You can use '--mode' (or '-O'), acceptable values are 'img' (for pixel coordinate) or 'wcs' (for celestial coordinates)
 EOF
     exit 1
 
@@ -403,7 +403,7 @@ elif [ "$mode" = wcs     -o     "$mode" = img ]; then
     junk=1
 else
     cat <<EOF
-$scriptname: ERROR: wrong value to --mode (-O) provided. Acceptable values are 'img' (for pixel coordinate) or 'wcs' (for celestial coordinates)
+$scriptname: wrong value to --mode (-O) provided. Acceptable values are 'img' (for pixel coordinate) or 'wcs' (for celestial coordinates)
 EOF
     exit 1
 fi
@@ -637,7 +637,7 @@ first_pix_in_img () {
         max=$(echo "$overlaprange" | awk '{print $4}')
     else
         cat <<EOF
-$scriptname: ERROR: a bug! Please contact with us at bug-gnuastro@gnu.org. The value of 'dim' is "$dim" and not recognized
+$scriptname: a bug! Please contact with us at bug-gnuastro@gnu.org. The value of 'dim' is "$dim" and not recognized
 EOF
         exit 1
     fi

@@ -301,7 +301,7 @@ if [ x"$cat" = x ]; then
     echo "$scriptname: no argument (position catalog) given"; exit 1
 fi
 if [ x"$img" = x ]; then
-    echo "$scriptname: no refernece image given to '--img'"; exit 1
+    echo "$scriptname: no reference image given to '--img'"; exit 1
 fi
 if [ x"$width" = x ]; then
     echo "$scriptname: no stack width given to '--width'"; exit 1
@@ -317,7 +317,7 @@ else
                                   END{print c}')
     if [ x$ncenter != x2 ]; then
         cat <<EOF
-$scriptname: ERROR: '--center' (or '-c') only takes two values, but $ncenter value(s) ywere given in '$center'
+$scriptname: '--center' (or '-c') only takes two values, but $ncenter value(s) where given in '$center'
 EOF
         exit 1
     fi
@@ -325,7 +325,7 @@ fi
 ndither=$(asttable $cat --info-num-rows)
 if [ x$ndither = x0 ]; then
         cat <<EOF
-$scriptname: ERROR: $cat: input dither pointing table is empty! It should contain at least one row, containing two columns for the RA and Dec of each pointing of the dither pattern. Please see the documentation with this command: 'info astscript-dither-simulate'
+$scriptname: $cat: input dither pointing table is empty! It should contain at least one row, containing two columns for the RA and Dec of each pointing of the dither pattern. Please see the documentation with this command: 'info astscript-dither-simulate'
 EOF
         exit 1
 fi
@@ -348,12 +348,10 @@ if [ x"$tmpdir" = x ]; then
     tmpdir=dither-tmp-$namecnodir-$nameinodir-$namecenter-$namewidth
 fi
 if [ -d $tmpdir ]; then
-    #################################
-    ######## FOR DEVELOPMENT ########
-    rm -f $tmpdir/*
-    #echo NOT CLEANING TMPDIR
-    #################################
-else                    mkdir $tmpdir
+    rm -f $tmpdir/*             # For debuging, you can comment this line
+    #echo NOT CLEANING TMPDIR   # and uncomment the 'echo' line under it.
+else
+    mkdir $tmpdir
 fi
 
 

@@ -253,14 +253,18 @@ if [ x"$ds9center" != x ]; then
     # Make sure only two values are given.
     ncenter=$(echo $ds9center | awk 'BEGIN{FS=","}END{print NF}')
     if [ x$ncenter != x2 ]; then
-        echo "$scriptname: '--ds9center' (or '-c') only takes two values, but $ncenter were given."
+        cat <<EOF
+$scriptname: '--ds9center' (or '-c') only takes two values, but $ncenter value(s) where given in '$ds9center'
+EOF
         exit 1
     fi
 
     # With '--ds9center', its also necessary to give a mode (--ds9mode).
     modeerrorinfo="Depending on the nature of the central coordinates, please give either 'img' (for pixel coordinates) or 'wcs' (for RA,Dec) to the '--ds9mode' (or '-O') option."
     if [ x"$ds9mode" = x ]; then
-        echo "$scriptname: no coordinate mode provided! $modeerrorinfo"
+        cat <<EOF
+$scriptname: no coordinate mode provided! $modeerrorinfo
+EOF
         exit 1
 
     # Make sure the value to '--mode' is either 'wcs' or 'img'. Note: '-o'

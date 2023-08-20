@@ -363,12 +363,12 @@ done
 # If an input image is not given at all.
 if [ x"$inputs" = x ]; then
     cat <<EOF
-$scriptname: ERROR: no input FITS image files (outer part of the PSF to unite with an inner part). Run with '--help' for more information on how to run
+$scriptname: no input FITS image files (outer part of the PSF to unite with an inner part). Run with '--help' for more information on how to run
 EOF
     exit 1
 elif [ ! -f $inputs ]; then
     cat <<EOF
-$scriptname: ERROR: $inputs, no such file or directory
+$scriptname: $inputs, no such file or directory
 EOF
     exit 1
 fi
@@ -380,13 +380,13 @@ if [ x"$segmented" != x ]; then
                | wc -l)
     if [ $nhdu != 2 ]; then
         cat <<EOF
-$scriptname: ERROR: the file given to '--segmented' does not have 'CLUMPS' and 'OBJECTS' HDUs. Please give an output from 'astsegment'
+$scriptname: the file given to '--segmented' does not have 'CLUMPS' and 'OBJECTS' HDUs. Please give an output from 'astsegment'
 EOF
         exit 1
     fi
 elif [ ! -f $segmented ]; then
     cat <<EOF
-$scriptname: ERROR: $segmented, no such file or directory"
+$scriptname: $segmented, no such file or directory"
 EOF
     exit 1
 fi
@@ -394,7 +394,7 @@ fi
 # If the brighter and fainter range of magnitude are not given at all.
 if [ x$magnituderange = x ]; then
     cat<<EOF
-$scriptname: ERROR:no magnitude range provided. Values to '--magnituderange' (or '-m') should be provided"
+$scriptname: no magnitude range provided. Values to '--magnituderange' (or '-m') should be provided"
 EOF
     exit 1
 else
@@ -403,7 +403,7 @@ else
                                           END{print c}')
     if [ x$nmagrng != x2 ]; then
         cat<<EOF
-$scriptname: ERROR: '--magnituderange' (or '-m') only takes two values, but $nmagrng were given
+$scriptname: '--magnituderange' (or '-m') only takes two values, but $nmagrng were given
 EOF
         exit 1
     fi
@@ -419,7 +419,7 @@ else
                                   END{print c}')
     if [ x$nmparallax != x2 ]; then
         cat<<EOF
-$scriptname: ERROR: '--parallaxanderrorcolumn' (or '-p') only takes two values, but $nmparallax were given
+$scriptname: '--parallaxanderrorcolumn' (or '-p') only takes two values, but $nmparallax were given
 EOF
         exit 1
     else
@@ -430,7 +430,7 @@ fi
 # If the minimum axis ratio is not given at all.
 if [ x$minaxisratio = x ]; then
     cat<<EOF
-$scriptname: ERROR: no minimum axis ratio provided. Value to '--minaxisratio' (or '-Q') should be provided
+$scriptname: no minimum axis ratio provided. Value to '--minaxisratio' (or '-Q') should be provided
 EOF
     exit 1
 fi
@@ -438,7 +438,7 @@ fi
 # If the minimum distance between contaminants is not given at all.
 if [ x$mindistdeg = x ]; then
     cat<<EOF
-$scriptname: ERROR: no minimum distance (for rejecting neighbors) provided. Value to '--mindistdeg' (or '-M') should be provided
+$scriptname: no minimum distance (for rejecting neighbors) provided. Value to '--mindistdeg' (or '-M') should be provided
 EOF
     exit 1
 fi
@@ -446,7 +446,7 @@ fi
 # If the match aperture radius is not given at all.
 if [ x$matchaperturedeg = x ]; then
     cat<<EOF
-$scriptname: ERROR: no aperture matching radius provided. Value to '--matchaperturedeg' (or '-a') should be provided
+$scriptname: no aperture matching radius provided. Value to '--matchaperturedeg' (or '-a') should be provided
 EOF
     exit 1
 fi

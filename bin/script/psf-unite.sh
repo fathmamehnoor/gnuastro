@@ -320,12 +320,12 @@ done
 # If an input image is not given at all.
 if [ x"$inputs" = x ]; then
     cat <<EOF
-$scriptname: ERROR: no input FITS image files (outer part of the PSF to unite with an inner part). Run with '--help' for more information on how to run
+$scriptname: no input FITS image files (outer part of the PSF to unite with an inner part). Run with '--help' for more information on how to run
 EOF
     exit 1
 elif [ ! -f $inputs ]; then
     cat <<EOF
-$scriptname: ERROR: $inputs, no such file or directory
+$scriptname: $inputs, no such file or directory
 EOF
     exit 1
 fi
@@ -333,12 +333,12 @@ fi
 # If an inner image (--inner) is not given at all.
 if [ x"$inner" = x ]; then
     cat <<EOF
-$scriptname: ERROR: no inner FITS image provided. The inner part of the PSF (to unite with the outer part, which is the main argument) can be specified with the '--inner' (or '-i') option as a FITS image
+$scriptname: no inner FITS image provided. The inner part of the PSF (to unite with the outer part, which is the main argument) can be specified with the '--inner' (or '-i') option as a FITS image
 EOF
     exit 1
 elif [ ! -f "$inner" ]; then
     cat <<EOF
-$scriptname: ERROR: $inner, no such file or directory
+$scriptname: $inner, no such file or directory
 EOF
     exit 1
 fi
@@ -346,7 +346,7 @@ fi
 # If a radius (--radius) is not given at all.
 if [ x"$radius" = x ]; then
     cat <<EOF
-$scriptname: ERROR: no radius (in pixels) provided. All pixels below this radius will be filled with the inner PSf image. You can use '--radius' (or '-r') to specify it
+$scriptname: no radius (in pixels) provided. All pixels below this radius will be filled with the inner PSf image. You can use '--radius' (or '-r') to specify it
 EOF
     exit 1
 fi
@@ -354,7 +354,7 @@ fi
 # If a scale (--scale) is not given at all.
 if [ x"$scale" = x ]; then
     cat <<EOF
-$scriptname: ERROR: no scale factor provided ('--scale' or '-s'). This is necessary to scale the inner region to the outer and is usually determined with the 'astscript-psf-model-scale-factor'. See the Gnuastro tutorial on "Building the extended PSF" for more
+$scriptname: no scale factor provided ('--scale' or '-s'). This is necessary to scale the inner region to the outer and is usually determined with the 'astscript-psf-model-scale-factor'. See the Gnuastro tutorial on "Building the extended PSF" for more
 EOF
     exit 1
 fi

@@ -326,7 +326,9 @@ if [ x"$center" != x ]; then
                                   {for(i=1;i<=NF;++i) c+=$i!=""} \
                                   END{print c}')
     if [ x$ncenter != x2 ]; then
-        echo "$scriptname: '--center' (or '-c') only takes two values, but $ncenter were given in '$center'"
+        cat <<EOF
+$scriptname: '--center' (or '-c') only takes two values, but $ncenter were given in 'center'
+EOF
         exit 1
     fi
 fi

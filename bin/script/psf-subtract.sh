@@ -317,12 +317,12 @@ done
 # If an input image is not given at all.
 if [ x"$inputs" = x ]; then
     cat <<EOF
-$scriptname: ERROR: no input FITS image files. Run with '--help' for more information on how to run
+$scriptname: no input FITS image files. Run with '--help' for more information on how to run
 EOF
     exit 1
 elif [ ! -f $inputs ]; then
     cat <<EOF
-$scriptname: ERROR: $inputs, no such file or directory
+$scriptname: $inputs, no such file or directory
 EOF
     exit 1
 fi
@@ -330,12 +330,12 @@ fi
 # If a PSF image (--psf) is not given at all.
 if [ x"$psf" = x ]; then
     cat <<EOF
-$scriptname: ERROR: no PSF image provided. The PSF image should be provided with '--psf' (or '-p')
+$scriptname: no PSF image provided. The PSF image should be provided with '--psf' (or '-p')
 EOF
     exit 1
 elif [ ! -f $psf ]; then
     cat <<EOF
-$scriptname: ERROR: $psf, no such file or directory
+$scriptname: $psf, no such file or directory
 EOF
     exit 1
 fi
@@ -343,7 +343,7 @@ fi
 # If a scale factor (--scale) is not given at all.
 if [ x"$scale" = x ]; then
     cat <<EOF
-$scriptname: ERROR: no scale factor provided. It has to be given with '--scale' (or '-s'). You can derive this value with the 'astscript-psf-model-scale-factor'
+$scriptname: no scale factor provided. It has to be given with '--scale' (or '-s'). You can derive this value with the 'astscript-psf-model-scale-factor'
 EOF
     exit 1
 fi
@@ -351,7 +351,7 @@ fi
 # If center coordinates (--center) is not given at all.
 if [ x"$center" = x ]; then
     cat <<EOF
-$scriptname: ERROR: no center coordinates provided (for the star that should be subtracted). You can use '--center' ('-c')
+$scriptname: no center coordinates provided (for the star that should be subtracted). You can use '--center' ('-c')
 EOF
     exit 1
 else
@@ -360,7 +360,7 @@ else
                                   END{print c}')
     if [ x$ncenter != x2 ]; then
         cat <<EOF
-$scriptname: ERROR: $scriptname: '--center' (or '-c') only takes two values, but $ncenter were given
+$scriptname: '--center' (or '-c') only takes two values, but $ncenter were given in 'center'
 EOF
         exit 1
     fi
@@ -369,7 +369,7 @@ fi
 modeerrorinfo="Depending on the nature of the star's coordinates, please give either 'img' (for pixel coordinates) or 'wcs' (for RA,Dec) to the '--mode' (or '-O') option"
 if [ x"$mode" = x ]; then
     cat <<EOF
-$scriptname: ERROR: no coordinate mode provided. $modeerrorinfo
+$scriptname: no coordinate mode provided. $modeerrorinfo
 EOF
     exit 1
 # Make sure the value to '--mode' is either 'wcs' or 'img'.
@@ -377,7 +377,7 @@ elif [ "$mode" = wcs    -o    "$mode" = img ]; then
     junk=1
 else
     cat <<EOF
-$scriptname: ERROR: '$mode' not acceptable for '--mode' (or '-O'). $modeerrorinfo
+$scriptname: '$mode' not acceptable for '--mode' (or '-O'). $modeerrorinfo
 EOF
     exit 1
 fi
