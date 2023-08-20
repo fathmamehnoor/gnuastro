@@ -3872,6 +3872,18 @@ $ asttable three-in-one-3.fits -ocolor-cat.fits -c1,2,RA,DEC \
 $ asttable color-cat.fits -i
 @end example
 
+Sometimes, because of a particular way of storing data, you might need to take all input columns.
+If there are many columns (for example hundreds!), listing them (like above) will become annoying, buggy and time-consuming.
+In such cases, you can give @option{-c_all}.
+Upon execution, @code{_all} will be replaced with a comma-separated list of all the input columns.
+This allows you to add new columns easily, without having to worry about the number of input columns that you want anyway.
+A lower-level but more customizable method is to use the @command{seq} (sequence) command with the @code{-s} (separator) option set to @code{','}).
+For example, if you have 216 columns and only want to return columns 1 and 2 as well as all the columns between 12 to 58 (inclusive), you can use the command below:
+
+@example
+$ asttable table.fits -c1,2,$(seq -s',' 12 58)
+@end example
+
 We are now ready to make our final table.
 We want it to have the magnitudes in all three filters, as well as the three possible colors.
 Recall that by convention in astronomy colors are defined by subtracting the bluer magnitude from the redder magnitude.
@@ -17339,8 +17351,11 @@ $ echo "7h34m35.5498 31d53m14.352s" | asttable
 
 ## Convert RA and Dec in degrees to sexagesimal (same can be done in a
 ## large table given as argument).
-echo "113.64812416667 31.88732" \
-     | asttable -c'arith $1 degree-to-ra $2 degree-to-dec'
+$ echo "113.64812416667 31.88732" \
+       | asttable -c'arith $1 degree-to-ra $2 degree-to-dec'
+
+## Extract columns 1 and 2, as well as all those between 12 to 58:
+$ asttable table.fits -c1,2,$(seq -s',' 12 58)
 @end example
 
 Table's input dataset can be given either as a file or from Standard input (piped from another program, see @ref{Standard input}).
@@ -17418,6 +17433,19 @@ The order of the output columns will be the same order given to the option or in
 
 This option is not mandatory, if no specific columns are requested, all the input table columns are output.
 When this option is called multiple times, it is possible to output one column more than once.
+
+
+@cartouche
+@noindent
+@strong{Sequence of columns:} when dealing with a large number catalogs (hundreds for example!), it will be frustrating, annoying and buggy to insert the columns manually.
+If you want to read all the input columns, you can use the special @option{_all} value to @option{--column} option.
+A more generic solution (for example if you want every second one, or all the columns within a special range) is to use the @command{seq} command's features with an extra @option{-s','} (so a comma is used as the ``separator'').
+For example if you want columns 1, 2 and all columns between 12 to 58 (inclusive), you can use the following command:
+
+@example
+$ asttable table.fits -c1,2,$(seq -s',' 12 58)
+@end example
+@end cartouche
 
 @item -w FITS
 @itemx --wcsfile=FITS
