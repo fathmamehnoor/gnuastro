@@ -59,6 +59,22 @@ all the commits needed for this release have been completed.
        $ git checkout master
        $ git log --oneline --graph --decorate --all   # For a visual check.
 
+ - Activate the Conda-forge build:
+
+   - Clone the Conda-forge repository for building Gnuastro (change 'XXXX'
+     to the version string):
+
+       $ git@github.com:conda-forge/gnuastro-feedstock.git
+       $ cd gnuastro-feedstock
+       $ git checkout -b build-vXXXX
+       $ emacs recipe/meta.yaml
+       ## Update the URL and SHA256 checksums in the file above
+       $ git add -u
+       $ git commit
+       $ git push origin build-vXXXX
+
+   - Once the push is done, Github will automatically start a build on all
+     available Conda architectures that Gnuastro has been configured for.
 
  - [STABLE] Update the versions in the NEWS file and do a spell-check.
 
