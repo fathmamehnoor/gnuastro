@@ -5,7 +5,6 @@ Query is part of GNU Astronomy Utilities (Gnuastro) package.
 Original author:
      Mohammad akhlaghi <mohammad@akhlaghi.org>
 Contributing author(s):
-     Fathma Mehnoor <fathmamehnoor@gmail.com>
 Copyright (C) 2021-2023 Free Software Foundation, Inc.
 
 Gnuastro is free software: you can redistribute it and/or modify it
@@ -31,8 +30,5 @@ tap_sanity_checks(struct queryparams *p);
 
 void
 tap_download(struct queryparams *p);
-
-void
-tap_libcurl(struct queryparams *p);
 
 #endif

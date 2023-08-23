@@ -5,7 +5,6 @@ Query is part of GNU Astronomy Utilities (Gnuastro) package.
 Original author:
      Mohammad akhlaghi <mohammad@akhlaghi.org>
 Contributing author(s):
-     Fathma Mehnoor <fathmamehnoor@gmail.com>
 Copyright (C) 2020-2023 Free Software Foundation, Inc.
 
 Gnuastro is free software: you can redistribute it and/or modify it
@@ -386,15 +385,7 @@ query(struct queryparams *p)
     }
 
   /* Download the requested query. */
-  if(p->usetap)
-  {
-  /* If libcurl is available, use it to retrieve data. */
-  #ifdef HAVE_LIBCURL
-  tap_libcurl(p);
-  #else
-  tap_download(p);
-  #endif
-  }
+  if(p->usetap) tap_download(p);
 
   /* Make sure that the result is a readable FITS file, otherwise, abort
      with an error. */

@@ -28,7 +28,10 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 #include <error.h>
 #include <stdlib.h>
 
-#include <curl/curl.h>
+#ifdef HAVE_LIBCURL
+  #include <curl/curl.h>
+#endif
+
 #include <gnuastro/wcs.h>
 
 #include <gnuastro-internal/checkset.h>
@@ -387,18 +390,13 @@ tap_query_construct_data(struct queryparams *p)
 
 
 
-void
-tap_download(struct queryparams *p)
-{
-  gal_list_str_t *url;
-  char *command, *querystr;
 
-  /* If the raw query has been given, use it. */
-  querystr = ( p->query
-               ? p->query
-               : ( p->information
-                   ? tap_query_construct_meta(p)
-                   : tap_query_construct_data(p) ) );
+/* Function to perform data retrieval using curl executable. */
+static void
+tap_download_system(struct queryparams *p, char *querystr)
+{
+  char *command;
+  gal_list_str_t *url;
 
   /* Go over the given URLs for this server. */
   for(url=p->urls; url!=NULL; url=url->next)
@@ -441,17 +439,15 @@ tap_download(struct queryparams *p)
 
   /* Keep the executed command (to put in the final file's meta-data). */
   p->finalcommand=command;
-
-  /* Clean up. */
-  if(querystr!=p->query) free(querystr);
 }
 
 
 
 
 /* Callback function for writing downloaded data to a file. */
-static size_t
-tap_callback(void *data, size_t size, size_t nmemb, void *stream) {
+static 
+size_t tap_callback(void *data, size_t size, size_t nmemb, void *stream)
+{
     size_t written = fwrite(data, size, nmemb, (FILE *)stream);
     return written;
 }
@@ -460,26 +456,26 @@ tap_callback(void *data, size_t size, size_t nmemb, void *stream) {
 
 
 /* Function to perform data retrieval using libcurl. */
-void
-tap_libcurl(struct queryparams *p)
+#ifdef HAVE_LIBCURL
+static void
+tap_download_libcurl(struct queryparams *p, char *querystr)
 {
   CURL *curl;
   CURLcode res;
-  char *querystr;
   gal_list_str_t *url;
+  FILE *fp = fopen(p->downloadname, "wb");
+
+  if(!fp)
+    error(EXIT_FAILURE, errno, "%s: cannot open file '%s'"
+                  "for writing", __func__, p->downloadname);
 
   /* Construct the query string based on conditions. */
-  querystr = ( p->query
-               ? p->query
-               : ( p->information
-                   ? tap_query_construct_meta(p)
-                   : tap_query_construct_data(p) ) );
   printf("\nQuery String: %s\n",querystr);
 
   /* Go over the given URLs for this server. */
   for(url=p->urls; url!=NULL; url=url->next)
      {
-      /* Initialize a curl handle. */
+       /* Initialize a curl handle. */
        curl = curl_easy_init();
 
        if(curl)
@@ -495,11 +491,6 @@ tap_libcurl(struct queryparams *p)
            curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
            curl_easy_setopt(curl, CURLOPT_URL, url->v);
            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, tap_callback);
-
-           FILE *fp = fopen(p->downloadname, "wb");
-           if(!fp)
-             error(EXIT_FAILURE, errno, "%s: cannot open file '%s'"
-                  "for writing", __func__, p->downloadname);
 
            /* Set the file handle as the data destination. */
            curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
@@ -517,9 +508,38 @@ tap_libcurl(struct queryparams *p)
            fclose(fp);
            curl_easy_cleanup(curl);
            if (res == CURLE_OK) break;
-          }
+         }
+
+        /* Clean up. */
         curl_global_cleanup();
      }
-     /* Clean up. */
-     if (querystr != p->query) free(querystr);
+}
+#endif
+
+
+
+
+void 
+tap_download(struct queryparams *p)
+{
+  char *querystr;
+
+  /* Construct the query string based on conditions. */
+  querystr = ( p->query
+               ? p->query
+               : ( p->information
+                   ? tap_query_construct_meta(p)
+                   : tap_query_construct_data(p) ) );
+
+  /* If libcurl is available, use it to retrieve data; 
+        otherwise, use the curl executable. */
+  #ifdef HAVE_LIBCURL
+      tap_download_libcurl(p,querystr);
+  #else
+      tap_download_system(p,querystr);
+  #endif
+
+  /* Clean up. */
+  if (querystr != p->query) free(querystr);
+
 }
