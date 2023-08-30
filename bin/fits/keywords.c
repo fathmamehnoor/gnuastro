@@ -391,7 +391,7 @@ keywords_copykeys_name(struct fitsparams *p, fitsfile *fptr,
                        char *inkeys, size_t numinkeys,
                        int *updatechecksum)
 {
-  size_t i, j;
+  size_t i, j, len;
   int status=0, found;
   char **strarr=p->copykeysname->array;
 
@@ -404,18 +404,22 @@ keywords_copykeys_name(struct fitsparams *p, fitsfile *fptr,
          case (and write upper-case), so we'll also ignore case when
          comparing.*/
       found=0;
+      len=strlen(strarr[i]);
       for(j=0;j<numinkeys-1;++j) /* numkeys-1: it includes 'END'. */
         {
-          /* First check the first few characters, if they don't match, see
-             if it stars with 'HIERARCH' (which is placed before long
-             keyword names). */
-          if( !strncasecmp(strarr[i], &inkeys[j*80], strlen(strarr[i])) )
+          /* Check the first few characters, if they don't match, see if it
+             stars with 'HIERARCH' (which is placed before long keyword
+             names). Note that we want an exact match, so the next
+             character after the keyword name should either be a space
+             character or an equal sign. */
+          if( !strncasecmp(strarr[i], &inkeys[j*80], len)
+              && (inkeys[j*80+len]==' ' || inkeys[j*80+len]=='=') )
             found=1;
           else
             {
               if( !strncasecmp("HIERARCH", &inkeys[j*80], 8)
-                  && !strncasecmp(strarr[i], &inkeys[j*80+9],
-                                  strlen(strarr[i])) )
+                  && !strncasecmp(strarr[i], &inkeys[j*80+9], len)
+                  && (inkeys[j*80+9+len]==' ' || inkeys[j*80+9+len]=='='))
                 found=1;
             }
 
