@@ -38181,6 +38181,12 @@ If you just want to write the WCS into an empty file, you can use @code{gal_wcs_
 Return a fully allocated (independent) copy of @code{wcs}.
 @end deftypefun
 
+@deftypefun {struct wcsprm *} gal_wcs_copy_new_crval (struct wcsprm @code{*wcs}, double @code{*crval})
+Return a fully allocated (independent) copy of @code{wcs} with a new set of @code{CRVAL} values.
+WCSLIB keeps a lot of extra information within @code{wcsprm} and for optimizations, those extra information are used in its calculations.
+Therefore, if you want to change parameters like the reference point's sky coordinate values (@code{CRVAL}), simply changing the values in @code{wcs->crval[0]} or @code{wcs->crval[1]} will not affect WCSLIB's calculations; you need to call this function.
+@end deftypefun
+
 @deftypefun void gal_wcs_remove_dimension (struct wcsprm @code{*wcs}, size_t @code{fitsdim})
 Remove the given FITS dimension from the given @code{wcs} structure.
 @end deftypefun
@@ -39465,9 +39471,30 @@ Returns @code{1} if the polygon is convex with vertices defined by @code{v} and 
 Note that the vertices of the polygon should be sorted in an anti-clockwise manner.
 @end deftypefun
 
-@deftypefun double gal_polygon_area (double @code{*v}, size_t @code{n})
-Find the area of a polygon with vertices defined in @code{v}.
+@deftypefun double gal_polygon_area_flat (double @code{*v}, size_t @code{n})
+Find the area of a polygon with vertices defined in @code{v} on a euclidian (flat) coordinate system.
 @code{v} points to an array of doubles which keep the positions of the vertices such that @code{v[0]} and @code{v[1]} are the positions of the first vertice to be considered.
+@end deftypefun
+
+@deftypefun double gal_polygon_area_sky (double @code{*v}, size_t @code{n})
+Find the area of a polygon with vertices defined in @code{v} on a celestial coordinate system.
+This is a coordinate system where the first coordinate goes from 0 to 360 (increasing to the right), while the second coordinate ranges from -90 to +90 (on the poles).
+@code{v} points to an array of doubles which keep the positions of the vertices such that @code{v[0]} and @code{v[1]} are the positions of the first vertice to be considered.
+
+This function uses an approximation to account for the curvature of the sky and the different nature of spherical coordinates with respect to the flat coordinate system.
+@url{https://savannah.gnu.org/bugs/index.php?64617, Bug 64617} has been defined in Gnuastro to address this problem.
+Please check that bug in case it has been fixed.
+Until this bug is fixed, here are some tips:
+@itemize
+@item
+Subtract the RA and Dec of all the vertice coordinates from a constant so the center of the polygon falls on (RA, Dec) of (180,0).
+The sphere has a similar nature everywhere on it, so shifting the polygon vertices will not change its area; this also removes issues with the RA=0 or RA=360 coordinate and decrease issues caused by RA depending on declination.
+@item
+These approximations should not cause any statistically significant error on normal (less than a few degrees) scales.
+But it won't hurt to do a small sanity check for your particular usage scenario.
+@item
+Any help (even in the mathematics of the problem; not necessary programming) would be appreciated (we didn't have time to derive the necessary equations), so if you have some background in this and can prepare the mathematical description of the problem, please get in touch.
+@end itemize
 @end deftypefun
 
 @deftypefun int gal_polygon_is_inside (double @code{*v}, double @code{*p}, size_t @code{n})

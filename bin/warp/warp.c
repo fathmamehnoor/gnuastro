@@ -148,7 +148,8 @@ warp_onthread_linear(void *inparam)
                    ocrn[j*2], ocrn[j*2+1], icrn_base[j*2],
                    icrn_base[j*2+1]);
           printf("------- Ordered -------\n");
-          for(j=0;j<4;++j) printf("(%.3f, %.3f)\n", icrn[j*2], icrn[j*2+1]);
+          for(j=0;j<4;++j)
+            printf("(%.3f, %.3f)\n", icrn[j*2], icrn[j*2+1]);
           printf("------- Start and ending pixels -------\n");
           printf("X: %ld -- %ld\n", xstart, xend);
           printf("Y: %ld -- %ld\n", ystart, yend);
@@ -177,7 +178,7 @@ warp_onthread_linear(void *inparam)
 
               /* Find the overlapping (clipped) polygon: */
               gal_polygon_clip(icrn, 4, pcrn, 4, ccrn, &numcrn);
-              area=gal_polygon_area(ccrn, numcrn);
+              area=gal_polygon_area_flat(ccrn, numcrn);
 
               /* Add the fractional value of this pixel. If this
                  output pixel covers a NaN pixel in the input grid,
@@ -367,7 +368,7 @@ warp_linear_init(struct warpparams *p)
       forarea[2*i]=icrn[2*p->ordinds[i]];
       forarea[2*i+1]=icrn[2*p->ordinds[i]+1];
     }
-  p->opixarea=gal_polygon_area(forarea, 4);
+  p->opixarea=gal_polygon_area_flat(forarea, 4);
 
 
   /* Find which index after transformation will have the minimum and

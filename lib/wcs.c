@@ -1255,8 +1255,8 @@ gal_wcs_distortion_convert(struct wcsprm *inwcs, int outdisptype,
             outwcs=gal_wcsdistortion_sip_to_tpv(inwcs);
             break;
           default:
-            error(EXIT_FAILURE, 0, "%s: conversion from %s to %s is not yet "
-                  "supported. Please contact us at '%s'", __func__,
+            error(EXIT_FAILURE, 0, "%s: conversion from %s to %s is not "
+                  "yet supported. Please contact us at '%s'", __func__,
                   gal_wcs_distortion_to_string(indisptype),
                   gal_wcs_distortion_to_string(outdisptype),
                   PACKAGE_BUGREPORT);
@@ -1274,8 +1274,8 @@ gal_wcs_distortion_convert(struct wcsprm *inwcs, int outdisptype,
             outwcs=gal_wcsdistortion_tpv_to_sip(inwcs, fitsize);
             break;
           default:
-            error(EXIT_FAILURE, 0, "%s: conversion from %s to %s is not yet "
-                  "supported. Please contact us at '%s'", __func__,
+            error(EXIT_FAILURE, 0, "%s: conversion from %s to %s is not "
+                  "yet supported. Please contact us at '%s'", __func__,
                   gal_wcs_distortion_to_string(indisptype),
                   gal_wcs_distortion_to_string(outdisptype),
                   PACKAGE_BUGREPORT);
@@ -1293,9 +1293,9 @@ gal_wcs_distortion_convert(struct wcsprm *inwcs, int outdisptype,
 
       /* A bug! This distortion is not yet recognized. */
       default:
-        error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to fix "
-              "the problem. The identifier '%d' is not recognized as a "
-              "distortion", __func__, PACKAGE_BUGREPORT, indisptype);
+        error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to "
+              "fix the problem. The identifier '%d' is not recognized "
+              "as a distortion", __func__, PACKAGE_BUGREPORT, indisptype);
       }
 
   /* Return the converted WCS. */
@@ -1363,6 +1363,51 @@ gal_wcs_copy(struct wcsprm *wcs)
     out=NULL;
 
   /* Return the final output. */
+  return out;
+}
+
+
+
+
+
+/* Copy the given WCS into a new one with differnet CRVALs. Because WCSLIB
+   keeps internal constructs to speed up operations, we cannot simply
+   change these values, we need to write the WCS into a set of keywords,
+   then read them as a new one. */
+struct wcsprm *
+gal_wcs_copy_new_crval(struct wcsprm *in, double *crval)
+{
+  char *wcsstr;
+  double *ocrval;
+  int status=0, relax=WCSHDR_all;
+  struct wcsprm *incpy, *out=NULL;
+  int nkeys, nwcs, ctrl=0, nreject=0;
+
+  /* Copy the input WCS structure into a new one (in case the caller is
+     using it in another function). */
+  incpy=gal_wcs_copy(in);
+
+  /* Keep the original pointer of CRVAL: for some reason 'wcsprm' cannot
+     deal with a 'NULL' CRVAL, so we need to return the original CRVAL to
+     the 'wcsprm' before freeing it (we do not want to free the caller's
+     CRVAL). */
+  ocrval=incpy->crval;
+  incpy->crval=crval;
+
+  /* Convert the WCS into a string and read it into a new WCS structure. We
+     do not need all the checks in 'gal_wcs_read_fitsptr' because this
+     string was written just now. */
+  wcsstr=gal_wcs_write_wcsstr(incpy, &nkeys);
+  status=wcspih(wcsstr, nkeys, relax, ctrl, &nreject, &nwcs, &out);
+  if(status)
+    error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at '%s' to fix the "
+          "problem. The internally created WCS string could not be parsed "
+          "as a new WCS structure", __func__, PACKAGE_BUGREPORT);
+
+  /* Clean up and return. */
+  incpy->crval=ocrval;
+  gal_wcs_free(incpy);
+  free(wcsstr);
   return out;
 }
 

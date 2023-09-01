@@ -77,7 +77,6 @@ warp_alloc_perimeter(gal_data_t *input)
 
   /* High level variables */
   size_t npcrn=2*(is0+is1);
-
   pcrn=gal_data_alloc(NULL, GAL_TYPE_FLOAT64, 1, &npcrn, NULL, 0,
                       minmapsize, quietmmap, NULL, NULL, NULL);
   pcrn->next=gal_data_alloc(NULL, GAL_TYPE_FLOAT64, 1, &npcrn, NULL, 0,
@@ -117,7 +116,7 @@ warp_alloc_perimeter(gal_data_t *input)
 
 
 /* Create a base image with WCS consisting of the basic geometry
-   keywords */
+   keywords. */
 static void
 warp_wcsalign_init_output_from_params(gal_warp_wcsalign_t *wa)
 {
@@ -257,13 +256,14 @@ warp_wcsalign_init_output_from_params(gal_warp_wcsalign_t *wa)
 
 
 
+/* Initialize the vertices of each output pixel (accounting for any
+   edge-sampling). */
 static void
 warp_wcsalign_init_vertices(gal_warp_wcsalign_t *wa)
 {
   size_t es=wa->edgesampling;
 
   size_t ind, i, j, ix, iy;
-  gal_data_t *vertices=NULL;
   double gap=1.0f/(es+1.0f);
   size_t os0=wa->output->dsize[0];
   size_t os1=wa->output->dsize[1];
@@ -276,22 +276,26 @@ warp_wcsalign_init_vertices(gal_warp_wcsalign_t *wa)
   size_t v0=WARP_WCSALIGN_V0(es,os0,os1);
   size_t nvertices=nvcrn*(os1+1)+nhcrn*(os0+1);
 
-  /* Now create all subpixels based on the edgesampling '-E' option */
-  vertices=gal_data_alloc(NULL, GAL_TYPE_FLOAT64, 1, &nvertices, NULL, 0,
-                      minmapsize, quietmmap, "OutputRA", NULL, NULL);
-  vertices->next=gal_data_alloc(NULL, GAL_TYPE_FLOAT64, 1, &nvertices,
-                                NULL, 0, minmapsize, quietmmap,
-                                "OutputDec", NULL, NULL);
-  x=vertices->array; y=vertices->next->array;
+  /* Allocate the space for all the vertice coordinates. */
+  wa->vertices=gal_data_alloc(NULL, GAL_TYPE_FLOAT64, 1, &nvertices,
+                               NULL, 0, minmapsize, quietmmap, NULL,
+                               NULL, NULL);
+  wa->vertices->next=gal_data_alloc(NULL, GAL_TYPE_FLOAT64, 1, &nvertices,
+                                    NULL, 0, minmapsize, quietmmap,
+                                    NULL, NULL, NULL);
 
+  /* Parse all pixels. */
+  x=wa->vertices->array;
+  y=wa->vertices->next->array;
   for(ind=os0*os1; ind--;)
     {
+      /* For easy reading. */
       row=ind%os1;
       col=floor(ind/os1);
       ix=WARP_WCSALIGN_H(ind,es,os1);
       iy=WARP_WCSALIGN_V(ind,es,v0,os1);
 
-      /* Bottom left */
+      /* Bottom left edge of pixel. */
       x[ix]= 0.5f+row;
       y[ix]= 0.5f+col;
 
@@ -320,10 +324,11 @@ warp_wcsalign_init_vertices(gal_warp_wcsalign_t *wa)
   /* Right */
   for(ind=os1-1; ind<os1*os0; ind+=os1)
     {
-      row=(size_t)(ind%os1); col=(size_t)(ind/os1);
-
-      iy=WARP_WCSALIGN_V(ind,es,v0,os1);
+      /* For easy reading. */
+      row=(size_t)(ind%os1);
+      col=(size_t)(ind/os1);
       ix=WARP_WCSALIGN_H(ind,es,os1);
+      iy=WARP_WCSALIGN_V(ind,es,v0,os1);
 
       /* Bottom right */
       j=ix+es+1;
@@ -339,22 +344,28 @@ warp_wcsalign_init_vertices(gal_warp_wcsalign_t *wa)
         }
     }
 
-  wa->vertices=vertices;
+  /* For a check:
+  for(i=0;i<nvertices;++i)
+    printf("%zu: %f, %f\n", i, x[i], y[i]);
+  printf("%s: GOOD\n", __func__); exit(0);
+  */
 }
 
 
 
 
 
+/* Check if the vertice orientation is clock-wise or counter-clock-wise. */
 static void
-warp_check_output_orientation(gal_warp_wcsalign_t *wa)
+warp_check_output_clockwise(gal_warp_wcsalign_t *wa)
 {
   size_t gcrn=wa->gcrn;
   size_t es=wa->edgesampling;
   double *vx=wa->vertices->array;
   double *vy=wa->vertices->next->array;
   size_t indices[4]={ 0, es+1, gcrn+es+1, gcrn };
-  double *temp=gal_pointer_allocate(GAL_TYPE_FLOAT64, 8, 0, __func__, NULL);
+  double *temp=gal_pointer_allocate(GAL_TYPE_FLOAT64, 8, 0, __func__,
+                                    NULL);
 
   temp[ 0 ]=vx[ indices[0] ]; temp[ 1 ]=vy[ indices[0] ];
   temp[ 2 ]=vx[ indices[1] ]; temp[ 3 ]=vy[ indices[1] ];
@@ -585,8 +596,7 @@ warp_wcsalign_init_output_from_wcs(gal_warp_wcsalign_t *wa,
 
 
 
-/* Check parameters shared between the wcsalign procedure and the other
-   library functions such as pixelarea_onwcs. */
+/* Check parameters for aligning and pixelarea. */
 static void
 warp_check_basic_params(gal_warp_wcsalign_t *wa, const char *func)
 {
@@ -633,13 +643,11 @@ warp_check_basic_params(gal_warp_wcsalign_t *wa, const char *func)
 static void
 warp_wcsalign_init_internals(gal_warp_wcsalign_t *wa)
 {
-  size_t es, os0, os1;
+  size_t es=wa->edgesampling;
+  size_t os0=wa->output->dsize[0];
+  size_t os1=wa->output->dsize[1];
 
-  es=wa->edgesampling;
-  os0=wa->output->dsize[0];
-  os1=wa->output->dsize[1];
-
-  /* Pickle variables so other functions can access them. */
+  /* Common variables to simplify next functions. */
   wa->ncrn=4*es+4;
   wa->gcrn=1+os1*(es+1);
   wa->v0=WARP_WCSALIGN_V0(es, os0, os1);
@@ -647,7 +655,7 @@ warp_wcsalign_init_internals(gal_warp_wcsalign_t *wa)
   /* Determine the output image rotation direction so we can sort the
      indices in counter clockwise order. This is necessary for the
      'gal_polygon_clip' function to work. */
-  warp_check_output_orientation(wa);
+  warp_check_output_clockwise(wa);
 }
 
 
@@ -967,10 +975,18 @@ gal_warp_wcsalign_onpix(gal_warp_wcsalign_t *wa, size_t ind)
           /* Read the value of the input pixel. */
           v=inputarr[(y-1)*is1+x-1];
 
-          /* Find the overlapping (clipped) polygon: */
+          /* Find the overlapping (clipped) polygon and its area.
+
+             In theory, instead of 'gal_polygon_area_flat', we should be
+             using the spherical polygon area ('gal_polygon_area_flat').
+             But the area that is calculate here is not used in an absolute
+             sense: it is only relative for comparison with other input
+             pixels that overlap with this output pixel. Therefore, because
+             the flat area calculation is faster, we'll suffice to that
+             unless we discover there is any problem with it. */
           numcrn=0; /* initialize it. */
           gal_polygon_clip(ocrn, ncrn, pcrn, 4, ccrn, &numcrn);
-          area=gal_polygon_area(ccrn, numcrn);
+          area=gal_polygon_area_flat(ccrn, numcrn);
 
           /* Write each pixel's maximum coverage fraction if asked. */
           if( maxfrac ) maxfrac[ind] = fmax(area, maxfrac[ind]);
@@ -998,9 +1014,11 @@ gal_warp_wcsalign_onpix(gal_warp_wcsalign_t *wa, size_t ind)
   if( maxfrac && maxfrac[ind]==-DBL_MAX ) maxfrac[ind]=NAN;
 
   /* See if the pixel value should be set to NaN or not (because of not
-     enough coverage). Note that 'ocrn' is sorted in anti-clockwise
-     order already. */
-  opixarea=gal_polygon_area(ocrn, ncrn);
+     enough coverage). Note that 'ocrn' is sorted in anti-clockwise order
+     already. For a description of why we are not using
+     'gal_polygon_area_sky', see the comment above the previous call to
+     'gal_polygon_area_flat' above. */
+  opixarea=gal_polygon_area_flat(ocrn, ncrn);
   if( numinput && filledarea/opixarea < wa->coveredfrac-1e-5)
     numinput=0;
 
@@ -1134,13 +1152,14 @@ warp_pixelarea_onthread(void *inparam)
   /* Loop over pixels given from the 'warp' function */
   for(i=0; tprm->indexs[i] != GAL_BLANK_SIZE_T; ++i)
     {
+      /* Pixel to use. */
       ind=tprm->indexs[i];
 
       /* Fix the vertice ordering, crucial for calculating the area. */
       ocrn=warp_pixel_perimeter(wa, ind);
 
       /* Now that the vertices are in CCW order, calculate the area. */
-      area=gal_polygon_area(ocrn, wa->ncrn);
+      area=gal_polygon_area_sky(ocrn, wa->ncrn);
       outputarr[ind]=area;
 
       /* Clean up the allocated array. */
@@ -1162,8 +1181,11 @@ warp_pixelarea_onthread(void *inparam)
 void
 gal_warp_pixelarea(gal_warp_wcsalign_t *wa)
 {
+  struct wcsprm *wcs;
   gal_data_t *input=wa->input;
+  double crval[2]={180.0f,0.0f};
 
+  /* Basic sanity check. */
   warp_check_basic_params(wa, __func__);
 
   /* Create the output dataset. */
@@ -1175,7 +1197,31 @@ gal_warp_pixelarea(gal_warp_wcsalign_t *wa)
   /* Create the vertices based on the edgesampling value. */
   warp_wcsalign_init_vertices(wa);
   warp_wcsalign_init_internals(wa);
-  gal_wcs_img_to_world(wa->vertices, input->wcs, 1);
+
+  /* For a check (before conversion).
+  size_t i;
+  double *x=wa->vertices->array;
+  double *y=wa->vertices->next->array;
+  for(i=0;i<wa->vertices->size;++i)
+    printf("%-20.15f %-20.15f\n", x[i], y[i]);
+  */
+
+  /* Change the CRVALs to be on 0 and 180 (this helps to avoid issues with
+     an image passing the RA=0.0, or high declination problems. */
+  wcs=gal_wcs_copy_new_crval(input->wcs, crval);
+
+  /* Convert the output pixel-coordinate vertices to WCS and free the
+     temporary WCS. */
+  gal_wcs_img_to_world(wa->vertices, wcs, 1);
+  gal_wcs_free(wcs);
+
+  /* For a check (after conversion).
+  size_t j;
+  double *ra=wa->vertices->array;
+  double *dec=wa->vertices->next->array;
+  for(j=0;j<wa->vertices->size;++j)
+    printf("%-20.15f %-20.15f\n", ra[j], dec[j]);
+  */
 
   /* Calculate pixel area on WCS and write to output. */
   gal_threads_spin_off(warp_pixelarea_onthread, wa, wa->output->size,

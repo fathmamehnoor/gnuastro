@@ -148,7 +148,7 @@ meta_pixelareaonwcs(struct fitsparams *p)
   /* Call for an empty wcsalign structure. */
   gal_warp_wcsalign_t wa=gal_warp_wcsalign_template();
 
-  /* Initialize the warping variables based on commandline arguments. */
+  /* Initialize the warping variables based on command-line arguments. */
   meta_initialize(p, &wa);
 
   /* Execute the warping and fill the data-structure with results. */

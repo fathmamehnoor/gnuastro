@@ -65,7 +65,10 @@ int
 gal_polygon_is_convex(double *v, size_t n);
 
 double
-gal_polygon_area(double *v, size_t n);
+gal_polygon_area_flat(double *v, size_t n);
+
+double
+gal_polygon_area_sky(double *v, size_t n);
 
 int
 gal_polygon_is_inside(double *v, double *p, size_t n);

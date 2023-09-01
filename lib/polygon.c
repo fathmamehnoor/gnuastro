@@ -47,14 +47,18 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 /* The cross product of two points from the center. */
 #define GAL_POLYGON_CROSS_PRODUCT(A, B) ( (A)[0]*(B)[1] - (B)[0]*(A)[1] )
 
-
-
+/* For spherical coordinates: the RA is only in units of degrees on the
+   equator: as we got to higher or lower declinations, any difference in RA
+   should be multiplied by the cos(DEC).*/
+#define GAL_POLYGON_CROSS_PRODUCT_SKY(A, B) \
+  (   (A)[0]*(B)[1]*cos((A)[1]*M_PI/180) \
+    - (B)[0]*(A)[1]*cos((B)[1]*M_PI/180)  )
 
 /* Find the cross product (2*area) between three points. Each point is
    assumed to be a pointer that has atleast two values within it. */
-#define GAL_POLYGON_TRI_CROSS_PRODUCT(A, B, C)    \
-  ( ( (B)[0]-(A)[0] ) * ( (C)[1]-(A)[1] ) -       \
-    ( (C)[0]-(A)[0] ) * ( (B)[1]-(A)[1] ) )       \
+#define GAL_POLYGON_TRI_CROSS_PRODUCT(A, B, C) \
+  (   ( (B)[0]-(A)[0] ) * ( (C)[1]-(A)[1] )    \
+    - ( (C)[0]-(A)[0] ) * ( (B)[1]-(A)[1] ) )
 
 
 
@@ -130,11 +134,12 @@ gal_polygon_vertices_sort_convex(double *in, size_t n, size_t *ordinds)
     tindexs[GAL_POLYGON_MAX_CORNERS];
 
   if(n>GAL_POLYGON_MAX_CORNERS)
-    error(EXIT_FAILURE, 0, "%s: most probably a bug! The number of corners "
-          "is more than %d. This is an internal value and cannot be set from "
-          "the outside. Most probably some bug has caused this un-normal "
-          "value. Please contact us at %s so we can solve this problem",
-          __func__, GAL_POLYGON_MAX_CORNERS, PACKAGE_BUGREPORT);
+    error(EXIT_FAILURE, 0, "%s: most probably a bug! The number of "
+          "corners is more than %d. This is an internal value and "
+          "cannot be set from the outside. Most probably some bug "
+          "has caused this un-normal value. Please contact us at %s "
+          "so we can solve this problem", __func__,
+          GAL_POLYGON_MAX_CORNERS, PACKAGE_BUGREPORT);
 
   /* For a check:
   printf("\n\nBefore sorting:\n");
@@ -234,12 +239,11 @@ gal_polygon_is_convex(double *v, size_t n)
    vertices such that v[0] and v[1] are the positions of the first
    corner to be considered.
 
-   We will start from the edge connecting the last pixel to the first
-   pixel for the first step of the loop, for the rest, j is always
-   going to be one less than i.
- */
+   To optimize the process (avoid repetition): We start from the edge
+   connecting the last pixel to the first pixel for the first step of the
+   loop, for the rest, j is always going to be one less than i. */
 double
-gal_polygon_area(double *v, size_t n)
+gal_polygon_area_flat(double *v, size_t n)
 {
   double sum=0.0f;
   size_t i=0, j=n-1;
@@ -247,6 +251,47 @@ gal_polygon_area(double *v, size_t n)
   while(i<n)
     {
       sum+=GAL_POLYGON_CROSS_PRODUCT(v+j*2, v+i*2);
+      j=i++;
+    }
+  return fabs(sum)/2.0f;
+}
+
+
+
+
+
+/* Spherical coordinates need special attention.*/
+double
+gal_polygon_area_sky(double *v, size_t n)
+{
+  int a1b0;
+  size_t i=0, j=n-1;
+  double *a, *b, sum=0.0f;
+
+  /* Go over all the vertices of the polygon. */
+  while(i<n)
+    {
+      /* For easy reading. */
+      a=v+j*2;
+      b=v+i*2;
+
+      /* We need to account for passing the two points pass over the line
+         of RA=0 (assuming that the vertices are not larger than 180
+         degrees apart!) */
+      if( fabs(a[0]-b[0]) < 180.0f)
+        sum+=GAL_POLYGON_CROSS_PRODUCT_SKY(a, b);
+      else
+        {
+          /* Add the smaller RA by 360. */
+          if(a[0]<b[0]) {a1b0=1; a[0]+=360.0f;}
+          else          {a1b0=0; b[0]+=360.0f;}
+
+          /* Add the cross product to the sum. */
+          sum+=GAL_POLYGON_CROSS_PRODUCT_SKY(a, b);
+
+          /* Return the changed value. */
+          if(a1b0) a[0]-=360.0f; else b[0]-=360.0f;
+        }
       j=i++;
     }
   return fabs(sum)/2.0f;

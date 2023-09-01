@@ -177,6 +177,9 @@ gal_wcs_distortion_convert(struct wcsprm *inwcs,
 struct wcsprm *
 gal_wcs_copy(struct wcsprm *wcs);
 
+struct wcsprm *
+gal_wcs_copy_new_crval(struct wcsprm *in, double *crval);
+
 void
 gal_wcs_remove_dimension(struct wcsprm *wcs, size_t fitsdim);
 

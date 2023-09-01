@@ -81,6 +81,7 @@ See the end of the file for license conditions.
   - gal_blank_not_minmax_coords: returns the minimum/maximum coordinates of
     non-blank regions of input dataset.
   - gal_blank_trim: trim all outer blank regions from the input dataset.
+  - gal_polygon_area_sky: area of polygon defined on celestial coordinates.
   - gal_pool_min: min-pooling function, see 'pool-min' above.
   - gal_pool_max: max-pooling function, see 'pool-min' above.
   - gal_pool_sum: sum-pooling function, see 'pool-min' above.
@@ -157,6 +158,12 @@ See the end of the file for license conditions.
     would cause problem in the final stack and were not removed until now.
     Implemented by Sepideh Eskandarlou
 
+  Library:
+  - gal_polygon_area_flat: new name for the old 'gal_polygon_area'
+    function. This was necessary because this function assumes flat
+    coordinates and can lead to wrong results when used with a polygon
+    defined by RA,Dec for example.
+
 
 ** Bugs fixed
   bug #64138: Arithmetic's mknoise-poisson only using first pixel value.
@@ -195,6 +202,7 @@ See the end of the file for license conditions.
               doesn't exist. Reported by Sepideh Eskandarlou.
   bug #64610: --copykeys of Fits program finds wrong key when the first
               characters of the keyword names match.
+  bug #64615: Fits program's '--pixelareaonwcs' only accurate on equator.
 
 
 
