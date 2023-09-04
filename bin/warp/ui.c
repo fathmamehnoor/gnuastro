@@ -1216,7 +1216,7 @@ ui_read_check_inputs_setup(int argc, char *argv[], struct warpparams *p)
           disttype=gal_wcs_distortion_identify(p->input->wcs);
           if(disttype!=GAL_WCS_DISTORTION_INVALID)
             printf(" matrix: '%s' distortion from WCS of input.\n",
-                   gal_wcs_distortion_to_string(disttype));
+                   gal_wcs_distortion_name_from_id(disttype));
         }
       else
         {

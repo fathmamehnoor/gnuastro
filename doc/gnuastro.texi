@@ -16940,6 +16940,61 @@ $ asttable table.fits -cID,RA -cDEC \
 @item img-to-wcs
 Similar to @code{wcs-to-img}, except that image/dataset coordinates are converted to WCS coordinates.
 
+@item eq-j2000-on-flat
+Convert the input RA and Dec (in Julian year 2000.0 equatorial coordinates; which are the most common) into RA and Dec on a flat surface based on the given reference coordinate.
+At the reference coordinate the output will be the same as the input, as you move away from the reference point, distortions due to the particular projection will be properly accounted for.
+For example if you simply plot RA and Dec without this operator, a circular annulus on the sky will become elongated as the declination of its center goes farther from the equator.
+
+The full details of the operands are given below, but let's start with a practical example to show the concept.
+Let's assume you want to plot a set of RA and Dec points (defined on a spherical surface) in a paper (a flat surface) and that @file{table.fits} contains the RA and Dec in columns that are called @code{RA} and @code{DEC}.
+With the command below, the points will be converted to flat-RA and flat-Dec using the Gnomonic projection (which is known as @code{TAN} in the FITS WSC standard; see the description of the first popped operand below):
+
+@example
+$ asttable table.fits \
+           -c'arith RA set-r DEC set-d \
+                    r d r meanvalue d meanvalue TAN \
+                    eq-j2000-on-flat'
+@end example
+
+As you see, the RA and Dec (@code{r} and @code{d}) are the last two operators that are popped.
+Before them, the reference point's coordinates are calculated from the mean of the RA and Decs (`@code{r meanvalue}' and `@code{d meanvalue}'), and the first popped operand is the projection (@code{TAN}).
+We are using the mean RA and Dec as the reference point since we are assuming that this is the only set of points you want to convert.
+In case you have to plot multiple sets of points in the same plot, you should give the same reference point in each separate conversion; like the example below:
+
+@example
+$ ref_ra=123.45
+$ ref_dec=-6.789
+$ asttable table-1.fits --output=flat-1.txt \
+           -c'arith RA DEC '$ref_ra' '$ref_dec' TAN \
+                    eq-j2000-on-flat'
+$ asttable table-2.fits --output=flat-2.txt \
+           -c'arith RA DEC '$ref_ra' '$ref_dec' TAN \
+                    eq-j2000-on-flat'
+@end example
+
+This operator takes 5 operands:
+
+@enumerate
+@item
+The @emph{first} popped operand (closest to the operator) is the standard FITS WCS projection to use; and should contain a single element (not a column).
+The full list of projections can be seen in the description of the @option{--ctype} option in @ref{Align pixels with WCS considering distortions}.
+The most common projection for smaller fields of view is @code{TAN} (Gnomonic), but when your input catalog contains large portions of the sky, projections like @code{MOL} (Mollweide) should be used.
+This is because distortions caused by the @code{TAN} projection can become very significant after a couple of degrees from the reference point.
+
+@item
+The @emph{second} popped operand is the reference point's declination; and should contain a single value (not a column).
+
+@item
+The @emph{third} popped operand is the reference point's right ascension; and should contain a single value (not a column).
+
+@item
+The @emph{fourth} popped operand is the declination column of your input table (the points that will be converted).
+
+@item
+The @emph{fifth} popped operand is the right ascension column of your input table (the points that will be converted).
+
+@end enumerate
+
 @item distance-flat
 Return the distance between two points assuming they are on a flat surface.
 Note that each point needs two coordinates, so this operator needs four operands (currently it only works for 2D spaces).
@@ -38059,10 +38114,72 @@ Identifiers of the linear transformation matrix: either in the @code{PCi_j} or t
 For more, see the description of @option{--wcslinearmatrix} in @ref{Input output options}.
 @end deffn
 
+@deffn  {Global integer} GAL_WCS_PROJECTION_AZP
+@deffnx {Global integer} GAL_WCS_PROJECTION_SZP
+@deffnx {Global integer} GAL_WCS_PROJECTION_TAN
+@deffnx {Global integer} GAL_WCS_PROJECTION_STG
+@deffnx {Global integer} GAL_WCS_PROJECTION_SIN
+@deffnx {Global integer} GAL_WCS_PROJECTION_ARC
+@deffnx {Global integer} GAL_WCS_PROJECTION_ZPN
+@deffnx {Global integer} GAL_WCS_PROJECTION_ZEA
+@deffnx {Global integer} GAL_WCS_PROJECTION_AIR
+@deffnx {Global integer} GAL_WCS_PROJECTION_CYP
+@deffnx {Global integer} GAL_WCS_PROJECTION_CEA
+@deffnx {Global integer} GAL_WCS_PROJECTION_CAR
+@deffnx {Global integer} GAL_WCS_PROJECTION_MER
+@deffnx {Global integer} GAL_WCS_PROJECTION_SFL
+@deffnx {Global integer} GAL_WCS_PROJECTION_PAR
+@deffnx {Global integer} GAL_WCS_PROJECTION_MOL
+@deffnx {Global integer} GAL_WCS_PROJECTION_AIT
+@deffnx {Global integer} GAL_WCS_PROJECTION_COP
+@deffnx {Global integer} GAL_WCS_PROJECTION_COE
+@deffnx {Global integer} GAL_WCS_PROJECTION_COD
+@deffnx {Global integer} GAL_WCS_PROJECTION_COO
+@deffnx {Global integer} GAL_WCS_PROJECTION_BON
+@deffnx {Global integer} GAL_WCS_PROJECTION_PCO
+@deffnx {Global integer} GAL_WCS_PROJECTION_TSC
+@deffnx {Global integer} GAL_WCS_PROJECTION_CSC
+@deffnx {Global integer} GAL_WCS_PROJECTION_QSC
+@deffnx {Global integer} GAL_WCS_PROJECTION_HPX
+@deffnx {Global integer} GAL_WCS_PROJECTION_XPH
+The various types of recognized FITS WCS projections; for more details see @ref{Align pixels with WCS considering distortions}.
+@end deffn
 
 @deffn Macro GAL_WCS_FLTERROR
 Limit of rounding for floating point errors.
 @end deffn
+
+@deftypefun int gal_wcs_distortion_name_to_id (char @code{*name})
+Convert the given string (assumed to be a FITS-standard, string-based distortion identifier) to a Gnuastro's integer-based distortion identifier (one of the @code{GAL_WCS_DISTORTION_*} macros defined above).
+The sting-based distortion identifiers have three characters and are all in capital letters.
+@end deftypefun
+
+@deftypefun int gal_wcs_distortion_name_from_id (int @code{id})
+Convert the given Gnuastro integer-based distortion identifier (one of the @code{GAL_WCS_DISTORTION_*} macros defined above) to the string-based distortion identifier) of the FITS standard.
+The sting-based distortion identifiers have three characters and are all in capital letters.
+@end deftypefun
+
+@deftypefun int gal_wcs_coordsys_name_to_id (char @code{*name})
+Convert the given string to Gnuastro's integer-based WCS coordinate system identifier (one of the @code{GAL_WCS_COORDSYS_*}, listed above).
+The expected strings can be seen in the description of the @option{--wcscoordsys} option of the Fits program, see @ref{Keyword inspection and manipulation}.
+@end deftypefun
+
+@deftypefun int gal_wcs_distortion_name_to_id (char @code{*name})
+Convert the given string (assumed to be a FITS-standard, string-based distortion identifier) to a Gnuastro's integer-based distortion identifier (one of the @code{GAL_WCS_DISTORTION_*} macros defined above).
+The sting-based distortion identifiers have three characters and are all in capital letters.
+@end deftypefun
+
+@deftypefun int gal_wcs_projection_name_from_id (int @code{id})
+Convert the given Gnuastro integer-based projection identifier (one of the @code{GAL_WCS_PROJECTION_*} macros defined above) to the string-based distortion identifier) of the FITS standard.
+The string-based projection identifiers have three characters and are all in capital letters.
+For a description of the various projections, see @ref{Align pixels with WCS considering distortions}.
+@end deftypefun
+
+@deftypefun int gal_wcs_projection_name_to_id (char @code{*name})
+Convert the given string (assumed to be a FITS-standard, string-based projection identifier) to a Gnuastro's integer-based projection identifier (one of the @code{GAL_WCS_PROJECTION_*} macros defined above).
+The string-based projection identifiers have three characters and are all in capital letters.
+For a description of the various projections, see @ref{Align pixels with WCS considering distortions}.
+@end deftypefun
 
 @deftypefun {struct wcsprm *} gal_wcs_create (double @code{*crpix}, double @code{*crval}, double @code{*cdelt}, double @code{*pc}, char @code{**cunit}, char @code{**ctype}, size_t @code{ndim}, int @code{linearmatrix})
 Given all the most common standard components of the WCS standard, construct a @code{struct wcsprm}, initialize and set it for future processing.
@@ -38231,11 +38348,6 @@ Also, set the @code{wcs->altlin=2} (for the @code{CDi_j} formalism).
 With these changes @code{gal_wcs_write_in_fitsptr} (and thus @code{gal_wcs_write} and @code{gal_fits_img_write} and its derivatives) will have an output file in the format of @code{CDi_j}.
 @end deftypefun
 
-@deftypefun int gal_wcs_coordsys_from_string (char @code{*coordsys})
-Convert the given string to Gnuastro's integer-based WCS coordinate system identifier (one of the @code{GAL_WCS_COORDSYS_*}, listed above).
-The expected strings can be seen in the description of the @option{--wcscoordsys} option of the Fits program, see @ref{Keyword inspection and manipulation}.
-@end deftypefun
-
 @deftypefun int gal_wcs_coordsys_identify (struct wcsprm @code{*wcs})
 Read the given WCS structure and return its coordinate system as one of Gnuastro's WCS coordinate system identifiers (the macros @code{GAL_WCS_COORDSYS_*}, listed above).
 @end deftypefun
@@ -38244,16 +38356,6 @@ Read the given WCS structure and return its coordinate system as one of Gnuastro
 Return a newly allocated WCS structure with the @code{coordsysid} coordinate system identifier.
 The Gnuastro WCS distortion identifiers are defined in the @code{GAL_WCS_COORDSYS_*} macros mentioned above.
 Since the returned dataset is newly allocated, if you do not need the original dataset after this, use the WCSLIB library function @code{wcsfree} to free the input, for example, @code{wcsfree(inwcs)}.
-@end deftypefun
-
-@deftypefun int gal_wcs_distortion_from_string (char @code{*distortion})
-Convert the given string (assumed to be a FITS-standard, string-based distortion identifier) to a Gnuastro's integer-based distortion identifier (one of the @code{GAL_WCS_DISTORTION_*} macros defined above).
-The sting-based distortion identifiers have three characters and are all in capital letters.
-@end deftypefun
-
-@deftypefun int gal_wcs_distortion_to_string (int @code{distortion})
-Convert the given Gnuastro integer-based distortion identifier (one of the @code{GAL_WCS_DISTORTION_*} macros defined above) to the string-based distortion identifier) of the FITS standard.
-The sting-based distortion identifiers have three characters and are all in capital letters.
 @end deftypefun
 
 @cindex WCS distortion

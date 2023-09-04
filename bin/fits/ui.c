@@ -441,13 +441,13 @@ ui_read_check_mode_keyword(struct fitsparams *p)
 
       /* Give an ID to recognized coordinate systems. */
       if(p->wcscoordsys)
-        p->coordsysid=gal_wcs_coordsys_from_string(p->wcscoordsys);
+        p->coordsysid=gal_wcs_coordsys_name_to_id(p->wcscoordsys);
 
       /* Identify the requested distortion. Note that this also acts as a
          sanity check because it will crash with an error if the given
          string isn't recognized. */
       if(p->wcsdistortion)
-        p->distortionid=gal_wcs_distortion_from_string(p->wcsdistortion);
+        p->distortionid=gal_wcs_distortion_name_to_id(p->wcsdistortion);
 
       /* Make sure the value of '--keyvalue' is actually present. */
       if(p->keyvalue && p->keyvalue->v[0]=='\0')

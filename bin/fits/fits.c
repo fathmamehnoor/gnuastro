@@ -569,9 +569,9 @@ fits_skycoverage(struct fitsparams *p)
                  width[1], width[2]);
           break;
         default:
-          error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to fix "
-                "the problem. 'ndim' value %zu is not recognized", __func__,
-                PACKAGE_BUGREPORT, ndim);
+          error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to "
+                "fix the problem. 'ndim' value %zu is not recognized",
+                __func__, PACKAGE_BUGREPORT, ndim);
         }
 
       /* For the range type of coverage. */
@@ -925,9 +925,9 @@ fits(struct fitsparams *p)
 
     /* Not recognized. */
     default:
-      error(EXIT_FAILURE, 0, "%s: a bug! please contact us at %s to address "
-            "the problem. The code %d is not recognized for p->mode",
-            __func__, PACKAGE_BUGREPORT, p->mode);
+      error(EXIT_FAILURE, 0, "%s: a bug! please contact us at %s to "
+            "address the problem. The code %d is not recognized for "
+            "p->mode", __func__, PACKAGE_BUGREPORT, p->mode);
     }
 
   return r;

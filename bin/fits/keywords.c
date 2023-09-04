@@ -623,10 +623,10 @@ keywords_wcs_convert(struct fitsparams *p)
               "conversion.\n\n"
               "The requested conversion can't be done analytically, so a "
               "solution has to be found by fitting the parameters over a "
-              "grid of pixels. We will use a default grid of %zux%zu pixels "
-              "and will proceed with the conversion. But it would be more "
-              "accurate if it is the size of the image that this WCS is "
-              "associated with",
+              "grid of pixels. We will use a default grid of %zux%zu "
+              "pixels and will proceed with the conversion. But it would "
+              "be more accurate if it is the size of the image that this "
+              "WCS is associated with",
               defaultsize[1], defaultsize[0]);
       dsize=defaultsize;
     }

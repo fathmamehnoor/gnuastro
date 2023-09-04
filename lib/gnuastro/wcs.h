@@ -92,6 +92,63 @@ enum gal_wcs_linear_matrix
   GAL_WCS_LINEAR_MATRIX_CD,
 };
 
+/* Macros for various projections (these names come from the 'prj.h' file
+   of WCSLIB (in '/usr/local/include/wcslib' for version 8.1). */
+enum gal_wcs_projections
+{
+  GAL_WCS_PROJECTION_INVALID,   /* Invalid (=0 by C standard). */
+  GAL_WCS_PROJECTION_AZP,       /* zenithal/azimuthal perspective */
+  GAL_WCS_PROJECTION_SZP,       /* slant zenithal perspective */
+  GAL_WCS_PROJECTION_TAN,       /* gnomonic */
+  GAL_WCS_PROJECTION_STG,       /* stereographic */
+  GAL_WCS_PROJECTION_SIN,       /* orthographic/synthesis */
+  GAL_WCS_PROJECTION_ARC,       /* zenithal/azimuthal equidistant */
+  GAL_WCS_PROJECTION_ZPN,       /* zenithal/azimuthal polynomial */
+  GAL_WCS_PROJECTION_ZEA,       /* zenithal/azimuthal equal area */
+  GAL_WCS_PROJECTION_AIR,       /* Airy */
+  GAL_WCS_PROJECTION_CYP,       /* cylindrical perspective */
+  GAL_WCS_PROJECTION_CEA,       /* cylindrical equal area */
+  GAL_WCS_PROJECTION_CAR,       /* Plate carree */
+  GAL_WCS_PROJECTION_MER,       /* Mercator */
+  GAL_WCS_PROJECTION_SFL,       /* Sanson-Flamsteed */
+  GAL_WCS_PROJECTION_PAR,       /* parabolic */
+  GAL_WCS_PROJECTION_MOL,       /* Mollweide */
+  GAL_WCS_PROJECTION_AIT,       /* Hammer-Aitoff */
+  GAL_WCS_PROJECTION_COP,       /* conic perspective */
+  GAL_WCS_PROJECTION_COE,       /* conic equal area */
+  GAL_WCS_PROJECTION_COD,       /* conic equidistant */
+  GAL_WCS_PROJECTION_COO,       /* conic orthomorphic */
+  GAL_WCS_PROJECTION_BON,       /* Bonne */
+  GAL_WCS_PROJECTION_PCO,       /* polyconic */
+  GAL_WCS_PROJECTION_TSC,       /* tangential spherical cube */
+  GAL_WCS_PROJECTION_CSC,       /* COBE spherical cube */
+  GAL_WCS_PROJECTION_QSC,       /* quadrilateralized spherical cube */
+  GAL_WCS_PROJECTION_HPX,       /* HEALPix */
+  GAL_WCS_PROJECTION_XPH,       /* HEALPix polar, aka "butterfly" */
+};
+
+
+
+
+
+/*************************************************************
+ ***********               Macros                  ***********
+ *************************************************************/
+int
+gal_wcs_distortion_name_to_id(char *distortion);
+
+char *
+gal_wcs_distortion_name_from_id(int distortion);
+
+int
+gal_wcs_coordsys_name_to_id(char *coordsys);
+
+uint8_t
+gal_wcs_projection_name_to_id(char *str);
+
+char *
+gal_wcs_projection_name_from_id(uint8_t id);
+
 
 
 
@@ -141,9 +198,6 @@ gal_wcs_write_in_fitsptr(fitsfile *fptr, struct wcsprm *wcs);
  ***********              Distortions              ***********
  *************************************************************/
 int
-gal_wcs_coordsys_from_string(char *coordsys);
-
-int
 gal_wcs_coordsys_identify(struct wcsprm *inwcs);
 
 struct wcsprm *
@@ -154,12 +208,6 @@ gal_wcs_coordsys_convert(struct wcsprm *inwcs, int coordsysid);
 /*************************************************************
  ***********              Distortions              ***********
  *************************************************************/
-int
-gal_wcs_distortion_from_string(char *distortion);
-
-char *
-gal_wcs_distortion_to_string(int distortion);
-
 int
 gal_wcs_distortion_identify(struct wcsprm *wcs);
 

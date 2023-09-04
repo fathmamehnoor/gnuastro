@@ -42,9 +42,6 @@ See the end of the file for license conditions.
 
   Arithmetic:
   - New operators (see book for a full description):
-    - to-1d: convert the input operand into a 1D array, no matter how many
-      dimensions it has. Suggested by Faezeh Bidjarchian.
-    - trim: remove all fully-blank outer regions of the input dataset.
     - pool-min: Min-pooling to reduce the size of the input by calculating
       the minimum of a the pixels within the pooling window (accounting for
       a stride). See the new "Pooling opeators" section of the book for
@@ -54,6 +51,9 @@ See the end of the file for license conditions.
     - pool-sum: Similar to 'pool-min' but using sum.
     - pool-mean: Similar to 'pool-min' but using mean.
     - pool-median: Similar to 'pool-min' but using median.
+    - to-1d: convert the input operand into a 1D array, no matter how many
+      dimensions it has. Suggested by Faezeh Bidjarchian.
+    - trim: remove all fully-blank outer regions of the input dataset.
 
   ConvertType:
   - It is now possible to write TIFF files in the output (until now,
@@ -71,6 +71,15 @@ See the end of the file for license conditions.
   - '$_all' in column arithmetic: when an arithmetic expression contains
     this string, it will be repeated independently for all the columns of
     the input table.
+  - New operators in Table's column arithmetic:
+    - eq-j2000-on-flat: convert the RA and Dec columns in a table to a
+      flat-RA and flat-Dec (accounting for a reference point as well as any
+      type of projection that is available in the FITS WCS standard). This
+      is necessary when you are plotting points in a report or paper cover
+      more than a couple of square degrees on the sky. Without this
+      operator, significant distortions will appear when you plot spherical
+      coordinates (RA,Dec) on a flat plane (your paper's plot). See the
+      documentation for this operator in the book for more.
 
   astscript-zeropoint:
   --mksrc: use a custom Makefile for estimating the zeropoint, not the
@@ -89,6 +98,8 @@ See the end of the file for license conditions.
   - gal_pool_median: median-pooling function, see 'pool-min' above.
   - gal_tiff_write: write 'gal_data_t' to a TIFF file; written by
     Fathma Mehnoor.
+  - gal_wcs_projection_name_to_id: convert projection names to IDs.
+  - gal_wcs_projection_name_from_id: convert projection IDs to their name.
 
 ** Removed features
 
@@ -163,6 +174,9 @@ See the end of the file for license conditions.
     function. This was necessary because this function assumes flat
     coordinates and can lead to wrong results when used with a polygon
     defined by RA,Dec for example.
+  - gal_wcs_distortion_name_to_id: new name of gal_wcs_distortion_from_string.
+  - gal_wcs_distortion_name_from_id: new name of gal_wcs_distortion_to_string.
+  - gal_wcs_coordsys_name_to_id: new name of gal_wcs_coordsys_from_string.
 
 
 ** Bugs fixed

@@ -54,6 +54,191 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 
 
 
+
+
+
+
+
+/*************************************************************
+ ***********               Macros                  ***********
+ *************************************************************/
+int
+gal_wcs_distortion_name_to_id(char *distortion)
+{
+  if(      !strcmp(distortion,"TPD") ) return GAL_WCS_DISTORTION_TPD;
+  else if( !strcmp(distortion,"SIP") ) return GAL_WCS_DISTORTION_SIP;
+  else if( !strcmp(distortion,"TPV") ) return GAL_WCS_DISTORTION_TPV;
+  else if( !strcmp(distortion,"DSS") ) return GAL_WCS_DISTORTION_DSS;
+  else if( !strcmp(distortion,"WAT") ) return GAL_WCS_DISTORTION_WAT;
+  else
+    error(EXIT_FAILURE, 0, "WCS distortion name '%s' not recognized, "
+          "currently recognized names are 'TPD', 'SIP', 'TPV', 'DSS' and "
+          "'WAT'", distortion);
+
+  /* Control should not reach here. */
+  error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to fix the "
+        "problem. Control should not reach the end of this function",
+        __func__, PACKAGE_BUGREPORT);
+  return GAL_WCS_DISTORTION_INVALID;
+}
+
+
+
+
+
+char *
+gal_wcs_distortion_name_from_id(int distortion)
+{
+  /* Return the proper literal string. */
+  switch(distortion)
+    {
+    case GAL_WCS_DISTORTION_TPD: return "TPD";
+    case GAL_WCS_DISTORTION_SIP: return "SIP";
+    case GAL_WCS_DISTORTION_TPV: return "TPV";
+    case GAL_WCS_DISTORTION_DSS: return "DSS";
+    case GAL_WCS_DISTORTION_WAT: return "WAT";
+    default:
+      error(EXIT_FAILURE, 0, "WCS distortion id '%d' isn't recognized",
+            distortion);
+    }
+
+  /* Control should not reach here. */
+  error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to fix the "
+        "problem. Control should not reach the end of this function",
+        __func__, PACKAGE_BUGREPORT);
+  return NULL;
+}
+
+
+
+
+
+int
+gal_wcs_coordsys_name_to_id(char *coordsys)
+{
+  if(      !strcmp(coordsys,"eq-j2000") ) return GAL_WCS_COORDSYS_EQJ2000;
+  else if( !strcmp(coordsys,"eq-b1950") ) return GAL_WCS_COORDSYS_EQB1950;
+  else if( !strcmp(coordsys,"ec-j2000") ) return GAL_WCS_COORDSYS_ECJ2000;
+  else if( !strcmp(coordsys,"ec-b1950") ) return GAL_WCS_COORDSYS_ECB1950;
+  else if( !strcmp(coordsys,"galactic") ) return GAL_WCS_COORDSYS_GALACTIC;
+  else if( !strcmp(coordsys,"supergalactic") )
+    return GAL_WCS_COORDSYS_SUPERGALACTIC;
+  else
+    error(EXIT_FAILURE, 0, "WCS coordinate system name '%s' not "
+          "recognized, currently recognized names are 'eq-j2000', "
+          "'eq-b1950', 'galactic' and 'supergalactic'", coordsys);
+
+  /* Control should not reach here. */
+  error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to fix the "
+        "problem. Control should not reach the end of this function",
+        __func__, PACKAGE_BUGREPORT);
+  return GAL_WCS_COORDSYS_INVALID;
+}
+
+
+
+
+
+uint8_t
+gal_wcs_projection_name_to_id(char *str)
+{
+  if(      !strcmp(str, "AZP") ) return GAL_WCS_PROJECTION_AZP;
+  else if( !strcmp(str, "SZP") ) return GAL_WCS_PROJECTION_SZP;
+  else if( !strcmp(str, "TAN") ) return GAL_WCS_PROJECTION_TAN;
+  else if( !strcmp(str, "STG") ) return GAL_WCS_PROJECTION_STG;
+  else if( !strcmp(str, "SIN") ) return GAL_WCS_PROJECTION_SIN;
+  else if( !strcmp(str, "ARC") ) return GAL_WCS_PROJECTION_ARC;
+  else if( !strcmp(str, "ZPN") ) return GAL_WCS_PROJECTION_ZPN;
+  else if( !strcmp(str, "ZEA") ) return GAL_WCS_PROJECTION_ZEA;
+  else if( !strcmp(str, "AIR") ) return GAL_WCS_PROJECTION_AIR;
+  else if( !strcmp(str, "CYP") ) return GAL_WCS_PROJECTION_CYP;
+  else if( !strcmp(str, "CEA") ) return GAL_WCS_PROJECTION_CEA;
+  else if( !strcmp(str, "CAR") ) return GAL_WCS_PROJECTION_CAR;
+  else if( !strcmp(str, "MER") ) return GAL_WCS_PROJECTION_MER;
+  else if( !strcmp(str, "SFL") ) return GAL_WCS_PROJECTION_SFL;
+  else if( !strcmp(str, "PAR") ) return GAL_WCS_PROJECTION_PAR;
+  else if( !strcmp(str, "MOL") ) return GAL_WCS_PROJECTION_MOL;
+  else if( !strcmp(str, "AIT") ) return GAL_WCS_PROJECTION_AIT;
+  else if( !strcmp(str, "COP") ) return GAL_WCS_PROJECTION_COP;
+  else if( !strcmp(str, "COE") ) return GAL_WCS_PROJECTION_COE;
+  else if( !strcmp(str, "COD") ) return GAL_WCS_PROJECTION_COD;
+  else if( !strcmp(str, "COO") ) return GAL_WCS_PROJECTION_COO;
+  else if( !strcmp(str, "BON") ) return GAL_WCS_PROJECTION_BON;
+  else if( !strcmp(str, "PCO") ) return GAL_WCS_PROJECTION_PCO;
+  else if( !strcmp(str, "TSC") ) return GAL_WCS_PROJECTION_TSC;
+  else if( !strcmp(str, "CSC") ) return GAL_WCS_PROJECTION_CSC;
+  else if( !strcmp(str, "QSC") ) return GAL_WCS_PROJECTION_QSC;
+  else if( !strcmp(str, "HPX") ) return GAL_WCS_PROJECTION_HPX;
+  else if( !strcmp(str, "XPH") ) return GAL_WCS_PROJECTION_XPH;
+  else                           return GAL_WCS_PROJECTION_INVALID;
+}
+
+
+
+
+
+char *
+gal_wcs_projection_name_from_id(uint8_t id)
+{
+  switch(id)
+    {
+    case GAL_WCS_PROJECTION_AZP: return "AZP";
+    case GAL_WCS_PROJECTION_SZP: return "SZP";
+    case GAL_WCS_PROJECTION_TAN: return "TAN";
+    case GAL_WCS_PROJECTION_STG: return "STG";
+    case GAL_WCS_PROJECTION_SIN: return "SIN";
+    case GAL_WCS_PROJECTION_ARC: return "ARC";
+    case GAL_WCS_PROJECTION_ZPN: return "ZPN";
+    case GAL_WCS_PROJECTION_ZEA: return "ZEA";
+    case GAL_WCS_PROJECTION_AIR: return "AIR";
+    case GAL_WCS_PROJECTION_CYP: return "CYP";
+    case GAL_WCS_PROJECTION_CEA: return "CEA";
+    case GAL_WCS_PROJECTION_CAR: return "CAR";
+    case GAL_WCS_PROJECTION_MER: return "MER";
+    case GAL_WCS_PROJECTION_SFL: return "SFL";
+    case GAL_WCS_PROJECTION_PAR: return "PAR";
+    case GAL_WCS_PROJECTION_MOL: return "MOL";
+    case GAL_WCS_PROJECTION_AIT: return "AIT";
+    case GAL_WCS_PROJECTION_COP: return "COP";
+    case GAL_WCS_PROJECTION_COE: return "COE";
+    case GAL_WCS_PROJECTION_COD: return "COD";
+    case GAL_WCS_PROJECTION_COO: return "COO";
+    case GAL_WCS_PROJECTION_BON: return "BON";
+    case GAL_WCS_PROJECTION_PCO: return "PCO";
+    case GAL_WCS_PROJECTION_TSC: return "TSC";
+    case GAL_WCS_PROJECTION_CSC: return "CSC";
+    case GAL_WCS_PROJECTION_QSC: return "QSC";
+    case GAL_WCS_PROJECTION_HPX: return "HPX";
+    case GAL_WCS_PROJECTION_XPH: return "XPH";
+    default:                     return GAL_BLANK_STRING;
+    }
+
+  /* If control reaches here there is a bug! */
+  error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at '%s' to fix "
+        "the problem. Control should not have reached this part of "
+        "the function", __func__, PACKAGE_BUGREPORT);
+  return GAL_BLANK_STRING;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /*************************************************************
  ***********               Read WCS                ***********
  *************************************************************/
@@ -672,31 +857,6 @@ gal_wcs_write(struct wcsprm *wcs, char *filename,
 /*************************************************************
  ***********           Coordinate system           ***********
  *************************************************************/
-int
-gal_wcs_coordsys_from_string(char *coordsys)
-{
-  if(      !strcmp(coordsys,"eq-j2000") ) return GAL_WCS_COORDSYS_EQJ2000;
-  else if( !strcmp(coordsys,"eq-b1950") ) return GAL_WCS_COORDSYS_EQB1950;
-  else if( !strcmp(coordsys,"ec-j2000") ) return GAL_WCS_COORDSYS_ECJ2000;
-  else if( !strcmp(coordsys,"ec-b1950") ) return GAL_WCS_COORDSYS_ECB1950;
-  else if( !strcmp(coordsys,"galactic") ) return GAL_WCS_COORDSYS_GALACTIC;
-  else if( !strcmp(coordsys,"supergalactic") )
-    return GAL_WCS_COORDSYS_SUPERGALACTIC;
-  else
-    error(EXIT_FAILURE, 0, "WCS coordinate system name '%s' not "
-          "recognized, currently recognized names are 'eq-j2000', "
-          "'eq-b1950', 'galactic' and 'supergalactic'", coordsys);
-
-  /* Control should not reach here. */
-  error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to fix the "
-        "problem. Control should not reach the end of this function",
-        __func__, PACKAGE_BUGREPORT);
-  return GAL_WCS_COORDSYS_INVALID;
-}
-
-
-
-
 /* Identify the coordinate system of the WCS. */
 int
 gal_wcs_coordsys_identify(struct wcsprm *wcs)
@@ -961,8 +1121,8 @@ wcs_coordsys_insys_pole_in_outsys(int insys, int outsys, double *lng2p1,
 
 
 static void
-wcs_coordsys_ctypes(int coordsys, char **clng, char **clat, char **radesys,
-                    double *equinox)
+wcs_coordsys_ctypes(int coordsys, char **clng, char **clat,
+                    char **radesys, double *equinox)
 {
   switch( coordsys)
     {
@@ -1074,57 +1234,6 @@ gal_wcs_coordsys_convert(struct wcsprm *wcs, int outcoordsys)
 /*************************************************************
  ***********              Distortions              ***********
  *************************************************************/
-int
-gal_wcs_distortion_from_string(char *distortion)
-{
-  if(      !strcmp(distortion,"TPD") ) return GAL_WCS_DISTORTION_TPD;
-  else if( !strcmp(distortion,"SIP") ) return GAL_WCS_DISTORTION_SIP;
-  else if( !strcmp(distortion,"TPV") ) return GAL_WCS_DISTORTION_TPV;
-  else if( !strcmp(distortion,"DSS") ) return GAL_WCS_DISTORTION_DSS;
-  else if( !strcmp(distortion,"WAT") ) return GAL_WCS_DISTORTION_WAT;
-  else
-    error(EXIT_FAILURE, 0, "WCS distortion name '%s' not recognized, "
-          "currently recognized names are 'TPD', 'SIP', 'TPV', 'DSS' and "
-          "'WAT'", distortion);
-
-  /* Control should not reach here. */
-  error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to fix the "
-        "problem. Control should not reach the end of this function",
-        __func__, PACKAGE_BUGREPORT);
-  return GAL_WCS_DISTORTION_INVALID;
-}
-
-
-
-
-
-char *
-gal_wcs_distortion_to_string(int distortion)
-{
-  /* Return the proper literal string. */
-  switch(distortion)
-    {
-    case GAL_WCS_DISTORTION_TPD: return "TPD";
-    case GAL_WCS_DISTORTION_SIP: return "SIP";
-    case GAL_WCS_DISTORTION_TPV: return "TPV";
-    case GAL_WCS_DISTORTION_DSS: return "DSS";
-    case GAL_WCS_DISTORTION_WAT: return "WAT";
-    default:
-      error(EXIT_FAILURE, 0, "WCS distortion id '%d' isn't recognized",
-            distortion);
-    }
-
-  /* Control should not reach here. */
-  error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to fix the "
-        "problem. Control should not reach the end of this function",
-        __func__, PACKAGE_BUGREPORT);
-  return NULL;
-}
-
-
-
-
-
 /* Check the type of distortion present and return the appropriate
    integer based on `enum gal_wcs_distortion`.
 
@@ -1257,8 +1366,8 @@ gal_wcs_distortion_convert(struct wcsprm *inwcs, int outdisptype,
           default:
             error(EXIT_FAILURE, 0, "%s: conversion from %s to %s is not "
                   "yet supported. Please contact us at '%s'", __func__,
-                  gal_wcs_distortion_to_string(indisptype),
-                  gal_wcs_distortion_to_string(outdisptype),
+                  gal_wcs_distortion_name_from_id(indisptype),
+                  gal_wcs_distortion_name_from_id(outdisptype),
                   PACKAGE_BUGREPORT);
               }
         break;
@@ -1276,8 +1385,8 @@ gal_wcs_distortion_convert(struct wcsprm *inwcs, int outdisptype,
           default:
             error(EXIT_FAILURE, 0, "%s: conversion from %s to %s is not "
                   "yet supported. Please contact us at '%s'", __func__,
-                  gal_wcs_distortion_to_string(indisptype),
-                  gal_wcs_distortion_to_string(outdisptype),
+                  gal_wcs_distortion_name_from_id(indisptype),
+                  gal_wcs_distortion_name_from_id(outdisptype),
                   PACKAGE_BUGREPORT);
           }
         break;
@@ -1288,7 +1397,7 @@ gal_wcs_distortion_convert(struct wcsprm *inwcs, int outdisptype,
       case GAL_WCS_DISTORTION_WAT:
         error(EXIT_FAILURE, 0, "%s: input %s distortion is not yet "
               "supported. Please contact us at '%s'", __func__,
-              gal_wcs_distortion_to_string(indisptype),
+              gal_wcs_distortion_name_from_id(indisptype),
               PACKAGE_BUGREPORT);
 
       /* A bug! This distortion is not yet recognized. */

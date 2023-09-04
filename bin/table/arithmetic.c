@@ -140,9 +140,14 @@ arithmetic_operator_name(int operator)
       case ARITHMETIC_TABLE_OP_IMGTOWCS: out="img-to-wcs"; break;
       case ARITHMETIC_TABLE_OP_DATETOSEC: out="date-to-sec"; break;
       case ARITHMETIC_TABLE_OP_DISTANCEFLAT: out="distance-flat"; break;
-      case ARITHMETIC_TABLE_OP_DATETOMILLISEC: out="date-to-millisec"; break;
-      case ARITHMETIC_TABLE_OP_DISTANCEONSPHERE: out="distance-on-sphere"; break;
-      case ARITHMETIC_TABLE_OP_SORTEDTOINTERVAL: out="sorted-to-interval"; break;
+      case ARITHMETIC_TABLE_OP_DATETOMILLISEC:
+        out="date-to-millisec"; break;
+      case ARITHMETIC_TABLE_OP_DISTANCEONSPHERE:
+        out="distance-on-sphere"; break;
+      case ARITHMETIC_TABLE_OP_SORTEDTOINTERVAL:
+        out="sorted-to-interval"; break;
+      case ARITHMETIC_TABLE_OP_EQJ2000ONFLAT:
+        out="eq-j2000-on-flat"; break;
       default:
         error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to fix "
               "the problem. %d is not a recognized operator code", __func__,
@@ -199,6 +204,8 @@ arithmetic_set_operator(struct tableparams *p, char *string,
         { op=ARITHMETIC_TABLE_OP_WCSTOIMG; *num_operands=0; }
       else if( !strcmp(string, "img-to-wcs"))
         { op=ARITHMETIC_TABLE_OP_IMGTOWCS; *num_operands=0; }
+      else if( !strcmp(string, "eq-j2000-on-flat"))
+        { op=ARITHMETIC_TABLE_OP_EQJ2000ONFLAT; *num_operands=0; }
       else if( !strcmp(string, "date-to-sec"))
         { op=ARITHMETIC_TABLE_OP_DATETOSEC; *num_operands=0; }
       else if( !strcmp(string, "date-to-millisec"))
@@ -634,12 +641,16 @@ arithmetic_wcs(struct tableparams *p, gal_data_t **stack, int operator)
 
       /* For image coordinates, we don't need much precision. */
       for(i=0;i<ndim;++i)
-        coord[i]=gal_data_copy_to_new_type_free(coord[i], GAL_TYPE_FLOAT32);
+        coord[i]=gal_data_copy_to_new_type_free(coord[i],
+                                                GAL_TYPE_FLOAT32);
 
       /* Set the names, units and comments for each dataset. */
-      arithmetic_update_metadata(coord[0],"X","pixel","Converted from WCS");
-      arithmetic_update_metadata(coord[1],"Y","pixel","Converted from WCS");
-      arithmetic_update_metadata(coord[2],"Z","pixel","Converted from WCS");
+      arithmetic_update_metadata(coord[0], "X", "pixel",
+                                 "Converted from WCS");
+      arithmetic_update_metadata(coord[1], "Y", "pixel",
+                                 "Converted from WCS");
+      arithmetic_update_metadata(coord[2], "Z", "pixel",
+                                 "Converted from WCS");
     }
   else
     {
@@ -666,6 +677,95 @@ arithmetic_wcs(struct tableparams *p, gal_data_t **stack, int operator)
 
 
 
+static void
+arithmetic_curved_on_flat(struct tableparams *p, gal_data_t **stack,
+                          int operator)
+{
+  struct wcsprm *wcs=NULL;
+  char *ctype[2], *cunit[2];
+  gal_data_t *w1, *w2, *proj, *refw1, *refw2;
+  double ref[2], cdelt[2]={1.0f,1.0f}, pc[4]={-1,0,0,1};
+  char **strarr, ctype1[9], ctype2[9]; /* 9=8+1 (keylength + '\0') */
+
+  /* Pop the necessary datasets from the stack (order is important). */
+  proj=arithmetic_stack_pop(stack, operator, NULL); /* 1st: projection.*/
+  refw2=arithmetic_stack_pop(stack, operator, NULL);/* 2nd: Ref. Dec. */
+  refw1=arithmetic_stack_pop(stack, operator, NULL);/* 3rd: Ref. RA. */
+  w2=arithmetic_stack_pop(stack, operator, NULL);   /* 4th: RA column. */
+  w1=arithmetic_stack_pop(stack, operator, NULL);   /* 5th: Dec column. */
+
+  /* Basic sanity checks. */
+  strarr=proj->array;
+  if(proj->size!=1 || refw1->size!=1 || refw2->size!=1)
+    error(EXIT_FAILURE, 0, "the first, second and third popped operands "
+          "from the '%s' operator should have a single element (they "
+          "should not be columns, but a single value), but they "
+          "respectively have %zu, %zu, %zu columns. Recall that the "
+          "first popped operand is the right-most operand (closest to "
+          "the operator", arithmetic_operator_name(operator),
+          proj->size, refw1->size, refw2->size);
+  if(proj->type!=GAL_TYPE_STRING)
+    error(EXIT_FAILURE, 0, "the first popped operand to the '%s' "
+          "operator must be a string, not numeric. It should be the "
+          "three character projection identifier of the WCS standard "
+          "in FITS (for example 'TAN' or 'MOL')",
+          arithmetic_operator_name(operator));
+  if(gal_wcs_projection_name_to_id(strarr[0])==GAL_WCS_PROJECTION_INVALID)
+    error(EXIT_FAILURE, 0, "the first popped operand to the '%s' "
+          "operator ('%s') could not be interpretted as a pre-defined "
+          "projection in the WCS stanadard of FITS",
+          arithmetic_operator_name(operator), strarr[0]);
+
+  /* Convert the numeric inputs into the float64 and put the reference
+     values into the expected array.*/
+  refw1=gal_data_copy_to_new_type_free(refw1, GAL_TYPE_FLOAT64);
+  refw2=gal_data_copy_to_new_type_free(refw2, GAL_TYPE_FLOAT64);
+  w1=gal_data_copy_to_new_type_free(w1, GAL_TYPE_FLOAT64);
+  w2=gal_data_copy_to_new_type_free(w2, GAL_TYPE_FLOAT64);
+  ref[0]=((double *)(refw1->array))[0];
+  ref[1]=((double *)(refw2->array))[0];
+
+  /* Construct the CTYPEi strings */
+  sprintf(ctype1, "%s---%s", "RA", strarr[0]);
+  sprintf(ctype2, "%s--%s", "DEC", strarr[0]);
+  ctype[0]=ctype1;
+  ctype[1]=ctype2;
+  cunit[0]="deg";
+  cunit[1]="deg";
+
+  /* Build the WCS structure for the conversion. */
+  wcs=gal_wcs_create(ref, ref, cdelt, pc, cunit, ctype, 2,
+                     GAL_WCS_LINEAR_MATRIX_PC);
+
+  /* For a check:
+  int nkeyrec;
+  char *wcsstr;
+  wcsstr=gal_wcs_write_wcsstr(wcs, &nkeyrec);
+  printf("%s\n", wcsstr); exit(0);
+  */
+
+  /* Put the second world coordinate as the next token of the first, and do
+     the conversion. */
+  w1->next=w2;
+  gal_wcs_world_to_img(w1, wcs, 1);
+
+  /* Put the output datasets in the stack in reverse order. */
+  w1->next=w2->next=NULL;
+  gal_list_data_add(stack, w1);
+  gal_list_data_add(stack, w2);
+
+  /* Clean up (the coordinate conversion was done in place, so 'w1' and
+     'w2' are the output datasets). */
+  gal_wcs_free(wcs);
+  gal_data_free(proj);
+  gal_data_free(refw1);
+  gal_data_free(refw2);
+}
+
+
+
+
+
 static double
 arithmetic_distance_flat(double a1, double a2, double b1, double b2)
 {
@@ -678,7 +778,8 @@ arithmetic_distance_flat(double a1, double a2, double b1, double b2)
 
 
 static void
-arithmetic_distance(struct tableparams *p, gal_data_t **stack, int operator)
+arithmetic_distance(struct tableparams *p, gal_data_t **stack,
+                    int operator)
 {
   size_t i, j;
   double *o, *a1, *a2, *b1, *b2;
@@ -747,9 +848,10 @@ arithmetic_distance(struct tableparams *p, gal_data_t **stack, int operator)
       if(a->size==1 || b->size==1) /* One of them is a single point. */
         for(i=0;i<a->size;++i)
           for(j=0;j<b->size;++j)
-            o[a->size>b->size?i:j] = distance_func(a1[i], a2[i], b1[j], b2[j]);
+            o[a->size>b->size?i:j] = distance_func(a1[i], a2[i], b1[j],
+                                                   b2[j]);
       else                     /* Both have the same length. */
-        for(i=0;i<a->size;++i) /* (all were originally from the same table) */
+        for(i=0;i<a->size;++i) /* (all were originally from same table) */
           o[i] = distance_func(a1[i], a2[i], b1[i], b2[i]);
     }
 
@@ -1013,6 +1115,10 @@ arithmetic_operator_run(struct tableparams *p,
           arithmetic_wcs(p, stack, token->operator);
           break;
 
+        case ARITHMETIC_TABLE_OP_EQJ2000ONFLAT:
+          arithmetic_curved_on_flat(p, stack, token->operator);
+          break;
+
         case ARITHMETIC_TABLE_OP_DATETOSEC:
         case ARITHMETIC_TABLE_OP_DATETOMILLISEC:
           arithmetic_datetosec(p, stack, token->operator);
@@ -1050,9 +1156,11 @@ gal_data_t *
 arithmetic_read_at_usage(struct tableparams *p,
                          struct arithmetic_token *token)
 {
-  char *c;
-  size_t i;
+  uint8_t pid;
+  size_t i, one=1;
+  gal_data_t *tmp;
   int hasnewline=0;
+  char *c, **strarr;
 
   /* If the number is blank, then we have a name and should return the
      first column in the table that has the given name. */
@@ -1063,6 +1171,25 @@ arithmetic_read_at_usage(struct tableparams *p,
         if( p->colarray[i]->name
             && strcasecmp(p->colarray[i]->name, token->id_at_usage)==0 )
           return p->colarray[i];
+
+      /* If control reaches here, then the requested name didn't exist in
+         the table, if the next token is the equatorial on flat operator,
+         then we should also check known projection identifiers. */
+      if( token->next
+          && token->next->operator==ARITHMETIC_TABLE_OP_EQJ2000ONFLAT )
+        {
+          /* If the projection  */
+          pid=gal_wcs_projection_name_to_id(token->id_at_usage);
+          if(pid!=GAL_WCS_PROJECTION_INVALID)
+            {
+              tmp=gal_data_alloc(NULL, GAL_TYPE_STRING, 1, &one, NULL, 0,
+                                 p->cp.minmapsize, p->cp.quietmmap, NULL,
+                                 NULL, NULL);
+              strarr=tmp->array;
+              gal_checkset_allocate_copy(token->id_at_usage, &strarr[0]);
+              return tmp;
+            }
+        }
 
       /* If control reaches here, then the requested name didn't exist in
          the table. This may happen because the user broke an arithmetic
