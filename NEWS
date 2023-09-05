@@ -72,7 +72,7 @@ See the end of the file for license conditions.
     this string, it will be repeated independently for all the columns of
     the input table.
   - New operators in Table's column arithmetic:
-    - eq-j2000-on-flat: convert the RA and Dec columns in a table to a
+    - eq-j2000-to-flat: convert the RA and Dec columns in a table to a
       flat-RA and flat-Dec (accounting for a reference point as well as any
       type of projection that is available in the FITS WCS standard). This
       is necessary when you are plotting points in a report or paper cover
@@ -80,6 +80,9 @@ See the end of the file for license conditions.
       operator, significant distortions will appear when you plot spherical
       coordinates (RA,Dec) on a flat plane (your paper's plot). See the
       documentation for this operator in the book for more.
+    - eq-j2000-from-flat: the inverse of 'eq-j2000-to-flat' (useful when
+      designin dither patterns for example (where you know the final
+      shape/distanced after flatting; and want coordinates on the sphere).
 
   astscript-zeropoint:
   --mksrc: use a custom Makefile for estimating the zeropoint, not the

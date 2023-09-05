@@ -1,6 +1,9 @@
 # Makefile to do the number-crunching of the 'dither-simulate.in' script.
 #
-# Copyright (C) 2023-2023 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+# Original author:
+#     Mohammad Akhlaghi <mohammad@akhlaghi.org>
+# Contributing author(s):
+# Copyright (C) 2023-2023 Free Software Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

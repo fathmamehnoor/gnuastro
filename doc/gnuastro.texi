@@ -338,7 +338,12 @@ Zero point of an image
 
 Dither pattern design
 
-* Triming vignetted area::      Effect of triming the edges on your dither pattern.
+* Preparing input and generating exposure map::  Download and image and build exposure map.
+* Area of non-blank pixels on sky::  Account for the curved area on the sky.
+* Script with dither simulation steps so far::  Summary of steps for easy testing.
+* Larger steps sizes for better calibration::  The initial small dither is not enough.
+* Pointings that account for sky curvature::  Sky curvature will cause problems!
+* Accounting for non-exposed pixels::  Parts of the detector do not get exposed to light.
 
 Installation
 
@@ -527,11 +532,11 @@ Invoking Crop
 
 Arithmetic
 
-* Reverse polish notation::     The current notation style for Arithmetic
-* Integer benefits and pitfalls::  Integers have major benefits, but require care
-* Noise basics::
-* Arithmetic operators::        List of operators known to Arithmetic
-* Invoking astarithmetic::      How to run Arithmetic: options and output
+* Reverse polish notation::     The current notation style for Arithmetic.
+* Integer benefits and pitfalls::  Integers have benefits, but require care.
+* Noise basics::                Introduction various noise models.
+* Arithmetic operators::        List of operators known to Arithmetic.
+* Invoking astarithmetic::      How to run Arithmetic: options and output.
 
 Noise basics
 
@@ -2336,6 +2341,15 @@ $ for f in f105w f125w f160w; do \
 @cindex Scales, coordinate
 The cropped images in @ref{Dataset inspection and cropping} are the deepest images we currently have of the sky.
 The first thing that comes to mind may be this: ``How large is this field on the sky?''.
+
+@cartouche
+@noindent
+@strong{More accurate method:} the steps mentioned in this section are primarily designed to help you get familiar with the FITS WCS standard and some shells scripting.
+The accuracy of this method will decrease as your image becomes large (on the scale of degrees).
+For an accurate method, see @ref{Area of non-blank pixels on sky}.
+@end cartouche
+
+@noindent
 You can get a fast and crude answer with Gnuastro's Fits program, using this command:
 
 @example
@@ -7897,7 +7911,7 @@ With the second command, you can see that the spacing between each slice is @mym
 $ astscript-fits-view a370-crop.fits -h1 --ds9scale="limits -5 20" &
 
 $ astfits a370-crop.fits --pixelscale
-Basic information for --pixelscale (remove info with '--quiet' or '-q')
+Basic info. for --pixelscale (remove info with '--quiet' or '-q')
   Input: a370-crop.fits (hdu 1) has 3 dimensions.
   Pixel scale in each FITS dimension:
     1: 5.55556e-05 (deg/pixel) = 0.2 (arcsec/pixel)
@@ -9310,11 +9324,11 @@ $ astscript-fits-view jplus-zeropoint.fits jplus-zeropoint-cat.fits \
 
 @cindex Dithering
 Deciding a suitable dithering pattern is one of the most important steps when planning your observation strategy.
-Dithering is the process of moving each exposure compared to the previous one and is done for several reasons like increasing resolution, expending the area of the observation and etc.
+Dithering is the process of moving each exposure compared to the previous one and is done for several reasons like improving calibration, increasing resolution, expending the area of the observation and etc.
 For a more complete introduction to dithering, see @ref{Dithering pattern simulation}.
 
-In this tutorial, we'll simulate a hypothetical dither pattern using Gnuastro's @command{astscript-dither-simulate} installed script.
-Let's assume you want to observe @url{https://en.wikipedia.org/wiki/Messier_94, M94} in the H-alpha and rSDSS filters (to study the extended star formation in the outer rings of this beautiful galaxy!).
+In this tutorial, let's simulate a hypothetical dither pattern using Gnuastro's @command{astscript-dither-simulate} installed script.
+Assume you want to observe @url{https://en.wikipedia.org/wiki/Messier_94, M94} in the H-alpha and rSDSS filters (to study the extended star formation in the outer rings of this beautiful galaxy!).
 Including the outer parts of the rings, the galaxy is half a degree in diameter!
 This is very large, and you want to design a dither pattern that will cover this area efficiently!
 Therefore, you need an instrument with a large field of view.
@@ -9325,6 +9339,19 @@ Therefore, you need an instrument with a large field of view.
 Basic features like access to this book on the command-line, the configuration files of Gnuastro's programs, benefiting from the modular nature of the programs, viewing multi-extension FITS files, and many others are discussed in more detail there.
 @end cartouche
 
+@menu
+* Preparing input and generating exposure map::  Download and image and build exposure map.
+* Area of non-blank pixels on sky::  Account for the curved area on the sky.
+* Script with dither simulation steps so far::  Summary of steps for easy testing.
+* Larger steps sizes for better calibration::  The initial small dither is not enough.
+* Pointings that account for sky curvature::  Sky curvature will cause problems!
+* Accounting for non-exposed pixels::  Parts of the detector do not get exposed to light.
+@end menu
+
+@node Preparing input and generating exposure map, Area of non-blank pixels on sky, Dither pattern design, Dither pattern design
+@subsection Preparing input and generating exposure map
+
+As mentioned in @ref{Dither pattern design}, the assumed goal here is to plan an observations strategy for M94.
 Let's assume that after some searching, you decide to write a proposal for the @url{https://oaj.cefca.es/telescopes/jast80, JAST80 telescope} at the @url{https://oaj.cefca.es, Observatorio Astrofísico de Javalambre}, OAJ@footnote{For full disclosure, Gnuastro is being developed at CEFCA (Centro de Estudios de F@'isica del Cosmos de Arag@'on); which also hosts OAJ.}, in Teruel (Spain).
 The field of view of this telescope's camera is almost 1.4 degrees wide, nicely fitting M94!
 It also has these two filters that you need@footnote{For the full list of available filters, see the @url{https://oaj.cefca.es/telescopes/t80cam, T80Cam description}.}.
@@ -9333,8 +9360,6 @@ Before we start, as described in @ref{Dithering pattern simulation}, it is just 
 Therefore, there is no single dither pattern for all purposes.
 However, the tools, methods, criteria or logic to check if your dither pattern satisfies your scientific requirement are similar.
 Therefore, you can use the same methods, tools or logic here to simulate or verify that your dither pattern will produce the products you expect after the observation.
-The hypothetical scenario above is just an example to show the usage.
-As with any tutorial, do not blindly follow the same final solution for any scenario; this is just an example to show you @emph{how to} find your own solution, not to give you the universal solution to any scenario.
 
 To start simulating a dither pattern for a certain telescope, you just need a single-exposure image of that telescope with WCS information.
 In other words, after astrometry, but before warping into any other pixel grid (to combine into a deeper stack).
@@ -9363,7 +9388,7 @@ Therefore, they become publicly available very soon after the observation date; 
 @end cartouche
 
 As you see from the image above, the T80Cam images are large (9216 by 9232 pixels).
-Therefore, to speed up the dither testing, let's down-sample the image above by a factor of 10.
+Therefore, to speed up the dither testing, let's down-sample the image by a factor of 10.
 This step is optional and you can safely use the full resolution, which will give you a more precise stack.
 But it will be much slower (maybe good after you have an almost final solution on the down-sampled image).
 We will call the output @file{ref.fits} (since it is the ``reference'' for our test).
@@ -9376,9 +9401,9 @@ $ astwarp input/jplus-1050345.fits.fz --scale=1/10 -oinput/ref.fits
 For a first trial, let's create a cross-shaped dither pattern with 5 points around M94, which is centered at its center on the RA and Dec of 192.721250, 41.120556.
 We'll center one exposure on the center of the galaxy, and include 4 more exposures that are each 1 arc-minute away along the RA and Dec axes.
 To simplify the actual command later@footnote{Instead of this, later, when you called @command{astscript-dither-simulate}, you could pass the @option{--racol=1} and @option{--deccol=2} options.
-But having metadata is always preferred (will avoid many bugs/frustrations in the long-run!).}, let's also include the column names in @file{dither.text} through two lines of metadata.
-Also note that the @file{dither.txt} file can be made in any manner you like, for example, manually or through another programming language, or etc.
-We are using AWK here because it is sufficiently powerful for this job, is a very small program and is available on any Unix-based operating system (allowing you to easily run your programs on any computer).
+But having metadata is always preferred (will avoid many bugs/frustrations in the long-run!).}, let's also include the column names in @file{dither.txt} through two lines of metadata.
+Also note that the @file{dither.txt} file can be made in any manner you like, for example, by writing the coordinates manually on your favorite text editor, or through another programming language or logic, or etc.
+Here, we are using AWK because it is sufficiently powerful for this job, and it is a very small program that is available on any Unix-based operating system (allowing you to easily run your programs on any computer).
 
 @example
 $ step_arcmin=1
@@ -9396,7 +9421,12 @@ $ echo $center_ra $center_dec \
                printf fmt, $1-s, $2; \
                printf fmt, $1,   $2-s@}' \
        >> dither.txt
+@end example
 
+With the commands below, let's have a look at the produced file, first as plain-text, then with TOPCAT (which needs conversion to FITS).
+After TOPCAT is opened, in the ``Graphics'' menu, select ``Plane plot'' to see the five points in a flat RA, Dec plot.
+
+@example
 $ cat dither.txt
 # Column 1: RA  [deg, f64] Right Ascension
 # Column 2: Dec [deg, f64] Declination
@@ -9405,6 +9435,10 @@ $ cat dither.txt
 192.721250 41.137223
 192.704583 41.120556
 192.721250 41.103889
+
+$ asttable dither.txt -odither.fits
+$ astscript-fits-view dither.fits
+$ rm dither.fits
 @end example
 
 We are now ready to generate the exposure map of the dither pattern above using the reference image that we downloaded before.
@@ -9422,10 +9456,9 @@ $ astscript-fits-view stack.fits
 
 You will see that except for a thin boundary, we have a depth of 5 exposures over the area of the single exposure.
 Let's see what the width of the deepest part of the image is.
-First, we'll use Arithmetic to set all pixels that contain less than 5 exposures to NaN (the outer pixels).
-In the same Arithmetic command, we'll trim all the blank rows and columns, so the output only contains the pixels that are exposed 5 times.
-With the next command, let's view the deep region
-Finally, with the third command below, we'll use the @option{--skycoverage} option of the Fits program to see the coverage of deep part on the sky.
+First, we'll use Arithmetic to set all pixels that contain less than 5 exposures (the outer pixels) to NaN (Not a Number).
+In the same Arithmetic command, let's trim all the blank rows and columns, so the output only contains the pixels that are exposed 5 times.
+With the next command, let's view the deep region and with the last command below, let's use the @option{--skycoverage} option of the Fits program to see the coverage of deep part on the sky.
 
 @example
 $ deep_thresh=5
@@ -9448,92 +9481,191 @@ Sky coverage by range along dimensions:
 
 @cindex Sky value
 @cindex Flat field
-As we see, the width of this deep field is about 1.4 degrees (in declination); the coverage in RA depends on the declination (recall that RA is only defined on the equator).
+As we see, in declination, the width of this deep field is about 1.4 degrees.
+Recall that RA is only defined on the equator and actual coverage in RA depends on the declination due to the spherical nature of the sky.
 This area therefore nicely covers the expected outer parts of M94.
 On first thought, it may seem that we are now finished, but that is not the case unfortunately!
 
 There is a problem: with a step size of 1 arc-minute, the brighter central parts of this large galaxy will always be on very similar pixels; making it hard to calibrate those pixels properly.
-If you are interested in the low surface brightness parts of this galaxy, it is even worse: the outer parts of the galaxy will always cover similar parts of the detector in all the exposures.
+If you are interested in the low surface brightness parts of this galaxy, it is even worse: the outer parts of the galaxy will always cover similar parts of the detector in all the exposures; and they cover a large area on your image.
 To be able to accurately calibrate the image (in particular to estimate the flat field pattern and subtract the sky), you do not want this to happen!
-You want each exposure to cover very different sources of astrophysical signal, so you can accurately calibrate the artifacts created by the instrument (for example flat field) or of natural causes (for example the Sky).
+You want each exposure to cover very different sources of astrophysical signal, so you can accurately calibrate the artifacts created by the instrument or environment (for example flat field) or of natural causes (for example the Sky).
 
-Before we consider other alternatives, let's first get an accurate measure of the area that is covered by all 5 exposures.
-A first hint would be to simply multiply the widths along RA and Dec reported above: @mymath{1.8808\times1.3924=2.6189} degrees squared.
+For an example of how these calibration issues can ruine low surface brightness science, please see the image of M94 in the @url{https://www.legacysurvey.org/viewer,Legacy Survey interactive viewer}.
+After it is loaded, at the bottom-left corner of the window, write ``M94'' in the box of ``Jump to object'' and press ENTER.
+At first, M94 looks good with a black background, but as you increase the ``Brightness'' (by scrolling it to the right and seeing what is under the originally black pixels), you will see the calibration artifacts clearly.
 
-The simple sky coverage calculated by multiplication that reported above has two caveates:
+@node Area of non-blank pixels on sky, Script with dither simulation steps so far, Preparing input and generating exposure map, Dither pattern design
+@subsection Area of non-blank pixels on sky
+
+In @ref{Preparing input and generating exposure map} we generated a dither pattern with very small steps, showing how this can cause calibration problems.
+Later (in @ref{Larger steps sizes for better calibration}) using larger steps is discussed.
+In this section, let's see how we can get an accurate measure of the area that is covered in a certain depth.
+
+A first thought would be to simply multiply the widths along RA and Dec reported before: @mymath{1.8808\times1.3924=2.6189} degrees squared.
+But there are several problems with this:
 @itemize
+@item
+It ignores the fact that RA only has units of degrees on the equator: at different declinations, differences in RA should be converted to degrees.
+This is discussed further in this tutorial: @ref{Pointings that account for sky curvature}.
 @item
 It doesn't take into account the thin rows/columns of blank pixels (NaN) that are on the four edges of the @file{deep.fits} image.
 @item
 The differing area of the pixels on the spherical sky in relation to those blank values can result in wrong estimations of the area.
 @end itemize
 
-So far, these blank areas are very small (and do not constitute a large portion of the image).
-As a result, these effects are negligible.
-However, as you get more creative with the dither pattern to optimize your scientific goal, such blank areas will cover a larger fraction of your final stack.
-
-So let's get a very accurate estimation of the area that will not be affected by the issues above.
+Let's get a very accurate estimation of the area that will not be affected by the issues above.
 With the first command below, we'll use the @option{--pixelareaonwcs} option of the Fits program that will return the area of each pixel (in pixel units of degrees squared).
-After running the second command, please have a look at the produced image:
+After running the second command, please have a look at the produced image.
 
 @example
 $ astfits deep.fits --pixelareaonwcs --output=deep-pix-area.fits
 
+$ astfits deep.fits --pixelscale
+Basic info. for --pixelscale (remove extra info with '--quiet' or '-q')
+  Input: deep.fits (hdu 1) has 2 dimensions.
+  Pixel scale in each FITS dimension:
+    1: 0.00154403 (deg/pixel) = 5.5585 (arcsec/pixel)
+    2: 0.00154403 (deg/pixel) = 5.5585 (arcsec/pixel)
+  Pixel area:
+    2.38402e-06 (deg^2) = 30.8969 (arcsec^2)
+
 $ astscript-fits-view deep-pix-area.fits
 @end example
 
-@cindex Gnomonic projection
-You see a strong gradient in this image that gets slightly curved towards the top of the image.
+@cindex Gnomonic projection (@code{TAN} in WCS)
+@cindex @code{TAN} in WCS (Gnomonic projection)
+You see a donut-like shape in DS9.
+Move your mouse over the central (white) region of the region and look at the values.
+You will see that the pixel area (in degrees squared) is exactly the same as we saw in the output of @option{--pixelscale}.
+As you move your mouse away to other colors, you will notice that the area covered by each pixel (its value in this image) deceases very slightly (in the 5th decimal!).
 This is the effect of the @url{https://en.wikipedia.org/wiki/Gnomonic_projection, Gnomonic projection}; summarized as @code{TAN} (for ``tangential'') in the FITS WCS standard, the most commonly used in optical astronomical surveys and the default in this script.
-Since this image is aligned with the celestial coordinates, as we increase the declination, the pixel area also increases.
-For a comparison, please run the Fits program with the @option{--pixelareaonwcs} option on the originally downloaded @file{jplus-1050345.fits.fz} to see the distortion pattern of the camera's optics which domintes there.
 
-We can now use Arithmetic to set the areas of all the pixels that were NaN in @file{deep.fits} and sum all the values to get an accurate estimate of the area we get from this dither pattern:
+Having @file{deep-pix-area.fits}, we can now use Arithmetic to set the areas of all the pixels that were NaN in @file{deep.fits} and sum all the values to get an accurate estimate of the area we get from this dither pattern:
 
 @example
 $ astarithmetic deep-pix-area.fits deep.fits isblank nan where -g1 \
                 sumvalue --quiet
-2.57318473063151e+00
+1.93836806631634e+00
 @end example
 
-As expected, this is very close to the simple multiplication that we did above.
-But it will allow us to accurately estimate the size of the deep field with any ditter pattern.
+Therefore, the actual area that is covered is less than the simple multiplication above.
+At these declinations, the dominant cause of this difference is the first point above (that RA needs correction), this will be discussed in more detail later in this tutorial (see @ref{Pointings that account for sky curvature}).
+Genearlly, using this method to measure the area of your non-NAN pixels in an image is very easy and robust (automatically takes into account the curvature, coordinate system, projection and blank pixels of the image).
 
-As mentioned above, this small dither pattern is not good for the reduction of data from a large object like M94!
-M94 is about half a degree in diameter; so let's set @code{step_arcmin=15} and re-run the steps above.
-This is one quarter of a degree and will put the center of the four exposures on the four corners of the M94's main ring.
-You are now ready to repeat the commands above with this changed value.
+@node Script with dither simulation steps so far, Larger steps sizes for better calibration, Area of non-blank pixels on sky, Dither pattern design
+@subsection Script with dither simulation steps so far
 
-@cartouche
-@noindent
-@strong{Writing scripts:}
-From this point on, some of the variables set above will be changed, but the commands will not be repeated (unless a change is necessary).
+In @ref{Preparing input and generating exposure map} and @ref{Area of non-blank pixels on sky}, the basic steps to simulate a dither pattern's exposure map and measure the final output area on the sky where described in detail.
+From this point on in the tutorial, we will be experimenting with the shell variables that were set above, but the actual commands will not be changed regularly.
+If a change is necessary in a command, it is clearly mentioned in the text.
+
 Therefore, it is better to write the steps above (after downloading the reference image) as a script.
-In this way, you can simply change those variables and see the final result fast.
+In this way, you can simply change those variables and see the final result fast by running your script.
 For more on writing scripts, see as described in @ref{Writing scripts to automate the steps}.
-Here are some tips:
+
+Here is a summary of some points to remember when transfering the code in the sections before into a script:
+
 @itemize
 @item
 Where the commands are edited/changed, please also update them in your script.
 @item
 Keep all the variables at the top, even if they are used later.
 This allows to easily view or changed them without digging into the script.
+@item
+You do not need to include visual check commands like the @code{astscript-fits-view} or @code{cat} commands above.
+Those can be run interactively after your script is finished; recall that a script is for batch (non-interactive) processing.
+@item
+Put all your intermediate products inside a ``build'' directory.
 @end itemize
-@end cartouche
 
-After you run the commands above with the change of @code{step_arcmin} above, you will get a total area (from counting of per-pixel areas) of approximately 1.28 degrees squared.
+Here is the script that summarizes the steps in @ref{Preparing input and generating exposure map} (after download) and @ref{Area of non-blank pixels on sky}:
+
+@verbatim
+#!/bin/bash
+#
+# Copyright (C) 2023-2023 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+#
+# Copying and distribution of this file, with or without modification,
+# are permitted in any medium under the GNU GPL v3+, without royalty
+# provided the copyright notice and this notice are preserved.  This
+# file is offered as-is, without any warranty.
+
+# Paramters of the script
+deep_thresh=5
+step_arcmin=1
+center_ra=192.721250
+center_dec=41.120556
+
+# Input and build directories (can be anywhere in your file system)
+indir=input
+bdir=build
+
+# Abort the script in case of an error.
+set -e
+
+# Make the build directory if it doesn't alreay exist.
+if ! [ -d $bdir ]; then mkdir $bdir; fi
+
+# Build the 5-pointing dither pattern (with the step size above).
+dithercat=$bdir/dither.txt
+echo "# Column 1: RA  [deg, f64] Right Ascension"  > $dithercat
+echo "# Column 2: Dec [deg, f64] Declination"     >> $dithercat
+echo $center_ra $center_dec \
+            | awk '{s='$step_arcmin'/60; fmt="%-10.6f %-10.6f\n"; \
+                    printf fmt, $1,   $2; \
+                    printf fmt, $1+s, $2; \
+                    printf fmt, $1,   $2+s; \
+                    printf fmt, $1-s, $2; \
+                    printf fmt, $1,   $2-s}' \
+            >> $dithercat
+
+# Simulate the dither pattern.
+stack=$bdir/stack.fits
+astscript-dither-simulate $dithercat --output=$stack \
+           --img=input/ref.fits --center=$center_ra,$center_dec \
+           --width=2
+
+# Trim the regions shallower than the threshold.
+deep=$bdir/deep.fits
+astarithmetic $stack set-s s s $deep_thresh lt nan where trim \
+               --output=$deep
+
+# Calculate the area of each pixel on the curved celestial sphere:
+pixarea=$bdir/deep-pix-area.fits
+astfits $deep --pixelareaonwcs --output=$pixarea
+
+# Report the final area (the empty 'echo's are for visual help in outputs)
+echo; echo
+echo "Area with step of $step_arcmin arcminutes, at $deep_thresh depth:"
+astarithmetic $pixarea $deep isblank nan where -g1 \
+              sumvalue --quiet
+@end verbatim
+
+For a description of how to make it exectable and how to run it, see @ref{Writing scripts to automate the steps}.
+Note that as you start adding your own text to the script, be sure to add your name (and year that you modified) in the copyright notice at the start of the script (this is very important!).
+
+@node Larger steps sizes for better calibration, Pointings that account for sky curvature, Script with dither simulation steps so far, Dither pattern design
+@subsection Larger steps sizes for better calibration
+
+In @ref{Preparing input and generating exposure map} we saw that a small dither pattern is not good for the reduction of data from a large object like M94!
+M94 is about half a degree in diameter; so let's set @code{step_arcmin=15}.
+This is one quarter of a degree and will put the center of the four exposures on the four corners of the M94's main ring.
+Furthermore, @ref{Script with dither simulation steps so far}, the steps were summarized into a script to allow easy changing of variables without manually re-entering the individual/separate commands.
+
+After you change @code{step_arcmin=15} and re-run the script, you will get a total area (from counting of per-pixel areas) of approximately 0.96 degrees squared.
 This is just roughly half the previous area and will barely fit M94!
 To understand the cause, let's have a look at the full stack (not just the deepest area):
 
 @example
-$ astscript-fits-view stack.fits
+$ astscript-fits-view build/stack.fits
 @end example
 
 Compared to the first run (with @code{step_arcmin=1}), we clearly see how there are indeed fewer pixels that get photons in all 5 exposures.
-As the area of the deepest part has decreased, the areas with fewer exposures have grown.
-Based on the argument above, let's define our deep region to be the pixels with 3 or more exposures.
-Please set @code{deep_thresh=3} and re-run the script you have made from the commands above.
-You will see that the final (based on pixel-counting) area is now 2.68 degrees squared!
+As the area of the deepest part has decreased, the areas with fewer exposures have also grown.
+Let's define our deep region to be the pixels with 3 or more exposures.
+Please set @code{deep_thresh=3} in the script and re-run it.
+You will see that the ``deep'' area is now almost 2.02 degrees squared!
 This is (slightly) larger than the first run (with @code{step_arcmin=1})!
 
 The difference between 3 exposures and 5 exposures seems a lot at first.
@@ -9548,18 +9680,19 @@ Therefore, if a single exposure image has a sky standard deviation of @mymath{\s
 As a result, the surface brightness limit between the regions with @mymath{N} exposures and @mymath{M} exposures differs by @mymath{2.5\times log_{10}(\sqrt{N/M}) = 1.25\times log_{10}(N/M)} magnitudes.
 If we set @mymath{N=3} and @mymath{M=5}, we get a surface brightness magnitude difference of 0.28!
 
-This is a very small difference; given all the other sources of error that will be present; and the improvement we gain by the calibrations of artifacts mentioned above.
+This is a very small difference; given all the other sources of error that will be present; but how much it improves the calibration artifacts.
 Therefore at the cost of decreasing our surface brightness limit by 0.28 magnitudes, we are now able to calibrate the individual exposures much better, and even cover a larger area!
 
 The argument above didn't involve any image and was primarily theoretical.
 For the more visually-inclined readers, let's add raw Gaussian noise (with a @mymath{\sigma} of 100 counts) over each simulated exposure.
-We will then instruct the script to stack them as we would stack actual data (by taking the sigma-clipped mean).
+We will then instruct @command{astscript-dither-simulate} to stack them as we would stack actual data (by taking the sigma-clipped mean).
 The command below is identical to the previous call to the dither simulation script with the following differences.
-Note that this is just for demonstration, so you do not need to include this in your script (unless you want to see the noisy stack every time).
+Note that this is just for demonstration, so you should not include this in your script (unless you want to see the noisy stack every time; at double the processing time).
 
 @table @option
 @item --output
 We are using a different output name, so we can compare the output of the new command with the previous one.
+
 @item --stack-operator
 This should be one of the Arithmetic program's @ref{Stacking operators}.
 By default the value is @code{sum}; because by default, each pixel of each exposure is given a value of 1.
@@ -9575,23 +9708,26 @@ Through a ``hook'', you can give any arbitrarily long (series of) command(s) tha
 This particular hook gets applied ``after'' the ``warp''ing phase of each exposure (when the pixels of each exposure are mapped to the final pixel grid; but not yet stacked).
 
 Since the script runs in parallel (the actual work-horse is a Makefile!), you can't assume any fixed file name for the input(s) and output.
-Therefore the inputs to, and output(s) of, hooks are some pre-defined shell variables; that are written in full-caps to be clear.
-In this case, they are the @code{$WARPED} (input) and @code{$TARGET} (output).
+Therefore the inputs to, and output(s) of, hooks are some pre-defined shell variables that you should use in the command(s) that you hook into the processing.
+They are written in full-caps to be clear and separate from your own variables.
+In this case, they are the @code{$WARPED} (input file of the hook) and @code{$TARGET} (output name that next steps in the script will operate on).
 As you see from the command below, through this hook we are calling the Arithmetic program to add noise to all non-zero pixels in the warped image.
-
-After all the images are placed in the same pixel grid, they are stacked in a separate step (described in the point above).
+For more on the noise-adding operators, see @ref{Random number generators}.
 @end table
 
 @example
-$ astscript-dither-simulate dither.txt --output=stack-noised.fits \
-           --img=input/ref.fits --center=$center_ra,$center_dec \
+$ center_ra=192.721250
+$ center_dec=41.120556
+$ astscript-dither-simulate build/dither.txt --img=input/ref.fits \
+           --center=$center_ra,$center_dec \
            --width=2 --stack-operator="3 0.2 sigclip-mean" \
+           --output=build/stack-noised.fits \
            --hook-warp-after='astarithmetic $WARPED set-i \
                                           i i 0 uint8 eq nan where \
                                           100 mknoise-sigma \
                                            --output=$TARGET'
 
-$ astscript-fits-view stack.fits stack-noised.fits
+$ astscript-fits-view build/stack.fits build/stack-noised.fits
 @end example
 
 When you visually compare the two images of the last command above, you will see that (at least by eye) it is almost impossible to distinguish the differing noise pattern in the regions with 3 exposures from the regions with 5 exposures.
@@ -9614,54 +9750,117 @@ Accurate calibration is necessary if you do not want to loose the faint photons 
 
 Ideally, you want your target to be on the four edges/corners of each image.
 This will make sure that a large fraction of each exposure will not be covered by your final target in each exposure, allowing you to calibrate much more accurately.
-Let's try setting @code{step_arcmin=40} (almost half the width of the detector) in your script@footnote{Assuming that the script is using the original @code{astscript-dither-simulate} command (that produced an exposure map output), not the one that produced a noisy image.}.
-After running the script, take a look at @file{deep.fits}:
+
+@node Pointings that account for sky curvature, Accounting for non-exposed pixels, Larger steps sizes for better calibration, Dither pattern design
+@subsection Pointings that account for sky curvature
+
+In @ref{Larger steps sizes for better calibration}, we saw how a small loss in surface brightness limit can allow better calibration and even a larger area.
+Let's extend this by setting @code{step_arcmin=40} (almost half the width of the detector) inside your script (see @ref{Script with dither simulation steps so far}).
+After running the script with this change, take a look at @file{build/deep.fits}:
 
 @example
-$ astscript-fits-view deep.fits --ds9scale=minmax
+$ astscript-fits-view build/deep.fits --ds9scale=minmax
 @end example
 
-You will see that the region with 5 exposure depth is a horizontally elongated rectangle
-Let's focus at the horizontally stretched cross that we see for the regions with 4 exposures.
-The reason that the vertical component is thicker is that the same change in RA and Dec (defined on the curvature of a sphere) will result in different changes in each.
-To have the same size in both, we should divide the RA step by the cosine of the declination.
-In the command below, we have shown the relevant changes in the dither table construction above (this change should be taken into your script).
+You will see that the region with 5 exposure depth is a horizontally elongated rectangle now!
+Also, the vertical component of the cross with four exposures is much thicker than the horizontal component!
+Where does this assymmetry come from? All the steps in our dither strategy had the same (fixed) size of 40 arc minutes.
+
+This happens because the same change in RA and Dec (defined on the curvature of a sphere) will result in different absolute changes on the equator.
+To visually see this, let's look at the dither positions in TOPCAT:
 
 @example
-$ echo $center_ra $center_dec \
-       | awk '@{s='$step_arcmin'/60; fmt="%-10.6f %-10.6f\n"; \
-               pi=atan2(0, -1); r=pi/180; \
-               printf fmt, $1,               $2; \
-               printf fmt, $1+(s/cos($2*r)), $2; \
-               printf fmt, $1,               $2+s; \
-               printf fmt, $1-(s/cos($2*r)), $2; \
-               printf fmt, $1,               $2-s@}' \
-          >> dither.txt
+$ cat build/dither.txt
+# Column 1: RA  [deg, f64] Right Ascension
+# Column 2: Dec [deg, f64] Declination
+192.721250 41.120556
+193.387917 41.120556
+192.721250 41.787223
+192.054583 41.120556
+192.721250 40.453889
+
+$ asttable build/dither.txt -obuild/dither.fits
+$ astscript-fits-view build/dither.fits
 @end example
 
-@noindent
-Here are two important points to consider when comparing the previous AWK command with this one:
-@itemize
-@item
-The cosine function of AWK (@code{cos}) assumes that the input is in radians, not degrees.
-We therefore have to multiply each declination (in degrees) by a variable @code{r} that contains the conversion factor (@mymath{\pi/180}).
-@item
-AWK doesn't have the value of @mymath{\pi} in memory.
-We need to calculate it, and to do that, we use the @code{atan2} function (as recommended in the AWK manual, for the definition of @code{atan2}, see @ref{Trigonometric and hyperbolic operators}).
-@end itemize
+After TOPCAT opens, under the ``graphics'' window, select ``Plane Plot''.
+In the newly opened window, click on the ``Axes'' item on the bottom-left list of items.
+Then activate the ``Aspect lock'' box so the vertical and horizontal axises have the same scaling.
+You will see what you expect from the numbers: we have a beautifully symmetic set of 5 points shaped like a `+' sign.
 
-After updating the AWK command in your script to the one above run it with everything else unchanged.
-Afterwards, open @file{deep.fits} and you will see that the widths of both the horizontal and vertical regions are much more similar.
+Keep the previous window, and let's go back to the original TOPCAT window.
+In the first TOPCAT window, click on ``Graphics'' again, but this time, select ``Sky plot''.
+You will notice that the vertical component of the cross is now longer than the horizontal component!
+If you zoom-out (by scrolling your mouse over the plot) a lot, you will see that this is actually on the spherical surface of the sky!
+In other words, as you see here, on the sky, the horizontal points are closer to each other than the vertical points; causing a larger overlap between them, making the vertical overlap thicker in @file{build/dither.fits}.
+
+@cindex Declination
+@cindex Right Ascension
+@cindex Celestial sphere
+On the celestial sphere, only the declination is measured in degrees.
+In other words, the difference in declination of two points can be calculated only with their declination.
+However, except for points that are on the equator, differences in right ascension depend on the declination.
+Therefore, the origin of this problem is that we done the additions and subtractions for defining the dither points in a flat space: based on the step size in arc minutes that was applied similarly on RA and Dec (in @ref{Preparing input and generating exposure map}).
+
+To fix this problem, we need to convert our points from the flat RA/Dec into the spherical RA/Dec.
+In the FITS standard, we have the ``World Coordinate System'' (WCS) that defines this type of conversion, using pre-defined projections in the @code{CTYPEi} keyword (short for for ``Coordinate TYPE in dimension i'').
+Let's have a look at the stack to see the default projection of our final stack:
+
+@verbatim
+$ astfits build/stack.fits -h1 | grep CTYPE
+CTYPE1  = 'RA---TAN'           / Right ascension, gnomonic projection
+CTYPE2  = 'DEC--TAN'           / Declination, gnomonic projection
+@end verbatim
+
+We therefore see that the default projection of our final stack is the @code{TAN} (short for ``tangential'') projection, which is more formally known as the @url{https://en.wikipedia.org/wiki/Gnomonic_projection, Gnomonic projection}.
+This is the most commonly used projection in optical astronomy.
+Now that we know the final projection, we can do this conversion using Table's column arithmetic operator @option{eq-j2000-from-flat} like below:
+
+@verbatim
+$ dithercat=build/dither.txt
+$ ditheronsky=build/dither-on-sky.fits
+$ asttable $dithercat --output=$ditheronsky \
+           -c'arith RA          set-r \
+                    DEC         set-d \
+                    r meanvalue set-ref-r \
+                    d meanvalue set-ref-d \
+                    r d ref-r ref-d TAN eq-j2000-from-flat' \
+           --colmetadata=1,RA,deg,"Right ascension" \
+           --colmetadata=2,Dec,deg,"Declination"
+
+$ astscript-fits-view build/dither-on-sky.fits
+@end verbatim
+
+Here is a break-down of the first command above: to do the flat-to-sky conversion, we need a reference point (where the two are equal).
+We have used the mean RA and mean Dec (through the @code{meanvalue} operator in Arithmetic) as our reference point (which are placed in the @code{ref-r} and @code{red-d} variables.
+After calling the @option{eq-j2000-from-flat} operator, we have just added metadata to the two columns.
+
+To confirm that this operator done the job correctly, after the second command above, repeat the same experiment as before with TOPCAT (where you viewed the dither positions on a flat and spherical coordinate system).
+You will see that indeed, on the sphere you have a `+' shape, but on the flat plot, it looks stretched.
 
 @cartouche
 @noindent
-@strong{RA and Dec should be treated differently:} As shown above, when considering differences between two points in your dither pattern, it is important to remember that the RA is only defined on the equator of the celestial sphere.
-So when you shift @mymath{+\delta} degrees parallel to the equator, from a point that is located in RA and Dec of [@mymath{r}, @mymath{d}], the RA and Dec of the new point are [@mymath{r+\delta{}/cos(d), d}].
+@strong{Script update 1:} you should now add the @code{ditheronsky} definition and the @code{asttable} command above into the script of @ref{Script with dither simulation steps so far}.
+They should be placed before the call to @code{astscript-dither-simulate}.
+Also, in the call to @code{astscript-dither-simulate}, @code{$dithercat} should be replaced with @code{$ditheronsky} (so it doesn't use the flat RA, Dec pointings).
 @end cartouche
 
-You can try making the cross-like region as thin as possible by slightly increasing the step size.
+After implementing this change in your script and running it, open @file{deep.fits} and you will see that the widths of both the horizontal and vertical regions are much more similar.
+The top of the vertical overlap is slightly wider than the bottom, but that is something you can't fix by just pointing (your camera's field of view is fixed on the sky!).
+It can be correctly by slightly rotating some of the exposures, but that will result in different PSFs from one exposure to another; and this can cause more important problems for your final science.
+
+@cartouche
+@noindent
+@strong{Plotting the spherical RA and Dec in your papers:} The inverse of the @code{eq-j2000-from-flat} operator above is the @code{eq-j2000-to-flat}.
+@code{eq-j2000-to-flat} can be used when you want to plot a set points with spherical RA and Dec in a paper.
+When the minimum and maximum RA and Dec differ by larger than half a degree, you'll clearly see the difference.
+For more, see the description of these operators in @ref{Column arithmetic}.
+@end cartouche
+
+Try slighly increasing @code{step_arcmin} to make the cross-like region with 4 exposures as thin as possible.
 For example, set it to @code{step_arcmin=42}.
 When you open @file{deep.fits}, you will see that the depth across this image is almost contiguous (which is another positive factor!).
+Try increasing it to 43 arc minutes to see that the central cross will become almost fully NaN in @file{deep.fits} (which is bad!).
 
 You will notice that the vertical region of 4 exposure depth is thinner in the bottom than on the top.
 This is due to the RA/Dec change above, but across the width of the image.
@@ -9672,34 +9871,37 @@ You can construct any complex dither pattern (with more than 5 points and in any
 Since the output is a FITS file, you can easily download another FITS file of your target, open it with DS9 (and ``lock'' the ``WCS'') with the stack produced by this simulation to make sure that the deep parts correspond to the area of interest for your science case.
 
 Factors like the optimal exposure time are also critical for the final result@footnote{The exposure time will determine the Signal-to-noise ration on a single exposure level.}, but is was beyond the scope of this tutorial.
-One relevant factor however is the effect of vignetting: the pixels on the outer extremes of the field of view are usually exposed to much less flux than the central parts.
-In @ref{Triming vignetted area}, we will show how this can be done within the same test concept that we done here.
+One relevant factor however is the effect of vignetting: the pixels on the outer extremes of the field of view that are not exposed to light and should be removed from your final stack.
+They effect your dither pattern: by decreasing your total area, they act like a larger spacing between your points, causing similar shallow crosses as you saw when you set @code{step_arcmin} to 43 arc minutes.
+In @ref{Accounting for non-exposed pixels}, we will show how this can be done within the same test concept that we done here.
 
 
-@menu
-* Triming vignetted area::      Effect of triming the edges on your dither pattern.
-@end menu
 
-@node Triming vignetted area,  , Dither pattern design, Dither pattern design
-@subsection Triming vignetted area
+@node Accounting for non-exposed pixels,  , Pointings that account for sky curvature, Dither pattern design
+@subsection Accounting for non-exposed pixels
 
 @cindex Baffle
 @cindex Vignetting
 @cindex Bad pixels
-The full area of a detector is not usually used in the final stack.
-This is mostly because of strong @url{https://en.wikipedia.org/wiki/Vignetting,vignetting}.
-But it can also have other causes: for example due to baffles in the optical path (to block stray light), or large regions of bad (unusable) pixels that may be in any place on the detector.
+At the end of @ref{Pointings that account for sky curvature} we were able to maximize the region of same depth in our stack.
+But we noticed that issues like strong @url{https://en.wikipedia.org/wiki/Vignetting,vignetting} can create discontiuity in our final stacked data product.
+In this section, we'll review the steps to account for such effects.
+Generally, the full area of a detector is not usually used in the final stack.
+Vignetting is one cause, it can be due to other problems also.
+For example due to baffles in the optical path (to block stray light), or large regions of bad (unusable or ``dead'') pixels that may be in any place on the detector@footnote{For an example of bad pixels over the detector, see Figures 4 and 6 of @url{https://www.stsci.edu/files/live/sites/www/files/home/hst/instrumentation/wfc3/documentation/instrument-science-reports-isrs/_documents/2019/WFC3-2019-03.pdf, Instrument Science Report WFC3 2019-03} by the Space Telescope Science Institute.}.
 
-Without accounting for these pixels that do not receive any light, the basic test that we did in @ref{Dither pattern design} will over-estimate the area of the deep region.
-In this sub-section, let's review the necessary modifications you need to do in that section by assuming that the image is affected by vignetting.
-Therefore, before continuing, please make sure that you have already read and done that section (this sub-section builds upon that section).
+Without accounting for these pixels that do not receive any light, the deep area we measured in the sections above will be over-estimated.
+In this sub-section, let's review the necessary additions to account for such artifacts.
+Therefore, before continuing, please make sure that you have already read and applied the steps of the previous sections (this sub-section builds upon that section).
 
 @cindex Hook (programming)
 Vignetting strongly depends on the optical design of the instrument you are using.
-It can be a constant number of pixels on all the edges the detector, or it can have a more complex shape; for example on cameras that have multiple detectors on the field of view, in this case, the regions to exclude on each detector can be very different!
+It can be a constant number of pixels on all the edges the detector, or it can have a more complex shape.
+For example on cameras that have multiple detectors on the field of view, in this case, the regions to exclude on each detector can be very different and will not be symmetric!
+
 Therefore, within Gnuastro's @command{astscript-dither-simulate} script there is no parameter for pre-defined vignetting shapes.
-Instead, you should define a mask that you can apply on each exposure through the provided before warping hook within this script (@option{--hook-warp-before}; recall that previously we used the hook that activated after warping).
-Through the mask, are free to set any un-wanted pixel to NaN (thus ignoring them in the stack) and applying it in any way that best suites your instrument+detector.
+Instead, you should define a mask that you can apply on each exposure through the provided hook (@option{--hook-warp-before}; recall that we previously used another hook in @ref{Larger steps sizes for better calibration}).
+Through the mask, you are free to set any vignetted or bad pixel to NaN (thus ignoring them in the stack) and applying it in any way that best suites your instrument and detector.
 
 The mask image should be same size as the reference image, but only containing two values: 0 or 1.
 Pixels in each exposure that have a value of 1 in the mask will be set to NaN before the stacking process and will not contribute to the final stack.
@@ -9736,9 +9938,9 @@ $ astarithmetic input/ref.fits indexonly     set-i \
                 i w /          uint16        set-Y \
                 X m lt         X w m - gt       or \
                 Y m lt         Y h m - gt       or \
-                or --output=mask.fits
+                or --output=build/mask.fits
 
-$ astscript-fits-view mask.fits --ds9extra="-cmap red"
+$ astscript-fits-view build/mask.fits --ds9extra="-cmap red"
 @end example
 
 We are now ready to run the main dither simulate script.
@@ -9749,13 +9951,13 @@ The input to the command given to this hook should be called with @code{$EXPOSUR
 With the second command, let's compare the two outputs:
 
 @example
-$ astscript-dither-simulate dither.txt --output=stack-with-trim.fits \
-           --img=input/ref.fits --center=$center_ra,$center_dec \
-           --width=2 \
-           --hook-warp-before='astarithmetic $EXPOSURE mask.fits \
+$ astscript-dither-simulate build/dither-on-sky.fits \
+           --output=build/stack-with-trim.fits --img=input/ref.fits \
+           --center=$center_ra,$center_dec --width=2 \
+           --hook-warp-before='astarithmetic $EXPOSURE build/mask.fits \
                                              nan where -g1 -o$TOWARP'
 
-$ astscript-fits-view stack.fits stack-with-trim.fits
+$ astscript-fits-view build/stack.fits build/stack-with-trim.fits
 @end example
 
 As expected, due to the smaller area of the detector that is exposed to photons, the regions with 4 exposures have become much thinner and on the bottom, it has been removed.
@@ -9764,7 +9966,8 @@ To have contiguous depth in the deeper region, use this new call in your script 
 You can use the same command on a mask that is created in any way and as realistic as possible.
 More generically, you can use the before and after hooks for any other operation; for example to insert objects from a catalog using @ref{MakeProfiles} as well as adding noise as we did in @ref{Dither pattern design}.
 
-
+Therefore it is also good to add the mask and its application in your script. This should be pretty easy by now (following @ref{Script with dither simulation steps so far} and the ``Script update 1'' box of @ref{Pointings that account for sky curvature}).
+So we will leave this as an exercise.
 
 
 
@@ -16847,9 +17050,6 @@ Therefore, when your column arithmetic involves the @key{$} sign (to specify col
 Otherwise you can use both single or double quotes.
 @end cartouche
 
-
-
-
 @cartouche
 @noindent
 @strong{Manipulate all columns in one call using @key{$_all}}: Usually we manipulate one column in one call of column arithmetic.
@@ -16940,12 +17140,15 @@ $ asttable table.fits -cID,RA -cDEC \
 @item img-to-wcs
 Similar to @code{wcs-to-img}, except that image/dataset coordinates are converted to WCS coordinates.
 
-@item eq-j2000-on-flat
-Convert the input RA and Dec (in Julian year 2000.0 equatorial coordinates; which are the most common) into RA and Dec on a flat surface based on the given reference coordinate.
-At the reference coordinate the output will be the same as the input, as you move away from the reference point, distortions due to the particular projection will be properly accounted for.
-For example if you simply plot RA and Dec without this operator, a circular annulus on the sky will become elongated as the declination of its center goes farther from the equator.
+@item eq-j2000-to-flat
+Convert spherical RA and Dec (in Julian year 2000.0 equatorial coordinates; which are the most common) into RA and Dec on a flat surface based on the given reference point and projection.
+The full details of the operands to this operator are given below, but let's start with a practical example to show the concept.
 
-The full details of the operands are given below, but let's start with a practical example to show the concept.
+At (or very near) the reference point the output of this operator will be the same as the input.
+But as you move away from the reference point, distortions due to the particular projection will gradually cause changes in the output (when compared to the input).
+For example if you simply plot RA and Dec without this operator, a circular annulus on the sky will become elongated as the declination of its center goes farther from the equator.
+For a demonstration of the difference between curved and flat RA and Decs, see @ref{Pointings that account for sky curvature} in the Tutorials chapter.
+
 Let's assume you want to plot a set of RA and Dec points (defined on a spherical surface) in a paper (a flat surface) and that @file{table.fits} contains the RA and Dec in columns that are called @code{RA} and @code{DEC}.
 With the command below, the points will be converted to flat-RA and flat-Dec using the Gnomonic projection (which is known as @code{TAN} in the FITS WSC standard; see the description of the first popped operand below):
 
@@ -16953,7 +17156,7 @@ With the command below, the points will be converted to flat-RA and flat-Dec usi
 $ asttable table.fits \
            -c'arith RA set-r DEC set-d \
                     r d r meanvalue d meanvalue TAN \
-                    eq-j2000-on-flat'
+                    eq-j2000-to-flat'
 @end example
 
 As you see, the RA and Dec (@code{r} and @code{d}) are the last two operators that are popped.
@@ -16966,10 +17169,10 @@ $ ref_ra=123.45
 $ ref_dec=-6.789
 $ asttable table-1.fits --output=flat-1.txt \
            -c'arith RA DEC '$ref_ra' '$ref_dec' TAN \
-                    eq-j2000-on-flat'
+                    eq-j2000-to-flat'
 $ asttable table-2.fits --output=flat-2.txt \
            -c'arith RA DEC '$ref_ra' '$ref_dec' TAN \
-                    eq-j2000-on-flat'
+                    eq-j2000-to-flat'
 @end example
 
 This operator takes 5 operands:
@@ -16994,6 +17197,11 @@ The @emph{fourth} popped operand is the declination column of your input table (
 The @emph{fifth} popped operand is the right ascension column of your input table (the points that will be converted).
 
 @end enumerate
+
+@item eq-j2000-from-flat
+The inverse of @code{eq-j2000-to-flat}.
+In other words, you have a set of points defined on the flat RA and Dec (after the projection from spherical to flat), but you want to map them to spherical RA and Dec.
+For an example, see @ref{Pointings that account for sky curvature} in the Gnuastro tutorials.
 
 @item distance-flat
 Return the distance between two points assuming they are on a flat surface.
@@ -19213,11 +19421,11 @@ For more information on how to run Arithmetic, please see @ref{Invoking astarith
 
 
 @menu
-* Reverse polish notation::     The current notation style for Arithmetic
-* Integer benefits and pitfalls::  Integers have major benefits, but require care
-* Noise basics::
-* Arithmetic operators::        List of operators known to Arithmetic
-* Invoking astarithmetic::      How to run Arithmetic: options and output
+* Reverse polish notation::     The current notation style for Arithmetic.
+* Integer benefits and pitfalls::  Integers have benefits, but require care.
+* Noise basics::                Introduction various noise models.
+* Arithmetic operators::        List of operators known to Arithmetic.
+* Invoking astarithmetic::      How to run Arithmetic: options and output.
 @end menu
 
 @node Reverse polish notation, Integer benefits and pitfalls, Arithmetic, Arithmetic
@@ -32699,7 +32907,7 @@ For more, see the description of the same option in @ref{Align pixels with WCS c
 
 @item --hook-warp-before='STR'
 Command to run before warping each exposure into the output pixel grid.
-By default, the exposure is immediately warped to the final pixel grid, but in some scenarios it is necessary to do some operations on the exposure before warping (for example account for vignetting; see @ref{Triming vignetted area}).
+By default, the exposure is immediately warped to the final pixel grid, but in some scenarios it is necessary to do some operations on the exposure before warping (for example account for vignetting; see @ref{Accounting for non-exposed pixels}).
 The warping of each exposure is done in parallel by default; therefore there are pre-defined variables that you should use for the input and output file names of your command:
 @table @code
 @item $EXPOSURE
@@ -32711,14 +32919,14 @@ If it is not created by your script, the script will complain and abort.
 This file will be given to Warp to be warped into the output pixel grid.
 @end table
 
-For an example of using hooks with an exteded discussion, see @ref{Dither pattern design} and @ref{Triming vignetted area}.
+For an example of using hooks with an exteded discussion, see @ref{Dither pattern design} and @ref{Accounting for non-exposed pixels}.
 
 To develop your command, you can use @command{--hook-warp-before='...; echo GOOD; exit 1'} (where @code{...} can be replaced by any command) and run the script on a single thread (with @option{--numthreads=1}) to produce a single file and simplify the checking that your desired operation works as expected.
 All the files will be within the temporary directory (see @option{--tmpdir}).
 
 @item --hook-warp-after='STR'
 Command to run after the warp of each exposure into the output pixel grid, but before the stacking of all exposures.
-For more on hooks, see the description of @code{--hook-warp-before}, @ref{Dither pattern design} and @ref{Triming vignetted area}.
+For more on hooks, see the description of @code{--hook-warp-before}, @ref{Dither pattern design} and @ref{Accounting for non-exposed pixels}.
 
 @table @code
 @item $WARPED

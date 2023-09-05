@@ -146,8 +146,10 @@ arithmetic_operator_name(int operator)
         out="distance-on-sphere"; break;
       case ARITHMETIC_TABLE_OP_SORTEDTOINTERVAL:
         out="sorted-to-interval"; break;
-      case ARITHMETIC_TABLE_OP_EQJ2000ONFLAT:
-        out="eq-j2000-on-flat"; break;
+      case ARITHMETIC_TABLE_OP_EQJ2000TOFLAT:
+        out="eq-j2000-to-flat"; break;
+      case ARITHMETIC_TABLE_OP_EQJ2000FROMFLAT:
+        out="eq-j2000-from-flat"; break;
       default:
         error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to fix "
               "the problem. %d is not a recognized operator code", __func__,
@@ -204,8 +206,10 @@ arithmetic_set_operator(struct tableparams *p, char *string,
         { op=ARITHMETIC_TABLE_OP_WCSTOIMG; *num_operands=0; }
       else if( !strcmp(string, "img-to-wcs"))
         { op=ARITHMETIC_TABLE_OP_IMGTOWCS; *num_operands=0; }
-      else if( !strcmp(string, "eq-j2000-on-flat"))
-        { op=ARITHMETIC_TABLE_OP_EQJ2000ONFLAT; *num_operands=0; }
+      else if( !strcmp(string, "eq-j2000-to-flat"))
+        { op=ARITHMETIC_TABLE_OP_EQJ2000TOFLAT; *num_operands=0; }
+      else if( !strcmp(string, "eq-j2000-from-flat"))
+        { op=ARITHMETIC_TABLE_OP_EQJ2000FROMFLAT; *num_operands=0; }
       else if( !strcmp(string, "date-to-sec"))
         { op=ARITHMETIC_TABLE_OP_DATETOSEC; *num_operands=0; }
       else if( !strcmp(string, "date-to-millisec"))
@@ -678,8 +682,8 @@ arithmetic_wcs(struct tableparams *p, gal_data_t **stack, int operator)
 
 
 static void
-arithmetic_curved_on_flat(struct tableparams *p, gal_data_t **stack,
-                          int operator)
+arithmetic_curved_flat(struct tableparams *p, gal_data_t **stack,
+                       int operator)
 {
   struct wcsprm *wcs=NULL;
   char *ctype[2], *cunit[2];
@@ -747,7 +751,19 @@ arithmetic_curved_on_flat(struct tableparams *p, gal_data_t **stack,
   /* Put the second world coordinate as the next token of the first, and do
      the conversion. */
   w1->next=w2;
-  gal_wcs_world_to_img(w1, wcs, 1);
+  switch(operator)
+    {
+    case ARITHMETIC_TABLE_OP_EQJ2000TOFLAT:
+      gal_wcs_world_to_img(w1, wcs, 1);
+      break;
+    case ARITHMETIC_TABLE_OP_EQJ2000FROMFLAT:
+      gal_wcs_img_to_world(w1, wcs, 1);
+      break;
+    default:
+      error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at '%s' to "
+            "fix the problem. The integer '%d' is not a recognized "
+            "operator identifier", __func__, PACKAGE_BUGREPORT, operator);
+    }
 
   /* Put the output datasets in the stack in reverse order. */
   w1->next=w2->next=NULL;
@@ -1115,8 +1131,9 @@ arithmetic_operator_run(struct tableparams *p,
           arithmetic_wcs(p, stack, token->operator);
           break;
 
-        case ARITHMETIC_TABLE_OP_EQJ2000ONFLAT:
-          arithmetic_curved_on_flat(p, stack, token->operator);
+        case ARITHMETIC_TABLE_OP_EQJ2000TOFLAT:
+        case ARITHMETIC_TABLE_OP_EQJ2000FROMFLAT:
+          arithmetic_curved_flat(p, stack, token->operator);
           break;
 
         case ARITHMETIC_TABLE_OP_DATETOSEC:
@@ -1176,9 +1193,11 @@ arithmetic_read_at_usage(struct tableparams *p,
          the table, if the next token is the equatorial on flat operator,
          then we should also check known projection identifiers. */
       if( token->next
-          && token->next->operator==ARITHMETIC_TABLE_OP_EQJ2000ONFLAT )
+          && ( token->next->operator==ARITHMETIC_TABLE_OP_EQJ2000TOFLAT
+            || token->next->operator==ARITHMETIC_TABLE_OP_EQJ2000FROMFLAT) )
         {
-          /* If the projection  */
+          /* If the projection is recognized, add it to the stack
+             otherwise, just let the default error finish the program. */
           pid=gal_wcs_projection_name_to_id(token->id_at_usage);
           if(pid!=GAL_WCS_PROJECTION_INVALID)
             {
