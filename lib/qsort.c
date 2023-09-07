@@ -44,7 +44,7 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
    equal zero, we don't have any NaNs and this 'COMPARE_FLOAT_POSTPROCESS'
    macro is called only when the comparison gives zero. Being larger or
    smaller isn't defined for NaNs, so we'll just put them in the end of the
-   sorted list whether it is sorted by decreasing or increasing mode.*/
+   sorted list whether it is sorted by decreasing or increasing mode. */
 #define COMPARE_FLOAT_POSTPROCESS (                                     \
    isnan(ta) && isnan(tb)                                               \
    ? 0                                /* Both NaN, define as equal. */  \

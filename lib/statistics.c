@@ -95,7 +95,7 @@ gal_statistics_minimum(gal_data_t *input)
       gal_type_max(out->type, out->array);
 
       /* Parse the full input. A NaN value will always fail a conditional
-         (as if it was larger); so NaNs will not cause problems here.*/
+         (as if it was larger); so NaNs will not cause problems here. */
       GAL_TILE_PARSE_OPERATE( input, out, 0, 1,
                               {*o = *i < *o ? *i : *o; ++n;} );
     }
@@ -125,7 +125,7 @@ gal_statistics_maximum(gal_data_t *input)
       gal_type_min(out->type, out->array);
 
       /* Parse the full input. A NaN value will always fail a conditional
-         (as if it was smaller); so NaNs will not cause problems here.*/
+         (as if it was smaller); so NaNs will not cause problems here. */
       GAL_TILE_PARSE_OPERATE(input, out, 0, 1,
                              {*o = *i > *o ? *i : *o; ++n;});
     }
@@ -304,7 +304,7 @@ gal_statistics_mean_std(gal_data_t *input)
       GAL_TILE_PARSE_OPERATE(input, out, 0, 1,
                              {++n; v=*i; s+=v; s2+=v*v;});
 
-      /* Write the mean */
+      /* Write the mean. */
       o[0]=s/n;
 
       /* Write the standard deviation. If the square of the average value
@@ -380,7 +380,7 @@ gal_statistics_median(gal_data_t *input, int inplace)
   else
     gal_blank_write(out->array, out->type);
 
-  /* Clean up (if necessary), then return the output */
+  /* Clean up (if necessary), then return the output. */
   if(nbs!=input) gal_data_free(nbs);
   return out;
 }
@@ -389,7 +389,7 @@ gal_statistics_median(gal_data_t *input, int inplace)
 
 
 /* For a given size, return the index (starting from zero) that is at the
-   given quantile.  */
+   given quantile. */
 size_t
 gal_statistics_quantile_index(size_t size, double quantile)
 {
@@ -635,7 +635,7 @@ gal_statistics_quantile_function(gal_data_t *input, gal_data_t *value,
 
 
 
-/* Pull out unique elements */
+/* Pull out unique elements. */
 #define UNIQUE_BYTYPE(TYPE) {                                           \
     size_t i, j;                                                        \
     TYPE *a=out->array, b;                                              \
@@ -708,7 +708,7 @@ gal_statistics_unique(gal_data_t *input, int inplace)
         if(input!=block)                                                \
           af = ( a = start + increment ) + input->dsize[input->ndim-1]; \
                                                                         \
-        /* Check for blank values (only for integers: b==b) */          \
+        /* Check for blank values (only for integers: b==b). */         \
         if(b==b) do if(*a!=b  && *a<0) { hasneg=1; break; } while(++a<af); \
         else     do if(*a==*a && *a<0) { hasneg=1; break; } while(++a<af); \
                                                                         \
@@ -734,7 +734,7 @@ gal_statistics_has_negative(gal_data_t *input)
   /* The operation depends on the type of the input. */
   switch(input->type)
     {
-    /* Unsigned integer types are always positive */
+    /* Unsigned integer types are always positive. */
     case GAL_TYPE_UINT8:
     case GAL_TYPE_UINT16:
     case GAL_TYPE_UINT32:
@@ -920,7 +920,7 @@ mode_mirror_max_index_diff(struct statistics_mode_params *p, size_t m)
       prevj=j;
     }
 
-  /* Return the maximum difference  */
+  /* Return the maximum difference. */
   return maxdiff;
 }
 
@@ -1064,7 +1064,7 @@ mode_golden_section(struct statistics_mode_params *p)
 
    Now, the "symmetricity" of the mode can be defined as: (b-m)/(m-a). For
    a completly symmetric mode, this should be 1. Note that the search for
-   'b' only goes to the 95% of the distribution.  */
+   'b' only goes to the 95% of the distribution. */
 #define MODE_SYM(IT) {                                                  \
     IT *a=p->data->array, af=0, bf=0, mf=0, fi;                         \
                                                                         \
@@ -1192,7 +1192,7 @@ gal_statistics_mode(gal_data_t *input, float mirrordist, int inplace)
           __func__, mirrordist);
 
 
-  /* Make sure the input doesn't have blank values and is sorted.  */
+  /* Make sure the input doesn't have blank values and is sorted. */
   p.data=gal_statistics_no_blank_sorted(input, inplace);
 
 
@@ -1263,7 +1263,7 @@ gal_statistics_mode(gal_data_t *input, float mirrordist, int inplace)
          oa[0], oa[1], oa[2], oa[3]);
   */
 
-  /* Clean up (if necessary), then return the output */
+  /* Clean up (if necessary), then return the output. */
   if(p.data!=input) gal_data_free(p.data);
   gal_data_free(tmptype);
   gal_data_free(b_val);
@@ -2045,7 +2045,7 @@ gal_statistics_histogram2d(gal_data_t *input, gal_data_t *bins)
   size_t i, j, bsizea, bsizeb, outsize;
   double *da, *db, binwidtha, binwidthb, mina, minb, maxa, maxb;
 
-  /* Basic sanity checks */
+  /* Basic sanity checks. */
   if(input->next==NULL)
     error(EXIT_FAILURE, 0, "%s: 'input' has to be a list of two datasets",
           __func__);
@@ -2126,7 +2126,7 @@ gal_statistics_histogram2d(gal_data_t *input, gal_data_t *bins)
             __func__, input->type);
     }
 
-  /* Return the final output */
+  /* Return the final output. */
   return out;
 }
 
@@ -2177,7 +2177,7 @@ gal_statistics_cfp(gal_data_t *input, gal_data_t *bins, int normalize)
   /* If the histogram has float32 type it was given by the user and is
      either normalized or its maximum was set to 1. We can only use it if
      it was normalized. If it isn't normalized, then we must ignore it and
-     build the histogram here.*/
+     build the histogram here. */
   if(hist->type==GAL_TYPE_FLOAT32)
     {
       sum=0.0f;
@@ -2225,7 +2225,7 @@ gal_statistics_cfp(gal_data_t *input, gal_data_t *bins, int normalize)
   if(normalize && cfp->type==GAL_TYPE_SIZE_T)
     {
       /* Find the sum, then divide the plot by it. Note that the sum must
-         come from the histogram, not the CFP!*/
+         come from the histogram, not the CFP! */
       sums=0;
       cfp=gal_data_copy_to_new_type_free(cfp, GAL_TYPE_FLOAT32);
       sf=(s=hist->array)+hist->size; do sums += *s++;   while(s<sf);
@@ -2448,7 +2448,7 @@ gal_statistics_sigma_clip(gal_data_t *input, float multip, float param,
              Note that when all the elements are identical after the clip,
              'std' will be zero. In this case we shouldn't calculate the
              tolerance (because it will be infinity and thus lager than the
-             requested tolerance level value).*/
+             requested tolerance level value). */
           if( bytolerance && num>0 )
             if( *std==0 || ((oldstd - *std) / *std) < param )
               {
@@ -2484,7 +2484,7 @@ gal_statistics_sigma_clip(gal_data_t *input, float multip, float param,
           oldmean = *mean;
           ++num;
 
-          /* Clean up: */
+          /* Clean up. */
           gal_data_free(meanstd);
           gal_data_free(median_d);
         }
@@ -2532,7 +2532,7 @@ gal_statistics_sigma_clip(gal_data_t *input, float multip, float param,
                                         sigclip_param, 0, 1);           \
         sarr=sclip->array;                                              \
                                                                         \
-        /* For a check */                                               \
+        /* For a check. */                                               \
         if(quiet==0)                                                    \
           printf("%f [%zu]: %f (%f, %f) %f\n", (float)(arr[i]), i,      \
                  (float)(arr[i]-arr[i-1]), sarr[1], sarr[3],            \
@@ -2656,7 +2656,7 @@ gal_statistics_outlier_bydistance(int pos1_neg0, gal_data_t *input,
                               (float)(*p), (float)diff, check, sarr[1], \
                               sarr[3]);                                 \
                                                                         \
-            /* When values are equal, std will be roughly zero */       \
+            /* When values are equal, std will be roughly zero. */      \
             if(sarr[3]>1e-6 && check>thresh)                            \
               {                                                         \
                 if(flatind==GAL_BLANK_SIZE_T)                           \

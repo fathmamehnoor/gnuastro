@@ -120,7 +120,7 @@ gal_tile_start_end_coord(gal_data_t *tile, size_t *start_end, int rel_block)
     }
 
   /* Add the dimensions of the tile to the starting coordinate. Note that
-     the ending coordinates are stored immediately after the start.*/
+     the ending coordinates are stored immediately after the start. */
   gal_dimension_add_coords(start_end, tile->dsize, end, ndim);
 }
 
@@ -146,13 +146,13 @@ gal_tile_start_end_ind_inclusive(gal_data_t *tile, gal_data_t *work,
 
   /* The starting index can be found from the distance of the 'tile->array'
      pointer and 'block->array' pointer. IMPORTANT: with the type of the
-     block array.  */
+     block array. */
   start_end_inc[0]=gal_pointer_num_between(block->array, tile->array,
                                            block->type);
 
 
   /* To find the end index, we need to know the coordinates of the starting
-     point in the allocated block.  */
+     point in the allocated block. */
   gal_dimension_index_to_coord(start_end_inc[0], ndim, block->dsize,
                               start_coord);
 
@@ -161,7 +161,7 @@ gal_tile_start_end_ind_inclusive(gal_data_t *tile, gal_data_t *work,
      dimension. To have less potential for bugs, we will remove that extra
      value, so we get the coordinates of the last pixel in the tile
      (inclusive). We will finally, increment that value by one to get to
-     the pixel immediately outside of the tile.*/
+     the pixel immediately outside of the tile. */
   e=end_coord;
   l=tile->dsize;
   sf=(s=start_coord)+ndim; do *e++ = *s + *l++ - 1; while(++s<sf);
@@ -234,7 +234,7 @@ gal_tile_series_from_minmax(gal_data_t *block, size_t *minmax, size_t number)
   size_t i, d, ind, size, width=2*ndim;
   gal_data_t *tiles=gal_data_array_calloc(number);
 
-  /* Fill the tile information.  */
+  /* Fill the tile information. */
   for(i=0;i<number;++i)
     {
       /* To make things more readable. */
@@ -851,7 +851,7 @@ gal_tile_full(gal_data_t *input, size_t *regular,
 
       /* Set the block structure for this tile to the 'input', and set the
          next pointer as the next tile. Note that only when we are dealing
-         with the last tile should the 'next' pointer be set to NULL.*/
+         with the last tile should the 'next' pointer be set to NULL. */
       tiles[i].flag  = 0;
       tiles[i].block = input;
       tiles[i].next  = i==numtiles-1 ? NULL : &tiles[i+1];
@@ -934,7 +934,7 @@ gal_tile_full_sanity_check(char *filename, char *hdu, gal_data_t *input,
   for(i=0;i<ndim;++i)
     {
       /* Check if the number of channels is not more than the size of the
-         image. Note that the reported dimension must be in FITS format.*/
+         image. Note that the reported dimension must be in FITS format. */
       if( input->dsize[i] < tl->numchannels[i] )
         error(EXIT_FAILURE, 0, "the number of channels in dimension %zu "
               "(%zu) is more than the size of the '%s' (hdu: %s) in that "
@@ -983,7 +983,7 @@ gal_tile_full_two_layers(gal_data_t *input,
   gal_data_t *t;
   size_t i, *junk, *junk2, ndim=tl->ndim=input->ndim;
 
-  /* Initialize.  */
+  /* Initialize. */
   tl->channels=tl->tiles=NULL;
 
   /* Initialize necessary values and do the channels tessellation. */
@@ -1014,7 +1014,7 @@ gal_tile_full_two_layers(gal_data_t *input,
       tl->tiles[ i * tl->tottilesinch - 1 ].next = t;
 
       /* Fill in the information for all the tiles in this channel. Note
-         that we already have the returned value, so it isn't important.*/
+         that we already have the returned value, so it isn't important. */
       junk=gal_tile_full(&tl->channels[i], tl->tilesize, tl->remainderfrac,
                          &t, 1, &junk2);
       free(junk);
@@ -1205,7 +1205,7 @@ gal_tile_full_values_smooth(gal_data_t *tilevalues,
   /* Reverse the permutation. */
   if(permute) gal_permutation_apply_inverse(smoothed, tl->permutation);
 
-  /* Clean up and return; */
+  /* Clean up and return. */
   free(kdsize);
   gal_data_free(kernel);
   return smoothed;

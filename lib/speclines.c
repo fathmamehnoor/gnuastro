@@ -277,7 +277,7 @@ gal_speclines_line_name(int linecode)
     case GAL_SPECLINES_He_I_10830:     return GAL_SPECLINES_NAME_He_I_10830;
     case GAL_SPECLINES_Pa_gamma:       return GAL_SPECLINES_NAME_Pa_gamma;
 
-    /* Limits */
+    /* Limits. */
     case GAL_SPECLINES_LIMIT_LYMAN:    return GAL_SPECLINES_NAME_LIMIT_LYMAN;
     case GAL_SPECLINES_LIMIT_BALMER:   return GAL_SPECLINES_NAME_LIMIT_BALMER;
     case GAL_SPECLINES_LIMIT_PASCHEN:  return GAL_SPECLINES_NAME_LIMIT_PASCHEN;
@@ -765,7 +765,7 @@ gal_speclines_line_code(char *name)
   else if( !strcmp(name, GAL_SPECLINES_NAME_Pa_gamma) )
     return GAL_SPECLINES_Pa_gamma;
 
-  /* Limits */
+  /* Limits. */
   else if( !strcmp(name, GAL_SPECLINES_NAME_LIMIT_LYMAN) )
     return GAL_SPECLINES_LIMIT_LYMAN;
   else if( !strcmp(name, GAL_SPECLINES_NAME_LIMIT_BALMER) )
@@ -1024,7 +1024,7 @@ gal_speclines_line_angstrom(int linecode)
     case GAL_SPECLINES_He_I_10830:     return GAL_SPECLINES_ANGSTROM_He_I_10830;
     case GAL_SPECLINES_Pa_gamma:       return GAL_SPECLINES_ANGSTROM_Pa_gamma;
 
-    /* Limits */
+    /* Limits. */
     case GAL_SPECLINES_LIMIT_LYMAN:    return GAL_SPECLINES_ANGSTROM_LIMIT_LYMAN;
     case GAL_SPECLINES_LIMIT_BALMER:   return GAL_SPECLINES_ANGSTROM_LIMIT_BALMER;
     case GAL_SPECLINES_LIMIT_PASCHEN:  return GAL_SPECLINES_ANGSTROM_LIMIT_PASCHEN;

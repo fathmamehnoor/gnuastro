@@ -199,7 +199,7 @@ table_selection_range(struct tableparams *p, gal_data_t *col)
   gal_data_free(tmp);
 
   /* Find all the elements outside this range (smaller than the minimum,
-     larger than the maximum or blank) as separate binary flags.. */
+     larger than the maximum or blank) as separate binary flags. */
   ltmin=gal_arithmetic(GAL_ARITHMETIC_OP_LT, 1, numok, col, min);
   gemax=gal_arithmetic(GAL_ARITHMETIC_OP_GE, 1, numok, col, max);
 
@@ -276,7 +276,7 @@ table_selection_polygon(struct tableparams *p, gal_data_t *col1,
                      NULL, NULL, NULL);
   oarr=out->array;
 
-  /* Loop through all the rows in the given columns and check the points.*/
+  /* Loop through all the rows in the given columns and check the points. */
   for(i=0; i<col1->size; i++)
     {
       /* Read the column values as a double. */
@@ -369,7 +369,7 @@ table_selection_equal_or_notequal(struct tableparams *p, gal_data_t *col,
      elements. */
   for(i=0;i<arg->size;++i)
     {
-      /* Write the value  */
+      /* Write the value. */
       if(col->type==GAL_TYPE_STRING)
         eq=table_selection_string_eq_ne(col, strarr[i], e0n1);
       else
@@ -412,7 +412,7 @@ table_selection_equal_or_notequal(struct tableparams *p, gal_data_t *col,
 
   /* Move the main pointer to the next possible call of the given
      option. Note that 'arg' already points to 'p->equal' or 'p->notequal',
-     so it will automatically be freed with the next step.*/
+     so it will automatically be freed with the next step. */
   if(e0n1) p->notequal=p->notequal->next;
   else     p->equal=p->equal->next;
 
@@ -692,7 +692,7 @@ table_random_rows(gal_data_t *table, gsl_rng *rng, size_t numrandom,
   ids=rowids->array;
   for(i=0;i<numrandom;++i)
     {
-      /* Select a random index and make sure its new. */
+      /* Select a random index and make sure it is new. */
       bad=1;
       while(bad)
         {
@@ -784,7 +784,7 @@ table_select_by_position(struct tableparams *p)
          not be used (outside the allocated array directly
          'gal_data_t'). We don't have to worry about the space for the
          actual pointers (they will be free'd by 'free' in any case, since
-         they are in the initially allocated array).*/
+         they are in the initially allocated array). */
       if(col->type==GAL_TYPE_STRING)
         {
           /* Parse the rows and free extra pointers. */
@@ -914,7 +914,7 @@ table_catcolumn(struct tableparams *p)
                   }
             }
 
-      /* Find the final column of the main table and add this table.*/
+      /* Find the final column of the main table and add this table. */
       final=gal_list_data_last(p->table);
       final->next=tocat;
       ++counter;
@@ -1068,7 +1068,7 @@ table_tovector(struct tableparams *p)
         }
 
       /* Reverse the list to be in the same order as the input, and convert
-         it to a vector.*/
+         it to a vector. */
       gal_list_data_reverse(&list);
       vector=gal_table_cols_to_vector(list);
       gal_list_data_free(list);
@@ -1158,7 +1158,7 @@ table_catrows_prepare(struct tableparams *p)
                           tmp->name, tmp->unit, tmp->comment);
 
       /* Put the full contents of the existing column into the new
-         column: this will be the first set of rows,  */
+         column: this will be the first set of rows. */
       memcpy(ocol->array, tmp->array, tmp->size*gal_type_sizeof(tmp->type));
 
       /* If the column type is a string, we should set the input pointers
@@ -1262,7 +1262,7 @@ table_catrows(struct tableparams *p)
                   ttmp->ndim==1?"single-valued":"vector");
 
           /* If the column is vector, make sure it has the same number of
-             elements.*/
+             elements. */
           if(tmp->ndim==2 && tmp->dsize[1]!=ttmp->dsize[1])
             error(EXIT_FAILURE, 0, "%s: vector column %zu has %zu elements "
                   "However, in the final table (before adding rows) this "
@@ -1286,7 +1286,7 @@ table_catrows(struct tableparams *p)
               for(i=0;i<tmp->size;++i) strarr[i]=NULL;
             }
 
-          /* Take 'ttmp' to the next column and increment the counter */
+          /* Take 'ttmp' to the next column and increment the counter. */
           ttmp=ttmp->next;
           ++colcount;
         }
@@ -1426,7 +1426,7 @@ table_noblankend(struct tableparams *p)
         /* First go through the column names and if they match, add
            them. Note that we don't want to stop once a name is found, in
            this scenario, if multiple columns have the same name, we should
-           use all.*/
+           use all. */
         j=0;
         found=0;
         for(tcol=p->table; tcol!=NULL; tcol=tcol->next)
@@ -1458,7 +1458,7 @@ table_noblankend(struct tableparams *p)
                     "have given 0");
 
             /* Make sure that the index falls within the number (note that
-               it still counts from 1).  */
+               it still counts from 1). */
             if(*index > gal_list_data_number(p->table))
               error(EXIT_FAILURE, 0, "the final output table only has "
                     "%zu columns, but you have given column %zu to "

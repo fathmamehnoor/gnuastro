@@ -349,7 +349,7 @@ txt_info_from_comment(char *in_line, gal_data_t **datall, char *comm_start,
          array) by default. If there is a blank value its value will be put
          into the array by 'gal_table_read_blank'. To keep the name, unit,
          and comment strings, trim the white space before and after each
-         before using them here.  */
+         before using them here. */
       gal_list_data_add_alloc(datall, NULL, type, 0, NULL, NULL, 0,
                               repeat, 1, name, gal_txt_trim_space(unit),
                               gal_txt_trim_space(comment) );
@@ -470,7 +470,7 @@ txt_info_from_first_row(char *in_line, gal_data_t **datall, int format,
                  loop). VERY IMPORTANT: to do this, 'line' should not be
                  '<=end'. If the given width is larger than line, there is
                  no problem, the '\0' of the line will also be used to end
-                 this last column.*/
+                 this last column. */
               if(line<end)
                 {
                   *line++='\0';
@@ -480,7 +480,7 @@ txt_info_from_first_row(char *in_line, gal_data_t **datall, int format,
           else
             {
               /* Repeat is put in minmapsize (when we were reading the
-                 column info from comments) */
+                 column info from comments). */
               for(i=0;i<col->minmapsize;++i)
                 {
                   token=strtok_r(ncol==1?line:NULL, GAL_TXT_DELIMITERS,
@@ -535,7 +535,7 @@ txt_info_from_first_row(char *in_line, gal_data_t **datall, int format,
      two column information comments on an image plain text file.
 
      Note that 'ncol' counts from 1, so the total number of tokens is one
-     less than 'ncol'.*/
+     less than 'ncol'. */
   numchecked=ncol-1;
   if(format==TXT_FORMAT_IMAGE) ncol=1;
 
@@ -549,7 +549,7 @@ txt_info_from_first_row(char *in_line, gal_data_t **datall, int format,
       col=*datall;
       while(col!=NULL)
         {
-          /* This column has no data (was only in comments) */
+          /* This column has no data (was only in comments). */
           if(col->status > numchecked)
             {
               /* This column has to be removed/freed. But we have to make
@@ -564,7 +564,7 @@ txt_info_from_first_row(char *in_line, gal_data_t **datall, int format,
 
                   - When there actually was a previous element
                     ('prev!=NULL'), then we must correct it's next
-                    pointer. Otherwise we will break up the chain.*/
+                    pointer. Otherwise we will break up the chain. */
               if(prev) prev->next=col->next; else *datall=col->next;
               tmp=col->next;
               gal_data_free(col);
@@ -617,7 +617,7 @@ txt_infoll_to_array(gal_data_t *datall, size_t *numdata)
       /* Allocate the array. */
       dataarr=gal_data_array_calloc(numc);
 
-      /* Put each dataset/column into its proper place in the array.  */
+      /* Put each dataset/column into its proper place in the array. */
       while(datall!=NULL)
         {
           /* Pop the top element. */
@@ -679,7 +679,7 @@ txt_get_info_line(char *line, gal_data_t **datall, char *comm_start,
       txt_info_from_comment(line, datall, comm_start, inplace);
       break;
 
-    /* Line is actual data, use it to fill in the gaps.  */
+    /* Line is actual data, use it to fill in the gaps. */
     case GAL_TXT_LINESTAT_DATAROW:
       ++dsize[0];
       if(*firstlinedone==0)
@@ -700,7 +700,7 @@ txt_get_info_line(char *line, gal_data_t **datall, char *comm_start,
 
 
 /* Return the information about a text file table. If there were no
-   readable rows, it will return NULL.*/
+   readable rows, it will return NULL. */
 static gal_data_t *
 txt_get_info(char *filename, gal_list_str_t *lines, int format,
              size_t *numdata, size_t *dsize)
@@ -719,7 +719,7 @@ txt_get_info(char *filename, gal_list_str_t *lines, int format,
           "arguments must be NULL, but they are both %s", __func__,
           test==2 ? "non-NULL" : "NULL");
 
-  /* Set the constant strings */
+  /* Set the constant strings. */
   switch(format)
     {
     case TXT_FORMAT_TABLE: format_err="table";comm_start="# Column ";break;
@@ -788,7 +788,7 @@ txt_get_info(char *filename, gal_list_str_t *lines, int format,
 
 
 
-/* Get the information of each column in a text file */
+/* Get the information of each column in a text file. */
 gal_data_t *
 gal_txt_table_info(char *filename, gal_list_str_t *lines, size_t *numcols,
                    size_t *numrows)
@@ -1244,7 +1244,7 @@ txt_read_prepare_table(gal_data_t *info, size_t *indsize,
       /* Allocate the necessary space. If there are no rows, we are setting
          a 1-element array to avoid any allocation errors (minmapsize,
          which holds the "repeat", will be 1 for non-vector column). Then
-         we are freeing the allocated spaces and correcting the sizes.*/
+         we are freeing the allocated spaces and correcting the sizes. */
       ndim = (repeat=dsize[1]=idata->minmapsize)==1 ? 1 : 2;
       gal_list_data_add_alloc(&out, NULL, idata->type, ndim, dsize,
                               NULL, 0, minmapsize, quietmmap,
@@ -1279,7 +1279,7 @@ txt_read_prepare_table(gal_data_t *info, size_t *indsize,
          then add them to the 'block' pointer (which is not relevant here,
          while 'next' is used to link the various columns). Note that all
          elements of 'tokeninout' have been initialized to NULL with the
-         'calloc' function above, so we can safely use it as a list.*/
+         'calloc' function above, so we can safely use it as a list. */
       for(i=0;i<repeat;++i)
         tokeninout[tokc+i]=txt_blocklist_add(tokeninout[tokc+i], out);
     }
@@ -1430,7 +1430,7 @@ txt_read(char *filename, gal_list_str_t *lines, size_t *indsize,
           "arguments must be NULL, but they are both %s", __func__,
           test==2 ? "non-NULL" : "NULL");
 
-  /* Necessary preparations/allocations */
+  /* Necessary preparations/allocations. */
   out=txt_read_prepare(info, indsize, indexll, minmapsize, quietmmap,
                        format, &line, linelen, &tokeninout, &ntokforout,
                        &tokenininfo, &tokenvecind);
@@ -1461,7 +1461,7 @@ txt_read(char *filename, gal_list_str_t *lines, size_t *indsize,
               "ASCII table information in %s", filename, __func__);
     }
 
-  else /* Input from standard input */
+  else /* Input from standard input. */
     for(tmp=lines; tmp!=NULL; tmp=tmp->next)
       {
         /* To read for standard output, we are setting 'inplace' to zero
@@ -1476,7 +1476,7 @@ txt_read(char *filename, gal_list_str_t *lines, size_t *indsize,
      an input column was used more than once in the output. It is no longer
      necessary and being non-NULL can cause problems for the users of the
      columns (because it has a special meaning in Gnuastro, outside of
-     tables, see 'lib/data.h'), so we should set them all to NULL.*/
+     tables, see 'lib/data.h'), so we should set them all to NULL. */
   for(ocol=out;ocol!=NULL;ocol=ocol->next) ocol->block=NULL;
 
   /* Clean up the allocations of 'txt_read_prepare' and return. */
@@ -1562,7 +1562,7 @@ txt_stdin_has_contents(long timeout_microsec)
      'select' will return 1. When the timeout has been reached, it will
      return 0 and when there was an error it will return -1. If there is an
      error, we'll abort the program and ask the user to contact us (its a
-     bug).*/
+     bug). */
   errno=0;
   sout=select(STDIN_FILENO+1, &fds, NULL, NULL, &tv);
   if(sout==-1)
@@ -1648,7 +1648,7 @@ static void
 txt_fmts_for_printf_norm(gal_data_t *data, char *fmta, char *lng,
                          char *fmt, int leftadjust)
 {
-  /* Strings should be treated like  */
+  /* Strings should be treated as if they don't have negative. */
   int hasneg = ( data->type==GAL_TYPE_STRING
                  ? 0
                  : gal_statistics_has_negative(data) );
@@ -1674,12 +1674,12 @@ static void
 txt_fmts_for_printf_last(gal_data_t *data, char *fmta, char *lng,
                          char *fmt)
 {
-  /* Strings should be treated like  */
+  /* Strings should be treated as if they don't have negative. */
   int hasneg = ( data->type==GAL_TYPE_STRING
                  ? 0
                  : gal_statistics_has_negative(data) );
 
-  /* See 'txt_fmts_for_printf_norm' */
+  /* See 'txt_fmts_for_printf_norm'. */
   if(data->disp_precision == GAL_BLANK_INT)
     sprintf(fmta, hasneg ? "%% %s%s" : "%%%s%s", lng, fmt);
   else
@@ -1733,7 +1733,7 @@ txt_fmts_for_printf(gal_data_t *datall, int leftadjust, int tab0_img1)
               i*FMTS_COLS+1);
 
       /* If we have a blank value, get the blank value as a string and
-         adjust the width */
+         adjust the width. */
       fmts[ i*FMTS_COLS+2 ] = ( gal_blank_present(data, 0)
                                 ? gal_blank_as_string(data->type, 0)
                                 : NULL );
@@ -1748,7 +1748,7 @@ txt_fmts_for_printf(gal_data_t *datall, int leftadjust, int tab0_img1)
                              : data->disp_width );
 
       /* Set the string for the Gnuastro type. For strings, we also need to
-         write the maximum number of characters.*/
+         write the maximum number of characters. */
       if(data->type==GAL_TYPE_STRING)
         sprintf(fmts[i*FMTS_COLS+1], "%s%d", gal_type_name(data->type, 0),
                 data->disp_width);
@@ -1976,7 +1976,7 @@ txt_write_keys(FILE *fp, struct gal_fits_list_key_t **keylist)
         }
 
       /* Keep the pointer to the next keyword and free the allocated
-         space for this keyword.*/
+         space for this keyword. */
       ttmp=tmp->next;
       free(tmp);
       tmp=ttmp;
@@ -2033,7 +2033,7 @@ gal_txt_write(gal_data_t *input, struct gal_fits_list_key_t **keylist,
          elements. The 'input->dsize && data->dsize' conditions are because
          we may have fully empty tables (where 'dsize==NULL'). In this
          case, we want to continue with printing, and there is no
-         problem.*/
+         problem. */
       if( input!=data && input->dsize && data->dsize
           && input->dsize[0]!=data->dsize[0] )
         error(EXIT_FAILURE, 0, "%s: the input list of datasets must "
@@ -2069,7 +2069,7 @@ gal_txt_write(gal_data_t *input, struct gal_fits_list_key_t **keylist,
       for(strt=comment; strt!=NULL; strt=strt->next)
         fprintf(fp, "# %s\n", strt->v);
 
-      /* Write the keywords */
+      /* Write the keywords. */
       if(keylist) txt_write_keys(fp, keylist);
     }
   else
@@ -2081,7 +2081,7 @@ gal_txt_write(gal_data_t *input, struct gal_fits_list_key_t **keylist,
     txt_write_metadata(fp, input, fmts, tab0_img1);
 
 
-  /* Print row-by-row (if we actually have data to print! */
+  /* Print row-by-row (if we actually have data to print!). */
   if(input->array)
     {
       if(tab0_img1) /* Image. */

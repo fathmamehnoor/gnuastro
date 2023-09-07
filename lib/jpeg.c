@@ -47,7 +47,7 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 #ifdef HAVE_LIBJPEG
 
 /* Read the example.c in libjpeg's source code to understand the
-   details of what is going on here.  */
+   details of what is going on here. */
 struct my_error_mgr
 {
   struct jpeg_error_mgr pub;        /* "public" fields */
@@ -60,14 +60,14 @@ typedef struct my_error_mgr *my_error_ptr;
 METHODDEF(void)
 jpeg_error_exit(j_common_ptr cinfo)
 {
-  /* cinfo->err really points to a my_error_mgr struct, so coerce pointer */
+  /* cinfo->err really points to a my_error_mgr struct, so coerce pointer. */
   my_error_ptr myerr = (my_error_ptr) cinfo->err;
 
   /* Always display the message. */
   /* We could postpone this until after returning, if we chose. */
   (*cinfo->err->output_message) (cinfo);
 
-  /* Return control to the setjmp point */
+  /* Return control to the setjmp point. */
   longjmp(myerr->setjmp_buffer, 1);
 }
 
@@ -213,7 +213,7 @@ jpeg_read_to_array(char *inname, size_t *outs0, size_t *outs1, size_t *numcolors
   size_t i, j, size, nc, s0, s1;
   struct jpeg_decompress_struct cinfo;
 
-  /* Open the input file */
+  /* Open the input file. */
   errno=0;
   if ((infile = fopen(inname, "rb")) == NULL)
     error(EXIT_FAILURE, errno, "%s", inname);
@@ -266,7 +266,7 @@ jpeg_read_to_array(char *inname, size_t *outs0, size_t *outs1, size_t *numcolors
       jpeg_read_scanlines(&cinfo, jsarr, 1);
     }
 
-  /* Put the different colors into the different arrays */
+  /* Put the different colors into the different arrays. */
   for(i=0;i<size;++i)
     for(j=0;j<nc;++j)
       all[j][i]=jsamp[i*nc+j];
@@ -367,7 +367,7 @@ jpeg_write_array(JSAMPLE *jsr, gal_data_t *in, char *filename,
     error(EXIT_FAILURE, 0, "%s: quality value %u not acceptable. It must be "
           "a value between zero and 100 (inclusive)", __func__, quality);
 
-  /* Begin the JPEG writing, following libjpeg's example.c  */
+  /* Begin the JPEG writing, following libjpeg's example.c */
   cinfo.err = jpeg_std_error(&jerr);
   jpeg_create_compress(&cinfo);
 
@@ -407,8 +407,8 @@ jpeg_write_array(JSAMPLE *jsr, gal_data_t *in, char *filename,
   cinfo.Y_density=cinfo.X_density=dsize[1]/(widthincm/2.54);
   jpeg_start_compress(&cinfo, TRUE);
 
-  /* cinfo.next_scanline is 'unsigned int' */
-  c=dsize[0]-1; /* In JPEG the first row is on the bottom!  */
+  /* cinfo.next_scanline is 'unsigned int'. */
+  c=dsize[0]-1; /* In JPEG the first row is on the bottom! */
   while (cinfo.next_scanline < cinfo.image_height)
     {
       r[0] = & jsr[c-- * row_stride];
@@ -446,7 +446,7 @@ gal_jpeg_write(gal_data_t *in, char *filename, uint8_t quality,
 
   /* Make sure the file doesn't exist and that we have write
      permission. Note that the JPEG standard doesn't have multple
-     extensions.*/
+     extensions. */
   if( gal_checkset_writable_notexist(filename)==0 )
     error(EXIT_FAILURE, 0, "%s: already exists or its directory doesn't "
           "write permssion. Note that the JPEG standard only allows one "

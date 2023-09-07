@@ -159,7 +159,7 @@ gal_permutation_apply_inverse(gal_data_t *input, size_t *permutation)
 
   if(permutation)
     {
-      /* Initializations */
+      /* Initializations. */
       width=gal_type_sizeof(input->type);
       tmp=gal_pointer_allocate(input->type, 1, 0, __func__, "tmp");
       ttmp=gal_pointer_allocate(input->type, 1, 0, __func__, "ttmp");
@@ -290,7 +290,7 @@ permutation_transpose_2d_rectangle(gal_data_t *input)
       gal_data_free(out);
     }
 
-  /* Update the dimesions */
+  /* Update the dimesions. */
   input->dsize[0]=od[0];
   input->dsize[1]=od[1];
 }

@@ -114,7 +114,7 @@ gal_pdf_write(gal_data_t *in, char *filename, float widthincm,
   /* Get the size of the image in 'pt' units. */
   gal_eps_to_pt(widthincm, in->dsize, w_h_in_pt);
 
-  /* Set the device from the file name */
+  /* Set the device from the file name. */
   if(gal_jpeg_name_is_jpeg(filename)) device="jpeg";
   else                                device="pdfwrite";
 

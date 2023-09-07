@@ -125,7 +125,7 @@ gal_label_indexs(gal_data_t *labels, size_t numlabs, size_t minmapsize,
 
   /* Allocate/Initialize the dataset containing the indexs of each
      object. We don't want the labels of the non-detected regions
-     (areas[0]). So we'll set that to zero.*/
+     (areas[0]). So we'll set that to zero. */
   for(i=1;i<numlabs+1;++i)
     gal_data_initialize(&labindexs[i], NULL, GAL_TYPE_SIZE_T, 1,
                         &areas[i], NULL, 0, minmapsize, quietmmap,
@@ -136,7 +136,7 @@ gal_label_indexs(gal_data_t *labels, size_t numlabs, size_t minmapsize,
   memset(areas, 0, (numlabs+1)*sizeof *areas);
   lf=(a=l=labels->array)+labels->size;
   do
-    if(*l>0)  /* No undetected regions (*l==0), or blank (<0) */
+    if(*l>0)  /* No undetected regions (*l==0), or blank (<0). */
       ((size_t *)(labindexs[*l].array))[ areas[*l]++ ] = l-a;
   while(++l<lf);
 
@@ -192,7 +192,7 @@ gal_label_watershed(gal_data_t *values, gal_data_t *indexs,
   size_t *dinc=gal_dimension_increment(ndim, dsize);
   int32_t n1, nlab, rlab, curlab=1, *labs=labels->array;
 
-  /* Sanity checks */
+  /* Sanity checks. */
   label_check_type(values, GAL_TYPE_FLOAT32, "values", __func__);
   label_check_type(indexs, GAL_TYPE_SIZE_T,  "indexs", __func__);
   label_check_type(labels, GAL_TYPE_INT32,   "labels", __func__);
@@ -240,7 +240,7 @@ gal_label_watershed(gal_data_t *values, gal_data_t *indexs,
 
   /* If the indexs aren't already sorted (by the value they correspond to),
      sort them given indexs based on their flux ('gal_qsort_index_arr' is
-     defined as static in 'gnuastro/qsort.h') */
+     defined as static in 'gnuastro/qsort.h'). */
   if( !( (indexs->flag & GAL_DATA_FLAG_SORT_CH)
         && ( indexs->flag
              & (GAL_DATA_FLAG_SORTED_I
@@ -320,7 +320,7 @@ gal_label_watershed(gal_data_t *values, gal_data_t *indexs,
                            {
                              /* If this neighbor has not been labeled yet
                                 and has an equal flux, add it to the queue
-                                to expand the studied region.*/
+                                to expand the studied region. */
                              if( nlab==GAL_LABEL_INIT && arr[nind]==arr[*a] )
                                {
                                  labs[nind]=GAL_LABEL_TMPCHECK;
@@ -338,7 +338,7 @@ gal_label_watershed(gal_data_t *values, gal_data_t *indexs,
                                        is different from 'nlab' then this
                                        whole equal flux region should be a
                                        wide river because it is connecting
-                                       two connected regions.*/
+                                       two connected regions. */
                                     ? ( n1
                                         ? (n1==nlab ? n1 : GAL_LABEL_RIVER)
                                         : nlab )
@@ -377,7 +377,7 @@ gal_label_watershed(gal_data_t *values, gal_data_t *indexs,
             else
               {
                 rlab = curlab++;
-                if( topinds )              /* This is a local maximum of   */
+                if( topinds )              /* This is a local maximum of "?". */
                   topinds[rlab]=*a;        /* this region, save its index. */
               }
 
@@ -407,7 +407,7 @@ gal_label_watershed(gal_data_t *values, gal_data_t *indexs,
                one label or not. If the pixel is neighboured by more than
                one label, set it as a river pixel. Also if it is touching a
                zero valued pixel (which does not belong to this object),
-               set it as a river pixel.*/
+               set it as a river pixel. */
             GAL_DIMENSION_NEIGHBOR_OP(*a, ndim, dsize, ndim, dinc,
                {
                  /* When 'n1' has already been set as a river, there is no
@@ -460,7 +460,7 @@ gal_label_watershed(gal_data_t *values, gal_data_t *indexs,
                is either a river pixel (has more than one labeled neighbor
                and has been set to 'GAL_LABEL_RIVER' before) or all its
                neighbors have the same label. In both such cases, rlab
-               should be set to n1.*/
+               should be set to n1. */
             if(n1) rlab = n1;
             else
               {
@@ -625,7 +625,7 @@ label_clump_significance_sanity(gal_data_t *values, gal_data_t *std,
      covered by all the indexs, then both (or one) of 'first' or 'second'
      will be NAN. In either case, the significance measure is not going to
      be meaningful if we assume the clumps start from the maxima or
-     minima. So we won't check if they are NaN or not.*/
+     minima. So we won't check if they are NaN or not. */
   return first>second ? 1 : 0;
 }
 
@@ -640,7 +640,7 @@ label_clump_significance_sanity(gal_data_t *values, gal_data_t *std,
    object (already found in deblendclumps()) and add them appropriately.
 
    The output is an array of size cltprm->numinitial*INFO_NCOLS. as listed
-   below.*/
+   below. */
 enum infocols
   {
     INFO_STD,            /* Standard deviation.                           */
@@ -800,7 +800,7 @@ gal_label_clump_significance(gal_data_t *values, gal_data_t *std,
       sigind->type  = GAL_TYPE_INT32;
       sigind->dsize = gal_pointer_allocate(GAL_TYPE_SIZE_T, 1, 0, __func__,
                                            "sigind->dsize");
-      sigind->size  = sigind->dsize[0] = tablen;/* After dsize */
+      sigind->size  = sigind->dsize[0] = tablen;/* After dsize. */
       sigind->array = gal_pointer_allocate(sigind->type, tablen, 0, __func__,
                                            "sigind->array");
     }
@@ -810,7 +810,7 @@ gal_label_clump_significance(gal_data_t *values, gal_data_t *std,
   label_clump_significance_raw(values, std, label, indexs, tl, info);
 
 
-  /* Calculate the signficance value for successful clumps */
+  /* Calculate the signficance value for successful clumps. */
   sigarr=sig->array;
   if(keepsmall) sigarr[0]=NAN;
   if(sigind) indarr=sigind->array;
@@ -848,7 +848,7 @@ gal_label_clump_significance(gal_data_t *values, gal_data_t *std,
       else
         {
           /* Only over detections, we should put a NaN when the S/N isn't
-             calculated.  */
+             calculated. */
           if(keepsmall)
             {
               sigarr[i]=NAN;
@@ -961,7 +961,7 @@ gal_label_grow_indexs(gal_data_t *labels, gal_data_t *indexs, int withrivers,
                     {
                       if(n1)       /* A prev. ngb label has been found. */
                         {
-                          if( n1 != nlab )    /* Different label from   */
+                          if( n1 != nlab )    /* Different label from "?". */
                             {    /* prevously found ngb for this pixel. */
                               n1=GAL_LABEL_RIVER;
                               searchngb=0;

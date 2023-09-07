@@ -2381,16 +2381,16 @@ arithmetic_binary_int_sanity_check(gal_data_t *l, gal_data_t *r,
   /* Variables to simplify the checks. */
   int l_is_signed=0, r_is_signed=0;
 
-  /* Warning only necessary for same-width types. */
+  /* Error only necessary for same-width types. */
   if( gal_type_sizeof(l->type)==gal_type_sizeof(r->type) )
     {
-      /* Warning not needed when one of the inputs is a float. */
+      /* Error not needed when one of the inputs is a float. */
       if(    l->type==GAL_TYPE_FLOAT32 || l->type==GAL_TYPE_FLOAT64
           || r->type==GAL_TYPE_FLOAT32 || r->type==GAL_TYPE_FLOAT64 )
         return;
       else
         {
-          /* Warning not needed if both have (or don't have) a sign. */
+          /* Error not needed if both have (or don't have) a sign. */
           if(    l->type==GAL_TYPE_INT8  || l->type==GAL_TYPE_INT16
               || l->type==GAL_TYPE_INT32 || l->type==GAL_TYPE_INT64 )
             l_is_signed=1;
@@ -2398,7 +2398,7 @@ arithmetic_binary_int_sanity_check(gal_data_t *l, gal_data_t *r,
               || r->type==GAL_TYPE_INT32 || r->type==GAL_TYPE_INT64 )
             r_is_signed=1;
           if( l_is_signed!=r_is_signed )
-            error(EXIT_SUCCESS, 0, "warning: the two integer operands "
+            error(EXIT_FAILURE, 0, "the two integer operands "
                   "given to '%s' have the same width (number of bits), "
                   "but a different sign: the first popped operand (that "
                   "is closer to the operator, or the \"right\" operand) "
@@ -2416,10 +2416,10 @@ arithmetic_binary_int_sanity_check(gal_data_t *l, gal_data_t *r,
                   "'int32' or 'int64'). For more, see the \"Integer "
                   "benefits and pitfalls\" section of Gnuastro's "
                   "manual with this command: 'info gnuastro integer'. "
-                  "This warning can be removed with '--quiet' (or "
+                  "This Error can be removed with '--quiet' (or "
                   "'-q')", gal_arithmetic_operator_string(operator),
                   gal_type_name(r->type, 1), gal_type_name(l->type, 1));
-        }
+            }
     }
 }
 

@@ -111,7 +111,7 @@ gal_tiff_suffix_is_tiff(char *name)
 
 /* Users may define the TIFF directory to read as a string, in that case,
    this function can be used to convert it to a 'size_t' for use in
-   'gal_tiff_read'.  */
+   'gal_tiff_read'. */
 size_t
 gal_tiff_dir_string_read(char *string)
 {
@@ -160,7 +160,7 @@ gal_tiff_dir_string_read(char *string)
 static void
 tiff_read_tag(TIFF *tif, ttag_t tag, void *out, char *filename, size_t dir)
 {
-  /* Read the tag */
+  /* Read the tag. */
   if( !TIFFGetField(tif, tag, out) )
     error(EXIT_FAILURE, 0, "%s: %s (dir %zu): tag %d couldn't be fetched",
           __func__, filename, dir, tag);
@@ -170,7 +170,7 @@ tiff_read_tag(TIFF *tif, ttag_t tag, void *out, char *filename, size_t dir)
 
 
 
-/* Convert the TIFF type code into Gnuastro's type code.*/
+/* Convert the TIFF type code into Gnuastro's type code. */
 static uint8_t
 tiff_type_read(TIFF *tif, char *filename, size_t dir)
 {
@@ -319,7 +319,7 @@ tiff_read_contig_strip_data(TIFF *tif, char *filename, size_t dir,
       /* Copy the contents of the buffer to the output array. Note that
          'ostart' is the byte count already, so the type is
          irrelevant. Thus, we can read 'out->array' as a 'char *'
-         pointer.*/
+         pointer. */
       memcpy( (char *)(out->array)+ostart, buf, nrow*scanline);
       ostart+=nrow*scanline;
     }
@@ -394,7 +394,7 @@ tiff_read_separate_strip_data(TIFF* tif, char *filename, size_t dir,
 /* The data have been read contiguously (the pixels for each color are
    beside each other). We need to separate the color channels into
    different datasets. We will also use this chance to reverse the order of
-   the rows */
+   the rows. */
 static gal_data_t *
 tiff_separate_channels_reverse(gal_data_t *out, size_t numch,
                                size_t minmapsize, int quietmmap)
@@ -566,7 +566,7 @@ tiff_img_read(TIFF *tif, char *filename, size_t dir, size_t minmapsize,
   /* When there are more than one channels and the colors are stored
      contiguously, we need to break up the array into multiple arrays. When
      any of these conditions don't hold, the channels are already
-     separated, we just need to reverse them.*/
+     separated, we just need to reverse them. */
   if( numch>1 && config==PLANARCONFIG_CONTIG )
     {
       sep=tiff_separate_channels_reverse(out, numch, minmapsize, quietmmap);
@@ -673,13 +673,13 @@ tiff_img_write(TIFF *tif, gal_data_t *in, char *filename)
           "images can currently only have a 'uint8' type", __func__,
           gal_type_name(in->type, 1));
 
-  /* Allocate memory for image */
+  /* Allocate memory for image. */
   image = (unsigned char*)malloc(in->size * numch);
   if(image == NULL)
     error(EXIT_FAILURE, errno, "%s: %s: failed to allocate memory"
           "for image", __func__, filename);
 
-  /* Extract color channels from input data */
+  /* Extract color channels from input data. */
   for(ch = 0; ch < numch; ch++)
     {
       if(channel != NULL && channel->array != NULL)
@@ -695,7 +695,7 @@ tiff_img_write(TIFF *tif, gal_data_t *in, char *filename)
         }
     }
 
-  /* Copy input data to image buffer */
+  /* Copy input data to image buffer. */
   for(row = 0; row < height; row++)
     {
       for(col = 0; col < width; col++)
@@ -708,7 +708,7 @@ tiff_img_write(TIFF *tif, gal_data_t *in, char *filename)
         }
     }
 
-  /* Set TIFF tags */
+  /* Set TIFF tags. */
   TIFFSetField(tif, TIFFTAG_IMAGEWIDTH, width);
   TIFFSetField(tif, TIFFTAG_IMAGELENGTH, height);
   if(numch==1)
@@ -720,14 +720,14 @@ tiff_img_write(TIFF *tif, gal_data_t *in, char *filename)
   TIFFSetField(tif, TIFFTAG_COMPRESSION, COMPRESSION_NONE);
   TIFFSetField(tif, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
 
-  /* Allocate memory for scanline buffer */
+  /* Allocate memory for scanline buffer. */
   errno=0;
   buf = (unsigned char*)_TIFFmalloc(TIFFScanlineSize(tif));
   if(buf == NULL)
     error(EXIT_FAILURE, errno, "%s: %s: failed to allocate necessary"
           "memory for the scanline buffer" , __func__, filename);
 
-  /* Write each scanline of the image to the TIFF file */
+  /* Write each scanline of the image to the TIFF file. */
   for(row = height; row > 0; row--)
     {
       _TIFFmemcpy(buf, &image[(row - 1) * width * numch], width * numch);
@@ -741,7 +741,7 @@ tiff_img_write(TIFF *tif, gal_data_t *in, char *filename)
         }
     }
 
-  /* Clean up */
+  /* Clean up. */
   _TIFFfree(buf);
   free(image);
 }
@@ -763,16 +763,16 @@ gal_tiff_write(gal_data_t* in, char* filename)
     error(EXIT_FAILURE, 0, "%s: '%s', input data is NULL",
           __func__, filename);
 
-  /* Open the TIFF file */
+  /* Open the TIFF file. */
   tif = TIFFOpen(filename, "w");
   if(tif == NULL)
     error(EXIT_FAILURE, errno,
           "%s: '%s' couldn't be opened for writing", __func__, filename);
 
-  /* Write to TIFF file */
+  /* Write to TIFF file. */
   tiff_img_write(tif, in, filename);
 
-  /* Close file */
+  /* Close file. */
   TIFFClose(tif);
 
   /* The TIFF library didn't exist. */

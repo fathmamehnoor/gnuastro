@@ -426,7 +426,7 @@ kdtree_fill_subtrees(struct kdtree_params *p, size_t node_left,
      to node median when there are only 2 points and at this point,
      there can never be a single point (node left == node right).
      But node right can never be equal to node median.
-     So we don't check for it.*/
+     So we don't check for it. */
   p->right[node_median] = kdtree_fill_subtrees(p, node_median+1,
                                                node_right,
                                                depth+1);
@@ -453,7 +453,7 @@ gal_kdtree_create(gal_data_t *coords_raw, size_t *root)
   /* Initialise the params structure. */
   kdtree_prepare(&p, coords_raw);
 
-  /* Fill the kd-tree*/
+  /* Fill the kd-tree. */
   *root=kdtree_fill_subtrees(&p, 0, coords_raw->size-1, 0);
 
   /* For a check
@@ -467,7 +467,7 @@ gal_kdtree_create(gal_data_t *coords_raw, size_t *root)
   gal_permutation_apply_inverse(p.left_col, p.input_row);
   gal_permutation_apply_inverse(p.right_col, p.input_row);
 
-  /* Free and clean up */
+  /* Free and clean up. */
   kdtree_cleanup(&p, coords_raw);
 
   /* Return results. */
@@ -515,7 +515,7 @@ kdtree_nearest_neighbour(struct kdtree_params *p, uint32_t node_current,
   /* If no subtree present, don't search further. */
   if(node_current==GAL_BLANK_UINT32) return;
 
-  /* The distance between search point to the current node.*/
+  /* The distance between search point to the current node. */
   d = kdtree_distance_find(p, node_current, point);
 
   /* Distance between the splitting coordinate of the search

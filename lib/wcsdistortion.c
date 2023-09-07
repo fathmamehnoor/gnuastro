@@ -33,8 +33,6 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 #include <wcslib/wcslib.h>
 
 #include <gsl/gsl_linalg.h>
-#include <gsl/gsl_vector.h>
-#include <gsl/gsl_matrix.h>
 #include <gsl/gsl_multifit.h>
 
 #include <gnuastro/wcs.h>
@@ -46,7 +44,7 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 
 
 
-/* Internally used macro(s) to help in the processing */
+/* Internally used macro(s) to help in the processing. */
 #define wcsdistortion_max(a,b) \
    ({ __typeof__ (a) _a = (a);  \
        __typeof__ (b) _b = (b); \
@@ -95,7 +93,7 @@ wcsdistortion_get_tpvparams(struct wcsprm *wcs, double cd[2][2],
   for(i=0; i<2; ++i)
     for(j=0; j<2; ++j)
       {
-        /* If a value is present store it, else store 0.*/
+        /* If a value is present store it, else store 0. */
         if(temp_cd[k] != 0)   cd[i][j]=temp_cd[k++];
         else                  cd[i][j]=0;
 
@@ -187,7 +185,7 @@ wcsdistortion_get_sipparams(struct wcsprm *wcs, double cd[2][2],
   for(i=0,k=0; i<2; ++i)
     for(j=0; j<2; ++j)
       {
-        /* If a value is present store it, else store 0.*/
+        /* If a value is present store it, else store 0. */
         if(temp_cd[k] != 0)   cd[i][j]=temp_cd[k++];
         else                  cd[i][j]=0;
 
@@ -975,7 +973,7 @@ wcsdistortion_calc_tpveq(struct wcsprm *wcs, double cd[2][2],
     */
   determinant = cd[0][0]*cd[1][1] - cd[0][1]*cd[1][0];
 
-  /* Inverse matrix */
+  /* Inverse matrix. */
   cd_inv[0][0]=cd[1][1]/determinant;      /* a */
   cd_inv[0][1]=(-1*cd[0][1])/determinant; /* b */
   cd_inv[1][0]=(-1*cd[1][0])/determinant; /* c */
@@ -1154,7 +1152,7 @@ wcsdistortion_fitreverse(double *u, double *v, size_t a_order, size_t b_order,
       vprime[i]=v[i];
     }
 
-  /* Allocate and initialize udict and vdict.*/
+  /* Allocate and initialize udict and vdict. */
   udict=malloc((a_order+1)*sizeof(*udict));
   vdict=malloc((b_order+1)*sizeof(*vdict));
   for(i=0; i<=wcsdistortion_max(a_order, b_order); ++i)
@@ -1324,7 +1322,7 @@ wcsdistortion_fitreverse(double *u, double *v, size_t a_order, size_t b_order,
       printf("X[%ld][%ld] = %.8lf\n", i, j, gsl_matrix_get(X_ap, j, i));
   */
 
-  /* Free the memory allocations.*/
+  /* Free the memory allocations. */
   gsl_multifit_linear_free(work_bp);
   gsl_multifit_linear_free(work_ap);
   gsl_matrix_free(cov_bp);
@@ -1382,7 +1380,7 @@ wcsdistortion_get_revkeyvalues(struct wcsprm *wcs, size_t *fitsize,
           __func__, tsize*sizeof(*v));
 
 
-  /* Make the grid and bring it's origin to the world's origin*/
+  /* Make the grid and bring it's origin to the world's origin. */
   k=0; for(i=0; i<naxis2; i+=4) for(j=0; j<naxis1; j+=4) u[k++]=j-crpix1;
   k=0; for(i=0; i<naxis2; i+=4) for(j=0; j<naxis1; j+=4) v[k++]=i-crpix2;
   /*For a check.
@@ -1425,7 +1423,7 @@ wcsdistortion_get_revkeyvalues(struct wcsprm *wcs, size_t *fitsize,
 /* Make the sip key-cards and add them to fullheader.
 
    Return:
-   char *fullheader - string of keycards.*/
+   char *fullheader - string of keycards. */
 static char *
 wcsdistortion_add_sipkeywords(struct wcsprm *wcs, size_t *fitsize,
                               double tpvu[8][8], double tpvv[8][8],
@@ -1888,7 +1886,7 @@ wcsdistortion_set_internalstruct(struct wcsprm *wcs, char *fullheader,
 
    Return:
      struct wcsprm *outwcs - The transformed wcs parameters in the
-                             sip distortion type.*/
+                             sip distortion type. */
 struct wcsprm *
 gal_wcsdistortion_tpv_to_sip(struct wcsprm *inwcs,
                              size_t *fitsize)

@@ -17601,7 +17601,8 @@ $ asttable [OPTION...] InputFile
 One line examples:
 
 @example
-## Get the table column information (name, data type, or units):
+## Get the table column information (name, units, or data type), and
+## the number of rows:
 $ asttable table.fits --information
 
 ## Print columns named RA and DEC, followed by all the columns where

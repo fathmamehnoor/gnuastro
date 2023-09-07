@@ -488,7 +488,7 @@ gal_options_read_color(struct argp_option *option, char *arg,
                       arg, option->name);
 
       /* For no un-used variable warning. This function doesn't need the
-         pointer.*/
+         pointer. */
       return junk=NULL;
     }
 }

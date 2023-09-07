@@ -250,7 +250,7 @@ gal_tileinternal_no_outlier(gal_data_t *first, gal_data_t *second,
 {
   size_t i;
 
-  /* A small sanity check: */
+  /* A small sanity check. */
   if(first->size!=tl->tottiles)
     error(EXIT_FAILURE, 0, "%s: 'first->size' and 'tl->tottiles' must have "
           "the same value, but they don't: %zu, %zu", __func__, first->size,

@@ -232,7 +232,7 @@ gal_table_print_info(gal_data_t *allcols, size_t numcols, size_t numrows)
 /************************************************************************/
 
 /* Function to print regular expression error. This is taken from the GNU C
-   library manual, with small modifications to fit out style, */
+   library manual, with small modifications to fit out style. */
 static void
 table_regexerrorexit(int errcode, regex_t *compiled, char *input)
 {
@@ -254,7 +254,7 @@ table_regexerrorexit(int errcode, regex_t *compiled, char *input)
 
 
 
-/* Macro to set the string to search in */
+/* Macro to set the string to search in. */
 static char *
 table_set_strcheck(gal_data_t *col, int searchin)
 {
@@ -297,7 +297,7 @@ gal_table_list_of_indexs(gal_list_str_t *cols, gal_data_t *allcols,
   size_t i, nummatch, colcount=0, len;
   char *str, *strcheck, *tailptr, *errorstring;
 
-  /* Go over the given columns.  */
+  /* Go over the given columns. */
   if(cols)
     for(tmp=cols; tmp!=NULL; tmp=tmp->next)
       {
@@ -333,7 +333,7 @@ gal_table_list_of_indexs(gal_list_str_t *cols, gal_data_t *allcols,
 
                Here, we don't care about the details of a match, the only
                important thing is a match, so we are using the REG_NOSUB
-               flag.*/
+               flag. */
             regreturn=0;
             regreturn=regcomp(regex, str, ( ignorecase
                                             ? RE_SYNTAX_AWK | REG_ICASE
@@ -388,7 +388,7 @@ gal_table_list_of_indexs(gal_list_str_t *cols, gal_data_t *allcols,
 
                 /* Check if the given value is not larger than the number
                    of columns in the input catalog (note that the user is
-                   counting from 1, not 0!) */
+                   counting from 1, not 0!). */
                 if(tlong>numcols)
                   error(EXIT_FAILURE, 0, "%s: has %zu columns, but you "
                         "have asked for column number %ld",
@@ -397,7 +397,7 @@ gal_table_list_of_indexs(gal_list_str_t *cols, gal_data_t *allcols,
 
                 /* Everything seems to be fine, put this column number in
                    the output column numbers linked list. Note that
-                   internally, the column numbers start from 0, not 1.*/
+                   internally, the column numbers start from 0, not 1. */
                 gal_list_sizet_add(&indexll, tlong-1);
                 ++nummatch;
               }
@@ -505,7 +505,7 @@ gal_table_read(char *filename, char *hdu, gal_list_str_t *lines,
 
   /* Depending on the table format, read the columns into the output
      structure. Also note that after these functions, the 'indexll' will be
-     all freed (each popped element is actually freed).*/
+     all freed (each popped element is actually freed). */
   switch(tableformat)
     {
     case GAL_TABLE_FORMAT_TXT:
@@ -582,7 +582,7 @@ gal_table_comments_add_intro(gal_list_str_t **comments,
 
   /* Program name: this will be the top of the list (first line). We will
      need to set the allocation flag for this one, because program_string
-     is usually statically allocated.*/
+     is usually statically allocated. */
   if(program_string)
     gal_list_str_add(comments, program_string, 1);
 }
@@ -627,10 +627,10 @@ gal_table_write_log(gal_data_t *logll, char *program_string,
 {
   char *msg;
 
-  /* Write all the comments into */
+  /* Write all the comments into "?". */
   gal_table_comments_add_intro(&comments, program_string, rawtime);
 
-  /* Write the log file to disk */
+  /* Write the log file to disk. */
   gal_table_write(logll, NULL, comments, GAL_TABLE_FORMAT_TXT,
                   filename, "LOG", 0);
 
@@ -731,7 +731,7 @@ gal_table_cols_to_vector(gal_data_t *list)
   char *name, *unit=NULL, *inname=NULL;
   size_t i, j, dsize[2], num=gal_list_data_number(list);
 
-  /* If the list is empty or just has a single column, return itself.*/
+  /* If the list is empty or just has a single column, return itself. */
   if(num<2) return list;
 
   /* Go over the inputs na make sure they are all single dimensional and

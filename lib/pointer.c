@@ -47,7 +47,7 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
    is mainly useful when dealing with the 'block' pointer of a tile over a
    larger image. This function reads the address as a 'char *' type (note
    that 'char' is guaranteed to have a size of 1 (byte)). It then
-   increments the 'char *' by 'increment*sizeof(type)' */
+   increments the 'char *' by 'increment*sizeof(type)'. */
 void *
 gal_pointer_increment(void *pointer, size_t increment, uint8_t type)
 {
@@ -137,7 +137,7 @@ gal_pointer_mmap_allocate(uint8_t type, size_t size, int clear,
   if(dirname) free(dirname);
 
 
-  /* Create a zero-sized file and keep its descriptor.  */
+  /* Create a zero-sized file and keep its descriptor. */
   errno=0;
   /*filedes=open(filename, O_RDWR | O_CREAT | O_EXCL | O_TRUNC );*/
   filedes=mkstemp(*filename);

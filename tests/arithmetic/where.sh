@@ -54,4 +54,5 @@ if [ ! -f $img      ]; then echo "$img does not exist.";   exit 77; fi
 # 'check_with_program' can be something like Valgrind or an empty
 # string. Such programs will execute the command if present and help in
 # debugging when the developer doesn't have access to the user's system.
-$check_with_program $execname $img $img 0 eq nan where -h1 -h2 --output=where.fits
+$check_with_program $execname $img -h1 $img -h2 0 uint8 eq nan where \
+                    --output=where.fits

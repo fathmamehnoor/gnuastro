@@ -139,7 +139,7 @@ gal_tableintern_format_as_string(uint8_t tableformat)
 /* In programs, the 'searchin' variable is much more easier to format in as
    a description than an integer (which is what 'gal_table_read_cols'
    needs). This function will check the string value and give the
-   corresponding integer value.*/
+   corresponding integer value. */
 uint8_t
 gal_tableintern_string_to_searchin(char *string)
 {
@@ -259,7 +259,7 @@ gal_tableintern_col_print_info(gal_data_t *col, int tableformat,
 
   /* Set the formats and widths based on the type of the column. Initialize
      the characters and blank pointer. The long prefix is not necessary for
-     most types, so just initialize it once up here.*/
+     most types, so just initialize it once up here. */
   fmt[0]=fmt[1]=lng[0]=lng[1]=lng[2]='\0';
   switch(col->type)
     {
@@ -297,7 +297,7 @@ gal_tableintern_col_print_info(gal_data_t *col, int tableformat,
     case GAL_TYPE_UINT64:
 
       /* For the FITS ASCII table, there is only one format for all
-         integers.  */
+         integers. */
       if(tableformat==GAL_TABLE_FORMAT_AFITS)
         fmt[0]='I';
       else
@@ -377,7 +377,7 @@ gal_tableintern_col_print_info(gal_data_t *col, int tableformat,
             fmt[0] = 'e'; break;  /* it is independent of the power. */
           }
 
-      /* Set the width and precision */
+      /* Set the width and precision. */
       switch(col->type)
         {
         case GAL_TYPE_FLOAT32:
@@ -445,7 +445,7 @@ gal_tableintern_read_blank(gal_data_t *col, char *blank)
   /* Read the blank value as the given type. If successful, then
      'gal_data_string_to_type' will return 0. In that case, we need to
      initialize the necessary parameters to read this data structure
-     correctly. If it isn't successful, then  */
+     correctly. If it isn't successful, then "?" */
   if( gal_type_from_string((void **)(&col->array), blank, col->type) )
     {
       col->flag |= GAL_TABLEINTERN_FLAG_ARRAY_IS_BLANK_STRING;

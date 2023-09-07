@@ -40,7 +40,7 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 
 
 
-/* Macros */
+/* Macros. */
 #define WARP_NEXT_ODD(D) \
   ( (size_t)( ceil((D)) ) + ( (size_t)( ceil((D)) )%2==0 ? 1 : 0 ) )
 
@@ -62,11 +62,11 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 
 
 /* Generate the points on the outer boundary of a dsize[0] x dsize[1]
-   matrix and return the array */
+   matrix and return the array. */
 static gal_data_t *
 warp_alloc_perimeter(gal_data_t *input)
 {
-  /* Low level variables */
+  /* Low level variables. */
   size_t ind, i;
   gal_data_t *pcrn;
   double *x=NULL, *y=NULL;
@@ -75,7 +75,7 @@ warp_alloc_perimeter(gal_data_t *input)
   int quietmmap=input->quietmmap;
   size_t minmapsize=input->minmapsize;
 
-  /* High level variables */
+  /* High level variables. */
   size_t npcrn=2*(is0+is1);
   pcrn=gal_data_alloc(NULL, GAL_TYPE_FLOAT64, 1, &npcrn, NULL, 0,
                       minmapsize, quietmmap, NULL, NULL, NULL);
@@ -83,10 +83,10 @@ warp_alloc_perimeter(gal_data_t *input)
                             minmapsize, quietmmap, NULL, NULL, NULL);
 
   /* Find outermost pixel coordinates of the input image. Cover two
-     corners at once to shorten the loop */
+     corners at once to shorten the loop. */
   x=pcrn->array; y=pcrn->next->array;
 
-  /* Top and bottom */
+  /* Top and bottom. */
   ind=0;
   for(i=is1+1; i--;)
     {
@@ -94,7 +94,7 @@ warp_alloc_perimeter(gal_data_t *input)
       x[ind]=i+0.5f; y[ind]=is0+0.5f; ind++;
     }
 
-  /* Left and right */
+  /* Left and right. */
   for(i=is0-1; i--;)
     {
       x[ind]=0.5f;     y[ind]=1.5f+i; ind++;
@@ -102,7 +102,7 @@ warp_alloc_perimeter(gal_data_t *input)
     }
 
   /* Sanity check: let's make sure we have correctly covered the input
-     perimeter */
+     perimeter. */
   if(ind!=npcrn)
     error(EXIT_FAILURE, 0, "%s: the input img perimeter of size <%zu> "
           "is not covered correctly. Currently on ind <%zu>.", __func__,
@@ -120,7 +120,7 @@ warp_alloc_perimeter(gal_data_t *input)
 static void
 warp_wcsalign_init_output_from_params(gal_warp_wcsalign_t *wa)
 {
-  /* Low level variables */
+  /* Low level variables. */
   size_t i, nkcoords, *osize;
   gal_data_t *input=wa->input;
   int quietmmap=input->quietmmap;
@@ -130,7 +130,7 @@ warp_wcsalign_init_output_from_params(gal_warp_wcsalign_t *wa)
   double ocrpix[2], *xkcoords, *ykcoords, *x=NULL, *y=NULL;
   double pmin[2]={DBL_MAX, DBL_MAX}, pmax[2]={-DBL_MAX, -DBL_MAX}, tmp;
 
-  /* Base WCS default parameters */
+  /* Base WCS default parameters. */
   double pc[4]={-1, 0, 0, 1};
   double rcrpix[2]={1.0, 1.0};
   char **ctype=wa->ctype->array;
@@ -138,15 +138,15 @@ warp_wcsalign_init_output_from_params(gal_warp_wcsalign_t *wa)
   double *cdelt=wa->cdelt->array;
   double *center=wa->center->array;
 
-  /* High level variables */
+  /* High level variables. */
   char  *cunit[2]={iwcs->cunit[0], iwcs->cunit[1]};
 
-  /* Determine the output image size */
+  /* Determine the output image size. */
   size_t iminr=GAL_BLANK_SIZE_T, imaxr=GAL_BLANK_SIZE_T; /* indexs of  */
   size_t imind=GAL_BLANK_SIZE_T, imaxd=GAL_BLANK_SIZE_T; /* extreme-um */
   double pminr=DBL_MAX, pmind=DBL_MAX, pmaxr=-DBL_MAX, pmaxd=-DBL_MAX;
 
-  /* Create the reference WCS */
+  /* Create the reference WCS. */
   rwcs=gal_wcs_create(rcrpix, center, cdelt, pc, cunit, ctype, 2,
                       GAL_WCS_LINEAR_MATRIX_PC);
 
@@ -166,7 +166,7 @@ warp_wcsalign_init_output_from_params(gal_warp_wcsalign_t *wa)
 
   /* Prepare the key world coorinates and change to image coordinates
      later. We are doing this to determine the CRPIX and NAXISi size for
-     the final image */
+     the final image. */
   nkcoords=5;
   kcoords=gal_data_alloc(NULL, GAL_TYPE_FLOAT64, 1, &nkcoords, NULL, 0,
                          minmapsize, quietmmap, NULL, NULL, NULL);
@@ -179,15 +179,15 @@ warp_wcsalign_init_output_from_params(gal_warp_wcsalign_t *wa)
   xkcoords[3]=x[imaxd];   ykcoords[3]=y[imaxd];   /* max Dec      */
   xkcoords[4]=center[0];  ykcoords[4]=center[1];  /* Image center */
 
-  /* Convert to pixel coords */
+  /* Convert to pixel coords. */
   gal_wcs_world_to_img(kcoords, rwcs, 1);
 
-  /* Determine output image size */
+  /* Determine output image size. */
   if( wa->widthinpix )
     osize=wa->widthinpix->array;
   else
     {
-      /* Automatic: the first four coordinates are the extreme-um RA/Dec */
+      /* Automatic: the first four coordinates are the extreme-um RA/Dec. */
       for(i=4; i--;)
         {
           pmin[0] = xkcoords[i] < pmin[0] ? xkcoords[i] : pmin[0];
@@ -216,11 +216,11 @@ warp_wcsalign_init_output_from_params(gal_warp_wcsalign_t *wa)
   /* Set the CRPIX value
 
      Note: os1 is number of columns, so we use it to define CRPIX in the
-     horizontal axis, and vice versa */
+     horizontal axis, and vice versa. */
   ocrpix[0]= 1.5f + osize[1]/2.0f - xkcoords[4];
   ocrpix[1]= 1.5f + osize[0]/2.0f - ykcoords[4];
 
-  /* Create the base WCS */
+  /* Create the base WCS. */
   bwcs=gal_wcs_create(ocrpix, center, cdelt, pc, cunit,
                       ctype, 2, GAL_WCS_LINEAR_MATRIX_PC);
 
@@ -234,12 +234,12 @@ warp_wcsalign_init_output_from_params(gal_warp_wcsalign_t *wa)
           "given center is too far from the image)", __func__, osize[1],
           osize[0]);
 
-  /* Create the output image dataset with the base WCS */
+  /* Create the output image dataset with the base WCS. */
   wa->output=gal_data_alloc(NULL, GAL_TYPE_FLOAT64, 2, osize, bwcs, 0,
                             minmapsize, quietmmap,
                             GAL_WARP_OUTPUT_NAME_WARPED, NULL, NULL);
 
-  /* Free */
+  /* Clean up. */
   wcsfree(bwcs);
   wcsfree(rwcs);
   gal_list_data_free(pcrn);
@@ -374,7 +374,7 @@ warp_check_output_clockwise(gal_warp_wcsalign_t *wa)
 
   wa->isccw=gal_polygon_is_counterclockwise(temp, 4);
 
-  /* Clean up */
+  /* Clean up. */
   free(temp);
 }
 
@@ -385,24 +385,24 @@ warp_check_output_clockwise(gal_warp_wcsalign_t *wa)
 static double *
 warp_pixel_perimeter_ccw(gal_warp_wcsalign_t *wa, size_t ind)
 {
-  /* Low-level variables */
+  /* Low-level variables. */
   size_t i, j, hor, ver, ic;
   double *xcrn=NULL, *ycrn=NULL, *ocrn=NULL;
 
-  /* High-level variables */
+  /* High-level variables. */
   size_t v0=wa->v0;
   size_t gcrn=wa->gcrn;
   size_t ncrn=wa->ncrn;
   size_t es=wa->edgesampling;
   size_t os1=wa->output->dsize[1];
 
-  /* Set ocrn, the corners of each output pixel */
+  /* Set ocrn, the corners of each output pixel. */
   xcrn=wa->vertices->array;
   ycrn=wa->vertices->next->array;
   ocrn=gal_pointer_allocate(GAL_TYPE_FLOAT64, (2*ncrn), 0, __func__,
                             "ocrn");
 
-  /* Index of surrounding vertices for this pixel */
+  /* Index of surrounding vertices for this pixel. */
   hor=WARP_WCSALIGN_H(ind, es, os1);
   ver=WARP_WCSALIGN_V(ind, es, v0, os1);
 
@@ -446,25 +446,25 @@ warp_pixel_perimeter_ccw(gal_warp_wcsalign_t *wa, size_t ind)
   j=hor+gcrn;
   ocrn[2*i]=xcrn[j]; ocrn[2*i+1]=ycrn[j];
 
-  /* Sampling corners of the output pixel on the input image */
+  /* Sampling corners of the output pixel on the input image. */
   for(i=es; i--;)
     {
-      /* bottom vertice: 0*(es+1)+(i+1) */
+      /* Bottom vertice: 0*(es+1)+(i+1) */
       ic=i+1;
       j=hor+i+1;
       ocrn[2*ic]=xcrn[j]; ocrn[2*ic+1]=ycrn[j];
 
-      /* right vertice:  1*(es+1)+(i+1) */
+      /* Right vertice:  1*(es+1)+(i+1) */
       ic=i+2+es;
       j=ver+es+i;
       ocrn[2*ic]=xcrn[j]; ocrn[2*ic+1]=ycrn[j];
 
-      /* top vertice:    2*(es+1)+(i+1) */
+      /* Top vertice:    2*(es+1)+(i+1) */
       ic=i+3+2*es;
       j=hor+es+gcrn-i;
       ocrn[2*ic]=xcrn[j]; ocrn[2*ic+1]=ycrn[j];
 
-      /* left vertice:   3*(es+1)+(i+1) */
+      /* Left vertice:   3*(es+1)+(i+1) */
       ic=i+4+3*es;
       j=ver+es-i-1;
       ocrn[2*ic]=xcrn[j]; ocrn[2*ic+1]=ycrn[j];
@@ -488,19 +488,19 @@ warp_pixel_perimeter_cw(gal_warp_wcsalign_t *wa, size_t ind)
   size_t es=wa->edgesampling;
   size_t os1=wa->output->dsize[1];
 
-  /* High level variables */
+  /* High level variables. */
   size_t v0=wa->v0;
 
-  /* Set ocrn, the corners of each output pixel */
+  /* Set ocrn, the corners of each output pixel. */
   xcrn=wa->vertices->array;
   ycrn=wa->vertices->next->array;
   ocrn=gal_pointer_allocate(GAL_TYPE_FLOAT64, 2*ncrn, 0, __func__, "ocrn");
 
-  /* Index of surrounding vertices for this pixel */
+  /* Index of surrounding vertices for this pixel. */
   hor=WARP_WCSALIGN_H(ind, es, os1);
   ver=WARP_WCSALIGN_V(ind, es, v0, os1);
 
-  /* All four corners: same as the counter clockwise method */
+  /* All four corners: same as the counter clockwise method. */
 
   /* top left                <- previously bottom left      */
   i=0;
@@ -522,7 +522,7 @@ warp_pixel_perimeter_cw(gal_warp_wcsalign_t *wa, size_t ind)
   ocrn[ 2*i   ]=xcrn[ hor ];                  /* xcrn=[ hor+gcrn ] */
   ocrn[ 2*i+1 ]=ycrn[ hor ];                  /* ycrn=[ hor+gcrn ] */
 
-  /* Sampling corners of the output pixel on the input image       */
+  /* Sampling corners of the output pixel on the input image.      */
   for(i=es; i--;)
     {
       /* top vertice     0*(es+1)+(i+1) <- previously bottom left  */
@@ -613,7 +613,7 @@ warp_check_basic_params(gal_warp_wcsalign_t *wa, const char *func)
           gal_type_name(wa->input->type, 1));
 
   /* Check 'edgesampling', can't compare to '0' since it has meaning, can't
-     check if negative since it is an unsigned type */
+     check if negative since it is an unsigned type. */
   if(wa->edgesampling==GAL_BLANK_SIZE_T)
     error(EXIT_FAILURE, 0, "%s: no 'edgesampling' specified. This is the "
           "Order of samplings along each pixel edge", func);
@@ -627,7 +627,7 @@ warp_check_basic_params(gal_warp_wcsalign_t *wa, const char *func)
   if(wa->numthreads==GAL_BLANK_SIZE_T || wa->numthreads==0)
     wa->numthreads=gal_threads_number();
 
-  /* Initialize the internal parameters */
+  /* Initialize the internal parameters. */
   wa->vertices=NULL;
   wa->isccw=GAL_BLANK_INT;
   wa->v0=GAL_BLANK_SIZE_T;
@@ -707,7 +707,7 @@ warp_wcsalign_init_params(gal_warp_wcsalign_t *wa, const char *func)
   warp_wcsalign_check_2d(wa->center, GAL_TYPE_FLOAT64, func, "center",
                          "This is the output image center in degrees");
 
-  /* Check 'widthinpix', it can be null for automatic detection */
+  /* Check 'widthinpix', it can be null for automatic detection. */
   if(wa->widthinpix)
     {
       warp_wcsalign_check_2d(wa->widthinpix, GAL_TYPE_SIZE_T, func,
@@ -880,7 +880,7 @@ gal_warp_wcsalign_init(gal_warp_wcsalign_t *wa)
                                 0, minmapsize, quietmmap,
                                 GAL_WARP_OUTPUT_NAME_MAXFRAC, NULL, NULL);
 
-  /* Set up the output image corners in pixel coords */
+  /* Set up the output image corners in pixel coords. */
   warp_wcsalign_init_vertices(wa);
 
   /* Project the output image corners to the input image pixel coords. We
@@ -935,7 +935,7 @@ gal_warp_wcsalign_onpix(gal_warp_wcsalign_t *wa, size_t ind)
           "something in the programming has gone wrong. Please contact "
           "us at %s so we can correct it", wa->isccw, PACKAGE_BUGREPORT);
 
-  /* Find overlapping pixels */
+  /* Find overlapping pixels. */
   xmin =  DBL_MAX; ymin =  DBL_MAX;
   xmax = -DBL_MAX; ymax = -DBL_MAX;
   for(ic=ncrn; ic--;)
@@ -953,7 +953,7 @@ gal_warp_wcsalign_onpix(gal_warp_wcsalign_t *wa, size_t ind)
   xend   = GAL_DIMENSION_NEARESTINT_HALFLOWER(  xmax ) + 1;
   yend   = GAL_DIMENSION_NEARESTINT_HALFLOWER(  ymax ) + 1;
 
-  /* Check which input pixels we are covering */
+  /* Check which input pixels we are covering. */
   for(y=ystart;y<yend;++y)
     {
       /* If the pixel isn't in the image (note that the pixel
@@ -1040,7 +1040,7 @@ gal_warp_wcsalign_onthread(void *inparam)
   struct gal_threads_params *tprm=(struct gal_threads_params *)inparam;
   gal_warp_wcsalign_t *wa=(gal_warp_wcsalign_t *)tprm->params;
 
-  /* Loop over pixels given from the 'warp' function */
+  /* Loop over pixels given from the 'warp' function. */
   for(i=0; tprm->indexs[i] != GAL_BLANK_SIZE_T; ++i)
     {
       ind=tprm->indexs[i];
@@ -1105,19 +1105,19 @@ gal_warp_wcsalign_free(gal_warp_wcsalign_t *wa)
 
 
 
-/* Finalize the output 'gal_data_t' image in 'wa->output' */
+/* Finalize the output 'gal_data_t' image in 'wa->output'. */
 void
 gal_warp_wcsalign(gal_warp_wcsalign_t *wa)
 {
-  /* Calculate and allocate the output image size and WCS */
+  /* Calculate and allocate the output image size and WCS. */
   gal_warp_wcsalign_init(wa);
 
-  /* Fill the output image */
+  /* Fill the output image. */
   gal_threads_spin_off(gal_warp_wcsalign_onthread, wa, wa->output->size,
                        wa->numthreads, wa->input->minmapsize,
                        wa->input->quietmmap);
 
-  /* Clean up the internally allocated variables */
+  /* Clean up the internally allocated variables. */
   gal_warp_wcsalign_free(wa);
 }
 
@@ -1149,7 +1149,7 @@ warp_pixelarea_onthread(void *inparam)
           "something in the programming has gone wrong. Please contact "
           "us at %s so we can correct it", wa->isccw, PACKAGE_BUGREPORT);
 
-  /* Loop over pixels given from the 'warp' function */
+  /* Loop over pixels given from the 'warp' function. */
   for(i=0; tprm->indexs[i] != GAL_BLANK_SIZE_T; ++i)
     {
       /* Pixel to use. */

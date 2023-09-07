@@ -1978,7 +1978,7 @@ gal_wcs_remove_dimension(struct wcsprm *wcs, size_t fitsdim)
    creating the tiles they don't have any WCS structure. When needed, this
    function can be used to add a WCS structure to the tile by copying the
    WCS structure of its block and correcting its starting points. If the
-   tile already has a WCS structure, this function won't do anything.*/
+   tile already has a WCS structure, this function won't do anything. */
 void
 gal_wcs_on_tile(gal_data_t *tile)
 {

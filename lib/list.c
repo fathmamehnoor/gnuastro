@@ -174,7 +174,7 @@ gal_list_str_free(gal_list_str_t *list, int freevalue)
 
 /* Replacement characters for commented space (ASCII code 14 for "Shift
    out"). These are chosen as non-printable ASCII characters, that user's
-   will not be typing. Inspired from 'gal_options_parse_list_of_strings'.*/
+   will not be typing. Inspired from 'gal_options_parse_list_of_strings'. */
 #define LIST_COMMENTED_SPACE 14
 gal_list_str_t *
 gal_list_str_extract(char *string)
@@ -241,14 +241,14 @@ gal_list_str_cat(gal_list_str_t *list, char delimiter)
   for(tmp=list; tmp!=NULL; tmp=tmp->next)
     {
       /* Count the characters. If we have a SPACE, we need to add an extra
-         count for the back slash.*/
+         count for the back slash. */
       c=tmp->v;
       do {++bsize; if(*c==delimiter) ++bsize;} while(*(++c)!='\0');
-      ++bsize; /* For the extra space between characters */
+      ++bsize; /* For the extra space between characters. */
     }
 
   /* Allocate the necessary space and write all the strings inside of it,
-     (while also commenting the space characters).*/
+     (while also commenting the space characters). */
   out=gal_pointer_allocate(GAL_TYPE_STRING, bsize, 0, __func__, "out");
   o=out;
   for(tmp=list; tmp!=NULL; tmp=tmp->next)
@@ -1133,7 +1133,7 @@ gal_list_osizet_add(gal_list_osizet_t **list,
   newnode->v=value;
   newnode->s=tosort;
 
-  /* *list points to the smallest value in the queue!*/
+  /* *list points to the smallest value in the queue! */
   while(tmp!=NULL)
     {
       if(tosort<tmp->s) break;
@@ -1422,7 +1422,7 @@ gal_list_data_add(gal_data_t **list, gal_data_t *newnode)
     /* Its not a list, so just set it to 'toadd'. */
     toadd=newnode;
 
-  /* Set the next element of toadd and update what list points to.*/
+  /* Set the next element of toadd and update what list points to. */
   toadd->next=*list;
   *list=newnode;
 }
@@ -1553,7 +1553,7 @@ gal_list_data_select_by_id(gal_data_t *table, char *idstr, size_t *index)
       for(tmp=table;tmp!=NULL;tmp=tmp->next)
         { ++i; if(i==colind) { oind=i-1; out=tmp; break;} }
     }
-  else /* ID is string; parse the names in the table.*/
+  else /* ID is string; parse the names in the table. */
     {
       /* Parse the table and if the name exists, return it. */
       colind=i=0;

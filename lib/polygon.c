@@ -125,7 +125,7 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 /**************       Basic operations        ******************/
 /***************************************************************/
 
-/* Sort the pixels in anti clock-wise order.*/
+/* Sort the pixels in anti clock-wise order. */
 void
 gal_polygon_vertices_sort_convex(double *in, size_t n, size_t *ordinds)
 {
@@ -215,7 +215,7 @@ gal_polygon_is_convex(double *v, size_t n)
         return 0;
     }
 
-  /* Check the edge between nth and 1st point */
+  /* Check the edge between nth and 1st point. */
   if(flag)
     {
       if( GAL_POLYGON_LEFT_OF_LINE(&v[(n-2)*2], &v[(n-1)*2], &v[0]) )
@@ -321,10 +321,10 @@ gal_polygon_is_inside(double *v, double *p, size_t n)
      crosses the polygon. */
   size_t wn=0, i=0, j=n-1;
 
-  /* Loop through all the edges of the polygon*/
+  /* Loop through all the edges of the polygon. */
   while(i<n)
     {
-      /* Edge from v[i] to v[i+1] in upward direction */
+      /* Edge from v[i] to v[i+1] in upward direction. */
       if(v[j*2+1] <= p[1])
         {
           if(v[i*2+1] > p[1])
@@ -333,14 +333,14 @@ gal_polygon_is_inside(double *v, double *p, size_t n)
               wn++;
         }
       else{
-        /* edge from v[i] to v[i+1] in downward direction */
+        /* Edge from v[i] to v[i+1] in downward direction. */
         if(v[i*2+1] <= p[1])
-          /* p right of edge is a downward intersection, decrease wn */
+          /* p right of edge is a downward intersection, decrease wn. */
           if( GAL_POLYGON_TRI_CROSS_PRODUCT(&v[j*2], &v[i*2], p) < 0 )
             wn--;
       }
 
-      /* Increment 'j' */
+      /* Increment 'j'. */
       j=i++;
 
       /* For a check:
@@ -364,7 +364,7 @@ gal_polygon_is_inside(double *v, double *p, size_t n)
    If the point is inside the polygon, it will always be to the left
    of the edge connecting the two vertices when the vertices are
    traversed in order. See the comments above 'gal_polygon_area' for an
-   explanation about i and j and the loop.*/
+   explanation about i and j and the loop. */
 int
 gal_polygon_is_inside_convex(double *v, double *p, size_t n)
 {
@@ -475,7 +475,7 @@ gal_polygon_to_counterclockwise(double *v, size_t n)
           j++;
         }
 
-      /* Put the vertices in the 'gal_data_t' object */
+      /* Put the vertices in the 'gal_data_t' object. */
       temp=gal_data_alloc(v, GAL_TYPE_FLOAT64, 1, &n, NULL, 0,
                           -1, 0, NULL, NULL, NULL);
 
@@ -517,7 +517,7 @@ seginfintersection(double *Aa, double *Ab, double *Ba, double *Bb,
   /* If all four points lie on the same line, there is infinite
      intersections, so return -1. If three of the points are
      collinear, then the point on the line segment that is collinear
-     with the infinite line is the intersection point.*/
+     with the infinite line is the intersection point. */
   if( Aacollinear && Abcollinear)
     return -1;
   else if( Aacollinear || Abcollinear)
@@ -750,7 +750,7 @@ polygon_leftof_vector(double *in, size_t n, double x, double y)
   polygon_rightmost_point(in, n, &r);
   test = (r.y-y)*(r.x-l.x) - (r.y-l.y)*(r.x-x);
 
-  /* Due to the choice of return value, we multiply 'test' by -1 */
+  /* Due to the choice of return value, we multiply 'test' by -1. */
   test = -1*test;
   return test?(test>0?1:-1):0;
 }
@@ -892,7 +892,7 @@ gal_polygon_vertices_sort(double *vertices, size_t n, size_t *ordinds)
   qsort(A, A_size, sizeof(struct point), polygon_compareA);
   qsort(B, B_size, sizeof(struct point), polygon_compareB);
 
-  /*Finally, we put the contents of A and B in a final sorted array.*/
+  /*Finally, we put the contents of A and B in a final sorted array. */
   for(i=0; i<A_size; i++) sorted[i]=A[i];
   for(j=0; j<B_size; j++) sorted[i++]=B[j];
 
@@ -902,7 +902,7 @@ gal_polygon_vertices_sort(double *vertices, size_t n, size_t *ordinds)
   */
 
   /* The temporary array is now used to find the location of points stored
-     in sorted array and assign index in ordinds accordingly.*/
+     in sorted array and assign index in ordinds accordingly. */
   for(i=0; i<n; i++)
     for(j=0; j<n; j++)
       if( tordinds[i].x == sorted[j].x && tordinds[i].y == sorted[j].y )

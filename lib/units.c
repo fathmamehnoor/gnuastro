@@ -55,7 +55,7 @@ gal_units_extract_decimal(char *convert, const char *delimiter,
   copy=strdup(convert);
   do
     {
-      /* Check if the required number of arguments are passed */
+      /* Check if the required number of arguments are passed. */
       if(i==n+1)
         {
           free(copy);
@@ -64,7 +64,7 @@ gal_units_extract_decimal(char *convert, const char *delimiter,
           return 0;
         }
 
-      /* Extract the substring till the next delimiter */
+      /* Extract the substring till the next delimiter. */
       token=strtok(i==0?copy:NULL, delimiter);
       if(token)
         {
@@ -127,7 +127,7 @@ gal_units_ra_to_degree(char *convert)
   double val[3];
   double decimal=0.0;
 
-  /* Check whether the string is successfully parsed */
+  /* Check whether the string is successfully parsed. */
   if(gal_units_extract_decimal(convert, ":hms", val, 3))
     {
       /* Check whether the first value is in within limits, and add it. We
@@ -190,7 +190,7 @@ gal_units_dec_to_degree(char *convert)
         unsigned zero (in other words, '-0.0' will be interpretted to be
         positive). In the case of declination, this can happen just below
         the equator (where the declination is less than one degree), for
-        example '-00d:12:34'*/
+        example '-00d:12:34'. */
       sign = signbit(val[0]) ? -1 : 1;
       decimal += val[0] * sign;
 
@@ -198,7 +198,7 @@ gal_units_dec_to_degree(char *convert)
       if(signbit(val[1]) || val[1]>60.0) return NAN;
       decimal += val[1] / 60;
 
-      /* Check whether value of arc-seconds is in within limits */
+      /* Check whether value of arc-seconds is in within limits. */
       if (signbit(val[2]) || val[2] > 60.0) return NAN;
       decimal += val[2] / 3600;
 
@@ -248,14 +248,14 @@ gal_units_degree_to_ra(double decimal, int usecolon)
 {
   size_t nchars;
   int hours=0, minutes=0;
-  float seconds=0.0; /* For sub-second accuracy */
+  float seconds=0.0; /* For sub-second accuracy. */
 
   /* Allocate a long string which is large enough for string of format
-     hh:mm:ss.ss and sign */
+     hh:mm:ss.ss and sign. */
   char *ra=gal_pointer_allocate(GAL_TYPE_UINT8, UNITS_RADECSTR_MAXLENGTH,
                                 0, __func__, "ra");
 
-  /* Check if decimal value is within bounds otherwise return error */
+  /* Check if decimal value is within bounds otherwise return error. */
   if (decimal<0 || decimal>360)
     {
       error (0, 0, "%s: value of decimal should be between be 0 and 360, "
@@ -264,7 +264,7 @@ gal_units_degree_to_ra(double decimal, int usecolon)
     }
 
   /* Divide decimal value by 15 and extract integer part of decimal value
-     to obtain hours */
+     to obtain hours. */
   decimal /= 15.0;
   hours = (int)decimal;
 
@@ -277,7 +277,7 @@ gal_units_degree_to_ra(double decimal, int usecolon)
   seconds = (decimal - hours - minutes / 60.0) * 3600;
 
   /* Format the extracted hours, minutes and seconds as a string with
-     leading zeros if required, in hh:mm:ss format */
+     leading zeros if required, in hh:mm:ss format. */
   nchars = snprintf(ra, UNITS_RADECSTR_MAXLENGTH-1,
                     usecolon ? "%02d:%02d:%g" : "%02dh%02dm%g",
                     hours, minutes, seconds);
@@ -294,7 +294,7 @@ gal_units_degree_to_ra(double decimal, int usecolon)
 
 
 
-/* Parse the declination input as a decimal to a string in form of dd:mm:ss*/
+/* Parse the declination input as a decimal to a string in form of dd:mm:ss . */
 char *
 gal_units_degree_to_dec(double decimal, int usecolon)
 {
@@ -303,11 +303,11 @@ gal_units_degree_to_dec(double decimal, int usecolon)
   int sign, degrees=0, arc_minutes=0;
 
   /* Allocate string of fixed length which is large enough for string of
-   * format hh:mm:ss.ss and sign */
+   * format hh:mm:ss.ss and sign. */
   char *dec=gal_pointer_allocate(GAL_TYPE_UINT8, UNITS_RADECSTR_MAXLENGTH,
                                  0, __func__, "ra");
 
-  /* Check if decimal value is within bounds otherwise return error */
+  /* Check if decimal value is within bounds otherwise return error. */
   if(decimal<-90 || decimal>90)
     {
       error (0, 0, "%s: value of decimal should be between be -90 and 90, "

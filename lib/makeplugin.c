@@ -46,7 +46,7 @@ int plugin_is_GPL_compatible=1;
 
 
 
-/* Names of the separate functions */
+/* Names of the separate functions. */
 #define MAKEPLUGIN_FUNC_PREFIX "ast"
 static char *version_is_name=MAKEPLUGIN_FUNC_PREFIX"-version-is";
 static char *text_contains_name=MAKEPLUGIN_FUNC_PREFIX"-text-contains";
@@ -76,7 +76,7 @@ makeplugin_version_is(const char *caller, unsigned int argc, char **argv)
   /* If the version matches, set the value of 'check'. */
   if( version && !strcmp(PACKAGE_VERSION, version) ) check=1;
 
-  /* Write the value into the 'out' pointer.*/
+  /* Write the value into the 'out' pointer. */
   if( asprintf(&out, "%d", check)<0 )
     error(EXIT_FAILURE, 0, "%s: couldn't allocate output string",
           __func__);
@@ -141,7 +141,7 @@ makeplugin_text_contains_base(char **argv, int has1_not0)
 /* Return any of the input strings that contain the given string. It takes
    two arguments:
       0. String to check.
-      1. List of text.*/
+      1. List of text. */
 static char *
 makeplugin_text_contains(const char *caller, unsigned int argc,
                          char **argv)
@@ -156,7 +156,7 @@ makeplugin_text_contains(const char *caller, unsigned int argc,
 /* Return any of the input strings that contain the given string. It takes
    two arguments:
       0. String to check.
-      1. List of text.*/
+      1. List of text. */
 static char *
 makeplugin_text_not_contains(const char *caller, unsigned int argc,
                              char **argv)
@@ -237,12 +237,12 @@ makeplugin_fits_with_keyvalue(const char *caller, unsigned int argc,
     return NULL;
 
   /* Extract the components in the arguments with possibly multiple
-     values and find the output files.*/
+     values and find the output files. */
   files=gal_list_str_extract(argv[3]);
   values=gal_list_str_extract(argv[1]);
   outlist=gal_fits_with_keyvalue(files, hdu, name, values, NULL);
 
-  /* Write the output string */
+  /* Write the output string. */
   out=gal_list_str_cat(outlist, ' ');
 
   /* Clean up and return. */
@@ -274,7 +274,7 @@ makeplugin_fits_unique_keyvalues(const char *caller, unsigned int argc,
     return NULL;
 
   /* Extract the components in the arguments with possibly multiple
-     values and find the output files.*/
+     values and find the output files. */
   files=gal_list_str_extract(argv[2]);
   outlist=gal_fits_unique_keyvalues(files, hdu, name, NULL);
 
@@ -313,7 +313,7 @@ libgnuastro_make_gmk_setup()
                    4, 4, GMK_FUNC_DEFAULT);
 
   /* Return the unique values given to a certain keyword in many FITS
-     files.*/
+     files. */
   gmk_add_function(fits_unique_keyvalues_name,
                    makeplugin_fits_unique_keyvalues,
                    3, 3, GMK_FUNC_DEFAULT);

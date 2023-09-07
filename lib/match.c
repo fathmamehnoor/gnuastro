@@ -330,12 +330,12 @@ match_rearrange(gal_data_t *A, gal_data_t *B, struct match_sfll **bina)
 
   /* Re-fill the bina array, but this time only with the 'bi' that is
      closest to it. Note that bina was fully set to NULL after popping all
-     the elements in the loop above.*/
+     the elements in the loop above. */
   for( bi=0; bi<br; ++bi )
     if( !isnan(ainb[bi*2]) )
       {
 	/* Just to keep the same terminology as before and easier
-	   reading.*/
+	   reading. */
 	r=ainb[bi*2+1];
 	ai=(size_t)(ainb[bi*2]);
 
@@ -377,7 +377,7 @@ match_rearrange(gal_data_t *A, gal_data_t *B, struct match_sfll **bina)
   exit(0);
   */
 
-  /* Clean up */
+  /* Clean up. */
   free(ainb);
 }
 
@@ -456,7 +456,7 @@ match_output(gal_data_t *A, gal_data_t *B, size_t *A_perm, size_t *B_perm,
         }
 
       /* No match found. At this stage, we can only fill the indexs of the
-         first input. The second input needs to be matched afterwards.*/
+         first input. The second input needs to be matched afterwards. */
       else aind[ nomatch_i++ ] = A_perm ? A_perm[ai] : ai;
     }
 

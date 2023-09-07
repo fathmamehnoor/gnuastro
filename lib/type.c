@@ -58,7 +58,7 @@ gal_type_sizeof(uint8_t type)
       /* The parenthesis after sizeof is not a function, it is actually a
          type cast, so we have put a space between size of and the
          parenthesis to highlight this. In C, 'sizeof' is an operator, not
-         a function.*/
+         a function. */
     case GAL_TYPE_UINT8:     return sizeof (uint8_t);
     case GAL_TYPE_INT8:      return sizeof (int8_t);
     case GAL_TYPE_UINT16:    return sizeof (uint16_t);
@@ -239,7 +239,7 @@ gal_type_from_name(char *str)
 
 /* Put the minimum (or maximum for the 'gal_type_max') value for the
    type in the space (that must already be allocated before the call to
-   this function) pointed to by in.  */
+   this function) pointed to by in. */
 void
 gal_type_min(uint8_t type, void *in)
 {
@@ -465,7 +465,7 @@ gal_type_to_string(void *ptr, uint8_t type, int quote_if_str_has_space)
    want the value to be stored, for example &(array[i]).
 
    If parsing was successful, it will return a 0. If there was a problem,
-   it will return 1.  */
+   it will return 1. */
 int
 gal_type_from_string(void **out, char *string, uint8_t type)
 {
@@ -665,7 +665,7 @@ gal_type_string_to_number(char *string, uint8_t *type)
   else
     {
       /* Start counting the number of digits from the start of the string
-         (while ignoring any '0's at the start) */
+         (while ignoring any '0's at the start). */
       digits=0;
       for(cp=string;*cp!='\0';++cp)
         {
@@ -677,7 +677,7 @@ gal_type_string_to_number(char *string, uint8_t *type)
       /* In the previous loop, we went to the end of the string (or the 'e'
          character in an exponential), so 'cp' now points to its end. We
          just have to iterate backwards and stop when we hit a non-zero
-         character */
+         character. */
       for(;cp!=string;--cp)
         if(isdigit(*cp))
           {
