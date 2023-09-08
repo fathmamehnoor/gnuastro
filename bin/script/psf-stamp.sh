@@ -673,7 +673,16 @@ EOF
                 --center=$xcenter,$ycenter \
                 --width=$xwidthinpix,$ywidthinpix \
 		--output=$cropstd $quiet
-	astarithmetic $cropped_masked -h1 set-v \
+
+        # Fill the NAN pixels with maximum value of the image plus one (so
+        # the fill value is not present in the image).
+        fillval=$(astarithmetic $cropped_masked maxvalue 1 + -q)
+        fill=$tmpdir/cropped-masked-fill-nan-pix-$objectid.fits
+        astarithmetic $cropped_masked set-i i i isblank $fillval \
+                      where --output=$fill
+
+        # Apply the threshold and label the regions above the threshold.
+        astarithmetic $fill -h1 set-v \
 		      $cropstd -h1        set-s \
 		      v s /               set-sn \
 		      v sn $snthresh lt \
@@ -682,14 +691,21 @@ EOF
                       all isnotblank 2 connected-components \
                       --output=$croplab
 
-        # Extract the id of the main object.
+        # Extract the label of the central coordinate.
         id=$(astcrop $croplab -h1 --mode=wcs \
                      --center=$xcoord,$ycoord \
                      --widthinpix --width=1 --oneelemstdout -q)
 
-        # Mask all the pixels that does not belong to the main object.
+        # Mask all the pixels that do not belong to the main object.
         msk=$tmpdir/mask-$objectid.fits
-        astarithmetic $cropsnt $croplab $id ne nan where -g1 --output=$msk
+        astarithmetic $cropsnt $croplab $id ne nan where -g1 \
+                      --output=$msk.fits
+
+        # Set all the originally NaN-valued pixels to NaN again.
+        astarithmetic $msk.fits set-i i i $fillval eq nan where \
+                      --output=$msk
+
+        # Clean up.
 	mv $msk $cropped_masked
     fi
 
@@ -850,8 +866,10 @@ if [ x"$normradiusmin" != x   -a   x"$normradiusmax" != x ]; then
     # Select the values within the requested radial range.
     values=$(asttable $radialprofile $quiet \
                       --range=1,$normradiusmin,$normradiusmax)
-    if ! normvalue=$(echo "$values" | aststatistics --column=2 --$normop \
-                                                    $finalsigmaclip -q 2> /dev/null); then
+    if ! normvalue=$(echo "$values" \
+                          | aststatistics --column=2 --$normop \
+                                          $finalsigmaclip -q \
+                          2> /dev/null); then
         normvalue=nan
     fi
 else
