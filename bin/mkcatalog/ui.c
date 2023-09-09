@@ -1993,7 +1993,7 @@ ui_read_check_inputs_setup(int argc, char *argv[],
 
       if(p->upmaskfile)
         printf("  - Upper limit magnitude mask: %s (hdu: %s)\n",
-               p->upmaskfile, p->cp.hdu);
+               p->upmaskfile, p->upmaskhdu);
       if(p->upperlimit)
         {
           printf("  - Random number generator name: %s\n", p->rng_name);

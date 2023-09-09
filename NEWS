@@ -223,6 +223,9 @@ See the end of the file for license conditions.
   bug #64635: astscript-psf-stamp's '--snthresh' option produces fully NaN
               valued image when a saturated star is in the center. Found
               and fixed by Sepideh Eskandarlou.
+  bug #64643: MakeCatalog not reporting the actual '--upmaskhdu' that was
+              used on standard output. Found by S. Zahra Hosseini
+              Shahisavandi.
 
 
 
