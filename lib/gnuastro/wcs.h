@@ -203,7 +203,14 @@ gal_wcs_coordsys_identify(struct wcsprm *inwcs);
 struct wcsprm *
 gal_wcs_coordsys_convert(struct wcsprm *inwcs, int coordsysid);
 
+void
+gal_wcs_coordsys_convert_points(int sys1, double *lng1_d, double *lat1_d,
+                                int sys2, double *lng2_d, double *lat2_d,
+                                size_t number);
 
+void
+gal_wcs_coordsys_sys1_ref_in_sys2(int sys1, int sys2, double *lng2,
+                                  double *lat2);
 
 /*************************************************************
  ***********              Distortions              ***********

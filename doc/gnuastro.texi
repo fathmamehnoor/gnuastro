@@ -550,6 +550,7 @@ Arithmetic operators
 * Basic mathematical operators::  For example, +, -, /, log, and pow.
 * Trigonometric and hyperbolic operators::  sin, cos, atan, asinh, etc.
 * Constants::                   Physical and Mathematical constants.
+* Coordinate conversion operators::  For example equatorial J2000 to Galactic.
 * Unit conversion operators::   Various unit conversions necessary.
 * Statistical operators::       Statistics of a single dataset (for example, mean).
 * Stacking operators::          Coadding or combining multiple datasets into one.
@@ -562,7 +563,7 @@ Arithmetic operators
 * Bitwise operators::           Work on bits within one pixel.
 * Numerical type conversion operators::  Convert the numeric datatype of a dataset.
 * Random number generators::    Random numbers can be used to add noise for example.
-* Box shape operators::
+* Box shape operators::         Return edges of 2D boxes.
 * Loading external columns::    Read a column from a table into the stack.
 * Size and position operators::  Extracting image size and pixel positions.
 * Building new dataset and stack management::  How to construct an empty dataset from scratch.
@@ -15266,6 +15267,7 @@ This is a very useful option for operations on the FITS date values, for example
 The advantage of working with the Unix epoch time is that you do not have to worry about calendar details (for example, the number of days in different months, or leap years).
 
 @item --wcscoordsys=STR
+@cindex FK5
 @cindex Galactic coordinate system
 @cindex Ecliptic coordinate system
 @cindex Equatorial coordinate system
@@ -15290,6 +15292,17 @@ The currently recognized coordinate systems are listed below (the most common on
 @table @code
 @item eq-j2000
 2000.0 (Julian-year) equatorial coordinates.
+This is also known as FK5 (short for ``Fundamental Katalog No 5'' which was the source of the star coordinates used to define it).
+
+This coordinate system is based on the motion of the Sun and has epochs when the mean equator was used (for example @code{eq-b1950} below).
+Furthermore, the definition of year is different: either the Besselian year in 1950.0, or the Julian year in 2000.
+For more on their difference and links for further reading about epochs in astronomy, please see the description in @url{https://en.wikipedia.org/wiki/Epoch_(astronomy), Wikipedia}.
+
+Because of these difficulties, the equatorial J2000.0 coordinate system has been deprecated by the IAU in favor of International Celestial Refernece System (ICRS) but is still used extensively.
+ICRS is defined based on extra-galactic quasars, so it does not depend on the dynamics of the solar system any more.
+But to enable historical continuity, ICRS has been defined to be equivalent to the equatorial J2000.0 within its accepted error bars of the latter (tens of milli-arcseconds).
+This justifies the reason that moving to ICRS has been relatively slow.
+
 @item eq-b1950
 1950.0 (Besselian-year) equatorial coordinates.
 @item ec-j2000
@@ -15301,9 +15314,6 @@ Galactic coordinates.
 @item supergalactic
 Supergalactic coordinates.
 @end table
-
-The Equatorial and Ecliptic coordinate systems are defined by the mean equator and equinox epoch: either the Besselian year 1950.0, or the Julian year 2000.
-For more on their difference and links for further reading about epochs in astronomy, please see the description in @url{https://en.wikipedia.org/wiki/Epoch_(astronomy), Wikipedia}.
 
 @item --wcsdistortion=STR
 @cindex WCS distortion
@@ -19883,6 +19893,7 @@ Reading NaN as a floating point number in Gnuastro is not case-sensitive.
 * Basic mathematical operators::  For example, +, -, /, log, and pow.
 * Trigonometric and hyperbolic operators::  sin, cos, atan, asinh, etc.
 * Constants::                   Physical and Mathematical constants.
+* Coordinate conversion operators::  For example equatorial J2000 to Galactic.
 * Unit conversion operators::   Various unit conversions necessary.
 * Statistical operators::       Statistics of a single dataset (for example, mean).
 * Stacking operators::          Coadding or combining multiple datasets into one.
@@ -19895,7 +19906,7 @@ Reading NaN as a floating point number in Gnuastro is not case-sensitive.
 * Bitwise operators::           Work on bits within one pixel.
 * Numerical type conversion operators::  Convert the numeric datatype of a dataset.
 * Random number generators::    Random numbers can be used to add noise for example.
-* Box shape operators::
+* Box shape operators::         Return edges of 2D boxes.
 * Loading external columns::    Read a column from a table into the stack.
 * Size and position operators::  Extracting image size and pixel positions.
 * Building new dataset and stack management::  How to construct an empty dataset from scratch.
@@ -20102,7 +20113,7 @@ Inverse Hyperbolic sine, cosine, and tangent.
 These operators take a single operand.
 @end table
 
-@node Constants, Unit conversion operators, Trigonometric and hyperbolic operators, Arithmetic operators
+@node Constants, Coordinate conversion operators, Trigonometric and hyperbolic operators, Arithmetic operators
 @subsubsection Constants
 @cindex Pi
 During your analysis it is often necessary to have certain constants like the number @mymath{\pi}.
@@ -20162,7 +20173,104 @@ The fine-structure constant (no units).
 See @url{https://en.wikipedia.org/wiki/Fine-structure_constant, Wikipedia}.
 @end table
 
-@node Unit conversion operators, Statistical operators, Constants, Arithmetic operators
+@node Coordinate conversion operators, Unit conversion operators, Constants, Arithmetic operators
+@subsubsection Coordinate conversion operators
+
+@cindex Galactic coordinate system
+@cindex Ecliptic coordinate system
+@cindex Equatorial coordinate system
+Different celestial coordinate systems are useful for different scenarios.
+For example, assume you have the RA and Dec of large sample of galaxies that you plan to study the halos of galaxies from.
+For such studies, you prefer to stay as far away as possible from the Galactic plane, because the density of stars and interstellar filaments (cirrus) significantly increases as you get close to the Milky way's disk.
+But the @url{https://en.wikipedia.org/wiki/Equatorial_coordinate_system, Equatorial coordinate system} which defines the RA and Dec and is based on Earth's equator; and does not show the position of your objects in relationt to the galactic disk.
+
+The best way forward in the example above is to convert your RA and Dec table into the @url{https://en.wikipedia.org/wiki/Galactic_coordinate_system, Galactic coordinate system}; and select those with a large (positive or negative) Galactic latitude.
+Alternatively, if you observe a bright point on a galaxy and want to confirm if it was actually a super-nova and not a moving asteriod, a first step is to convert your RA and Dec to the @url{https://en.wikipedia.org/wiki/Ecliptic_coordinate_system, Ecliptic coordinate system} and confirm if you are sufficiently distant from the ecliptic (plane of the Solar System; where fast moving objects are most common).
+
+The operators described in this section are precisely for the purpose above: to convert various celestial coordinate systems that are supported within Gnuastro into each other.
+For example, if you want to convert the RA and Dec equatorial (at the Julian year 2000 equinox) coordinates (within the @code{RA} and @code{DEC} columns) of @file{points.fits} into Galactic longitude and latitutde, you can use the command below (the column metadata are not mandatory, but to avoid later confusion, it is always good to have them in your output.
+
+@example
+$ asttable points.fits -c'arith RA DEC eq-j2000-to-galactic' \
+           --colmetadata=1,GLON,deg,"Galactic longitude" \
+           --colmetadata=2,GLAT,deg,"Galactic latitude" \
+           --output=points-gal.fits
+@end example
+
+One important thing to consider is that the equatorial and ecliptic coordinates are not static: they include the dynamics of Earth in the solar system: in particular, the reference point on the equator moves over decades.
+Therefore these two (equatorial and ecliptic) coordinate systems are defined within epochs: the 1950 epoch is defined by @url{https://en.wikipedia.org/wiki/Epoch_(astronomy)#Besselian_years, Besselian years}, while the 2000 epoch is defined in @url{https://en.wikipedia.org/wiki/Epoch_(astronomy)#Julian_years_and_J2000, Julian years}.
+So when dealing with these coordinates one of the `@code{-b1950}' or `@code{-j2000}' suffixes are necessary (for example @code{eq-j2000} or @code{ec-b1950}).
+
+@cindex ICRS
+The Galactic or Supergalactic coordiantes are not defined based on the Earth's dynamics; therefore they do not have any epoch associated with them.
+Extra-galactic studies do not depend on the dynamics of the earth, but the equatorial coordinate system is the most dominant in that field.
+Therefore in its 23rd General Assembly, the International Astronomical Union approved the @url{https://en.wikipedia.org/wiki/International_Celestial_Reference_System_and_its_realizations, International Celestial Reference System} or ICRS based on quasars (which are static within our observational limitations)viewed through long baseline radio interferometry (the most accurate method of observation that we currently have).
+ICRS is designed to be within the errors of the Equatorial J2000 coordinate system, so they are currently very similar; but ICRS has much better accuracy.
+We will be adding ICRS in the operators below soon.
+
+@strong{Floating point errors:} The operation to convert between the coordinate systems involves many sines, cosines (and their inverse).
+Therefore, floating point errors (due to the limited precision of the definition of floating points in bits) can cause small offests.
+For example see the code below were we convert equatorial to galactic and back, then compare the input and output (which is in the 5th and 6th decimal of a degree; or about 0.2 or 0.01 arcseconds).
+
+@example
+$ sys1=eq-j2000
+$ sys2=galactic
+$ echo "10.2345689 45.6789012" \
+       | asttable -Afixed -B8 \
+                  -c'arith $1 $2 '$sys1'-to-'$sys2' \
+                           '$sys2'-to-'$sys1' set-lat set-lng \
+                           lng $1 - lat $2 -'
+0.00000363   -0.00007725
+@end example
+
+If you set @code{sys2=ec-j2000} or @code{sys2=supergalactic}, it will be zero until the full set of 8 decimals that are printed here (the displayed precision can be changed with the value of the @code{-B} option above).
+It is therefore useful to have your original coordinates (in the same table for example) and not do too many conversions on conversions (to propagate this problem).
+
+@table @code
+@item  eq-b1950-to-eq-j2000
+@itemx eq-b1950-to-ec-b1950
+@itemx eq-b1950-to-ec-j2000
+@itemx eq-b1950-to-galactic
+@itemx eq-b1950-to-supergalactic
+Convert Equatorial (B1950 equinox) coordinates into the respective coordinate system within each operator's name.
+
+@item  eq-j2000-to-eq-b1950
+@itemx eq-j2000-to-ec-b1950
+@itemx eq-j2000-to-ec-j2000
+@itemx eq-j2000-to-galactic
+@itemx eq-j2000-to-supergalactic
+Convert Equatorial (J2000 equinox) coordinates into the respective coordinate system within each operator's name.
+
+@item  ec-b1950-to-eq-b1950
+@itemx ec-b1950-to-eq-j2000
+@itemx ec-b1950-to-ec-j2000
+@itemx ec-b1950-to-galactic
+@itemx ec-b1950-to-supergalactic
+Convert Ecliptic (B1950 equinox) coordinates into the respective coordinate system within each operator's name.
+
+@item  ec-j2000-to-eq-b1950
+@itemx ec-j2000-to-eq-j2000
+@itemx ec-j2000-to-ec-b1950
+@itemx ec-j2000-to-galactic
+@itemx ec-j2000-to-supergalactic
+Convert Ecliptic (J2000 equinox) coordinates into the respective coordinate system within each operator's name.
+
+@item  galactic-to-eq-b1950
+@itemx galactic-to-eq-j2000
+@itemx galactic-to-ec-b1950
+@itemx galactic-to-ec-j2000
+@itemx galactic-to-supergalactic
+Convert Galactic coordinates into the respective coordinate system within each operator's name.
+
+@item  supergalactic-to-eq-b1950
+@itemx supergalactic-to-eq-j2000
+@itemx supergalactic-to-ec-b1950
+@itemx supergalactic-to-ec-j2000
+@itemx supergalactic-to-galactic
+Convert Supergalactic coordinates into the respective coordinate system within each operator's name.
+@end table
+
+@node Unit conversion operators, Statistical operators, Coordinate conversion operators, Arithmetic operators
 @subsubsection Unit conversion operators
 
 It often happens that you have data in one unit (for example, counts on your CCD), but would like to convert it into another (for example, magnitudes, to measure the brightness of a galaxy).
@@ -38566,6 +38674,18 @@ The Gnuastro WCS distortion identifiers are defined in the @code{GAL_WCS_COORDSY
 Since the returned dataset is newly allocated, if you do not need the original dataset after this, use the WCSLIB library function @code{wcsfree} to free the input, for example, @code{wcsfree(inwcs)}.
 @end deftypefun
 
+@deftypefun void gal_wcs_coordsys_convert_points (int @code{sys1}, double @code{*lng1_d}, double @code{*lat1_d}, int @code{sys2}, double @code{*lng2_d}, double @code{*lat2_d}, size_t @code{number})
+Convert the input set of longitudes (@code{lng1_d}, in degrees) and latitudes (@code{lat1_d}, in degrees) within a recognized coordinate system (@code{sys1}; one of the @code{GAL_WCS_COORDSYS_*} macros above) into an output coordinate system (@code{sys2}).
+The output values are written in @code{lng2_d} and @code{lng2_d}.
+The total number of points should be given in @code{number}.
+If you want the operation to be done in place (without allocating a new dataset), give the same pointers to the coordinate arguments.
+@end deftypefun
+
+@deftypefun void gal_wcs_coordsys_sys1_ref_in_sys2 (int @code{sys1}, int @code{sys2}, double @code{*lng2}, double @code{*lat2})
+Return the longitude and latitude of the reference point (on the equator) of the first coordinate system (@code{sys1}) within the second system (@code{sys2}).
+Coordinate systems are identifed by the @code{GAL_WCS_COORDSYS_*} macros above.
+@end deftypefun
+
 @cindex WCS distortion
 @cindex Distortion, WCS
 @deftypefun {int} gal_wcs_distortion_identify (struct wcsprm @code{*wcs})
@@ -39067,6 +39187,40 @@ Return the first dataset, but with the second dataset being placed in the @code{
 This is useful to swap the operators on the stacks of the higher-level programs that call the arithmetic library.
 @end deffn
 
+@deffn  Macro GAL_ARITHMETIC_OP_EQB1950_TO_EQJ2000
+@deffnx Macro GAL_ARITHMETIC_OP_EQB1950_TO_ECB1950
+@deffnx Macro GAL_ARITHMETIC_OP_EQB1950_TO_ECJ2000
+@deffnx Macro GAL_ARITHMETIC_OP_EQB1950_TO_GALACTIC
+@deffnx Macro GAL_ARITHMETIC_OP_EQB1950_TO_SUPERGALACTIC
+@deffnx Macro GAL_ARITHMETIC_OP_EQJ2000_TO_EQB1950
+@deffnx Macro GAL_ARITHMETIC_OP_EQJ2000_TO_ECB1950
+@deffnx Macro GAL_ARITHMETIC_OP_EQJ2000_TO_ECJ2000
+@deffnx Macro GAL_ARITHMETIC_OP_EQJ2000_TO_GALACTIC
+@deffnx Macro GAL_ARITHMETIC_OP_EQJ2000_TO_SUPERGALACTIC
+@deffnx Macro GAL_ARITHMETIC_OP_ECB1950_TO_EQB1950
+@deffnx Macro GAL_ARITHMETIC_OP_ECB1950_TO_EQJ2000
+@deffnx Macro GAL_ARITHMETIC_OP_ECB1950_TO_ECJ2000
+@deffnx Macro GAL_ARITHMETIC_OP_ECB1950_TO_GALACTIC
+@deffnx Macro GAL_ARITHMETIC_OP_ECB1950_TO_SUPERGALACTIC
+@deffnx Macro GAL_ARITHMETIC_OP_ECJ2000_TO_EQB1950
+@deffnx Macro GAL_ARITHMETIC_OP_ECJ2000_TO_EQJ2000
+@deffnx Macro GAL_ARITHMETIC_OP_ECJ2000_TO_ECB1950
+@deffnx Macro GAL_ARITHMETIC_OP_ECJ2000_TO_GALACTIC
+@deffnx Macro GAL_ARITHMETIC_OP_ECJ2000_TO_SUPERGALACTIC
+@deffnx Macro GAL_ARITHMETIC_OP_GALACTIC_TO_EQB1950
+@deffnx Macro GAL_ARITHMETIC_OP_GALACTIC_TO_EQJ2000
+@deffnx Macro GAL_ARITHMETIC_OP_GALACTIC_TO_ECB1950
+@deffnx Macro GAL_ARITHMETIC_OP_GALACTIC_TO_ECJ2000
+@deffnx Macro GAL_ARITHMETIC_OP_GALACTIC_TO_SUPERGALACTIC
+@deffnx Macro GAL_ARITHMETIC_OP_SUPERGALACTIC_TO_EQB1950
+@deffnx Macro GAL_ARITHMETIC_OP_SUPERGALACTIC_TO_EQJ2000
+@deffnx Macro GAL_ARITHMETIC_OP_SUPERGALACTIC_TO_ECB1950
+@deffnx Macro GAL_ARITHMETIC_OP_SUPERGALACTIC_TO_ECJ2000
+@deffnx Macro GAL_ARITHMETIC_OP_SUPERGALACTIC_TO_GALACTIC
+Operators that convert recognized celestial coordinates to and from each other.
+They all take two operands and return two @code{gal_data_t}s (as a list).
+For more on celestial coordinate conversion, see @ref{Coordinate conversion operators}.
+@end deffn
 
 @deftypefun {gal_data_t *} gal_arithmetic (int @code{operator}, size_t @code{numthreads}, int @code{flags}, ...)
 Apply the requested arithmetic operator on the operand(s).

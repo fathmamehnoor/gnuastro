@@ -678,6 +678,183 @@ arithmetic_function_unary(int operator, int flags, gal_data_t *in)
 
 
 
+/* These are unit-conversion operators that need two components (like
+   2D coordinate system conversion). */
+static gal_data_t *
+arithmetic_unit_binary(int operator, int flags, gal_data_t *a_in,
+                       gal_data_t *b_in)
+{
+  int sys1, sys2;
+  gal_data_t *a, *b;
+
+  /* If the input datasets are empty, abort. */
+  if(a_in==NULL || b_in==NULL)
+    error(EXIT_FAILURE, 0, "%s: at least one of the input "
+          "datasets ('a_in' and 'b_in') is NULL", __func__);
+
+  /* Make sure the two inputs have the same size. */
+  if(a_in->size != b_in->size)
+    error(EXIT_FAILURE, 0, "%s: the two inputs have different "
+          "sizes: %zu for 'a_in' and %zu for 'b_in'", __func__,
+          a_in->size, b_in->size);
+
+  /* Set any potentially 'next' element of the inputs to NULL. */
+  if(a_in->next && a_in->next!=b_in) gal_data_free(a_in->next);
+  if(b_in->next && b_in->next!=a_in) gal_data_free(b_in->next);
+  a_in->next = b_in->next = NULL;
+
+  /* Convert the inputs to double-precision floating points.*/
+  a = ( flags & GAL_ARITHMETIC_FLAG_FREE
+        ? gal_data_copy_to_new_type_free(a_in, GAL_TYPE_FLOAT64)
+        : gal_data_copy_to_new_type(a_in, GAL_TYPE_FLOAT64) );
+  b = ( flags & GAL_ARITHMETIC_FLAG_FREE
+        ? gal_data_copy_to_new_type_free(b_in, GAL_TYPE_FLOAT64)
+        : gal_data_copy_to_new_type(b_in, GAL_TYPE_FLOAT64) );
+
+  /* Set the two systems. */
+  switch(operator)
+    {
+    case GAL_ARITHMETIC_OP_EQB1950_TO_EQJ2000:
+      sys1=GAL_WCS_COORDSYS_EQB1950;
+      sys2=GAL_WCS_COORDSYS_EQJ2000;
+      break;
+    case GAL_ARITHMETIC_OP_EQB1950_TO_ECB1950:
+      sys1=GAL_WCS_COORDSYS_EQB1950;
+      sys2=GAL_WCS_COORDSYS_ECB1950;
+      break;
+    case GAL_ARITHMETIC_OP_EQB1950_TO_ECJ2000:
+      sys1=GAL_WCS_COORDSYS_EQB1950;
+      sys2=GAL_WCS_COORDSYS_ECJ2000;
+      break;
+    case GAL_ARITHMETIC_OP_EQB1950_TO_GALACTIC:
+      sys1=GAL_WCS_COORDSYS_EQB1950;
+      sys2=GAL_WCS_COORDSYS_GALACTIC;
+      break;
+    case GAL_ARITHMETIC_OP_EQB1950_TO_SUPERGALACTIC:
+      sys1=GAL_WCS_COORDSYS_EQB1950;
+      sys2=GAL_WCS_COORDSYS_SUPERGALACTIC;
+      break;
+    case GAL_ARITHMETIC_OP_EQJ2000_TO_EQB1950:
+      sys1=GAL_WCS_COORDSYS_EQJ2000;
+      sys2=GAL_WCS_COORDSYS_EQB1950;
+      break;
+    case GAL_ARITHMETIC_OP_EQJ2000_TO_ECB1950:
+      sys1=GAL_WCS_COORDSYS_EQJ2000;
+      sys2=GAL_WCS_COORDSYS_ECB1950;
+      break;
+    case GAL_ARITHMETIC_OP_EQJ2000_TO_ECJ2000:
+      sys1=GAL_WCS_COORDSYS_EQJ2000;
+      sys2=GAL_WCS_COORDSYS_ECJ2000;
+      break;
+    case GAL_ARITHMETIC_OP_EQJ2000_TO_GALACTIC:
+      sys1=GAL_WCS_COORDSYS_EQJ2000;
+      sys2=GAL_WCS_COORDSYS_GALACTIC;
+      break;
+    case GAL_ARITHMETIC_OP_EQJ2000_TO_SUPERGALACTIC:
+      sys1=GAL_WCS_COORDSYS_EQJ2000;
+      sys2=GAL_WCS_COORDSYS_SUPERGALACTIC;
+      break;
+    case GAL_ARITHMETIC_OP_ECB1950_TO_EQB1950:
+      sys1=GAL_WCS_COORDSYS_ECB1950;
+      sys2=GAL_WCS_COORDSYS_EQB1950;
+      break;
+    case GAL_ARITHMETIC_OP_ECB1950_TO_EQJ2000:
+      sys1=GAL_WCS_COORDSYS_ECB1950;
+      sys2=GAL_WCS_COORDSYS_EQJ2000;
+      break;
+    case GAL_ARITHMETIC_OP_ECB1950_TO_ECJ2000:
+      sys1=GAL_WCS_COORDSYS_ECB1950;
+      sys2=GAL_WCS_COORDSYS_ECJ2000;
+      break;
+    case GAL_ARITHMETIC_OP_ECB1950_TO_GALACTIC:
+      sys1=GAL_WCS_COORDSYS_ECB1950;
+      sys2=GAL_WCS_COORDSYS_GALACTIC;
+      break;
+    case GAL_ARITHMETIC_OP_ECB1950_TO_SUPERGALACTIC:
+      sys1=GAL_WCS_COORDSYS_ECB1950;
+      sys2=GAL_WCS_COORDSYS_SUPERGALACTIC;
+      break;
+    case GAL_ARITHMETIC_OP_ECJ2000_TO_EQB1950:
+      sys1=GAL_WCS_COORDSYS_ECJ2000;
+      sys2=GAL_WCS_COORDSYS_EQB1950;
+      break;
+    case GAL_ARITHMETIC_OP_ECJ2000_TO_EQJ2000:
+      sys1=GAL_WCS_COORDSYS_ECJ2000;
+      sys2=GAL_WCS_COORDSYS_EQJ2000;
+      break;
+    case GAL_ARITHMETIC_OP_ECJ2000_TO_ECB1950:
+      sys1=GAL_WCS_COORDSYS_ECJ2000;
+      sys2=GAL_WCS_COORDSYS_ECB1950;
+      break;
+    case GAL_ARITHMETIC_OP_ECJ2000_TO_GALACTIC:
+      sys1=GAL_WCS_COORDSYS_ECJ2000;
+      sys2=GAL_WCS_COORDSYS_GALACTIC;
+      break;
+    case GAL_ARITHMETIC_OP_ECJ2000_TO_SUPERGALACTIC:
+      sys1=GAL_WCS_COORDSYS_ECJ2000;
+      sys2=GAL_WCS_COORDSYS_SUPERGALACTIC;
+      break;
+    case GAL_ARITHMETIC_OP_GALACTIC_TO_EQB1950:
+      sys1=GAL_WCS_COORDSYS_GALACTIC;
+      sys2=GAL_WCS_COORDSYS_EQB1950;
+      break;
+    case GAL_ARITHMETIC_OP_GALACTIC_TO_EQJ2000:
+      sys1=GAL_WCS_COORDSYS_GALACTIC;
+      sys2=GAL_WCS_COORDSYS_EQJ2000;
+      break;
+    case GAL_ARITHMETIC_OP_GALACTIC_TO_ECB1950:
+      sys1=GAL_WCS_COORDSYS_GALACTIC;
+      sys2=GAL_WCS_COORDSYS_ECB1950;
+      break;
+    case GAL_ARITHMETIC_OP_GALACTIC_TO_ECJ2000:
+      sys1=GAL_WCS_COORDSYS_GALACTIC;
+      sys2=GAL_WCS_COORDSYS_ECJ2000;
+      break;
+    case GAL_ARITHMETIC_OP_GALACTIC_TO_SUPERGALACTIC:
+      sys1=GAL_WCS_COORDSYS_GALACTIC;
+      sys2=GAL_WCS_COORDSYS_SUPERGALACTIC;
+      break;
+    case GAL_ARITHMETIC_OP_SUPERGALACTIC_TO_EQB1950:
+      sys1=GAL_WCS_COORDSYS_GALACTIC;
+      sys2=GAL_WCS_COORDSYS_EQB1950;
+      break;
+    case GAL_ARITHMETIC_OP_SUPERGALACTIC_TO_EQJ2000:
+      sys1=GAL_WCS_COORDSYS_SUPERGALACTIC;
+      sys2=GAL_WCS_COORDSYS_EQJ2000;
+      break;
+    case GAL_ARITHMETIC_OP_SUPERGALACTIC_TO_ECB1950:
+      sys1=GAL_WCS_COORDSYS_SUPERGALACTIC;
+      sys2=GAL_WCS_COORDSYS_ECB1950;
+      break;
+    case GAL_ARITHMETIC_OP_SUPERGALACTIC_TO_ECJ2000:
+      sys1=GAL_WCS_COORDSYS_SUPERGALACTIC;
+      sys2=GAL_WCS_COORDSYS_ECJ2000;
+      break;
+    case GAL_ARITHMETIC_OP_SUPERGALACTIC_TO_GALACTIC:
+      sys1=GAL_WCS_COORDSYS_SUPERGALACTIC;
+      sys2=GAL_WCS_COORDSYS_GALACTIC;
+      break;
+    default:
+      error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at '%s' to "
+            "fix the problem. The code '%d' is not a recognized operator "
+            "in this function", __func__, PACKAGE_BUGREPORT, operator);
+    }
+
+  /* Call the main conversion function (and write the values in place). */
+  gal_wcs_coordsys_convert_points(sys1, a->array, b->array,
+                                  sys2, a->array, b->array, a->size);
+
+  /* Clean up and return. */
+  if( (flags & GAL_ARITHMETIC_FLAG_FREE) && a!=a_in)
+    { gal_data_free(a_in); gal_data_free(b_in); }
+  b->next=a;
+  return b;
+}
+
+
+
+
+
 /* Call functions in the 'gnuastro/statistics' library. */
 static gal_data_t *
 arithmetic_from_statistics(int operator, int flags, gal_data_t *input)
@@ -3316,6 +3493,68 @@ gal_arithmetic_set_operator(char *string, size_t *num_operands)
   else if( !strcmp(string, "au-to-ly"))
     { op=GAL_ARITHMETIC_OP_AU_TO_LY;          *num_operands=1;  }
 
+  /* Celestial coordinate conversions. */
+  else if (!strcmp(string, "eq-b1950-to-eq-j2000"))
+    { op=GAL_ARITHMETIC_OP_EQB1950_TO_EQJ2000;           *num_operands=2; }
+  else if (!strcmp(string, "eq-b1950-to-ec-b1950"))
+    { op=GAL_ARITHMETIC_OP_EQB1950_TO_ECB1950;           *num_operands=2; }
+  else if (!strcmp(string, "eq-b1950-to-ec-j2000"))
+    { op=GAL_ARITHMETIC_OP_EQB1950_TO_ECJ2000;           *num_operands=2; }
+  else if (!strcmp(string, "eq-b1950-to-galactic"))
+    { op=GAL_ARITHMETIC_OP_EQB1950_TO_GALACTIC;          *num_operands=2; }
+  else if (!strcmp(string, "eq-b1950-to-supergalactic"))
+    { op=GAL_ARITHMETIC_OP_EQB1950_TO_SUPERGALACTIC;     *num_operands=2; }
+  else if (!strcmp(string, "eq-j2000-to-eq-b1950"))
+    { op=GAL_ARITHMETIC_OP_EQJ2000_TO_EQB1950;           *num_operands=2; }
+  else if (!strcmp(string, "eq-j2000-to-ec-b1950"))
+    { op=GAL_ARITHMETIC_OP_EQJ2000_TO_ECB1950;           *num_operands=2; }
+  else if (!strcmp(string, "eq-j2000-to-ec-j2000"))
+    { op=GAL_ARITHMETIC_OP_EQJ2000_TO_ECJ2000;           *num_operands=2; }
+  else if (!strcmp(string, "eq-j2000-to-galactic"))
+    { op=GAL_ARITHMETIC_OP_EQJ2000_TO_GALACTIC;          *num_operands=2; }
+  else if (!strcmp(string, "eq-j2000-to-supergalactic"))
+    { op=GAL_ARITHMETIC_OP_EQJ2000_TO_SUPERGALACTIC;     *num_operands=2; }
+  else if (!strcmp(string, "ec-b1950-to-eq-b1950"))
+    { op=GAL_ARITHMETIC_OP_ECB1950_TO_EQB1950;           *num_operands=2; }
+  else if (!strcmp(string, "ec-b1950-to-eq-j2000"))
+    { op=GAL_ARITHMETIC_OP_ECB1950_TO_EQJ2000;           *num_operands=2; }
+  else if (!strcmp(string, "ec-b1950-to-ec-j2000"))
+    { op=GAL_ARITHMETIC_OP_ECB1950_TO_ECJ2000;           *num_operands=2; }
+  else if (!strcmp(string, "ec-b1950-to-galactic"))
+    { op=GAL_ARITHMETIC_OP_ECB1950_TO_GALACTIC;          *num_operands=2; }
+  else if (!strcmp(string, "ec-b1950-to-supergalactic"))
+    { op=GAL_ARITHMETIC_OP_ECB1950_TO_SUPERGALACTIC;     *num_operands=2; }
+  else if (!strcmp(string, "ec-j2000-to-eq-b1950"))
+    { op=GAL_ARITHMETIC_OP_ECJ2000_TO_EQB1950;           *num_operands=2; }
+  else if (!strcmp(string, "ec-j2000-to-eq-j2000"))
+    { op=GAL_ARITHMETIC_OP_ECJ2000_TO_EQJ2000;           *num_operands=2; }
+  else if (!strcmp(string, "ec-j2000-to-ec-b1950"))
+    { op=GAL_ARITHMETIC_OP_ECJ2000_TO_ECB1950;           *num_operands=2; }
+  else if (!strcmp(string, "ec-j2000-to-galactic"))
+    { op=GAL_ARITHMETIC_OP_ECJ2000_TO_GALACTIC;          *num_operands=2; }
+  else if (!strcmp(string, "ec-j2000-to-supergalactic"))
+    { op=GAL_ARITHMETIC_OP_ECJ2000_TO_SUPERGALACTIC;     *num_operands=2; }
+  else if (!strcmp(string, "galactic-to-eq-b1950"))
+    { op=GAL_ARITHMETIC_OP_GALACTIC_TO_EQB1950;          *num_operands=2; }
+  else if (!strcmp(string, "galactic-to-eq-j2000"))
+    { op=GAL_ARITHMETIC_OP_GALACTIC_TO_EQJ2000;          *num_operands=2; }
+  else if (!strcmp(string, "galactic-to-ec-b1950"))
+    { op=GAL_ARITHMETIC_OP_GALACTIC_TO_ECB1950;          *num_operands=2; }
+  else if (!strcmp(string, "galactic-to-ec-j2000"))
+    { op=GAL_ARITHMETIC_OP_GALACTIC_TO_ECJ2000;          *num_operands=2; }
+  else if (!strcmp(string, "galactic-to-supergalactic"))
+    { op=GAL_ARITHMETIC_OP_GALACTIC_TO_SUPERGALACTIC;    *num_operands=2; }
+  else if (!strcmp(string, "supergalactic-to-eq-b1950"))
+    { op=GAL_ARITHMETIC_OP_SUPERGALACTIC_TO_EQB1950;     *num_operands=2; }
+  else if (!strcmp(string, "supergalactic-to-eq-j2000"))
+    { op=GAL_ARITHMETIC_OP_SUPERGALACTIC_TO_EQJ2000;     *num_operands=2; }
+  else if (!strcmp(string, "supergalactic-to-ec-b1950"))
+    { op=GAL_ARITHMETIC_OP_SUPERGALACTIC_TO_ECB1950;     *num_operands=2; }
+  else if (!strcmp(string, "supergalactic-to-ec-j2000"))
+    { op=GAL_ARITHMETIC_OP_SUPERGALACTIC_TO_ECJ2000;     *num_operands=2; }
+  else if (!strcmp(string, "supergalactic-to-galactic"))
+    { op=GAL_ARITHMETIC_OP_SUPERGALACTIC_TO_GALACTIC;    *num_operands=2; }
+
   /* Statistical/higher-level operators. */
   else if (!strcmp(string, "minvalue"))
     { op=GAL_ARITHMETIC_OP_MINVAL;            *num_operands=1;  }
@@ -3658,6 +3897,68 @@ gal_arithmetic_operator_string(int operator)
     case GAL_ARITHMETIC_OP_POOLMEAN:        return "pool-mean";
     case GAL_ARITHMETIC_OP_POOLMEDIAN:      return "pool-median";
 
+    case GAL_ARITHMETIC_OP_EQB1950_TO_EQJ2000:
+      return "eq-b1950-to-eq-j2000";
+    case GAL_ARITHMETIC_OP_EQB1950_TO_ECB1950:
+      return "eq-b1950-to-eq-b1950";
+    case GAL_ARITHMETIC_OP_EQB1950_TO_ECJ2000:
+      return "eq-b1950-to-ec-j2000";
+    case GAL_ARITHMETIC_OP_EQB1950_TO_GALACTIC:
+      return "eq-b1950-to-galactic";
+    case GAL_ARITHMETIC_OP_EQB1950_TO_SUPERGALACTIC:
+      return "eq-b1950-to-supergalactic";
+    case GAL_ARITHMETIC_OP_EQJ2000_TO_EQB1950:
+      return "eq-j2000-to-eq-b1950";
+    case GAL_ARITHMETIC_OP_EQJ2000_TO_ECB1950:
+      return "eq-j2000-to-ec-b1950";
+    case GAL_ARITHMETIC_OP_EQJ2000_TO_ECJ2000:
+      return "eq-j2000-to-eq-j2000";
+    case GAL_ARITHMETIC_OP_EQJ2000_TO_GALACTIC:
+      return "eq-j2000-to-galactic";
+    case GAL_ARITHMETIC_OP_EQJ2000_TO_SUPERGALACTIC:
+      return "eq-j2000-to-supergalactic";
+    case GAL_ARITHMETIC_OP_ECB1950_TO_EQB1950:
+      return "ec-b1950-to-eq-b1950";
+    case GAL_ARITHMETIC_OP_ECB1950_TO_EQJ2000:
+      return "ec-b1950-to-eq-j2000";
+    case GAL_ARITHMETIC_OP_ECB1950_TO_ECJ2000:
+      return "ec-b1950-to-ec-j2000";
+    case GAL_ARITHMETIC_OP_ECB1950_TO_GALACTIC:
+      return "ec-b1950-to-galactic";
+    case GAL_ARITHMETIC_OP_ECB1950_TO_SUPERGALACTIC:
+      return "ec-b1950-to-supergalacitc";
+    case GAL_ARITHMETIC_OP_ECJ2000_TO_EQB1950:
+      return "ec-j2000-to-eq-b1950";
+    case GAL_ARITHMETIC_OP_ECJ2000_TO_EQJ2000:
+      return "ec-j2000-to-eq-j2000";
+    case GAL_ARITHMETIC_OP_ECJ2000_TO_ECB1950:
+      return "ec-j2000-to-ec-b1950";
+    case GAL_ARITHMETIC_OP_ECJ2000_TO_GALACTIC:
+      return "ec-j2000-to-galactic";
+    case GAL_ARITHMETIC_OP_ECJ2000_TO_SUPERGALACTIC:
+      return "ec-j2000-to-supergalactic";
+    case GAL_ARITHMETIC_OP_GALACTIC_TO_EQB1950:
+      return "galactic-to-eq-b1950";
+    case GAL_ARITHMETIC_OP_GALACTIC_TO_EQJ2000:
+      return "galactic-to-eq-j2000";
+    case GAL_ARITHMETIC_OP_GALACTIC_TO_ECB1950:
+      return "galactic-to-ec-b1950";
+    case GAL_ARITHMETIC_OP_GALACTIC_TO_ECJ2000:
+      return "galactic-to-ec-j2000";
+    case GAL_ARITHMETIC_OP_GALACTIC_TO_SUPERGALACTIC:
+      return "galactic-to-supergalactic";
+    case GAL_ARITHMETIC_OP_SUPERGALACTIC_TO_EQB1950:
+      return "supergalactic-to-eq-b1950";
+    case GAL_ARITHMETIC_OP_SUPERGALACTIC_TO_EQJ2000:
+      return "supergalactic-to-eq-j2000";
+    case GAL_ARITHMETIC_OP_SUPERGALACTIC_TO_ECB1950:
+      return "supergalactic-to-ec-b1950";
+    case GAL_ARITHMETIC_OP_SUPERGALACTIC_TO_ECJ2000:
+      return "supergalactic-to-ec-j2000";
+    case GAL_ARITHMETIC_OP_SUPERGALACTIC_TO_GALACTIC:
+      return "supergalactic-to-galactic";
+
+    /* Un-recognized!  */
     default:                                return NULL;
     }
   return NULL;
@@ -3749,6 +4050,42 @@ gal_arithmetic(int operator, size_t numthreads, int flags, ...)
     case GAL_ARITHMETIC_OP_DEGREE_TO_DEC:
       d1 = va_arg(va, gal_data_t *);
       out=arithmetic_function_unary(operator, flags, d1);
+      break;
+
+    /* 2-component unit conversion. */
+    case GAL_ARITHMETIC_OP_EQB1950_TO_EQJ2000:
+    case GAL_ARITHMETIC_OP_EQB1950_TO_ECB1950:
+    case GAL_ARITHMETIC_OP_EQB1950_TO_ECJ2000:
+    case GAL_ARITHMETIC_OP_EQB1950_TO_GALACTIC:
+    case GAL_ARITHMETIC_OP_EQB1950_TO_SUPERGALACTIC:
+    case GAL_ARITHMETIC_OP_EQJ2000_TO_EQB1950:
+    case GAL_ARITHMETIC_OP_EQJ2000_TO_ECB1950:
+    case GAL_ARITHMETIC_OP_EQJ2000_TO_ECJ2000:
+    case GAL_ARITHMETIC_OP_EQJ2000_TO_GALACTIC:
+    case GAL_ARITHMETIC_OP_EQJ2000_TO_SUPERGALACTIC:
+    case GAL_ARITHMETIC_OP_ECB1950_TO_EQB1950:
+    case GAL_ARITHMETIC_OP_ECB1950_TO_EQJ2000:
+    case GAL_ARITHMETIC_OP_ECB1950_TO_ECJ2000:
+    case GAL_ARITHMETIC_OP_ECB1950_TO_GALACTIC:
+    case GAL_ARITHMETIC_OP_ECB1950_TO_SUPERGALACTIC:
+    case GAL_ARITHMETIC_OP_ECJ2000_TO_EQB1950:
+    case GAL_ARITHMETIC_OP_ECJ2000_TO_EQJ2000:
+    case GAL_ARITHMETIC_OP_ECJ2000_TO_ECB1950:
+    case GAL_ARITHMETIC_OP_ECJ2000_TO_GALACTIC:
+    case GAL_ARITHMETIC_OP_ECJ2000_TO_SUPERGALACTIC:
+    case GAL_ARITHMETIC_OP_GALACTIC_TO_EQB1950:
+    case GAL_ARITHMETIC_OP_GALACTIC_TO_EQJ2000:
+    case GAL_ARITHMETIC_OP_GALACTIC_TO_ECB1950:
+    case GAL_ARITHMETIC_OP_GALACTIC_TO_ECJ2000:
+    case GAL_ARITHMETIC_OP_GALACTIC_TO_SUPERGALACTIC:
+    case GAL_ARITHMETIC_OP_SUPERGALACTIC_TO_EQB1950:
+    case GAL_ARITHMETIC_OP_SUPERGALACTIC_TO_EQJ2000:
+    case GAL_ARITHMETIC_OP_SUPERGALACTIC_TO_ECB1950:
+    case GAL_ARITHMETIC_OP_SUPERGALACTIC_TO_ECJ2000:
+    case GAL_ARITHMETIC_OP_SUPERGALACTIC_TO_GALACTIC:
+      d1 = va_arg(va, gal_data_t *);
+      d2 = va_arg(va, gal_data_t *);
+      out=arithmetic_unit_binary(operator, flags, d1, d2);
       break;
 
     /* Binary function operators. */

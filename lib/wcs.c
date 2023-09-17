@@ -431,21 +431,22 @@ gal_wcs_read_fitsptr(fitsfile *fptr, int linearmatrix, size_t hstartwcs,
             if( strncmp(fullheader+i, "CRVAL1  = '", 11) == 0 )
               fprintf(stderr, "WARNING: WCS Keyword values are not "
                       "numbers.\n\n"
-                      "WARNING: The values to the WCS-related keywords are "
-                      "enclosed in single-quotes. In the FITS standard "
-                      "this is how string values are stored, therefore "
-                      "WCSLIB is unable to read them AND WILL PUT ZERO IN "
-                      "THEIR PLACE (creating a wrong WCS in the output). "
-                      "Please update the respective keywords of the input "
-                      "to be numbers (see next line).\n\n"
+                      "WARNING: The values to the WCS-related keywords "
+                      "are enclosed in single-quotes. In the FITS "
+                      "standard this is how string values are stored, "
+                      "therefore WCSLIB is unable to read them AND WILL "
+                      "PUT ZERO IN THEIR PLACE (creating a wrong WCS in "
+                      "the output). Please update the respective keywords "
+                      "of the input to be numbers (see next line).\n\n"
                       "WARNING: You can do this with Gnuastro's 'astfits' "
                       "program and the '--update' option. The minimal WCS "
-                      "keywords that need a numerical value are: 'CRVAL1', "
-                      "'CRVAL2', 'CRPIX1', 'CRPIX2', 'EQUINOX' and "
-                      "'CD%%_%%' (or 'PC%%_%%', where the %% are integers), "
-                      "please see the FITS standard, and inspect your FITS "
-                      "file to identify the full set of keywords that you "
-                      "need correct (for example PV%%_%% keywords).\n\n");
+                      "keywords that need a numerical value are: "
+                      "'CRVAL1', 'CRVAL2', 'CRPIX1', 'CRPIX2', 'EQUINOX' "
+                      "and 'CD%%_%%' (or 'PC%%_%%', where the %% are "
+                      "integers), please see the FITS standard, and "
+                      "inspect your FITS file to identify the full set "
+                      "of keywords that you need correct (for example "
+                      "PV%%_%% keywords).\n\n");
         }
 
       /* CTYPE is a mandatory WCS keyword, so if it hasn't been given (its
@@ -917,13 +918,16 @@ gal_wcs_coordsys_identify(struct wcsprm *wcs)
 
 
 /* Set the pole coordinates (current values taken from the WCSLIB
-   manual.
-      lng2p1: pole of input  (1) system in output (2) system's logitude.
-      lat2p1: pole of input  (1) system in output (2) system's latitude.
-      lng1p2: pole of output (2) system in input  (1) system's longitude.
+   manual):
+      lng2p1: longitude (in system 2) of the pole of system 1.
+      lat2p1: latitude  (in system 2) of the pole of system 1.
+      lng1p2: longitude (in system 1) of the pole of system 2.
 
    Values from NED (inspired by WCSLIB manual's example).
    https://ned.ipac.caltech.edu/coordinate_calculator
+   With the following constraints:
+    - The "Observation epoch" is the same as "Equinox".
+    - The "Position angle (East of North) is set to 0.0.
 
         longi (deg)  latit (deg)  OUTPUT                 INPUT
         -----        -----        ------                 -----
@@ -970,13 +974,13 @@ gal_wcs_coordsys_identify(struct wcsprm *wcs)
       (------------, -----------) Supgalactic coords. of SupGalactic pole.
  */
 static void
-wcs_coordsys_insys_pole_in_outsys(int insys, int outsys, double *lng2p1,
-                                  double *lat2p1, double *lng1p2)
+wcs_coordsys_sys1_pole_in_sys2(int sys1, int sys2, double *lng2p1,
+                               double *lat2p1, double *lng1p2)
 {
-  switch( insys )
+  switch( sys1 )
     {
     case GAL_WCS_COORDSYS_EQB1950:
-      switch( outsys)
+      switch( sys2)
         {
         case GAL_WCS_COORDSYS_EQB1950:
           *lng2p1=NAN;          *lat2p1=NAN;         *lng1p2=NAN;          return;
@@ -993,12 +997,12 @@ wcs_coordsys_insys_pole_in_outsys(int insys, int outsys, double *lng2p1,
         default:
           error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to "
                 "fix the problem. The code '%d' isn't a recognized WCS "
-                "coordinate system ID for 'outsys' (input EQB1950)", __func__,
-                PACKAGE_BUGREPORT, outsys);
+                "coordinate system ID for 'sys2' (input EQB1950)",
+                __func__, PACKAGE_BUGREPORT, sys2);
         }
       break;
     case GAL_WCS_COORDSYS_EQJ2000:
-      switch( outsys)
+      switch( sys2)
         {
         case GAL_WCS_COORDSYS_EQB1950:
           *lng2p1=359.68621044; *lat2p1=89.72178502; *lng1p2=180.31684301; return;
@@ -1015,12 +1019,12 @@ wcs_coordsys_insys_pole_in_outsys(int insys, int outsys, double *lng2p1,
         default:
           error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to "
                 "fix the problem. The code '%d' isn't a recognized WCS "
-                "coordinate system ID for 'outsys' (input EQJ2000)", __func__,
-                PACKAGE_BUGREPORT, outsys);
+                "coordinate system ID for 'sys2' (input EQJ2000)",
+                __func__, PACKAGE_BUGREPORT, sys2);
         }
       break;
     case GAL_WCS_COORDSYS_ECB1950:
-      switch( outsys)
+      switch( sys2)
         {
         case GAL_WCS_COORDSYS_EQB1950:
           *lng2p1=270.00000000; *lat2p1=66.55421111; *lng1p2=90.000000000; return;
@@ -1037,12 +1041,12 @@ wcs_coordsys_insys_pole_in_outsys(int insys, int outsys, double *lng2p1,
         default:
           error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to "
                 "fix the problem. The code '%d' isn't a recognized WCS "
-                "coordinate system ID for 'outsys' (input ECB1950)", __func__,
-                PACKAGE_BUGREPORT, outsys);
+                "coordinate system ID for 'sys2' (input ECB1950)",
+                __func__, PACKAGE_BUGREPORT, sys2);
         }
       break;
     case GAL_WCS_COORDSYS_ECJ2000:
-      switch( outsys)
+      switch( sys2)
         {
         case GAL_WCS_COORDSYS_EQB1950:
           *lng2p1=270.00099211; *lat2p1=66.56069675; *lng1p2=90.699521110; return;
@@ -1059,12 +1063,12 @@ wcs_coordsys_insys_pole_in_outsys(int insys, int outsys, double *lng2p1,
         default:
           error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to "
                 "fix the problem. The code '%d' isn't a recognized WCS "
-                "coordinate system ID for 'outsys' (input ECJ2000)", __func__,
-                PACKAGE_BUGREPORT, outsys);
+                "coordinate system ID for 'sys2' (input ECJ2000)",
+                __func__, PACKAGE_BUGREPORT, sys2);
         }
       break;
     case GAL_WCS_COORDSYS_GALACTIC:
-      switch( outsys)
+      switch( sys2)
         {
         case GAL_WCS_COORDSYS_EQB1950:
           *lng2p1=192.25000000; *lat2p1=27.40000000; *lng1p2=123.00000000; return;
@@ -1081,12 +1085,12 @@ wcs_coordsys_insys_pole_in_outsys(int insys, int outsys, double *lng2p1,
         default:
           error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to "
                 "fix the problem. The code '%d' isn't a recognized WCS "
-                "coordinate system ID for 'outsys' (input GALACTIC)", __func__,
-                PACKAGE_BUGREPORT, outsys);
+                "coordinate system ID for 'sys2' (input GALACTIC)",
+                __func__, PACKAGE_BUGREPORT, sys2);
         }
       break;
     case GAL_WCS_COORDSYS_SUPERGALACTIC:
-      switch( outsys)
+      switch( sys2)
         {
         case GAL_WCS_COORDSYS_EQB1950:
           *lng2p1=283.18940711; *lat2p1=15.64407736; *lng1p2=26.731537070; return;
@@ -1103,17 +1107,186 @@ wcs_coordsys_insys_pole_in_outsys(int insys, int outsys, double *lng2p1,
         default:
           error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to "
                 "fix the problem. The code '%d' isn't a recognized WCS "
-                "coordinate system ID for 'outsys' (input SUPERGALACTIC)", __func__,
-                PACKAGE_BUGREPORT, outsys);
+                "coordinate system ID for 'sys2' (input SUPERGALACTIC)",
+                __func__, PACKAGE_BUGREPORT, sys2);
         }
       break;
     default:
       error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to "
             "fix the problem. The code '%d' isn't a recognized WCS "
-            "coordinate system ID for 'insys'", __func__,
-            PACKAGE_BUGREPORT, insys);
+            "coordinate system ID for 'sys1'", __func__,
+            PACKAGE_BUGREPORT, sys1);
     }
+}
 
+
+
+
+
+/* Return the longitude (RA in equatorial) and latitude (Dec in equatorial)
+   coordinates of the reference point (on the equator) of system 1 in the
+   2nd system. For example, if you want the galactic center's RA and Dec:
+   'sys1=GAL_WCS_COORDSYS_GALACTIC' and 'sys2=GAL_WCS_COORDSYS_EQJ2000'.
+
+   Similar to 'wcs_coordsys_sys1_pole_in_sys2', the numbers reported here
+   come from NED. Here, the following extra settings were set (they were
+   not recorded in the comments when 'wcs_coordsys_sys1_pole_in_sys2' was
+   defined).
+
+      - The "Observation epoch" has been set to the same year as the
+        equinox.
+      - The "Position angle (East of North)" is set to 0.
+*/
+void
+gal_wcs_coordsys_sys1_ref_in_sys2(int sys1, int sys2, double *lng2,
+                                  double *lat2)
+{
+  switch( sys1 )
+    {
+    case GAL_WCS_COORDSYS_EQB1950:
+      switch( sys2 )
+        {
+        case GAL_WCS_COORDSYS_EQB1950:
+          *lng2=NAN;           *lat2=NAN;           return;
+        case GAL_WCS_COORDSYS_EQJ2000:
+          *lng2=0.64069119;    *lat2=0.27839567;    return;
+        case GAL_WCS_COORDSYS_ECB1950:
+          *lng2=0.00000000;    *lat2=0.00000000;    return;
+        case GAL_WCS_COORDSYS_ECJ2000:
+          *lng2=0.69855979;    *lat2=0.00057803;    return;
+        case GAL_WCS_COORDSYS_GALACTIC:
+          *lng2=97.74216087;   *lat2=-60.18102400;  return;
+        case GAL_WCS_COORDSYS_SUPERGALACTIC:
+          *lng2=293.11549599;  *lat2=12.69249218;   return;
+        default:
+          error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to "
+                "fix the problem. The code '%d' isn't a recognized WCS "
+                "coordinate system ID for 'sys2' (input EQB1950)",
+                __func__, PACKAGE_BUGREPORT, sys2);
+        }
+      break;
+
+    case GAL_WCS_COORDSYS_EQJ2000:
+      switch( sys2 )
+        {
+        case GAL_WCS_COORDSYS_EQB1950:
+          *lng2=359.35927364;  *lat2=-0.27832018;   return;
+        case GAL_WCS_COORDSYS_EQJ2000:
+          *lng2=NAN;           *lat2=NAN;           return;
+        case GAL_WCS_COORDSYS_ECB1950:
+          *lng2=359.30143791;  *lat2=-0.00041556;   return;
+        case GAL_WCS_COORDSYS_ECJ2000:
+          *lng2=0.0000000000;  *lat2=0.000000000;   return;
+        case GAL_WCS_COORDSYS_GALACTIC:
+          *lng2=96.33723581;   *lat2=-60.18845577;   return;
+        case GAL_WCS_COORDSYS_SUPERGALACTIC:
+          *lng2=292.65879220;  *lat2=13.23092157;    return;
+        default:
+          error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to "
+                "fix the problem. The code '%d' isn't a recognized WCS "
+                "coordinate system ID for 'sys2' (input EQJ2000)",
+                __func__, PACKAGE_BUGREPORT, sys2);
+        }
+      break;
+
+    case GAL_WCS_COORDSYS_ECB1950:
+      switch( sys2 )
+        {
+        case GAL_WCS_COORDSYS_EQB1950:
+          *lng2=0.0000000000;  *lat2=0.000000000;   return;
+        case GAL_WCS_COORDSYS_EQJ2000:
+          *lng2=0.64069119;    *lat2=0.27839567;    return;
+        case GAL_WCS_COORDSYS_ECB1950:
+          *lng2=NAN;           *lat2=NAN;           return;
+        case GAL_WCS_COORDSYS_ECJ2000:
+          *lng2=0.69855979;    *lat2=0.00057803;    return;
+        case GAL_WCS_COORDSYS_GALACTIC:
+          *lng2=97.74216087;   *lat2=-60.18102400;  return;
+        case GAL_WCS_COORDSYS_SUPERGALACTIC:
+          *lng2=293.11549599;  *lat2=12.69249218;   return;
+        default:
+          error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to "
+                "fix the problem. The code '%d' isn't a recognized WCS "
+                "coordinate system ID for 'sys2' (input ECB1950)",
+                __func__, PACKAGE_BUGREPORT, sys2);
+        }
+      break;
+
+    case GAL_WCS_COORDSYS_ECJ2000:
+      switch( sys2 )
+        {
+        case GAL_WCS_COORDSYS_EQB1950:
+          *lng2=359.35927364;  *lat2=-0.27832018;   return;
+        case GAL_WCS_COORDSYS_EQJ2000:
+          *lng2=0.0000000000;  *lat2=0.000000000;   return;
+        case GAL_WCS_COORDSYS_ECB1950:
+          *lng2=359.30143791;  *lat2=-0.00041556;   return;
+        case GAL_WCS_COORDSYS_ECJ2000:
+          *lng2=NAN;           *lat2=NAN;           return;
+        case GAL_WCS_COORDSYS_GALACTIC:
+          *lng2=96.33723581;   *lat2=-60.18845577;  return;
+        case GAL_WCS_COORDSYS_SUPERGALACTIC:
+          *lng2=292.65879220;  *lat2=13.23092157 ;  return;
+        default:
+          error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to "
+                "fix the problem. The code '%d' isn't a recognized WCS "
+                "coordinate system ID for 'sys2' (input ECJ2000)",
+                __func__, PACKAGE_BUGREPORT, sys2);
+        }
+      break;
+
+    case GAL_WCS_COORDSYS_GALACTIC:
+      switch( sys2 )
+        {
+        case GAL_WCS_COORDSYS_EQB1950:
+          *lng2=265.61084403;  *lat2=-28.91679035;  return;
+        case GAL_WCS_COORDSYS_EQJ2000:
+          *lng2=266.40506655;  *lat2=-28.93616241;  return;
+        case GAL_WCS_COORDSYS_ECB1950:
+          *lng2=266.14096542;  *lat2=-5.52979411;   return;
+        case GAL_WCS_COORDSYS_ECJ2000:
+          *lng2=266.83958692;  *lat2=-5.53630157;   return;
+        case GAL_WCS_COORDSYS_GALACTIC:
+          *lng2=NAN;           *lat2=NAN;           return;
+        case GAL_WCS_COORDSYS_SUPERGALACTIC:
+          *lng2=185.78610785;  *lat2=42.31028736;   return;
+        default:
+          error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to "
+                "fix the problem. The code '%d' isn't a recognized WCS "
+                "coordinate system ID for 'sys2' (input GALACTIC)",
+                __func__, PACKAGE_BUGREPORT, sys2);
+        }
+      break;
+
+    case GAL_WCS_COORDSYS_SUPERGALACTIC:
+      switch( sys2 )
+        {
+        case GAL_WCS_COORDSYS_EQB1950:
+          *lng2=41.35517115;  *lat2=59.32090820;   return;
+        case GAL_WCS_COORDSYS_EQJ2000:
+          *lng2=42.30997710;  *lat2=59.52821263;   return;
+        case GAL_WCS_COORDSYS_ECB1950:
+          *lng2=59.54957645;  *lat2=40.91184040;   return;
+        case GAL_WCS_COORDSYS_ECJ2000:
+          *lng2=60.24554909;  *lat2=40.91764242;   return;
+        case GAL_WCS_COORDSYS_GALACTIC:
+          *lng2=137.37000000;  *lat2=0.00000000;   return;
+        case GAL_WCS_COORDSYS_SUPERGALACTIC:
+          *lng2=NAN;  *lat2=NAN;   return;
+        default:
+          error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to "
+                "fix the problem. The code '%d' isn't a recognized WCS "
+                "coordinate system ID for 'sys2' (input SUPERGALACTIC)",
+                __func__, PACKAGE_BUGREPORT, sys2);
+        }
+      break;
+
+    default:
+      error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to "
+            "fix the problem. The code '%d' isn't a recognized WCS "
+            "coordinate system ID for 'sys1'", __func__,
+            PACKAGE_BUGREPORT, sys1);
+    }
 }
 
 
@@ -1176,8 +1349,8 @@ gal_wcs_coordsys_convert(struct wcsprm *wcs, int outcoordsys)
   /* Find the necessary pole coordinates. Note that we have already
      accounted for the fact that the input and output coordinate systems
      may be the same above, so the NaN outputs will never occur here. */
-  wcs_coordsys_insys_pole_in_outsys(incoordsys, outcoordsys,
-                                    &lng2p1, &lat2p1, &lng1p2);
+  wcs_coordsys_sys1_pole_in_sys2(incoordsys, outcoordsys,
+                                 &lng2p1, &lat2p1, &lng1p2);
 
   /* Find the necessary CTYPE names of the output. */
   wcs_coordsys_ctypes(outcoordsys, &clng, &clat, &radesys, &equinox);
@@ -1214,6 +1387,111 @@ gal_wcs_coordsys_convert(struct wcsprm *wcs, int outcoordsys)
   /* Return. */
   return out;
 }
+
+
+
+
+
+/* Convert the coordinates of a series of points from one celestial
+   coordinate system to another.
+
+   This is based on the equations in this Wikipedia article:
+   https://en.wikipedia.org/wiki/Galactic_coordinate_system#Conversion_between_equatorial_and_galactic_coordinates
+   A mathematical proof of this equation is present in this StackExchange
+   answer:
+   https://physics.stackexchange.com/questions/88663/converting-between-galactic-and-ecliptic-coordinates
+
+
+   The angle names are taken from this solution (for example "BK" is shown
+   with the variable 'bk_r', since it is in radians). Intermediate angles
+   (that the user never seen by the caller) are in radians and have a '_r'
+   suffix. The angles that the caller gives and recieves are in degrees
+   with a '_d' suffix.
+ */
+void
+gal_wcs_coordsys_convert_points(int sys1, double *lng1_d, double *lat1_d,
+                                int sys2, double *lng2_d, double *lat2_d,
+                                size_t number)
+{
+  size_t i;
+  double coslat1, coslat2;
+  double lngdiff, coslngdiff, coslat1p2;
+  double lng1_r, lat1_r, lng2_r, lat2_r;
+  double lng2p1diff_r, lng2p1diff_sin_r, lng2p1diff_cos_r;
+
+  /* Format: 'aaaNcM':
+      - aaa either 'lng' (for longitude) or 'lat' (for latitude).
+      - N   either 1 or 2 (for the coordinate system of 'aaa').
+      - c   either 'p' (for pole) or 'r' (for reference point).
+      - M   either 1 or 2 (for the coordinate system of 'c').   */
+  double lng1p2_d, lat1p2_d, lng2p1_d;
+  double lng1p2_r, lat1p2_r, lng2p1_r;
+
+  /* In case the input and output coordinate systems are the same, just
+     copy the first into the second coordinates and return (no need to do
+     any conversion). */
+  if(sys1==sys2)
+    {
+      for(i=0;i<number;++i) {lng2_d[i]=lng1_d[1]; lat2_d[i]=lat1_d[1];}
+      return;
+    }
+
+  /* Get the second system's pole and reference point (on its equator) in
+     the first system. */
+  wcs_coordsys_sys1_pole_in_sys2(sys2, sys1, &lng1p2_d, &lat1p2_d,
+                                 &lng2p1_d);
+  lng1p2_r=lng1p2_d*M_PI/180.0f;
+  lat1p2_r=lat1p2_d*M_PI/180.0f;
+  lng2p1_r=lng2p1_d*M_PI/180.0f;
+
+  /* Loop over all the coordinates. */
+  coslat1p2=cos(lat1p2_r);
+  for(i=0;i<number;++i)
+    {
+      /* Convert the input coordinates into radians. */
+      lng1_r = lng1_d[i] * M_PI / 180.0f;
+      lat1_r = lat1_d[i] * M_PI / 180.0f;
+
+      /* The latitude in the output coordinate is easy to calculate: */
+      lngdiff=lng1_r-lng1p2_r;
+      coslngdiff=cos(lngdiff);
+      lat2_r = asin( sin(lat1p2_r)*sin(lat1_r)
+                     + coslat1p2*cos(lat1_r)*coslngdiff );
+
+      /* We can now calculate the angle between 'PG' and 'GR' ('122.9 - l'
+         in the webpage above), we'll call it 'pggr_r' here. But there is a
+         problem: we need both the sine and cosine of 'pggr_r' to get its
+         position across the whole 0 to 360 degrees ('asin()' only returns
+         a value from -pi/2 to pi/2 and 'acos()' only returns a value
+         between 0 to pi. */
+      coslat1 = cos(lat1_r);
+      coslat2 = cos(lat2_r);
+      lng2p1diff_sin_r = asin( coslat1 * sin(lngdiff) / coslat2 );
+      lng2p1diff_cos_r = acos( ( coslat1p2*sin(lat1_r)
+                           - sin(lat1p2_r)*coslat1*coslngdiff )
+                         / coslat2 );
+
+      /* We have assumed that 'lng2p1diff_r = lng2p1_r - lng2_r'; so
+         'lng2_r = lng2p1_r - lng2p1diff_r' (when
+         'lng2p1diff_sin_r>0'). When 'lng2p1diff_sin_r<0', the cosine needs
+         to be negative (so in the end it becomes 'lng2_r = lng2p1_r +
+         lng2p1diff_r'. */
+      lng2p1diff_r = ( lng2p1diff_sin_r<0
+                       ? -1*lng2p1diff_cos_r
+                       : lng2p1diff_cos_r );
+      lng2_r = lng2p1_r - lng2p1diff_r;
+
+      /* In case the longitude is larger than 2pi, then we should subtract
+         2*pi from it and if it is negative, we should add 2pi to it. */
+      if(lng2_r>2*M_PI)  lng2_r=lng2_r-2*M_PI;
+      else if (lng2_r<0) lng2_r+=2*M_PI;
+
+      /* Write the values in the output as degrees. */
+      lng2_d[i]=lng2_r*180.0f/M_PI;
+      lat2_d[i]=lat2_r*180.0f/M_PI;
+    }
+}
+
 
 
 

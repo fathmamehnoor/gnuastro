@@ -43,17 +43,55 @@ See the end of the file for license conditions.
   Arithmetic:
   - New operators (see book for a full description):
     - pool-min: Min-pooling to reduce the size of the input by calculating
-      the minimum of a the pixels within the pooling window (accounting for
-      a stride). See the new "Pooling opeators" section of the book for
-      more. The pooling operators were all implemented by Faezeh
-      Bidjarchian.
+                the minimum of a the pixels within the pooling window
+                (accounting for a stride). See the new "Pooling opeators"
+                section of the book for more. The pooling operators were
+                all implemented by Faezeh Bidjarchian.
     - pool-max: Similar to 'pool-min' but using maximum.
     - pool-sum: Similar to 'pool-min' but using sum.
     - pool-mean: Similar to 'pool-min' but using mean.
     - pool-median: Similar to 'pool-min' but using median.
     - to-1d: convert the input operand into a 1D array, no matter how many
-      dimensions it has. Suggested by Faezeh Bidjarchian.
+             dimensions it has. Suggested by Faezeh Bidjarchian.
     - trim: remove all fully-blank outer regions of the input dataset.
+    - eq-b1950-to-eq-j2000: Convert input equatorial coordinates (RA and
+                            Dec) in the B1950 equinox to equatorial J2000
+                            equinox.
+    - eq-b1950-to-ec-b1950: Same input as above; to ecliptic B1950.
+    - eq-b1950-to-ec-j2000: Same input as above; to ecliptic J2000.
+    - eq-b1950-to-galactic: Same input as above; to Galactic.
+    - eq-b1950-to-supergalactic: Same input as above; to Supergalactic.
+    - eq-j2000-to-eq-b1950: Convert input equatorial coordinates (RA and
+                            Dec) in the J2000 equinox to equatorial B1950
+                            equinox.
+    - eq-j2000-to-ec-b1950: Same input as above; to ecliptic B1950.
+    - eq-j2000-to-ec-j2000: Same input as above; to ecliptic J2000.
+    - eq-j2000-to-galactic: Same input as above; to Galactic.
+    - eq-j2000-to-supergalactic: Same input as above; to Supergalactic.
+    - ec-b1950-to-eq-b1950: Convert input ecliptic coordinates in the
+                            B1950 equinox to equatorial B1950 equinox.
+    - ec-b1950-to-eq-j2000: Same input as above; to equatorial B1950.
+    - ec-b1950-to-ec-j2000: Same input as above; to ecliptic J2000.
+    - ec-b1950-to-galactic: Same input as above; to Galactic.
+    - ec-b1950-to-supergalactic: Same input as above; to Supergalactic
+    - ec-j2000-to-eq-b1950: Convert input ecliptic coordinates in the
+                            J2000 equinox to equatorial B1950 equinox.
+    - ec-j2000-to-eq-j2000: Same input as above; to equatorial J2000.
+    - ec-j2000-to-ec-b1950: Same input as above; to ecliptic B1950.
+    - ec-j2000-to-galactic: Same input as above; to Galactic.
+    - ec-j2000-to-supergalactic: Same input as above; to Supergalactic.
+    - galactic-to-eq-b1950: Convert input Galactic coordinates to
+                            equatorial B1950 equinox.
+    - galactic-to-eq-j2000: Same input as above; to equatorial J2000.
+    - galactic-to-ec-b1950: Same input as above; to ecliptic B1950.
+    - galactic-to-ec-j2000: Same input as above; to ecliptic J2000.
+    - galactic-to-supergalactic: Same input as above; to Supergalactic.
+    - supergalactic-to-eq-b1950: Convert input Supergalactic coordinates to
+                                 equatorial B1950 equinox.
+    - supergalactic-to-eq-j2000: Same input as above; to equatorial J2000.
+    - supergalactic-to-ec-b1950: Same input as above; to ecliptic B1950.
+    - supergalactic-to-ec-j2000: Same input as above; to ecliptic J2000.
+    - supergalactic-to-galactic: Same input as above; to Galactic.
 
   ConvertType:
   - It is now possible to write TIFF files in the output (until now,
@@ -103,6 +141,11 @@ See the end of the file for license conditions.
     Fathma Mehnoor.
   - gal_wcs_projection_name_to_id: convert projection names to IDs.
   - gal_wcs_projection_name_from_id: convert projection IDs to their name.
+  - gal_wcs_coordsys_convert_points: convert the input set of points from
+    one celestial coordinate system to another.
+  - gal_wcs_coordsys_sys1_ref_in_sys2: return the longitude reference point
+    of the first celestial coordinate system in the second coordinate
+    system's longitude and latitude.
 
 ** Removed features
 
