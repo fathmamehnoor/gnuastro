@@ -1,4 +1,4 @@
-# Makefile to do the number-crunching of the 'dither-simulate.in' script.
+# Makefile to do the number-crunching of the 'pointing-simulate.sh' script.
 #
 # Original author:
 #     Mohammad Akhlaghi <mohammad@akhlaghi.org>
@@ -19,7 +19,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Include the parameters from the user.
-include $(tmpdir)/dither-simulate.conf
+include $(tmpdir)/pointing-simulate.conf
 
 # Final target.
 all: $(output)

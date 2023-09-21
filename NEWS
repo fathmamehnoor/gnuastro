@@ -9,19 +9,19 @@ See the end of the file for license conditions.
 ** New features
 
   New program:
-  - 'astscript-dither-simulate': a new installed script that will simplify
-    the process of designing the best dither pattern for your observing
+  - 'astscript-pointing-simulate': a new installed script that will
+    simplify the process of designing a pointing pattern for your observing
     strategy. It takes into account the distortion of the camera, runs in
     parallel and allows customizations (for example to account for
-    vignetting or large blobs of bad pixels) through hooks at relevant
+    vignetting, or large blobs of bad pixels) through hooks at relevant
     steps. A new tutorial has been added in the Tutorials chapter of the
     book on how to use this new script.
 
   Book:
-  - New tutorial on a low surface brightness optimized design of a dither
+  - New tutorial on a low surface brightness optimized design of a pointing
     pattern using the newly added installed script in Gnuastro for
-    simulating the exposure map of a dither pattern stack (it is called as
-    'astscript-dither-simulate' on the command-line).
+    simulating the exposure map of a pointing pattern stack (it is called as
+    'astscript-pointing-simulate' on the command-line).
   - Smaller tutorials that were distributed within the documentation of
     different programs are brought into the "Tutorials" chapter.
   - New "Standard deviation vs. error" sub-section added under the

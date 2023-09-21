@@ -25,7 +25,7 @@
 # Data files (necessary for various components like desktop files for GUIs
 # or Makefiles that are called within scripts).
 pkgdata_DATA = zeropoint.mk \
-               dither-simulate.mk \
+               pointing-simulate.mk \
                astscript-fits-view.desktop
 astscript-fits-view.desktop: $(srcdir)/fits-view.desktop.desktop Makefile
 	sed -e 's|@PREFIX[@]|$(exec_prefix)|g' \
@@ -47,9 +47,9 @@ bin_SCRIPTS = astscript-fits-view \
               astscript-psf-subtract \
               astscript-sort-by-night \
               astscript-radial-profile \
-              astscript-dither-simulate \
               astscript-psf-scale-factor \
-              astscript-psf-select-stars
+              astscript-psf-select-stars \
+              astscript-pointing-simulate
 
 EXTRA_DIST = fits-view.sh \
              psf-unite.sh \
@@ -60,10 +60,10 @@ EXTRA_DIST = fits-view.sh \
              psf-subtract.sh \
              sort-by-night.sh \
              radial-profile.sh \
-             dither-simulate.sh \
-             dither-simulate.mk \
              psf-select-stars.sh \
              psf-scale-factor.sh \
+             pointing-simulate.sh \
+             pointing-simulate.mk \
              fits-view.desktop.desktop
 
 CLEANFILES = $(bin_SCRIPTS) \
@@ -84,8 +84,8 @@ do_subst = sed -e 's,[@]PREFIX[@],$(exec_prefix),g' \
 
 
 ## Rules to install the scripts.
-astscript-dither-simulate: dither-simulate.sh Makefile
-	$(do_subst) < $(srcdir)/dither-simulate.sh > $@
+astscript-pointing-simulate: pointing-simulate.sh Makefile
+	$(do_subst) < $(srcdir)/pointing-simulate.sh > $@
 	chmod +x $@
 
 astscript-ds9-region: ds9-region.sh Makefile

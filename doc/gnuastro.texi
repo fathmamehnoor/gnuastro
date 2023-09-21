@@ -105,7 +105,7 @@ A copy of the license is included in the section entitled ``GNU Free Documentati
 * astwarp: (gnuastro)Invoking astwarp. Options to Warp.
 
 * astscript: (gnuastro)Installed scripts. Gnuastro's installed scripts.
-* astscript-dither-simulate: (gnuastro)Invoking astscript-dither-simulate. Options to this script
+* astscript-pointing-simulate: (gnuastro)Invoking astscript-pointing-simulate. Options to this script
 * astscript-ds9-region: (gnuastro)Invoking astscript-ds9-region. Options to this script
 * astscript-fits-view: (gnuastro)Invoking astscript-fits-view. Options to this script
 * astscript-psf-scale-factor: (gnuastro)Invoking astscript-psf-scale-factor. Options to this script
@@ -273,7 +273,7 @@ Tutorials
 * Detecting lines and extracting spectra in 3D data::  Extracting spectra and emission line properties.
 * Color channels in same pixel grid::  Aligning images to same grid to build color image.
 * Zero point of an image::      Estimate the zero point of an image.
-* Dither pattern design::       Simulate the output image of a given dither pattern.
+* Pointing pattern design::
 * Moire pattern in stacking and its correction::  How to avoid this grid-based artifact.
 
 General program usage tutorial
@@ -336,11 +336,11 @@ Zero point of an image
 * Zero point tutorial with reference image::  Using a reference image.
 * Zero point tutorial with reference catalog::  Using a reference catalog.
 
-Dither pattern design
+Pointing pattern design
 
 * Preparing input and generating exposure map::  Download and image and build exposure map.
 * Area of non-blank pixels on sky::  Account for the curved area on the sky.
-* Script with dither simulation steps so far::  Summary of steps for easy testing.
+* Script with pointing simulation steps so far::  Summary of steps for easy testing.
 * Larger steps sizes for better calibration::  The initial small dither is not enough.
 * Pointings that account for sky curvature::  Sky curvature will cause problems!
 * Accounting for non-exposed pixels::  Parts of the detector do not get exposed to light.
@@ -758,7 +758,7 @@ Installed scripts
 * SAO DS9 region files from table::  Create ds9 region file from a table.
 * Viewing FITS file contents with DS9 or TOPCAT::  Open DS9 (images/cubes) or TOPCAT (tables).
 * Zero point estimation::       Zero point of an image from reference catalog or image(s).
-* Dithering pattern simulation::  Simulate a stack with a certain dithering pattern.
+* Pointing pattern simulation::  Simulate a stack with a given series of pointings.
 * PSF construction and subtraction::  Set of scripts to create extended PSF of an image.
 
 Sort FITS files by night
@@ -786,9 +786,9 @@ Invoking astscript-zeropoint
 * zero point output::           Format of the output.
 * zero point options::          List and details of options.
 
-Dithering pattern simulation
+Pointing pattern simulation
 
-* Invoking astscript-dither-simulate::  Options and running mode.
+* Invoking astscript-pointing-simulate::  Options and running mode.
 
 PSF construction and subtraction
 
@@ -1139,9 +1139,9 @@ In Gnuastro, higher-level operations (combining multiple programs, or running a 
 They can be run just like a program and behave very similarly (with minor differences, see @ref{Installed scripts}).
 
 @table @code
-@item astscript-dither-simulate
-(See @ref{Dithering pattern simulation}) Given a table of pointings on the sky, create and a reference image that contain's your camera's distortions and properties, generate a stacked exposure map.
-This is very useful in testing the coverage of dither patterns when designing your observing strategy and it is highly customizable, see the tutorial in @ref{Dither pattern design}.
+@item astscript-pointing-simulate
+(See @ref{Pointing pattern simulation}) Given a table of pointings on the sky, create and a reference image that contain's your camera's distortions and properties, generate a stacked exposure map.
+This is very useful in testing the coverage of dither patterns when designing your observing strategy and it is highly customizable, see the tutorial in @ref{Pointing pattern design}.
 
 @item astscript-ds9-region
 (See @ref{SAO DS9 region files from table}) Given a table (either as a file or from standard input), create an SAO DS9 region file from the requested positional columns (WCS or image coordinates).
@@ -2026,7 +2026,7 @@ In @ref{Detecting lines and extracting spectra in 3D data}, we use MUSE cubes (a
 In @ref{Color channels in same pixel grid} we demonstrate how you can warp multiple images into a single pixel grid (often necessary with mult-wavelength data), and build a single color image.
 In @ref{Moire pattern in stacking and its correction} we show how you can avoid the un-wanted Moir@'e pattern which happens when warping separate exposures to build a stacked/co-add deeper image.
 In @ref{Zero point of an image} we review the process of estimating the zero point of an image using a reference image or catalog.
-Finally, in @ref{Dither pattern design} we show the process by which you can simulate a dither pattern to find the best observing strategy for your next exciting scientific project.
+Finally, in @ref{Pointing pattern design} we show the process by which you can simulate a dither pattern to find the best observing strategy for your next exciting scientific project.
 
 In these tutorials, we have intentionally avoided too many cross references to make it more easy to read.
 For more information about a particular program, you can visit the section with the same name as the program in this book.
@@ -2042,7 +2042,7 @@ For an explanation of the conventions we use in the example codes through the bo
 * Detecting lines and extracting spectra in 3D data::  Extracting spectra and emission line properties.
 * Color channels in same pixel grid::  Aligning images to same grid to build color image.
 * Zero point of an image::      Estimate the zero point of an image.
-* Dither pattern design::       Simulate the output image of a given dither pattern.
+* Pointing pattern design::
 * Moire pattern in stacking and its correction::  How to avoid this grid-based artifact.
 @end menu
 
@@ -8789,7 +8789,7 @@ We'll leave those as an exercise for you to try your self using @ref{Warp} and/o
 
 
 
-@node Zero point of an image, Dither pattern design, Color channels in same pixel grid, Tutorials
+@node Zero point of an image, Pointing pattern design, Color channels in same pixel grid, Tutorials
 @section Zero point of an image
 
 The ``zero point'' of an image is astronomical jargon for the calibration factor of its pixel values; allowing us to convert the raw pixel values to physical units.
@@ -9320,19 +9320,33 @@ $ astscript-fits-view jplus-zeropoint.fits jplus-zeropoint-cat.fits \
 @end example
 
 
-@node Dither pattern design, Moire pattern in stacking and its correction, Zero point of an image, Tutorials
-@section Dither pattern design
+@node Pointing pattern design, Moire pattern in stacking and its correction, Zero point of an image, Tutorials
+@section Pointing pattern design
 
 @cindex Dithering
-Deciding a suitable dithering pattern is one of the most important steps when planning your observation strategy.
-Dithering is the process of moving each exposure compared to the previous one and is done for several reasons like improving calibration, increasing resolution, expending the area of the observation and etc.
-For a more complete introduction to dithering, see @ref{Dithering pattern simulation}.
+@cindex Pointings
+@cindex Observing strategy
+@cindex Offset (in observing strategy)
+A dataset that is ready for scientific analysis is usually composed of many separate exposures and how they are taken is usually known as ``observing strategy''.
+This tutorial describes Gnuastro's tools to simplify the process of deciding the pointing pattern of your observing strategy.
 
-In this tutorial, let's simulate a hypothetical dither pattern using Gnuastro's @command{astscript-dither-simulate} installed script.
-Assume you want to observe @url{https://en.wikipedia.org/wiki/Messier_94, M94} in the H-alpha and rSDSS filters (to study the extended star formation in the outer rings of this beautiful galaxy!).
+A ``pointing'' is the location on the sky that each exposure is aimed at.
+Each exposure's pointing is usually moved (on the sky) compared to the previous exposure.
+This is done for reasons like improving calibration, increasing resolution, expending the area of the observation and etc.
+Therefore, deciding a suitable pointing pattern is one of the most important steps when planning your observation strategy.
+
+There are commonly two types of pointings: ``dither'' and ``offset''.
+These are sometimes used interchangeably with ``pointing'' (especially when the final stack is roughly the same area as the field of view.
+Alternatively, ``dither'' and ``offset'' are used to distinguish pointings with large or small (on the scale of the field of view) movement compared to a previous one.
+When a pointing has a large distance to the previous pointing, it is known as an ``offset'', while pointings with a small displacement are known as a ``dither''.
+This distinction originates from the mechanics and optics of most modern telescopes: the overhead (for example the need to re-focus the camera) to make small movements is usually less than large movements.
+
+In this tutorial, let's simulate a hypothetical pointing pattern using Gnuastro's @command{astscript-pointing-simulate} installed script (see @ref{Pointing pattern simulation}).
+Since we will be testing very different displacements between pointings, we'll ignore the difference between offset and dither here, and only use the term pointing.
+
+Let's assume you want to observe @url{https://en.wikipedia.org/wiki/Messier_94, M94} in the H-alpha and rSDSS filters (to study the extended star formation in the outer rings of this beautiful galaxy!).
 Including the outer parts of the rings, the galaxy is half a degree in diameter!
-This is very large, and you want to design a dither pattern that will cover this area efficiently!
-Therefore, you need an instrument with a large field of view.
+This is very large, and you want to design a pointing pattern that will allow you to cover as much area, while not loosing your ability to calibrate properly.
 
 @cartouche
 @noindent
@@ -9343,26 +9357,26 @@ Basic features like access to this book on the command-line, the configuration f
 @menu
 * Preparing input and generating exposure map::  Download and image and build exposure map.
 * Area of non-blank pixels on sky::  Account for the curved area on the sky.
-* Script with dither simulation steps so far::  Summary of steps for easy testing.
+* Script with pointing simulation steps so far::  Summary of steps for easy testing.
 * Larger steps sizes for better calibration::  The initial small dither is not enough.
 * Pointings that account for sky curvature::  Sky curvature will cause problems!
 * Accounting for non-exposed pixels::  Parts of the detector do not get exposed to light.
 @end menu
 
-@node Preparing input and generating exposure map, Area of non-blank pixels on sky, Dither pattern design, Dither pattern design
+@node Preparing input and generating exposure map, Area of non-blank pixels on sky, Pointing pattern design, Pointing pattern design
 @subsection Preparing input and generating exposure map
 
-As mentioned in @ref{Dither pattern design}, the assumed goal here is to plan an observations strategy for M94.
+As mentioned in @ref{Pointing pattern design}, the assumed goal here is to plan an observations strategy for M94.
 Let's assume that after some searching, you decide to write a proposal for the @url{https://oaj.cefca.es/telescopes/jast80, JAST80 telescope} at the @url{https://oaj.cefca.es, Observatorio Astrofísico de Javalambre}, OAJ@footnote{For full disclosure, Gnuastro is being developed at CEFCA (Centro de Estudios de F@'isica del Cosmos de Arag@'on); which also hosts OAJ.}, in Teruel (Spain).
 The field of view of this telescope's camera is almost 1.4 degrees wide, nicely fitting M94!
 It also has these two filters that you need@footnote{For the full list of available filters, see the @url{https://oaj.cefca.es/telescopes/t80cam, T80Cam description}.}.
 
-Before we start, as described in @ref{Dithering pattern simulation}, it is just important to remember that the ideal dither pattern depends primarily on your scientific objective, as well as the limitations of the instrument you are observing with.
-Therefore, there is no single dither pattern for all purposes.
-However, the tools, methods, criteria or logic to check if your dither pattern satisfies your scientific requirement are similar.
-Therefore, you can use the same methods, tools or logic here to simulate or verify that your dither pattern will produce the products you expect after the observation.
+Before we start, as described in @ref{Pointing pattern simulation}, it is just important to remember that the ideal pointing pattern depends primarily on your scientific objective, as well as the limitations of the instrument you are observing with.
+Therefore, there is no single pointing pattern for all purposes.
+However, the tools, methods, criteria or logic to check if your pointing pattern satisfies your scientific requirement are similar.
+Therefore, you can use the same methods, tools or logic here to simulate or verify that your pointing pattern will produce the products you expect after the observation.
 
-To start simulating a dither pattern for a certain telescope, you just need a single-exposure image of that telescope with WCS information.
+To start simulating a pointing pattern for a certain telescope, you just need a single-exposure image of that telescope with WCS information.
 In other words, after astrometry, but before warping into any other pixel grid (to combine into a deeper stack).
 The image will give us the default number of the camera's pixels, its pixel scale (width of pixel in arcseconds) and the camera distortion.
 These are reference parameters that are independent of the position of the image on the sky.
@@ -9371,8 +9385,8 @@ Because the actual position of the reference image is irrelevant, let's assume t
 With the last command, please take a look at this image before continuing and explore it.
 
 @example
-$ mkdir dither-tutorial
-$ cd dither-tutorial
+$ mkdir pointing-tutorial
+$ cd pointing-tutorial
 $ mkdir input
 $ siapurl=https://archive.cefca.es/catalogues/vo/siap
 $ wget $siapurl/jplus-dr3/reduced/get_fits?id=1050345 \
@@ -9389,7 +9403,7 @@ Therefore, they become publicly available very soon after the observation date; 
 @end cartouche
 
 As you see from the image above, the T80Cam images are large (9216 by 9232 pixels).
-Therefore, to speed up the dither testing, let's down-sample the image by a factor of 10.
+Therefore, to speed up the pointing testing, let's down-sample the image by a factor of 10.
 This step is optional and you can safely use the full resolution, which will give you a more precise stack.
 But it will be much slower (maybe good after you have an almost final solution on the down-sampled image).
 We will call the output @file{ref.fits} (since it is the ``reference'' for our test).
@@ -9399,11 +9413,11 @@ We are putting these two ``input'' files (to the script) in a dedicated director
 $ astwarp input/jplus-1050345.fits.fz --scale=1/10 -oinput/ref.fits
 @end example
 
-For a first trial, let's create a cross-shaped dither pattern with 5 points around M94, which is centered at its center on the RA and Dec of 192.721250, 41.120556.
+For a first trial, let's create a cross-shaped pointing pattern with 5 points around M94, which is centered at its center on the RA and Dec of 192.721250, 41.120556.
 We'll center one exposure on the center of the galaxy, and include 4 more exposures that are each 1 arc-minute away along the RA and Dec axes.
-To simplify the actual command later@footnote{Instead of this, later, when you called @command{astscript-dither-simulate}, you could pass the @option{--racol=1} and @option{--deccol=2} options.
-But having metadata is always preferred (will avoid many bugs/frustrations in the long-run!).}, let's also include the column names in @file{dither.txt} through two lines of metadata.
-Also note that the @file{dither.txt} file can be made in any manner you like, for example, by writing the coordinates manually on your favorite text editor, or through another programming language or logic, or etc.
+To simplify the actual command later@footnote{Instead of this, later, when you called @command{astscript-pointing-simulate}, you could pass the @option{--racol=1} and @option{--deccol=2} options.
+But having metadata is always preferred (will avoid many bugs/frustrations in the long-run!).}, let's also include the column names in @file{pointing.txt} through two lines of metadata.
+Also note that the @file{pointing.txt} file can be made in any manner you like, for example, by writing the coordinates manually on your favorite text editor, or through another programming language or logic, or etc.
 Here, we are using AWK because it is sufficiently powerful for this job, and it is a very small program that is available on any Unix-based operating system (allowing you to easily run your programs on any computer).
 
 @example
@@ -9411,8 +9425,8 @@ $ step_arcmin=1
 $ center_ra=192.721250
 $ center_dec=41.120556
 
-$ echo "# Column 1: RA  [deg, f64] Right Ascension"  > dither.txt
-$ echo "# Column 2: Dec [deg, f64] Declination"     >> dither.txt
+$ echo "# Column 1: RA  [deg, f64] Right Ascension"  > pointing.txt
+$ echo "# Column 2: Dec [deg, f64] Declination"     >> pointing.txt
 
 $ echo $center_ra $center_dec \
        | awk '@{s='$step_arcmin'/60; fmt="%-10.6f %-10.6f\n"; \
@@ -9421,14 +9435,14 @@ $ echo $center_ra $center_dec \
                printf fmt, $1,   $2+s; \
                printf fmt, $1-s, $2; \
                printf fmt, $1,   $2-s@}' \
-       >> dither.txt
+       >> pointing.txt
 @end example
 
 With the commands below, let's have a look at the produced file, first as plain-text, then with TOPCAT (which needs conversion to FITS).
 After TOPCAT is opened, in the ``Graphics'' menu, select ``Plane plot'' to see the five points in a flat RA, Dec plot.
 
 @example
-$ cat dither.txt
+$ cat pointing.txt
 # Column 1: RA  [deg, f64] Right Ascension
 # Column 2: Dec [deg, f64] Declination
 192.721250 41.120556
@@ -9437,18 +9451,18 @@ $ cat dither.txt
 192.704583 41.120556
 192.721250 41.103889
 
-$ asttable dither.txt -odither.fits
-$ astscript-fits-view dither.fits
-$ rm dither.fits
+$ asttable pointing.txt -opointing.fits
+$ astscript-fits-view pointing.fits
+$ rm pointing.fits
 @end example
 
-We are now ready to generate the exposure map of the dither pattern above using the reference image that we downloaded before.
+We are now ready to generate the exposure map of the pointing pattern above using the reference image that we downloaded before.
 Let's put the center of our final stack to be on the center of the galaxy, and we'll assume the stack has a size of 2 degrees.
 With the second command, you can see the exposure map of the final stack.
 Recall that in this image, each pixel shows the number of input images that went into it.
 
 @example
-$ astscript-dither-simulate dither.txt --output=stack.fits \
+$ astscript-pointing-simulate pointing.txt --output=stack.fits \
            --img=input/ref.fits --center=$center_ra,$center_dec \
            --width=2
 
@@ -9496,10 +9510,10 @@ For an example of how these calibration issues can ruine low surface brightness 
 After it is loaded, at the bottom-left corner of the window, write ``M94'' in the box of ``Jump to object'' and press ENTER.
 At first, M94 looks good with a black background, but as you increase the ``Brightness'' (by scrolling it to the right and seeing what is under the originally black pixels), you will see the calibration artifacts clearly.
 
-@node Area of non-blank pixels on sky, Script with dither simulation steps so far, Preparing input and generating exposure map, Dither pattern design
+@node Area of non-blank pixels on sky, Script with pointing simulation steps so far, Preparing input and generating exposure map, Pointing pattern design
 @subsection Area of non-blank pixels on sky
 
-In @ref{Preparing input and generating exposure map} we generated a dither pattern with very small steps, showing how this can cause calibration problems.
+In @ref{Preparing input and generating exposure map} we generated a pointing pattern with very small steps, showing how this can cause calibration problems.
 Later (in @ref{Larger steps sizes for better calibration}) using larger steps is discussed.
 In this section, let's see how we can get an accurate measure of the area that is covered in a certain depth.
 
@@ -9542,7 +9556,7 @@ You will see that the pixel area (in degrees squared) is exactly the same as we 
 As you move your mouse away to other colors, you will notice that the area covered by each pixel (its value in this image) deceases very slightly (in the 5th decimal!).
 This is the effect of the @url{https://en.wikipedia.org/wiki/Gnomonic_projection, Gnomonic projection}; summarized as @code{TAN} (for ``tangential'') in the FITS WCS standard, the most commonly used in optical astronomical surveys and the default in this script.
 
-Having @file{deep-pix-area.fits}, we can now use Arithmetic to set the areas of all the pixels that were NaN in @file{deep.fits} and sum all the values to get an accurate estimate of the area we get from this dither pattern:
+Having @file{deep-pix-area.fits}, we can now use Arithmetic to set the areas of all the pixels that were NaN in @file{deep.fits} and sum all the values to get an accurate estimate of the area we get from this pointing pattern:
 
 @example
 $ astarithmetic deep-pix-area.fits deep.fits isblank nan where -g1 \
@@ -9554,10 +9568,10 @@ Therefore, the actual area that is covered is less than the simple multiplicatio
 At these declinations, the dominant cause of this difference is the first point above (that RA needs correction), this will be discussed in more detail later in this tutorial (see @ref{Pointings that account for sky curvature}).
 Genearlly, using this method to measure the area of your non-NAN pixels in an image is very easy and robust (automatically takes into account the curvature, coordinate system, projection and blank pixels of the image).
 
-@node Script with dither simulation steps so far, Larger steps sizes for better calibration, Area of non-blank pixels on sky, Dither pattern design
-@subsection Script with dither simulation steps so far
+@node Script with pointing simulation steps so far, Larger steps sizes for better calibration, Area of non-blank pixels on sky, Pointing pattern design
+@subsection Script with pointing simulation steps so far
 
-In @ref{Preparing input and generating exposure map} and @ref{Area of non-blank pixels on sky}, the basic steps to simulate a dither pattern's exposure map and measure the final output area on the sky where described in detail.
+In @ref{Preparing input and generating exposure map} and @ref{Area of non-blank pixels on sky}, the basic steps to simulate a pointing pattern's exposure map and measure the final output area on the sky where described in detail.
 From this point on in the tutorial, we will be experimenting with the shell variables that were set above, but the actual commands will not be changed regularly.
 If a change is necessary in a command, it is clearly mentioned in the text.
 
@@ -9608,10 +9622,10 @@ set -e
 # Make the build directory if it doesn't alreay exist.
 if ! [ -d $bdir ]; then mkdir $bdir; fi
 
-# Build the 5-pointing dither pattern (with the step size above).
-dithercat=$bdir/dither.txt
-echo "# Column 1: RA  [deg, f64] Right Ascension"  > $dithercat
-echo "# Column 2: Dec [deg, f64] Declination"     >> $dithercat
+# Build the 5-pointing pointing pattern (with the step size above).
+pointingcat=$bdir/pointing.txt
+echo "# Column 1: RA  [deg, f64] Right Ascension"  > $pointingcat
+echo "# Column 2: Dec [deg, f64] Declination"     >> $pointingcat
 echo $center_ra $center_dec \
             | awk '{s='$step_arcmin'/60; fmt="%-10.6f %-10.6f\n"; \
                     printf fmt, $1,   $2; \
@@ -9619,11 +9633,11 @@ echo $center_ra $center_dec \
                     printf fmt, $1,   $2+s; \
                     printf fmt, $1-s, $2; \
                     printf fmt, $1,   $2-s}' \
-            >> $dithercat
+            >> $pointingcat
 
-# Simulate the dither pattern.
+# Simulate the pointing pattern.
 stack=$bdir/stack.fits
-astscript-dither-simulate $dithercat --output=$stack \
+astscript-pointing-simulate $pointingcat --output=$stack \
            --img=input/ref.fits --center=$center_ra,$center_dec \
            --width=2
 
@@ -9646,13 +9660,13 @@ astarithmetic $pixarea $deep isblank nan where -g1 \
 For a description of how to make it exectable and how to run it, see @ref{Writing scripts to automate the steps}.
 Note that as you start adding your own text to the script, be sure to add your name (and year that you modified) in the copyright notice at the start of the script (this is very important!).
 
-@node Larger steps sizes for better calibration, Pointings that account for sky curvature, Script with dither simulation steps so far, Dither pattern design
+@node Larger steps sizes for better calibration, Pointings that account for sky curvature, Script with pointing simulation steps so far, Pointing pattern design
 @subsection Larger steps sizes for better calibration
 
-In @ref{Preparing input and generating exposure map} we saw that a small dither pattern is not good for the reduction of data from a large object like M94!
+In @ref{Preparing input and generating exposure map} we saw that a small pointing pattern is not good for the reduction of data from a large object like M94!
 M94 is about half a degree in diameter; so let's set @code{step_arcmin=15}.
 This is one quarter of a degree and will put the center of the four exposures on the four corners of the M94's main ring.
-Furthermore, @ref{Script with dither simulation steps so far}, the steps were summarized into a script to allow easy changing of variables without manually re-entering the individual/separate commands.
+Furthermore, @ref{Script with pointing simulation steps so far}, the steps were summarized into a script to allow easy changing of variables without manually re-entering the individual/separate commands.
 
 After you change @code{step_arcmin=15} and re-run the script, you will get a total area (from counting of per-pixel areas) of approximately 0.96 degrees squared.
 This is just roughly half the previous area and will barely fit M94!
@@ -9686,8 +9700,8 @@ Therefore at the cost of decreasing our surface brightness limit by 0.28 magnitu
 
 The argument above didn't involve any image and was primarily theoretical.
 For the more visually-inclined readers, let's add raw Gaussian noise (with a @mymath{\sigma} of 100 counts) over each simulated exposure.
-We will then instruct @command{astscript-dither-simulate} to stack them as we would stack actual data (by taking the sigma-clipped mean).
-The command below is identical to the previous call to the dither simulation script with the following differences.
+We will then instruct @command{astscript-pointing-simulate} to stack them as we would stack actual data (by taking the sigma-clipped mean).
+The command below is identical to the previous call to the pointing simulation script with the following differences.
 Note that this is just for demonstration, so you should not include this in your script (unless you want to see the noisy stack every time; at double the processing time).
 
 @table @option
@@ -9719,7 +9733,7 @@ For more on the noise-adding operators, see @ref{Random number generators}.
 @example
 $ center_ra=192.721250
 $ center_dec=41.120556
-$ astscript-dither-simulate build/dither.txt --img=input/ref.fits \
+$ astscript-pointing-simulate build/pointing.txt --img=input/ref.fits \
            --center=$center_ra,$center_dec \
            --width=2 --stack-operator="3 0.2 sigclip-mean" \
            --output=build/stack-noised.fits \
@@ -9752,11 +9766,11 @@ Accurate calibration is necessary if you do not want to loose the faint photons 
 Ideally, you want your target to be on the four edges/corners of each image.
 This will make sure that a large fraction of each exposure will not be covered by your final target in each exposure, allowing you to calibrate much more accurately.
 
-@node Pointings that account for sky curvature, Accounting for non-exposed pixels, Larger steps sizes for better calibration, Dither pattern design
+@node Pointings that account for sky curvature, Accounting for non-exposed pixels, Larger steps sizes for better calibration, Pointing pattern design
 @subsection Pointings that account for sky curvature
 
 In @ref{Larger steps sizes for better calibration}, we saw how a small loss in surface brightness limit can allow better calibration and even a larger area.
-Let's extend this by setting @code{step_arcmin=40} (almost half the width of the detector) inside your script (see @ref{Script with dither simulation steps so far}).
+Let's extend this by setting @code{step_arcmin=40} (almost half the width of the detector) inside your script (see @ref{Script with pointing simulation steps so far}).
 After running the script with this change, take a look at @file{build/deep.fits}:
 
 @example
@@ -9765,13 +9779,13 @@ $ astscript-fits-view build/deep.fits --ds9scale=minmax
 
 You will see that the region with 5 exposure depth is a horizontally elongated rectangle now!
 Also, the vertical component of the cross with four exposures is much thicker than the horizontal component!
-Where does this assymmetry come from? All the steps in our dither strategy had the same (fixed) size of 40 arc minutes.
+Where does this assymmetry come from? All the steps in our pointing strategy had the same (fixed) size of 40 arc minutes.
 
 This happens because the same change in RA and Dec (defined on the curvature of a sphere) will result in different absolute changes on the equator.
-To visually see this, let's look at the dither positions in TOPCAT:
+To visually see this, let's look at the pointing positions in TOPCAT:
 
 @example
-$ cat build/dither.txt
+$ cat build/pointing.txt
 # Column 1: RA  [deg, f64] Right Ascension
 # Column 2: Dec [deg, f64] Declination
 192.721250 41.120556
@@ -9780,8 +9794,8 @@ $ cat build/dither.txt
 192.054583 41.120556
 192.721250 40.453889
 
-$ asttable build/dither.txt -obuild/dither.fits
-$ astscript-fits-view build/dither.fits
+$ asttable build/pointing.txt -obuild/pointing.fits
+$ astscript-fits-view build/pointing.fits
 @end example
 
 After TOPCAT opens, under the ``graphics'' window, select ``Plane Plot''.
@@ -9793,7 +9807,7 @@ Keep the previous window, and let's go back to the original TOPCAT window.
 In the first TOPCAT window, click on ``Graphics'' again, but this time, select ``Sky plot''.
 You will notice that the vertical component of the cross is now longer than the horizontal component!
 If you zoom-out (by scrolling your mouse over the plot) a lot, you will see that this is actually on the spherical surface of the sky!
-In other words, as you see here, on the sky, the horizontal points are closer to each other than the vertical points; causing a larger overlap between them, making the vertical overlap thicker in @file{build/dither.fits}.
+In other words, as you see here, on the sky, the horizontal points are closer to each other than the vertical points; causing a larger overlap between them, making the vertical overlap thicker in @file{build/pointing.fits}.
 
 @cindex Declination
 @cindex Right Ascension
@@ -9801,7 +9815,7 @@ In other words, as you see here, on the sky, the horizontal points are closer to
 On the celestial sphere, only the declination is measured in degrees.
 In other words, the difference in declination of two points can be calculated only with their declination.
 However, except for points that are on the equator, differences in right ascension depend on the declination.
-Therefore, the origin of this problem is that we done the additions and subtractions for defining the dither points in a flat space: based on the step size in arc minutes that was applied similarly on RA and Dec (in @ref{Preparing input and generating exposure map}).
+Therefore, the origin of this problem is that we done the additions and subtractions for defining the pointing points in a flat space: based on the step size in arc minutes that was applied similarly on RA and Dec (in @ref{Preparing input and generating exposure map}).
 
 To fix this problem, we need to convert our points from the flat RA/Dec into the spherical RA/Dec.
 In the FITS standard, we have the ``World Coordinate System'' (WCS) that defines this type of conversion, using pre-defined projections in the @code{CTYPEi} keyword (short for for ``Coordinate TYPE in dimension i'').
@@ -9818,9 +9832,9 @@ This is the most commonly used projection in optical astronomy.
 Now that we know the final projection, we can do this conversion using Table's column arithmetic operator @option{eq-j2000-from-flat} like below:
 
 @verbatim
-$ dithercat=build/dither.txt
-$ ditheronsky=build/dither-on-sky.fits
-$ asttable $dithercat --output=$ditheronsky \
+$ pointingcat=build/pointing.txt
+$ pointingonsky=build/pointing-on-sky.fits
+$ asttable $pointingcat --output=$pointingonsky \
            -c'arith RA          set-r \
                     DEC         set-d \
                     r meanvalue set-ref-r \
@@ -9829,21 +9843,21 @@ $ asttable $dithercat --output=$ditheronsky \
            --colmetadata=1,RA,deg,"Right ascension" \
            --colmetadata=2,Dec,deg,"Declination"
 
-$ astscript-fits-view build/dither-on-sky.fits
+$ astscript-fits-view build/pointing-on-sky.fits
 @end verbatim
 
 Here is a break-down of the first command above: to do the flat-to-sky conversion, we need a reference point (where the two are equal).
 We have used the mean RA and mean Dec (through the @code{meanvalue} operator in Arithmetic) as our reference point (which are placed in the @code{ref-r} and @code{red-d} variables.
 After calling the @option{eq-j2000-from-flat} operator, we have just added metadata to the two columns.
 
-To confirm that this operator done the job correctly, after the second command above, repeat the same experiment as before with TOPCAT (where you viewed the dither positions on a flat and spherical coordinate system).
+To confirm that this operator done the job correctly, after the second command above, repeat the same experiment as before with TOPCAT (where you viewed the pointing positions on a flat and spherical coordinate system).
 You will see that indeed, on the sphere you have a `+' shape, but on the flat plot, it looks stretched.
 
 @cartouche
 @noindent
-@strong{Script update 1:} you should now add the @code{ditheronsky} definition and the @code{asttable} command above into the script of @ref{Script with dither simulation steps so far}.
-They should be placed before the call to @code{astscript-dither-simulate}.
-Also, in the call to @code{astscript-dither-simulate}, @code{$dithercat} should be replaced with @code{$ditheronsky} (so it doesn't use the flat RA, Dec pointings).
+@strong{Script update 1:} you should now add the @code{pointingonsky} definition and the @code{asttable} command above into the script of @ref{Script with pointing simulation steps so far}.
+They should be placed before the call to @code{astscript-pointing-simulate}.
+Also, in the call to @code{astscript-pointing-simulate}, @code{$pointingcat} should be replaced with @code{$pointingonsky} (so it doesn't use the flat RA, Dec pointings).
 @end cartouche
 
 After implementing this change in your script and running it, open @file{deep.fits} and you will see that the widths of both the horizontal and vertical regions are much more similar.
@@ -9868,17 +9882,17 @@ This is due to the RA/Dec change above, but across the width of the image.
 We can't therefore change this by just changing the position of the pointings, we need to rotate some of the exposures if we want it to be removed.
 But rotation is not yet implemented in this script.
 
-You can construct any complex dither pattern (with more than 5 points and in any shape) based on the logic and reasoning above to help extract the most science from the valuable telescope time that you will be getting.
+You can construct any complex pointing pattern (with more than 5 points and in any shape) based on the logic and reasoning above to help extract the most science from the valuable telescope time that you will be getting.
 Since the output is a FITS file, you can easily download another FITS file of your target, open it with DS9 (and ``lock'' the ``WCS'') with the stack produced by this simulation to make sure that the deep parts correspond to the area of interest for your science case.
 
 Factors like the optimal exposure time are also critical for the final result@footnote{The exposure time will determine the Signal-to-noise ration on a single exposure level.}, but is was beyond the scope of this tutorial.
 One relevant factor however is the effect of vignetting: the pixels on the outer extremes of the field of view that are not exposed to light and should be removed from your final stack.
-They effect your dither pattern: by decreasing your total area, they act like a larger spacing between your points, causing similar shallow crosses as you saw when you set @code{step_arcmin} to 43 arc minutes.
+They effect your pointing pattern: by decreasing your total area, they act like a larger spacing between your points, causing similar shallow crosses as you saw when you set @code{step_arcmin} to 43 arc minutes.
 In @ref{Accounting for non-exposed pixels}, we will show how this can be done within the same test concept that we done here.
 
 
 
-@node Accounting for non-exposed pixels,  , Pointings that account for sky curvature, Dither pattern design
+@node Accounting for non-exposed pixels,  , Pointings that account for sky curvature, Pointing pattern design
 @subsection Accounting for non-exposed pixels
 
 @cindex Baffle
@@ -9900,7 +9914,7 @@ Vignetting strongly depends on the optical design of the instrument you are usin
 It can be a constant number of pixels on all the edges the detector, or it can have a more complex shape.
 For example on cameras that have multiple detectors on the field of view, in this case, the regions to exclude on each detector can be very different and will not be symmetric!
 
-Therefore, within Gnuastro's @command{astscript-dither-simulate} script there is no parameter for pre-defined vignetting shapes.
+Therefore, within Gnuastro's @command{astscript-pointing-simulate} script there is no parameter for pre-defined vignetting shapes.
 Instead, you should define a mask that you can apply on each exposure through the provided hook (@option{--hook-warp-before}; recall that we previously used another hook in @ref{Larger steps sizes for better calibration}).
 Through the mask, you are free to set any vignetted or bad pixel to NaN (thus ignoring them in the stack) and applying it in any way that best suites your instrument and detector.
 
@@ -9913,7 +9927,7 @@ To mask the outer edges of an image we can use Gnuastro's Arithmetic program; an
 To learn more about this operator, see @ref{Size and position operators}.
 
 But before doing that, we need convert this angular distance to pixels on the detector.
-In @ref{Dither pattern design}, we used an undersampled version of the input image, so we should do this conversion on that image:
+In @ref{Pointing pattern design}, we used an undersampled version of the input image, so we should do this conversion on that image:
 
 @example
 $ margin_arcsec=30
@@ -9944,15 +9958,15 @@ $ astarithmetic input/ref.fits indexonly     set-i \
 $ astscript-fits-view build/mask.fits --ds9extra="-cmap red"
 @end example
 
-We are now ready to run the main dither simulate script.
+We are now ready to run the main pointing simulate script.
 With the command below, we will use the @option{--hook-warp-before} to apply this mask on the image of each exposure just before warping.
-The concept of this hook is very similar to that of @option{--hook-warp-after} in @ref{Dither pattern design}.
+The concept of this hook is very similar to that of @option{--hook-warp-after} in @ref{Pointing pattern design}.
 As the name suggests, this hook is applied ``before'' the warping.
 The input to the command given to this hook should be called with @code{$EXPOSURE} and the output should be called with @code{$TOWARP}.
 With the second command, let's compare the two outputs:
 
 @example
-$ astscript-dither-simulate build/dither-on-sky.fits \
+$ astscript-pointing-simulate build/pointing-on-sky.fits \
            --output=build/stack-with-trim.fits --img=input/ref.fits \
            --center=$center_ra,$center_dec --width=2 \
            --hook-warp-before='astarithmetic $EXPOSURE build/mask.fits \
@@ -9965,14 +9979,14 @@ As expected, due to the smaller area of the detector that is exposed to photons,
 To have contiguous depth in the deeper region, use this new call in your script and decrease the @code{step_arcmin=41}.
 
 You can use the same command on a mask that is created in any way and as realistic as possible.
-More generically, you can use the before and after hooks for any other operation; for example to insert objects from a catalog using @ref{MakeProfiles} as well as adding noise as we did in @ref{Dither pattern design}.
+More generically, you can use the before and after hooks for any other operation; for example to insert objects from a catalog using @ref{MakeProfiles} as well as adding noise as we did in @ref{Pointing pattern design}.
 
-Therefore it is also good to add the mask and its application in your script. This should be pretty easy by now (following @ref{Script with dither simulation steps so far} and the ``Script update 1'' box of @ref{Pointings that account for sky curvature}).
+Therefore it is also good to add the mask and its application in your script. This should be pretty easy by now (following @ref{Script with pointing simulation steps so far} and the ``Script update 1'' box of @ref{Pointings that account for sky curvature}).
 So we will leave this as an exercise.
 
 
 
-@node Moire pattern in stacking and its correction,  , Dither pattern design, Tutorials
+@node Moire pattern in stacking and its correction,  , Pointing pattern design, Tutorials
 @section Moir@'e pattern in stacking and its correction
 
 @cindex Moir@'e pattern or fringes
@@ -10078,11 +10092,11 @@ In the @code{MAX-FRAC} extension, you will see that the range of pixel values is
 This shows that the pixels are more similarly mixed and in fact, when you look at the actual warped image, you can hardly distinguish any Moir@'e pattern in the noise.
 
 @cindex Stacking
-@cindex Dithering
+@cindex Pointing
 @cindex Coaddition
 However, deep astronomical data are usually built by several exposures (images), not a single one.
 Each image is also taken by (slightly) shifting the telescope compared to the previous exposure.
-This shift is known as ``dithering''.
+This shift is known as ``dithering'' or a ``pointing pattern'', see @ref{Pointing pattern design}.
 We do this for many reasons (for example tracking errors in the telescope, high background values, removing the effect of bad pixels or those affected by cosmic rays, robust flat pattern measurement, etc.@footnote{E.g., @url{https://www.stsci.edu/hst/instrumentation/wfc3/proposing/dithering-strategies}}).
 One of those ``etc.'' reasons is to correct the Moir@'e pattern in the final coadded deep image.
 
@@ -10124,7 +10138,7 @@ In the previous @code{MAX-FRAC} image, you could see large blobs of similar valu
 But here, you see that the variation is almost on a pixel scale, and the difference between one pixel to the next is not significant.
 This is why you don't see any Moir@'e pattern in the warped image.
 
-In J-PLUS, each part of the sky was observed with a three-point dithering pattern.
+In J-PLUS, each part of the sky was observed with a three-point pointing pattern (very small shifts in each pointing).
 Let's download the other two exposures and warp the same region of the sky to the same pixel grid (using the @option{--gridfile} feature).
 Then, let's open all three cropped images in one DS9 instance:
 
@@ -10193,7 +10207,7 @@ For optimal results, the oversampling should be determined by the dithering patt
 For example if you only have two dither points, you want the pixels with maximum value in the @code{MAX-FRAC} image of one exposure to fall on those with a minimum value in the other exposure.
 Ideally, many more dither points should be chosen when you are planning your observation (not just for the Moir@'e pattern, but also for all the other reasons mentioned above).
 Based on the dithering pattern, you want to select the increased resolution such that the maximum @code{MAX-FRAC} values fall on every different pixel of the output grid for each exposure.
-
+Note that this discussion is on small shifts between pointings (dithers), not large ones like offsets); see @ref{Pointing pattern design}.
 
 
 
@@ -24186,7 +24200,7 @@ For good strategies of setting the pixel scale, see @ref{Moire pattern in stacki
 @end cartouche
 
 Another problem that may arise when aligning images to new pixel grids is the aliasing or visible Moir@'e patterns on the output image.
-This artifact should be removed if you are stacking several exposures, especially with a dithering pattern.
+This artifact should be removed if you are stacking several exposures, especially with a pointing pattern.
 If not see @ref{Moire pattern in stacking and its correction} for ways to mitigate the visible patterns.
 See the description of @option{--gridfile} below for more.
 
@@ -31736,7 +31750,7 @@ If you do confront such strange errors, please submit a bug report so we fix it 
 * SAO DS9 region files from table::  Create ds9 region file from a table.
 * Viewing FITS file contents with DS9 or TOPCAT::  Open DS9 (images/cubes) or TOPCAT (tables).
 * Zero point estimation::       Zero point of an image from reference catalog or image(s).
-* Dithering pattern simulation::  Simulate a stack with a certain dithering pattern.
+* Pointing pattern simulation::  Simulate a stack with a given series of pointings.
 * PSF construction and subtraction::  Set of scripts to create extended PSF of an image.
 @end menu
 
@@ -32602,7 +32616,7 @@ With this option, you can have separate color bars under each image.
 
 
 
-@node Zero point estimation, Dithering pattern simulation, Viewing FITS file contents with DS9 or TOPCAT, Installed scripts
+@node Zero point estimation, Pointing pattern simulation, Viewing FITS file contents with DS9 or TOPCAT, Installed scripts
 @section Zero point estimation
 
 @cindex Zero point
@@ -32866,8 +32880,8 @@ When this option is given, the default installed Makefile will not be used: the 
 @end table
 
 
-@node Dithering pattern simulation, PSF construction and subtraction, Zero point estimation, Installed scripts
-@section Dithering pattern simulation
+@node Pointing pattern simulation, PSF construction and subtraction, Zero point estimation, Installed scripts
+@section Pointing pattern simulation
 
 @cindex Depth of data
 Astronomical images are often composed of many single exposures.
@@ -32901,45 +32915,47 @@ In the jargon of observational astronomers, each exposure is also known as a ``d
 This name was chosen because two exposures are not usually taken on exactly the same position of the sky (known as ``pointing'').
 In order to improve all the item above, we often move the center of the field of view from one exposure to the next.
 In most cases this movement is small compared to the field of view, so most of the central part of the final stack has a fixed depth, but the edges are shallower (conveying a sence of vibration).
+When the spacing between pointings is large, they are known as an ``offset''.
+A ``pointing'' is used to refer to either a dither or an offset.
 
 @cindex Exposure map
 For example see Figures 3 and 4 of @url{https://arxiv.org/pdf/1305.1931.pdf, Illingworth et al. 2013} which show the exposures that went into the XDF survey.
-The dither pattern can also be large compared to the field of view, for example see Figure 1 of @url{https://arxiv.org/pdf/2109.07478.pdf, Trujillo et al. 2021}, which show the dithering strategy for the LIGHTS survey.
+The pointing pattern can also be large compared to the field of view, for example see Figure 1 of @url{https://arxiv.org/pdf/2109.07478.pdf, Trujillo et al. 2021}, which show the pointing strategy for the LIGHTS survey.
 These types of images (where each pixel contains the number of exposures, or time, that were used in it) are known as exposure maps.
 
-The dithering pattern therefore is strongly defined by the science case (high-level purpose of the observation) and your telescope's field of view.
+The pointing pattern therefore is strongly defined by the science case (high-level purpose of the observation) and your telescope's field of view.
 For example in the XDF survey is focused on very high redshift (most distant!) galaxies.
 These are very small objects and within that small footprint (of just 1 arcmin) we have thousands of them.
 However, the LIGHTS survey is focused on the halos of large nearby galaxies (that can be more than 10 arcminutes wide!).
 
-In @ref{Invoking astscript-dither-simulate} of Gnuastro's @ref{Installed scripts} is described in detail.
-This script is designed to simplify the process of selecting the best dithering pattern for your observation strategy.
-For a practical tutorial on using this script, see @ref{Dither pattern design}.
+In @ref{Invoking astscript-pointing-simulate} of Gnuastro's @ref{Installed scripts} is described in detail.
+This script is designed to simplify the process of selecting the best pointing pattern for your observation strategy.
+For a practical tutorial on using this script, see @ref{Pointing pattern design}.
 
 @menu
-* Invoking astscript-dither-simulate::  Options and running mode.
+* Invoking astscript-pointing-simulate::  Options and running mode.
 @end menu
 
-@node Invoking astscript-dither-simulate,  , Dithering pattern simulation, Dithering pattern simulation
-@subsection Invoking astscript-dither-simulate
+@node Invoking astscript-pointing-simulate,  , Pointing pattern simulation, Pointing pattern simulation
+@subsection Invoking astscript-pointing-simulate
 
-This installed script will simulate a final stacked image from a certain dither pattern (given as a table).
-The executable name is @file{astscript-dither-simulate}, with the following general template:
+This installed script will simulate a final stacked image from a certain pointing pattern (given as a table).
+The executable name is @file{astscript-pointing-simulate}, with the following general template:
 
 @example
-$ astscript-dither-simulate [OPTION...] pointings.fits
+$ astscript-pointing-simulate [OPTION...] pointings.fits
 @end example
 
 @noindent
-Examples (for a tutorial, see @ref{Dither pattern design}):
+Examples (for a tutorial, see @ref{Pointing pattern design}):
 
 @example
-$ astscript-dither-simulate dither.fits --output=stack.fits \
+$ astscript-pointing-simulate pointing.fits --output=stack.fits \
            --img=image.fits --center=10,10 --width=1,1
 @end example
 
-The default output of this script is a stacked image that results from placing the given image (given to @option{--img}) in the pointings of a dither pattern.
-The Right Ascension (RA) and Declination (Dec) of each pointing is given in the main input catalog (@file{dither.fits} in the example above).
+The default output of this script is a stacked image that results from placing the given image (given to @option{--img}) in the pointings of a pointing pattern.
+The Right Ascension (RA) and Declination (Dec) of each pointing is given in the main input catalog (@file{pointing.fits} in the example above).
 The center and width of the final stack (both in degrees by default) should be speficied using the @option{--width} option.
 Therefore, in order to successfully run, this script at least needs the following four inputs:
 @table @asis
@@ -32956,23 +32972,23 @@ The width (in degrees) of the final stack (given to the @option{--width} option)
 @end table
 
 This script will ignore the pixel values of the reference image (given to @option{--img}) and the Reference coordinates (values to @code{CRVAL1} and @code{CRVAL2} in its WCS keywords).
-For each dither pointing, this script will put the given RA and Dec into the @code{CRVAL1} and @code{CRVAL2} keywords of a copy of the input (not changing the input in anyway), and reset that input's pixel values to 1.
+For each pointing pointing, this script will put the given RA and Dec into the @code{CRVAL1} and @code{CRVAL2} keywords of a copy of the input (not changing the input in anyway), and reset that input's pixel values to 1.
 The script will then warp the modified copy into the final pixel grid (correcting any rotation and distortions that are used from the original input).
-This process is done for all the dither points in parallel.
-Finally, all the dithered exposures are stacked together to produce an exposure map (showing how many exposures go into each pixel of the final stack.
+This process is done for all the pointing points in parallel.
+Finally, all the exposures in the pointing list are stacked together to produce an exposure map (showing how many exposures go into each pixel of the final stack.
 
-Except for the table of dither positions, the rest of the inputs and settings are configured through @ref{Options}, just note the restrictions in @ref{Installed scripts}.
+Except for the table of pointing positions, the rest of the inputs and settings are configured through @ref{Options}, just note the restrictions in @ref{Installed scripts}.
 
 @table @option
 @item -o STR
 @itemx --output=STR
 Name of the output.
-The output is an image of the requested size (@option{--width}) and position (@option{--center}) in the sky, but each pixel will contain the number of exposures that go into it after the dithering has been done.
+The output is an image of the requested size (@option{--width}) and position (@option{--center}) in the sky, but each pixel will contain the number of exposures that go into it after the pointing has been done.
 See description above for more.
 
 @item -h STR/INT
 @itemx --hdu=STR/INT
-The name or counter (counting from zero; from the FITS standard) of HDU containing the table of dither pointing positions (the file name of this table is the main input argument to this script).
+The name or counter (counting from zero; from the FITS standard) of HDU containing the table of pointing pointing positions (the file name of this table is the main input argument to this script).
 For more, see the description of this option in @ref{Input output options}.
 
 @item -i STR
@@ -32989,12 +33005,12 @@ If not given, a default value of @code{1} is assumed; so this is not a mandatory
 
 @item -r STR/INT
 @itemx --racol=STR/INT
-The name or counter (counting from 1; from the FITS standard) of the column containing the Right Ascension (RA) of each pointing to be used in the dither pattern.
+The name or counter (counting from 1; from the FITS standard) of the column containing the Right Ascension (RA) of each pointing to be used in the pointing pattern.
 The file containing the table is given to this script as its only argument.
 
 @item -d STR/INT
 @itemx --deccol=STR/INT
-The name or counter (counting from 1; from the FITS standard) of the column containing the Declination (Dec) of each pointing to be used in the dither pattern.
+The name or counter (counting from 1; from the FITS standard) of the column containing the Declination (Dec) of each pointing to be used in the pointing pattern.
 The file containing the table is given to this script as its only argument.
 
 @item -C FLT,FLT
@@ -33020,21 +33036,21 @@ The warping of each exposure is done in parallel by default; therefore there are
 @table @code
 @item $EXPOSURE
 Input: name of file with the same size as the reference image with all pixels having a fixed value of 1.
-The WCS has also been corrected based on the dither pattern.
+The WCS has also been corrected based on the pointing pattern.
 @item $TOWARP
 Output: name of the expected output of your hook.
 If it is not created by your script, the script will complain and abort.
 This file will be given to Warp to be warped into the output pixel grid.
 @end table
 
-For an example of using hooks with an exteded discussion, see @ref{Dither pattern design} and @ref{Accounting for non-exposed pixels}.
+For an example of using hooks with an exteded discussion, see @ref{Pointing pattern design} and @ref{Accounting for non-exposed pixels}.
 
 To develop your command, you can use @command{--hook-warp-before='...; echo GOOD; exit 1'} (where @code{...} can be replaced by any command) and run the script on a single thread (with @option{--numthreads=1}) to produce a single file and simplify the checking that your desired operation works as expected.
 All the files will be within the temporary directory (see @option{--tmpdir}).
 
 @item --hook-warp-after='STR'
 Command to run after the warp of each exposure into the output pixel grid, but before the stacking of all exposures.
-For more on hooks, see the description of @code{--hook-warp-before}, @ref{Dither pattern design} and @ref{Accounting for non-exposed pixels}.
+For more on hooks, see the description of @code{--hook-warp-before}, @ref{Pointing pattern design} and @ref{Accounting for non-exposed pixels}.
 
 @table @code
 @item $WARPED
@@ -33049,7 +33065,7 @@ This file will be stacked from the same file for all exposures into the final ou
 The operator to use for stacking the warped individual exposures into the final output of this script.
 For the full list, see @ref{Stacking operators}.
 By default it is the @code{sum} operator (to produce an output exposure map).
-For an example usage, see the tutorial in @ref{Dither pattern design}.
+For an example usage, see the tutorial in @ref{Pointing pattern design}.
 
 @item --mksrc=STR
 Use a non-standard Makefile for the Makefile to call.
@@ -33083,7 +33099,7 @@ For more, see @option{Operating mode options}.
 
 @item -N INT
 @itemx --numthreads=INT
-The number of threads to use for parallel operations (warping the input into the different dither points).
+The number of threads to use for parallel operations (warping the input into the different pointing points).
 If not given (by default), the script will try to find the number of available threads on the running system and use that.
 For more, see @option{Operating mode options}.
 
@@ -33102,7 +33118,7 @@ Print the version of the running Gnuastro along with a copyright notice and list
 For more, see @option{Operating mode options}.
 @end table
 
-@node PSF construction and subtraction,  , Dithering pattern simulation, Installed scripts
+@node PSF construction and subtraction,  , Pointing pattern simulation, Installed scripts
 @section PSF construction and subtraction
 
 The point spread function (PSF) describes how the light of a point-like source is affected by several optical scattering effects (atmosphere, telescope, instrument, etc.).

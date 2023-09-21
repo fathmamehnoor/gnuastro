@@ -46,7 +46,7 @@ hook_warp_before=""
 stack_operator="sum"
 scriptname=@SCRIPT_NAME@
 ctype="RA---TAN,DEC--TAN"
-output=dither-simulate.fits
+output=pointing-simulate.fits
 installdir=@PREFIX@/share/gnuastro
 
 
@@ -328,7 +328,7 @@ fi
 ndither=$(asttable $cat --info-num-rows)
 if [ x$ndither = x0 ]; then
         cat <<EOF
-$scriptname: $cat: input dither pointing table is empty! It should contain at least one row, containing two columns for the RA and Dec of each pointing of the dither pattern. Please see the documentation with this command: 'info astscript-dither-simulate'
+$scriptname: $cat: input dither pointing table is empty! It should contain at least one row, containing two columns for the RA and Dec of each pointing of the dither pattern. Please see the documentation with this command: 'info astscript-pointing-simulate'
 EOF
         exit 1
 fi
@@ -367,7 +367,7 @@ fi
 # All the settings given by the user and data are passed to Make through
 # this configuration file (and the variables within it).
 counter=1;
-config=$tmpdir/dither-simulate.conf
+config=$tmpdir/pointing-simulate.conf
 echo "img = $img" > $config
 echo "ctype = $ctype" >> $config
 echo "width = $width" >> $config
@@ -426,7 +426,7 @@ fi
 # temporary directory. Also, the number of threads should be given when
 # calling Make. Otherwise, all other settings should be taken inside the
 # configuration file.
-if [ x"$mksrc" = x ]; then mksrc=$installdir/dither-simulate.mk; fi
+if [ x"$mksrc" = x ]; then mksrc=$installdir/pointing-simulate.mk; fi
 make -f $mksrc tmpdir=$tmpdir --jobs=$numthreads
 
 

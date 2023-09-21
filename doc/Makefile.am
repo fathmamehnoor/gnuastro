@@ -162,7 +162,7 @@ dist_man_MANS = $(MAYBE_ARITHMETIC_MAN) \
   $(MAYBE_STATISTICS_MAN) \
   $(MAYBE_TABLE_MAN) \
   $(MAYBE_WARP_MAN) \
-  man/astscript-dither-simulate.1 \
+  man/astscript-pointing-simulate.1 \
   man/astscript-ds9-region.1 \
   man/astscript-fits-view.1 \
   man/astscript-psf-scale-factor.1 \
@@ -264,11 +264,11 @@ man/astwarp.1: $(top_srcdir)/bin/warp/args.h  $(ALLMANSDEP)
 
 
 # The Scripts:
-man/astscript-dither-simulate.1: $(top_srcdir)/bin/script/dither-simulate.sh \
+man/astscript-pointing-simulate.1: $(top_srcdir)/bin/script/pointing-simulate.sh \
                                  $(ALLMANSDEP)
-	$(MAYBE_HELP2MAN) -n "Simulate the exposure map of a dither pattern" \
+	$(MAYBE_HELP2MAN) -n "Simulate the exposure map of a pointing pattern" \
 	                  --libtool \
-	                  $(toputildir)/script/astscript-dither-simulate
+	                  $(toputildir)/script/astscript-pointing-simulate
 
 man/astscript-ds9-region.1: $(top_srcdir)/bin/script/ds9-region.sh \
                             $(ALLMANSDEP)
