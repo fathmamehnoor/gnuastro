@@ -59,6 +59,7 @@ all the commits needed for this release have been completed.
        $ git checkout master
        $ git log --oneline --graph --decorate --all   # For a visual check.
 
+
  - Activate the Conda-forge build to see if the distribution builds on all
    the architectures there.
 
@@ -66,24 +67,43 @@ all the commits needed for this release have been completed.
      recognize 'tar.lz'! Then upload it to a URL that Conda can download
      from:
 
-       $ ./developer-build -p junk; cd build && make dist-xz
-       $ scp gnuastro-X.X.X-XXXX.tar.xz server:location/
+       $ ./developer-build -z xz -p SERVER:LOCATION
+
+   - Get the checksum of the built tarball:
+
+       $ sha256sum build/gnuastro-X.XX.XX-XXXX.tar.xz
+
+   - If you don't already have a Fork of the main CondaForge repository,
+     make one.
+     - Login to https://github.com
+     - Go to https://github.com/conda-forge/gnuastro-feedstock
+     - Click on the "Fork" button and setup a fork.
 
    - Clone the Conda-forge repository for building Gnuastro (change 'XXXX'
-     to the version string); if you already have it, just pull the recent
-     changes.
+     to the version string); if you already have it just pull the recent
+     changes ('git pull'). If you have have already added your fork as a
+     remote, then ignore that step.
 
        $ git@github.com:conda-forge/gnuastro-feedstock.git
        $ cd gnuastro-feedstock
-       $ git checkout -b build-vXXXX
+       $ git remote add fork YOUR-FORK-GIT-LOCATION
+       $ git checkout -b XXXX-dev
        $ emacs recipe/meta.yaml
-       ## Update the URL and SHA256 checksums in the file above
+          --> Completely replace the URL to the one you uploaded to.
+          --> Update the SHA256 checksum to the one you obtained above.
        $ git add -u
        $ git commit
-       $ git push origin build-vXXXX
+       $ git push fork XXXX-dev
 
-   - Once the push is done, Github will automatically start a build on all
-     available Conda architectures that Gnuastro has been configured for.
+   - Once the push is complete, do the pull request (from the link that is
+     printed on the command-line). Afterwards, Github will automatically
+     start a build on all available Conda architectures that Gnuastro has
+     been configured for. This will usually take about half an hour!
+
+   - If there is any problem, you need to fix it. Otherwise (if all the
+     tests pass), you can close the pull request and delete the branch in
+     your fork.
+
 
  - [STABLE] Update the versions in the NEWS file and do a spell-check.
 

@@ -47,7 +47,7 @@ reconf=0
 upload=0
 install=0
 valgrind=0
-compression=lz
+compression=lzip
 prefix=/usr/local
 
 
