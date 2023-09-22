@@ -47,6 +47,7 @@ reconf=0
 upload=0
 install=0
 valgrind=0
+compression=lz
 prefix=/usr/local
 
 
@@ -196,8 +197,11 @@ Options:
  -i, --install            Run 'sudo make install' after the build.
                           Current status: $install_status
 
- -D, --dist               Build a tar.lz tarball and PDF manual.
+ -D, --dist               Build a compressed tarball and PDF manual.
                           Current status: $dist_status
+
+ -z, --compression=STR    Compression algorithm to use: 'lz' or 'xz'.
+                          Current value: $compression
 
  -u, --upload STR         First run '--dist', then upload tarball and PDF
                           manual to the given 'server:folder'.
@@ -302,6 +306,11 @@ do
             dist=1
             shift # past argument
             ;;
+        -z|--compression)
+            compression="$2"
+            shift # past argument
+            shift # past value
+            ;;
         -u|--upload)
             dist=1
             upload=1
@@ -370,6 +379,14 @@ if ! [ -f configure ]; then
     echo "   https://ftp.gnu.org/gnu/gnuastro/"
     exit 1
 fi
+
+# Make sure a reasonable value is given to '--compression':
+if   [ x"$compression" = xlzip ]; then compsuff=lz;
+elif [ x"$compression" = xxz   ]; then compsuff=xz;
+else
+    echo "$compression: value of '--compression' ('-z') not recognized. It should be either 'lzip' or 'xz'"; exit 1
+fi
+
 
 
 
@@ -529,7 +546,7 @@ fi
 # Make the tarball and PDF for distribution. Then put a copy of the PDF in
 # the top build directory for easy usage later.
 if [ x$dist = x1 ]; then
-    make dist-lzip pdf
+    make dist-$compression pdf
     cp doc/gnuastro.pdf ./
 fi
 
@@ -543,12 +560,12 @@ if [ x$upload = x1 ]; then
     # name. Note that with the '--upload' option, '--dist' is also
     # activated, so the tarball is already built and ready by this
     # step.
-    tarball=$(ls *.tar.lz)
+    tarball=$(ls *.tar.$compsuff)
     base=$(echo $tarball | sed -e's/-/ /' | awk '{print $1}')
 
     # File names:
     pdf=$base.pdf
-    latest=$base"-latest.tar.lz"
+    latest=$base"-latest.tar.$compsuff"
 
     # Copy the files to the subdirectories of the given URL (must include
     # folders).

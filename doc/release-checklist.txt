@@ -59,10 +59,19 @@ all the commits needed for this release have been completed.
        $ git checkout master
        $ git log --oneline --graph --decorate --all   # For a visual check.
 
- - Activate the Conda-forge build:
+ - Activate the Conda-forge build to see if the distribution builds on all
+   the architectures there.
+
+   - Build and upload the Gnuastro tarball with tar.xz since Conda does not
+     recognize 'tar.lz'! Then upload it to a URL that Conda can download
+     from:
+
+       $ ./developer-build -p junk; cd build && make dist-xz
+       $ scp gnuastro-X.X.X-XXXX.tar.xz server:location/
 
    - Clone the Conda-forge repository for building Gnuastro (change 'XXXX'
-     to the version string):
+     to the version string); if you already have it, just pull the recent
+     changes.
 
        $ git@github.com:conda-forge/gnuastro-feedstock.git
        $ cd gnuastro-feedstock
