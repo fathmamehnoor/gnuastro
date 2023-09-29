@@ -197,19 +197,23 @@ tap_query_construct_spatial(struct queryparams *p)
               __func__);
     }
 
-  /* Build the final spatial constraint query string. Note on the
-     quotations: the final query is surrounded by single-quotes
-     ('). However, we need the single quotes around 'ICRS' in this command
-     (both in the final string below and the ones above). So just before
-     the first 'ICRS', we end the single-quote and start a double quote and
-     keep it until the end. Finally, we add a single quote again so all
-     other components of the query can assume that the single-quote
-     environment is active.*/
+   /* Build the final spatial constraint query string. Note on the
+     quotations within the string when libcurl is not available: the final
+     query is surrounded by single-quotes('). However, we need the single
+     quotes around 'ICRS' in this command (both in the final string below
+     and the ones above). So just beforethe first 'ICRS', we end the
+     single-quote and start a double quote and keep it until the end.
+     Finally, we add a single quote again so allother components of the
+     query can assume that the single-quote environment is active. */
   if( asprintf(&spatialstr,
-               "1=CONTAINS( POINT('\"'ICRS', %s, %s), %s )\"'",
-               p->ra_name, p->dec_name, regionstr)<0 )
+              #ifdef HAVE_LIBCURL
+                 "1=CONTAINS( POINT('ICRS', %s, %s), %s )",
+              #else
+                 "1=CONTAINS( POINT('\"'ICRS', %s, %s), %s )\"'",
+              #endif
+              p->ra_name, p->dec_name, regionstr)<0 )
     error(EXIT_FAILURE, 0, "%s: asprintf allocation ('querystr')",
-          __func__);
+           __func__);
 
 
   /* Clean up and return. */
@@ -367,7 +371,12 @@ tap_query_construct_data(struct queryparams *p)
   if(p->sort) sortstr=tap_query_construct_sort(p);
 
   /* Write the automatically generated query string.  */
-  if( asprintf(&querystr,  "'SELECT %s %s FROM %s %s %s %s %s %s'",
+  if( asprintf(&querystr,
+               #ifdef HAVE_LIBCURL
+                 "SELECT %s %s FROM %s %s %s %s %s %s",
+               #else
+                 "'SELECT %s %s FROM %s %s %s %s %s %s'",
+               #endif
                headstr ? headstr : "",
                columns,
                datasetuse,
@@ -377,7 +386,7 @@ tap_query_construct_data(struct queryparams *p)
                spatialstr ? spatialstr : "",
                sortstr ? sortstr : "")<0 )
     error(EXIT_FAILURE, 0, "%s: asprintf allocation ('querystr')",
-          __func__);
+              __func__);
 
   /* Clean up and return. */
   if(datasetuse!=p->datasetuse) free(datasetuse);
@@ -463,56 +472,54 @@ tap_download_libcurl(struct queryparams *p, char *querystr)
   CURL *curl;
   CURLcode res;
   gal_list_str_t *url;
-  FILE *fp = fopen(p->downloadname, "wb");
+  char* postfield = NULL;
 
+  FILE *fp = fopen(p->downloadname, "wb");
   if(!fp)
     error(EXIT_FAILURE, errno, "%s: cannot open file '%s'"
                   "for writing", __func__, p->downloadname);
 
-  /* Construct the query string based on conditions. */
-  printf("\nQuery String: %s\n",querystr);
+  printf("\nADQL Query String: %s\n", querystr);
 
   /* Go over the given URLs for this server. */
   for(url=p->urls; url!=NULL; url=url->next)
      {
        /* Initialize a curl handle. */
        curl = curl_easy_init();
+       if(!curl)
+          error(EXIT_FAILURE, 0, "%s: Failed to initialize curl handle",
+               __func__);
 
-       if(curl)
-         {
-           char postfield[1024];
-           snprintf(postfield, sizeof(postfield),
-                    "LANG=ADQL&FORMAT=fits&REQUEST=doQuery&QUERY=%s",
-                    querystr);
+      /* Build the postfield. */
+       asprintf(&postfield,
+               "LANG=ADQL&FORMAT=fits&REQUEST=doQuery&QUERY=%s",
+               querystr);
 
-           /* Set various options for the curl handle. */
-           curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postfield);
-           printf("\nDownload status:\n");
-           curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
-           curl_easy_setopt(curl, CURLOPT_URL, url->v);
-           curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, tap_callback);
+       /* Set various options for the curl handle. */
+       curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postfield);
+       printf("\nDownload status:\n");
+       curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+       curl_easy_setopt(curl, CURLOPT_URL, url->v);
+       curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, tap_callback);
 
-           /* Set the file handle as the data destination. */
-           curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+       /* Set the file handle as the data destination. */
+       curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
 
-           /* Perform the request, res will get the return code. */
-           res = curl_easy_perform(curl);
+       /* Perform the request, res will get the return code. */
+       res = curl_easy_perform(curl);
 
-           /* Check for errors. */
-           if(res != CURLE_OK)
-              error(url->next ? EXIT_SUCCESS : EXIT_FAILURE, 0,
-                          "the query download from URL %s failed: %s",
-                          url->v, curl_easy_strerror(res));
+       /* Check for errors. */
+       if(res != CURLE_OK)
+          error(url->next ? EXIT_SUCCESS : EXIT_FAILURE, 0,
+               "the query download from URL %s failed: %s",
+                url->v, curl_easy_strerror(res));
 
-           /* Close the file and cleanup the curl handle. */
-           fclose(fp);
-           curl_easy_cleanup(curl);
-           if (res == CURLE_OK) break;
-         }
-
-        /* Clean up. */
-        curl_global_cleanup();
+       /* Close the file and cleanup the curl handle. */
+       fclose(fp);
+       curl_easy_cleanup(curl);
+       if (res == CURLE_OK) break;
      }
+     p->finalcommand = postfield;
 }
 #endif
 
@@ -541,5 +548,4 @@ tap_download(struct queryparams *p)
 
   /* Clean up. */
   if (querystr != p->query) free(querystr);
-
 }
