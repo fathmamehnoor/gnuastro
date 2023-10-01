@@ -388,6 +388,139 @@ gal_statistics_median(gal_data_t *input, int inplace)
 
 
 
+
+static void
+statistics_mad_in_sorted_no_blank(gal_data_t *sorted, gal_data_t *med,
+                                  void *mad_o)
+{
+  uint8_t type;
+  gal_data_t *use, *mad;
+  int flags=GAL_ARITHMETIC_FLAG_INPLACE | GAL_ARITHMETIC_FLAG_NUMOK;
+
+  /* Sanity check. */
+  if(med->type!=sorted->type)
+    error(EXIT_FAILURE, 0, "%s: the input 'sorted' and 'med' arrays "
+          "do not have the same type; they are respectively '%s' and '%s'",
+          __func__, gal_type_name(sorted->type, 1),
+          gal_type_name(med->type, 1));
+
+  /* After subtracting, we will need to sort the array, so a copy is
+     necessary (the input should not be touched). Furthermore, if the input
+     is an un-signed integer, convert it to a signed integer of the next
+     larger size. This is necessary, because half of the values will become
+     negative after subtracting the median. */
+  switch(sorted->type)
+    {
+    case GAL_TYPE_UINT8:  type=GAL_TYPE_INT16;
+    case GAL_TYPE_UINT16: type=GAL_TYPE_INT32;
+    case GAL_TYPE_UINT32: type=GAL_TYPE_INT64;
+    case GAL_TYPE_UINT64: type=GAL_TYPE_INT64;
+    default:              type=GAL_TYPE_INVALID; /* Not necessary. */
+    }
+  use=gal_data_copy_to_new_type(sorted, ( type!=GAL_TYPE_INVALID
+                                          ? type : sorted->type) );
+
+  /* Subtract the median from the input. */
+  use=gal_arithmetic(GAL_ARITHMETIC_OP_MINUS, 1, flags, use, med);
+
+  /* Get the absolute value of the differences from the median. The
+     absolute values of the differences can fit into the original input
+     type, so to make things consistent, we'll take it back to the original
+     type. */
+  use=gal_arithmetic(GAL_ARITHMETIC_OP_ABS, 1, flags, use);
+  use=gal_data_copy_to_new_type_free(use, sorted->type);
+  use->flag=0;/* Necessary before new median to re-sort. */
+  mad = gal_statistics_median(use, 1);
+
+  /* For a check:
+  {
+    size_t i;
+    double *u=use->array;
+    double *ma=med->array, *Ma=mad->array, *s=sorted->array;
+    for(i=0;i<sorted->size;++i)
+      printf("%-15g    %-15g\n", s[i], u[i]);
+    printf("Median: %g\n", ma[0]);
+    printf("MAD: %g\n", Ma[0]);
+    exit(0);
+  } */
+
+  /* Copy the MAD value into the output pointer. */
+  memcpy(mad_o, mad->array, gal_type_sizeof(mad->type));
+
+  /* Clean up. */
+  gal_data_free(mad);
+  gal_data_free(use);
+}
+
+
+
+
+
+/* Return the median and median absolute deviation. */
+static gal_data_t *
+statistics_median_mad(gal_data_t *input, int inplace, int onlymad)
+{
+  size_t one=1, two=2;
+  gal_data_t *in, *med;
+  gal_data_t *mad, *out;
+
+  /* If the caller only wants the MAD, then the output should only have one
+     element (which is the actual 'mad' that is calculated). */
+  mad = gal_data_alloc(NULL, input->type, 1, &one, NULL, 1,
+                     -1, 1, NULL, NULL, NULL);
+  out = ( onlymad
+          ? mad
+          : gal_data_alloc(NULL, input->type, 1, &two, NULL, 1,
+                           -1, 1, NULL, NULL, NULL) );
+
+  /* Allocate the input array if we should not work in-place. */
+  in = inplace ? input : gal_data_copy(input);
+
+  /* Calculate the median. */
+  med = gal_statistics_median(in, 1);
+
+  /* Write the MAD into the allocated space. */
+  statistics_mad_in_sorted_no_blank(in, med, mad->array);
+
+  /* If the caller wanted both the median and the MAD, write the median and
+     MAD into the output dataset. */
+  if(onlymad==0)
+    {
+      memcpy(out->array, med->array, gal_type_sizeof(med->type));
+      memcpy(gal_pointer_increment(out->array, 1, out->type), mad->array,
+             gal_type_sizeof(out->type));
+      gal_data_free(mad);
+    }
+
+  /* Clean up and return. */
+  gal_data_free(med);
+  return out;
+}
+
+
+
+
+
+gal_data_t *
+gal_statistics_mad(gal_data_t *input, int inplace)
+{
+  return statistics_median_mad(input, inplace, 1);
+}
+
+
+
+
+
+gal_data_t *
+gal_statistics_median_mad(gal_data_t *input, int inplace)
+{
+  return statistics_median_mad(input, inplace, 0);
+}
+
+
+
+
+
 /* For a given size, return the index (starting from zero) that is at the
    given quantile. */
 size_t
@@ -2266,70 +2399,16 @@ gal_statistics_cfp(gal_data_t *input, gal_data_t *bins, int normalize)
 /****************************************************************
  *****************         Outliers          ********************
  ****************************************************************/
-/* Sigma-cilp a given distribution:
-
-   Inputs:
-
-     - 'multip': multiple of the standard deviation,
-
-     - 'param' must be positive and determines the type of clipping:
-
-         - param<1.0: interpretted as a tolerance level to stop clipping.
-
-         - param>=1.0 and an integer: a specific number of times to do the
-           clippping.
-
-   Output elements (type FLOAT32):
-
-     - 0: Number of points used.
-     - 1: Median.
-     - 2: Mean.
-     - 3: Standard deviation.
-
-  The way this function works is very simple: first it will sort the input
-  (if it isn't sorted). Afterwards, it will recursively change the starting
-  point of the array and its size, calcluating the basic statistics in each
-  round to define the new starting point and size.
-*/
-#define SIGCLIP(IT) {                                                   \
-    IT *a  = nbs->array, *af = a  + nbs->size;                          \
-    IT *bf = nbs->array, *b  = bf + nbs->size - 1;                      \
-                                                                        \
-    /* Remove all out-of-range elements from the start of the array. */ \
-    if( nbs->flag & GAL_DATA_FLAG_SORTED_I )                            \
-      do if( *a > (*med - (multip * *std)) )                            \
-           { start=a; break; }                                          \
-      while(++a<af);                                                    \
-    else                                                                \
-      do if( *a < (*med + (multip * *std)) )                            \
-           { start=a; break; }                                          \
-      while(++a<af);                                                    \
-                                                                        \
-    /* Remove all out-of-range elements from the end of the array. */   \
-    if( nbs->flag & GAL_DATA_FLAG_SORTED_I )                            \
-      do if( *b < (*med + (multip * *std)) )                            \
-           { size=b-a+1; break; }                                       \
-      while(--b>=bf);                                                   \
-    else                                                                \
-      do if( *b > (*med - (multip * *std)) )                            \
-           { size=b-a+1; break; }                                       \
-      while(--b>=bf);                                                   \
-  }
-
-gal_data_t *
-gal_statistics_sigma_clip(gal_data_t *input, float multip, float param,
-                          int inplace, int quiet)
+static gal_data_t *
+statistics_clip_prepare(gal_data_t *input, gal_data_t *nbs, float multip,
+                        float param, int quiet, int sig1_mad0,
+                        gal_data_t **center, gal_data_t **spread,
+                        char **colnames)
 {
   float *oa;
-  void *start, *nbs_array;
-  double *med, *mean, *std;
+  gal_data_t *out;
   uint8_t type=gal_tile_block(input)->type;
-  uint8_t bytolerance = param>=1.0f ? 0 : 1;
-  double oldmed=NAN, oldmean=NAN, oldstd=NAN;
-  size_t num=0, one=1, four=4, size, oldsize;
-  gal_data_t *fcopy, *median_i, *median_d, *out, *meanstd;
-  gal_data_t *nbs=gal_statistics_no_blank_sorted(input, inplace);
-  size_t maxnum = param>=1.0f ? param : GAL_STATISTICS_SIG_CLIP_MAX_CONVERGE;
+  size_t i, one=1, osize=GAL_STATISTICS_CLIP_OUT_SIZE;
 
   /* Some sanity checks. */
   if( multip<=0 )
@@ -2351,13 +2430,159 @@ gal_statistics_sigma_clip(gal_data_t *input, float multip, float param,
     error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to fix the "
           "problem. 'nbs' isn't sorted", __func__, PACKAGE_BUGREPORT);
 
-
-  /* Allocate the necessary spaces. */
-  out=gal_data_alloc(NULL, GAL_TYPE_FLOAT32, 1, &four, NULL, 0,
+  /* Allocate the necessary spaces (spread is only necessary for MAD). */
+  out=gal_data_alloc(NULL, GAL_TYPE_FLOAT32, 1, &osize, NULL, 0,
                      input->minmapsize, input->quietmmap, NULL, NULL, NULL);
-  median_i=gal_data_alloc(NULL, type, 1, &one, NULL, 0, input->minmapsize,
-                          input->quietmmap, NULL, NULL, NULL);
+  *center=gal_data_alloc(NULL, type, 1, &one, NULL, 0, input->minmapsize,
+                         input->quietmmap, NULL, NULL, NULL);
+  *spread = ( sig1_mad0
+              ? NULL
+              : gal_data_alloc(NULL, type, 1, &one, NULL, 0,
+                               input->minmapsize, input->quietmmap,
+                               NULL, NULL, NULL) );
 
+  /* Set all the output values to NaN to start with. */
+  oa=out->array;
+  for(i=0;i<GAL_STATISTICS_CLIP_OUT_SIZE;++i) oa[i]=NAN;
+
+  /* Prepare the column names if the user gave quiet=0. */
+  if(quiet==0)
+    {
+      if(sig1_mad0)
+        {
+          if( asprintf(colnames, "%-5s %-10s %-12s %-12s",
+                       "round", "number", "median", "STD")<0 )
+            error(EXIT_FAILURE, 0, "%s: asprintf allocation1 error",
+                  __func__);
+        }
+      else
+        {
+          if(asprintf(colnames, "%-5s %-10s %-12s %-12s",
+                      "round", "number", "median", "MAD")<0)
+            error(EXIT_FAILURE, 0, "%s: asprintf allocation2 error",
+                  __func__);
+        }
+    }
+
+  /* Return the allocated space for the output. */
+  return out;
+}
+
+
+
+
+
+/* Calculate all the extra statistics that are usually useful with
+   sigma-clipping. */
+static void
+statistics_clip_stats_extra(gal_data_t *nbs, float *oa, uint8_t extrastats)
+{
+  gal_data_t *tmp;
+  uint8_t istd  = extrastats & GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_STD;
+  uint8_t imad  = extrastats & GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_MAD;
+  uint8_t imean = extrastats & GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_MEAN;
+
+  /* If the "extra" stats are already calculated (for example MAD in
+     MAD-clipping), then there is no need to re-calculate it, so set its
+     conditional variable to 0. Note the '!' at the start of the
+     condition. */
+  if( !(isnan(oa[GAL_STATISTICS_CLIP_OUTCOL_MEAN]) && imean) ) imean=0;
+  if( !(isnan(oa[GAL_STATISTICS_CLIP_OUTCOL_STD])  && istd)  ) istd=0;
+  if( !(isnan(oa[GAL_STATISTICS_CLIP_OUTCOL_MAD])  && imad)  ) imad=0;
+
+  /* Mean and Standard deviation. */
+  if(imean && istd)
+    {
+      tmp=gal_statistics_mean_std(nbs);
+      oa[ GAL_STATISTICS_CLIP_OUTCOL_STD  ] = ((double *)(tmp->array))[1];
+      oa[ GAL_STATISTICS_CLIP_OUTCOL_MEAN ] = ((double *)(tmp->array))[0];
+      gal_data_free(tmp);
+    }
+  else /* Only one of the mean or STD was requested */
+    {
+      if(imean)
+        {
+          tmp=gal_statistics_mean(nbs);
+          oa[ GAL_STATISTICS_CLIP_OUTCOL_MEAN ]
+            = ((double *)(tmp->array))[0];
+          gal_data_free(tmp);
+        }
+      if(istd)
+        {
+          tmp=gal_statistics_std(nbs);
+          oa[ GAL_STATISTICS_CLIP_OUTCOL_STD ]
+            = ((double *)(tmp->array))[0];
+          gal_data_free(tmp);
+        }
+    }
+
+  /* MAD. */
+  if(imad)
+    {
+      tmp=gal_statistics_mad(nbs, 1);
+      tmp=gal_data_copy_to_new_type_free(tmp, GAL_TYPE_FLOAT32);
+      oa[ GAL_STATISTICS_CLIP_OUTCOL_MAD ] = ((float *)(tmp->array))[0];
+      gal_data_free(tmp);
+    }
+}
+
+
+
+
+
+/* Sigma-cilp a given distribution. The way this function works is very
+   simple: first it will sort the input (if it isn't sorted). Afterwards,
+   it will recursively change the starting point of the array and its size,
+   calcluating the basic statistics in each round to define the new
+   starting point and size. */
+#define CLIPALL(IT) {                                                   \
+    IT *a  = nbs->array, *af = a  + nbs->size;                          \
+    IT *bf = nbs->array, *b  = bf + nbs->size - 1;                      \
+                                                                        \
+    /* Remove all out-of-range elements from the start of the array. */ \
+    if( nbs->flag & GAL_DATA_FLAG_SORTED_I )                            \
+      do if( *a > (center - (multip * spread)) )                        \
+           { start=a; break; }                                          \
+      while(++a<af);                                                    \
+    else                                                                \
+      do if( *a < (center + (multip * spread)) )                        \
+           { start=a; break; }                                          \
+      while(++a<af);                                                    \
+                                                                        \
+    /* Remove all out-of-range elements from the end of the array. */   \
+    if( nbs->flag & GAL_DATA_FLAG_SORTED_I )                            \
+      do if( *b < (center + (multip * spread)) )                        \
+           { size=b-a+1; break; }                                       \
+      while(--b>=bf);                                                   \
+    else                                                                \
+      do if( *b > (center - (multip * spread)) )                        \
+           { size=b-a+1; break; }                                       \
+      while(--b>=bf);                                                   \
+  }
+
+static gal_data_t *
+statistics_clip(gal_data_t *input, float multip, float param,
+                uint8_t extrastats, int inplace, int quiet, int sig1_mad0)
+{
+  float *oa;
+  char *colnames;
+  gal_data_t *spread_d;
+  void *start, *nbs_array;
+  size_t i, num=0, size, oldsize;
+  uint8_t type=gal_tile_block(input)->type;
+  uint8_t bytolerance = param>=1.0f ? 0 : 1;
+  double center=NAN, spread=NAN, oldspread=NAN;
+  gal_data_t *fcopy, *center_i, *center_d, *spread_i, *out;
+  gal_data_t *nbs=gal_statistics_no_blank_sorted(input, inplace);
+  size_t maxnum = param>=1.0f?param:GAL_STATISTICS_CLIP_MAX_CONVERGE;
+
+  /* Do sanity checks and allocate space for the output. */
+  out=statistics_clip_prepare(input, nbs, multip, param, quiet, sig1_mad0,
+                              &center_i, &spread_i, &colnames);
+
+  /* If we have more than one element, and the user wants to see the
+     progress, then print the column information. */
+  if(!quiet && nbs->size>1) { printf("%s\n", colnames); free(colnames); }
 
   /* Only continue processing if we have non-blank elements. */
   oa=out->array;
@@ -2367,40 +2592,36 @@ gal_statistics_sigma_clip(gal_data_t *input, float multip, float param,
     /* There was nothing in the input! */
     case 0:
       if(!quiet)
-        printf("NO SIGMA-CLIPPING: all input elements are blank or input's "
-               "size is zero.\n");
-      oa[0] = oa[1] = oa[2] = oa[3] = NAN;
+        error(EXIT_SUCCESS, 0, "NO %s-CLIPPING: all input elements "
+              "are blank or input's size is zero",
+              sig1_mad0 ? "SIGMA" : "MAD");
+      for(i=0;i<GAL_STATISTICS_CLIP_OUT_SIZE;++i) oa[i]=NAN;
       break;
 
     /* Only one element, convert it to floating point and put it as the
        mean and median (the standard deviation will be zero by
        definition). */
     case 1:
-      /* Write the values. */
-      fcopy=gal_data_copy_to_new_type(nbs, GAL_TYPE_FLOAT32);
-      oa[0] = 1;
-      oa[1] = *((float *)(fcopy->array));
-      oa[2] = *((float *)(fcopy->array));
-      oa[3] = 0;
-      gal_data_free(fcopy);
 
-      /* Print the comments if requested. */
+      /* Write the values in the output array. */
+      fcopy=gal_data_copy_to_new_type(nbs, GAL_TYPE_FLOAT32);
+      center=*((float *)(fcopy->array));
+      gal_data_free(fcopy);
+      spread=0;
+      size=1;
+      oa[ GAL_STATISTICS_CLIP_OUTCOL_MEDIAN ] = center;
+      oa[ GAL_STATISTICS_CLIP_OUTCOL_NUMBER_USED ] = size;
+      oa[ GAL_STATISTICS_CLIP_OUTCOL_MAD ] = sig1_mad0 ? NAN : spread;
+      oa[ GAL_STATISTICS_CLIP_OUTCOL_STD ] = sig1_mad0 ? spread : NAN;
+
+      /* Print the comments (if requested). */
       if(!quiet)
-        {
-          printf("%-8s %-10s %-15s %-15s %-15s\n",
-                 "round", "number", "median", "mean", "STD");
-          printf("%-8d %-10.0f %-15g %-15g %-15g\n",
-                 0, oa[0], oa[1], oa[2], oa[3]);
-        }
+        printf("%-5d %-10d %-12.5e %-12.5e\n", 1, 1,
+               oa[ GAL_STATISTICS_CLIP_OUTCOL_MEAN ], 0.0f);
       break;
 
     /* More than one element. */
     default:
-
-      /* Print the comments if requested. */
-      if(!quiet)
-        printf("%-8s %-10s %-15s %-15s %-15s\n",
-               "round", "number", "median", "mean", "STD");
 
       /* Do the clipping, but first initialize the values that will be
          changed during the clipping: the start of the array and the
@@ -2424,23 +2645,26 @@ gal_statistics_sigma_clip(gal_data_t *input, float multip, float param,
             }
           */
 
-          /* Find the mean, median and standard deviation. */
-          meanstd=gal_statistics_mean_std(nbs);
-          statistics_median_in_sorted_no_blank(nbs, median_i->array);
-          median_d=gal_data_copy_to_new_type(median_i, GAL_TYPE_FLOAT64);
+          /* Find the center and disperson. */
+          statistics_median_in_sorted_no_blank(nbs, center_i->array);
+          if(sig1_mad0) spread_i=gal_statistics_std(nbs);
+          else statistics_mad_in_sorted_no_blank(nbs, center_i,
+                                                 spread_i->array);
+          center_d=gal_data_copy_to_new_type(center_i, GAL_TYPE_FLOAT64);
+          spread_d=gal_data_copy_to_new_type(spread_i, GAL_TYPE_FLOAT64);
+          if(sig1_mad0) { gal_data_free(spread_i); spread_i=NULL; }
 
           /* Put them in usable (with a type) pointers. */
-          mean = meanstd->array;
-          med  = median_d->array;
-          std  = &((double *)(meanstd->array))[1];
+          center = ((double *)(center_d->array))[0];
+          spread = ((double *)(spread_d->array))[0];
 
           /* If the user wanted to view the steps, show it to them. */
           if(!quiet)
-            printf("%-8zu %-10zu %-15g %-15g %-15g\n",
-                   num+1, size, *med, *mean, *std);
+            printf("%-5zu %-10zu %-12.5e %-12.5e\n", num+1, size, center,
+                   spread);
 
-          /* If we are to work by tolerance, then check if we should jump
-             out of the loop. Normally, 'oldstd' should be larger than std,
+          /* If we are working by tolerance, check if we should jump out of
+             the loop. Normally, 'oldstd' should be larger than std,
              because the possible outliers have been removed. If it is not,
              it means that we have clipped too much and must stop anyway,
              so we don't need an absolute value on the difference!
@@ -2450,10 +2674,10 @@ gal_statistics_sigma_clip(gal_data_t *input, float multip, float param,
              tolerance (because it will be infinity and thus lager than the
              requested tolerance level value). */
           if( bytolerance && num>0 )
-            if( *std==0 || ((oldstd - *std) / *std) < param )
+            if( spread==0 || ((oldspread - spread) / spread) < param )
               {
-                if(*std==0) {oldmed=*med; oldstd=*std; oldmean=*mean;}
-                gal_data_free(meanstd);   gal_data_free(median_d);
+                if(spread==0) oldspread=spread;
+                gal_data_free(spread_d); gal_data_free(center_d);
                 break;
               }
 
@@ -2462,16 +2686,16 @@ gal_statistics_sigma_clip(gal_data_t *input, float multip, float param,
              pointer and size of the array. */
           switch(type)
             {
-            case GAL_TYPE_UINT8:     SIGCLIP( uint8_t  );   break;
-            case GAL_TYPE_INT8:      SIGCLIP( int8_t   );   break;
-            case GAL_TYPE_UINT16:    SIGCLIP( uint16_t );   break;
-            case GAL_TYPE_INT16:     SIGCLIP( int16_t  );   break;
-            case GAL_TYPE_UINT32:    SIGCLIP( uint32_t );   break;
-            case GAL_TYPE_INT32:     SIGCLIP( int32_t  );   break;
-            case GAL_TYPE_UINT64:    SIGCLIP( uint64_t );   break;
-            case GAL_TYPE_INT64:     SIGCLIP( int64_t  );   break;
-            case GAL_TYPE_FLOAT32:   SIGCLIP( float    );   break;
-            case GAL_TYPE_FLOAT64:   SIGCLIP( double   );   break;
+            case GAL_TYPE_UINT8:    CLIPALL( uint8_t  );   break;
+            case GAL_TYPE_INT8:     CLIPALL( int8_t   );   break;
+            case GAL_TYPE_UINT16:   CLIPALL( uint16_t );   break;
+            case GAL_TYPE_INT16:    CLIPALL( int16_t  );   break;
+            case GAL_TYPE_UINT32:   CLIPALL( uint32_t );   break;
+            case GAL_TYPE_INT32:    CLIPALL( int32_t  );   break;
+            case GAL_TYPE_UINT64:   CLIPALL( uint64_t );   break;
+            case GAL_TYPE_INT64:    CLIPALL( int64_t  );   break;
+            case GAL_TYPE_FLOAT32:  CLIPALL( float    );   break;
+            case GAL_TYPE_FLOAT64:  CLIPALL( double   );   break;
             default:
               error(EXIT_FAILURE, 0, "%s: type code %d not recognized",
                     __func__, type);
@@ -2479,35 +2703,64 @@ gal_statistics_sigma_clip(gal_data_t *input, float multip, float param,
 
           /* Set the values from this round in the old elements, so the
              next round can compare with, and return then if necessary. */
-          oldmed =  *med;
-          oldstd  = *std;
-          oldmean = *mean;
+          oldspread  = spread;
           ++num;
 
-          /* Clean up. */
-          gal_data_free(meanstd);
-          gal_data_free(median_d);
+          /* Clean up: */
+          gal_data_free(spread_d);
+          gal_data_free(center_d);
         }
 
       /* If we were in tolerance mode and 'num' and 'maxnum' are equal (the
-         loop didn't stop by tolerance), so the outputs should be NaN. */
+         loop didn't stop by tolerance), so the outputs should be NaN. Note
+         that they may have been filled in previous rounds compared to the
+         initialization (where they were all NaN). */
       out->status=num;
+      oa[GAL_STATISTICS_CLIP_OUTCOL_NUMBER_CLIPS]=num;
       if( size==0 || (bytolerance && num==maxnum) )
-        oa[0] = oa[1] = oa[2] = oa[3] = NAN;
+        { for(i=0;i<GAL_STATISTICS_CLIP_OUT_SIZE;++i) oa[i]=NAN; }
       else
         {
-          oa[0] = size;
-          oa[1] = oldmed;
-          oa[2] = oldmean;
-          oa[3] = oldstd;
+          oa[ GAL_STATISTICS_CLIP_OUTCOL_MEDIAN ] = center;
+          oa[ GAL_STATISTICS_CLIP_OUTCOL_NUMBER_USED ] = size;
+          oa[ GAL_STATISTICS_CLIP_OUTCOL_MAD ] = sig1_mad0 ? NAN : spread;
+          oa[ GAL_STATISTICS_CLIP_OUTCOL_STD ] = sig1_mad0 ? spread : NAN;
         }
     }
 
+  /* Measure and report the remaining elements if requested. */
+  if(extrastats) statistics_clip_stats_extra(nbs, oa, extrastats);
+
   /* Clean up and return. */
   nbs->array=nbs_array;
-  gal_data_free(median_i);
+  gal_data_free(center_i);
+  gal_data_free(spread_i);
   if(nbs!=input) gal_data_free(nbs);
   return out;
+}
+
+
+
+
+
+gal_data_t *
+gal_statistics_clip_sigma(gal_data_t *input, float multip, float param,
+                          uint8_t extrastats, int inplace, int quiet)
+{
+  return statistics_clip(input, multip, param, extrastats,
+                         inplace, quiet, 1);
+}
+
+
+
+
+
+gal_data_t *
+gal_statistics_clip_mad(gal_data_t *input, float multip, float param,
+                        uint8_t extrastats, int inplace, int quiet)
+{
+  return statistics_clip(input, multip, param, extrastats,
+                         inplace, quiet, 0);
 }
 
 
@@ -2528,19 +2781,25 @@ gal_statistics_sigma_clip(gal_data_t *input, float multip, float param,
             darr[j] = arr[i+window_size-j+1] - arr[i+window_size-j];    \
                                                                         \
         /* Get the sigma-clipped information. */                        \
-        sclip=gal_statistics_sigma_clip(dist, sigclip_multip,           \
-                                        sigclip_param, 0, 1);           \
+        sclip=gal_statistics_clip_mad(dist, sigclip_multip,             \
+                                      sigclip_param, clipflags, 0, 1);  \
         sarr=sclip->array;                                              \
                                                                         \
         /* For a check. */                                               \
         if(quiet==0)                                                    \
           printf("%f [%zu]: %f (%f, %f) %f\n", (float)(arr[i]), i,      \
-                 (float)(arr[i]-arr[i-1]), sarr[1], sarr[3],            \
-                 (((double)(arr[i]-arr[i-1])) - sarr[1])/sarr[3]);      \
+                 (float)(arr[i]-arr[i-1]),                              \
+                 sarr[GAL_STATISTICS_CLIP_OUTCOL_NUMBER_USED],          \
+                 sarr[GAL_STATISTICS_CLIP_OUTCOL_STD],                  \
+                 (((double)(arr[i]-arr[i-1]))                           \
+                  - sarr[GAL_STATISTICS_CLIP_OUTCOL_MEDIAN])            \
+                 /sarr[GAL_STATISTICS_CLIP_OUTCOL_STD]);                \
                                                                         \
         /* Terminate the loop if the dist is larger than requested. */  \
         /* This shows we have reached the first outlier's position. */  \
-        if( (((double)(arr[i]-arr[i-1])) - sarr[1]) > sigma*sarr[3] )   \
+        if( (((double)(arr[i]-arr[i-1]))                                \
+             - sarr[GAL_STATISTICS_CLIP_OUTCOL_MEDIAN])                 \
+            > sigma*sarr[GAL_STATISTICS_CLIP_OUTCOL_STD] )              \
           {                                                             \
             /* Allocate the output dataset. */                          \
             out=gal_data_alloc(NULL, input->type, 1, &one, NULL, 0, -1, \
@@ -2566,6 +2825,7 @@ gal_statistics_outlier_bydistance(int pos1_neg0, gal_data_t *input,
   double *darr;
   size_t i, j, one=1, wtakeone;
   gal_data_t *dist, *sclip, *nbs, *out=NULL;
+  uint8_t clipflags=GAL_STATISTICS_CLIP_OUTCOL_STD;
 
   /* Remove all blanks and sort the dataset. */
   nbs=gal_statistics_no_blank_sorted(input, inplace);
@@ -2645,19 +2905,22 @@ gal_statistics_outlier_bydistance(int pos1_neg0, gal_data_t *input,
             /* Sigma-clipped median and std for a check. */             \
             prev->flag=0;                                               \
             prev->size=prev->dsize[0]=numprev;                          \
-            sclip=gal_statistics_sigma_clip(prev, sigclip_multip,       \
-                                            sigclip_param, 1, 1);       \
+            sclip=gal_statistics_clip_mad(prev, sigclip_multip,         \
+                                          sigclip_param, clipflags,     \
+                                          1, 1);                        \
                                                                         \
             sarr=sclip->array;                                          \
-            check = (diff - sarr[1]) / sarr[3];                         \
+            check = ( (diff - sarr[GAL_STATISTICS_CLIP_OUTCOL_MEDIAN])  \
+                      / sarr[GAL_STATISTICS_CLIP_OUTCOL_STD] );         \
                                                                         \
             /* If requested, print the values. */                       \
             if(!quiet) printf("%-6zu%-15g%-15g%-15g (%g,%g)\n", p-a,    \
-                              (float)(*p), (float)diff, check, sarr[1], \
-                              sarr[3]);                                 \
+                              (float)(*p), (float)diff, check,          \
+                              sarr[GAL_STATISTICS_CLIP_OUTCOL_MEDIAN],  \
+                              sarr[GAL_STATISTICS_CLIP_OUTCOL_STD]);    \
                                                                         \
-            /* When values are equal, std will be roughly zero. */      \
-            if(sarr[3]>1e-6 && check>thresh)                            \
+            /* When values are equal, std will be roughly zero */       \
+            if(sarr[GAL_STATISTICS_CLIP_OUTCOL_STD]>1e-6 && check>thresh) \
               {                                                         \
                 if(flatind==GAL_BLANK_SIZE_T)                           \
                   {                                                     \
@@ -2683,7 +2946,7 @@ gal_statistics_outlier_bydistance(int pos1_neg0, gal_data_t *input,
           }                                                             \
       }                                                                 \
     while(++p<pp);                                                      \
-    if(counter+1!=numcontig) flatind=GAL_BLANK_SIZE_T;                    \
+    if(counter+1!=numcontig) flatind=GAL_BLANK_SIZE_T;                  \
   }
 
 gal_data_t *
@@ -2695,6 +2958,7 @@ gal_statistics_outlier_flat_cfp(gal_data_t *input, size_t numprev,
   float *sarr;
   double check;
   gal_data_t  *nbs, *prev, *out=NULL, *sclip;
+  uint8_t clipflags=GAL_STATISTICS_CLIP_OUTCOL_STD;
   size_t d=2, counter=0, one=1, flatind=GAL_BLANK_SIZE_T;
 
   /* Sanity checks. */

@@ -1278,6 +1278,7 @@ parse_order_based(struct mkcatalog_passparams *pp)
   double *ci;
   float *sigcliparr;
   gal_data_t *result;
+  uint8_t clipflags=0;
   int32_t *O, *OO, *C=NULL;
   size_t i, increment=0, num_increment=1;
   gal_data_t *objvals=NULL, **clumpsvals=NULL;
@@ -1408,19 +1409,29 @@ parse_order_based(struct mkcatalog_passparams *pp)
      || p->oiflag[ OCOL_SIGCLIPMEAN ]
      || p->oiflag[ OCOL_SIGCLIPMEDIAN ])
     {
-      /* Calculate the sigma-clipped results and write them in any
-         requested column. */
-      result=gal_statistics_sigma_clip(objvals, p->sigmaclip[0],
-                                       p->sigmaclip[1], 1, 1);
+      /* See which optional clipping measurements are necessary and run the
+         clipping. */
+      clipflags=0;
+      if(p->oiflag[ OCOL_SIGCLIPSTD ])
+        clipflags |= GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_STD;
+      if(p->oiflag[ OCOL_SIGCLIPMEAN ])
+        clipflags |= GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_MEAN;
+      result=gal_statistics_clip_sigma(objvals, p->sigmaclip[0],
+                                       p->sigmaclip[1], clipflags,
+                                       1, 1);
       sigcliparr=result->array;
       if(p->oiflag[ OCOL_SIGCLIPNUM ])
-        pp->oi[OCOL_SIGCLIPNUM]=sigcliparr[0];
+        pp->oi[OCOL_SIGCLIPNUM]
+          = sigcliparr[GAL_STATISTICS_CLIP_OUTCOL_NUMBER_USED];
       if(p->oiflag[ OCOL_SIGCLIPSTD ])
-        pp->oi[OCOL_SIGCLIPSTD]=sigcliparr[3];
+        pp->oi[OCOL_SIGCLIPSTD]
+          = sigcliparr[GAL_STATISTICS_CLIP_OUTCOL_STD];
       if(p->oiflag[ OCOL_SIGCLIPMEAN ])
-        pp->oi[OCOL_SIGCLIPMEAN]=sigcliparr[2];
+        pp->oi[OCOL_SIGCLIPMEAN]
+          = sigcliparr[GAL_STATISTICS_CLIP_OUTCOL_MEAN];
       if(p->oiflag[ OCOL_SIGCLIPMEDIAN ])
-        pp->oi[OCOL_SIGCLIPMEDIAN]=sigcliparr[1];
+        pp->oi[OCOL_SIGCLIPMEDIAN]
+          = sigcliparr[GAL_STATISTICS_CLIP_OUTCOL_MEDIAN];
 
       /* Clean up the sigma-clipped values. */
       gal_data_free(result);
@@ -1444,7 +1455,7 @@ parse_order_based(struct mkcatalog_passparams *pp)
     {
       for(i=0;i<pp->clumpsinobj;++i)
         {
-          /* Set the main row to fill. */
+          /* Set the main row to fill and initialize. */
           ci=&pp->ci[ i * CCOL_NUMCOLS ];
 
           /* Median. */
@@ -1471,24 +1482,34 @@ parse_order_based(struct mkcatalog_passparams *pp)
             {
               if(clumpsvals[i])
                 {
-                  result=gal_statistics_sigma_clip(clumpsvals[i],
+                  clipflags=0;
+                  if(p->oiflag[ OCOL_SIGCLIPSTD ])
+                    clipflags |= GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_STD;
+                  if(p->oiflag[ OCOL_SIGCLIPMEAN ])
+                    clipflags |= GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_MEAN;
+                  result=gal_statistics_clip_sigma(clumpsvals[i],
                                                    p->sigmaclip[0],
-                                                   p->sigmaclip[1], 1, 1);
+                                                   p->sigmaclip[1],
+                                                   clipflags, 1, 1);
                   sigcliparr=result->array;
                   if(p->ciflag[ CCOL_SIGCLIPNUM ])
-                    ci[CCOL_SIGCLIPNUM]=sigcliparr[0];
+                    ci[CCOL_SIGCLIPNUM]
+                      = sigcliparr[GAL_STATISTICS_CLIP_OUTCOL_NUMBER_USED];
                   if(p->ciflag[ CCOL_SIGCLIPSTD ])
-                    ci[CCOL_SIGCLIPSTD]=( sigcliparr[3]
-                                          - (   ci[ CCOL_RIV_SUM ]
-                                              / ci[ CCOL_RIV_NUM ]));
+                    ci[CCOL_SIGCLIPSTD]
+                      = ( sigcliparr[GAL_STATISTICS_CLIP_OUTCOL_STD]
+                          - (   ci[ CCOL_RIV_SUM ]
+                              / ci[ CCOL_RIV_NUM ]));
                   if(p->ciflag[ CCOL_SIGCLIPMEAN ])
-                    ci[CCOL_SIGCLIPMEAN]=( sigcliparr[2]
-                                           - (   ci[ CCOL_RIV_SUM ]
-                                               / ci[ CCOL_RIV_NUM ]));
+                    ci[CCOL_SIGCLIPMEAN]
+                      = ( sigcliparr[GAL_STATISTICS_CLIP_OUTCOL_MEAN]
+                          - (   ci[ CCOL_RIV_SUM ]
+                              / ci[ CCOL_RIV_NUM ]));
                   if(p->ciflag[ CCOL_SIGCLIPMEDIAN ])
-                    ci[CCOL_SIGCLIPMEDIAN]=( sigcliparr[1]
-                                             - (   ci[ CCOL_RIV_SUM ]
-                                                 / ci[ CCOL_RIV_NUM ]));
+                    ci[CCOL_SIGCLIPMEDIAN]
+                      = ( sigcliparr[GAL_STATISTICS_CLIP_OUTCOL_MEDIAN]
+                          - (   ci[ CCOL_RIV_SUM ]
+                              / ci[ CCOL_RIV_NUM ]));
                   gal_data_free(result);
                 }
               else

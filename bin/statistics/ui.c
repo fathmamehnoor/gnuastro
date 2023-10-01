@@ -409,13 +409,14 @@ ui_read_check_only_options(struct statisticsparams *p)
     {
       /* The tile or sky mode cannot be called with any other modes. */
       if( p->asciihist || p->asciicfp || p->histogram || p->histogram2d
-          || p->cumulative || p->sigmaclip || p->fitname
+          || p->cumulative || p->sigmaclip || p->madclip || p->fitname
           || !isnan(p->mirror) )
         error(EXIT_FAILURE, 0, "'--ontile' or '--sky' cannot be called "
               "with any of the 'particular' calculation options, for "
-              "example '--histogram'. This is because the latter work "
-              "over the whole dataset and element positions are changed, "
-              "but in the former positions are significant");
+              "example '--histogram' or '--madclip'. Because these "
+              "operators change the order of the data and element "
+              "positions are changed, but in the former positions are "
+              "significant");
 
       /* Make sure the tessellation defining options are given. */
       if( tl->tilesize==NULL || tl->numchannels==NULL
@@ -469,12 +470,19 @@ ui_read_check_only_options(struct statisticsparams *p)
     }
 
 
-  /* Sigma-clipping needs 'sclipparams'. */
+  /* Sigma-clipping needs 'sclipparams' and MAD-clipping needs
+     'mclipparams' */
   if(p->sigmaclip && isnan(p->sclipparams[0]))
     error(EXIT_FAILURE, 0, "'--sclipparams' is necessary with "
           "'--sigmaclip'. '--sclipparams' takes two values (separated "
           "by a comma) for defining the sigma-clip: the multiple of "
           "sigma, and tolerance (<1) or number of clips (>1).");
+  if(p->madclip && isnan(p->mclipparams[0]))
+    error(EXIT_FAILURE, 0, "'--mclipparams' is necessary with "
+          "'--madclip' (median absolute deviation clipping). "
+          "'--mclipparams' takes two values (separated "
+          "by a comma) for defining the MAD-clip: the multiple of "
+          "MAD, and tolerance (<1) or number of clips (>1).");
 
 
   /* If any of the mode measurements are requested, then 'mirrordist' is
@@ -491,6 +499,7 @@ ui_read_check_only_options(struct statisticsparams *p)
                 "mode-related single measurements ('--mode', "
                 "'--modequant', '--modesym', and '--modesymvalue')");
         break;
+      case UI_KEY_SIGCLIPMAD:
       case UI_KEY_SIGCLIPSTD:
       case UI_KEY_SIGCLIPMEAN:
       case UI_KEY_SIGCLIPNUMBER:
@@ -800,17 +809,23 @@ ui_make_sorted_if_necessary(struct statisticsparams *p)
       case UI_KEY_MEDIAN:
       case UI_KEY_QUANTILE:
       case UI_KEY_QUANTFUNC:
+      case UI_KEY_MADCLIPMAD:
+      case UI_KEY_SIGCLIPMAD:
+      case UI_KEY_MADCLIPSTD:
       case UI_KEY_SIGCLIPSTD:
       case UI_KEY_QUANTOFMEAN:
       case UI_KEY_SIGCLIPMEAN:
+      case UI_KEY_MADCLIPMEAN:
+      case UI_KEY_MADCLIPNUMBER:
       case UI_KEY_SIGCLIPNUMBER:
+      case UI_KEY_MADCLIPMEDIAN:
       case UI_KEY_SIGCLIPMEDIAN:
         is_necessary=1;
         break;
       }
 
   /* Check in the rest of the outputs. */
-  if( is_necessary==0 && ( p->sigmaclip || !isnan(p->mirror) ) )
+  if( p->sigmaclip || p->madclip || !isnan(p->mirror) )
     is_necessary=1;
 
   /* Do the sorting, we will keep the sorted array in a separate space,

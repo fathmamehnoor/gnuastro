@@ -55,9 +55,10 @@ sky_on_thread(void *in_prm)
 
   void *tblock=NULL, *tarray=NULL;
   int stype=p->sky_t->type, itype=p->input->type;
-  gal_data_t *num, *tile, *mean, *meanquant, *sigmaclip;
+  gal_data_t *num, *tile, *mean, *meanquant, *clip;
   size_t i, tind, twidth=gal_type_sizeof(p->sky_t->type);
-
+  uint8_t mclipflags = ( GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_MEAN
+                         | GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_STD );
 
   /* Find the Sky and its standard deviation on the tiles given to this
      thread. */
@@ -97,19 +98,24 @@ sky_on_thread(void *in_prm)
           /* Get the sigma-clipped mean and standard deviation. 'inplace'
              is irrelevant here because this is a tile and it will be
              copied anyway. */
-          sigmaclip=gal_statistics_sigma_clip(tile, p->sclipparams[0],
-                                              p->sclipparams[1], 1, 1);
+          clip=gal_statistics_clip_sigma(tile, p->sclipparams[0],
+                                         p->sclipparams[1], mclipflags,
+                                         1, 1);
 
           /* Put the mean and its standard deviation into the respective
              place for this tile. */
-          sigmaclip=gal_data_copy_to_new_type_free(sigmaclip, stype);
+          clip=gal_data_copy_to_new_type_free(clip, stype);
           memcpy(gal_pointer_increment(p->sky_t->array, tind, stype),
-                 gal_pointer_increment(sigmaclip->array, 2, stype), twidth);
+                 gal_pointer_increment(clip->array,
+                                       GAL_STATISTICS_CLIP_OUTCOL_MEAN,
+                                       stype), twidth);
           memcpy(gal_pointer_increment(p->std_t->array, tind, stype),
-                 gal_pointer_increment(sigmaclip->array, 3, stype), twidth);
+                 gal_pointer_increment(clip->array,
+                                       GAL_STATISTICS_CLIP_OUTCOL_STD,
+                                       stype), twidth);
 
           /* Clean up. */
-          gal_data_free(sigmaclip);
+          gal_data_free(clip);
         }
       else
         {

@@ -448,14 +448,17 @@ static void
 upperlimit_measure(struct mkcatalog_passparams *pp, int32_t clumplab,
                    int do_measurement)
 {
-  float *scarr;
   gal_data_t *column;
+  float *mcarr, mcstd;
   size_t init_size, col, one=1;
   struct mkcatalogparams *p=pp->p;
-  gal_data_t *sum, *qfunc=NULL, *sigclip=NULL;
+  gal_data_t *sum, *qfunc=NULL, *madclip=NULL;
   double *o = ( clumplab
                 ? &pp->ci[ (clumplab-1) * CCOL_NUMCOLS ]
                 : pp->oi );
+  uint8_t clipflags = ( GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_MEAN \
+                        | GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_STD \
+                        | GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_MAD );
 
   /* If the random distribution exsits, then fill it in. */
   if(do_measurement)
@@ -476,10 +479,11 @@ upperlimit_measure(struct mkcatalog_passparams *pp, int32_t clumplab,
                   /* Similar to the case for sigma-clipping, we'll need to
                      keep the size here also. */
                   init_size=pp->up_vals->size;
-                  sum=gal_data_alloc(NULL, GAL_TYPE_FLOAT32, 1, &one, NULL, 0,
-                                     -1, 1, NULL, NULL, NULL);
+                  sum=gal_data_alloc(NULL, GAL_TYPE_FLOAT32, 1, &one, NULL,
+                                     0, -1, 1, NULL, NULL, NULL);
                   ((float *)(sum->array))[0]=o[clumplab?CCOL_SUM:OCOL_SUM];
-                  qfunc=gal_statistics_quantile_function(pp->up_vals, sum, 1);
+                  qfunc=gal_statistics_quantile_function(pp->up_vals,
+                                                         sum, 1);
 
                   /* Fill in the column. */
                   col = clumplab ? CCOL_UPPERLIMIT_Q : OCOL_UPPERLIMIT_Q;
@@ -496,37 +500,41 @@ upperlimit_measure(struct mkcatalog_passparams *pp, int32_t clumplab,
             default:
               /* We only need to do this once, but the columns can be
                  requested in any order. */
-              if(sigclip==NULL)
+              if(madclip==NULL)
                 {
                   /* Calculate the sigma-clipped standard deviation. Since
                      it is done in place, the size will change, so we'll
                      keep the size here and put it back after we are
                      done. */
                   init_size=pp->up_vals->size;
-                  sigclip=gal_statistics_sigma_clip(pp->up_vals,
+                  madclip=gal_statistics_clip_sigma(pp->up_vals,
                                                     p->upsigmaclip[0],
-                                                    p->upsigmaclip[1],1,1);
+                                                    p->upsigmaclip[1],
+                                                    clipflags, 1, 1);
                   pp->up_vals->size=pp->up_vals->dsize[0]=init_size;
-                  scarr=sigclip->array;
+                  mcarr=madclip->array;
 
                   /* 1-sigma. */
+                  mcstd=mcarr[GAL_STATISTICS_CLIP_OUTCOL_STD];
                   col = clumplab ? CCOL_UPPERLIMIT_S : OCOL_UPPERLIMIT_S;
-                  o[col] = scarr[3];
+                  o[col] = mcstd;
 
                   /* sigma multiplied by 'upnsigma'. */
                   col = clumplab ? CCOL_UPPERLIMIT_B : OCOL_UPPERLIMIT_B;
-                  o[col] = scarr[3] * p->upnsigma;
+                  o[col] = mcstd * p->upnsigma;
 
                   /* Nonparametric skewness [ (Mean-Median)/STD ]. */
                   col = clumplab?CCOL_UPPERLIMIT_SKEW:OCOL_UPPERLIMIT_SKEW;
-                  o[col] = ( scarr[2] - scarr[1] ) / scarr[3];
-
-                  /* Clean up. */
-                  gal_data_free(sigclip);
+                  o[col] = ( ( mcarr[GAL_STATISTICS_CLIP_OUTCOL_MEAN]
+                               - mcarr[GAL_STATISTICS_CLIP_OUTCOL_MEDIAN] )
+                             / mcstd );
                 }
               break;
             }
         }
+
+      /* Clean up. */
+      gal_data_free(madclip);
     }
   else
     {

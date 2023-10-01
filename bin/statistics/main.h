@@ -91,7 +91,8 @@ struct statisticsparams
   uint8_t       cumulative;  /* Save cumulative distibution in output.   */
   double            mirror;  /* Mirror value for hist and CFP.           */
   uint8_t              sky;  /* Find the Sky value over the image.       */
-  uint8_t        sigmaclip;  /* So sigma-clipping over all dataset.      */
+  uint8_t        sigmaclip;  /* Do sigma-clipping over all dataset.      */
+  uint8_t          madclip;  /* Do MAD-clipping over all dataset.        */
   gal_data_t      *contour;  /* Levels to show contours.                 */
 
   size_t           numbins;  /* Number of bins in histogram or CFP.      */
@@ -114,6 +115,7 @@ struct statisticsparams
   size_t       smoothwidth;  /* Width of flat kernel to smooth interpd.  */
   uint8_t         checksky;  /* Save the steps for deriving the Sky.     */
   double    sclipparams[2];  /* Muliple and parameter of sigma clipping. */
+  double    mclipparams[2];  /* Muliple and parameter of sigma clipping. */
   uint8_t ignoreblankintiles;/* Ignore input's blank values.             */
 
 

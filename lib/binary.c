@@ -537,8 +537,8 @@ gal_binary_connected_components(gal_data_t *binary, gal_data_t **out,
      array, then give them the blank labeled array. Note that since
      their value will not be 0, they will also not be labeled. */
   l=lab->array;
-  bf=(b=binary->array)+binary->size; /* Library must have no side effect,   */
-  if( gal_blank_present(binary, 0) ) /* So blank flag should not be changed.*/
+  bf=(b=binary->array)+binary->size; /* Library must have no side effect:*/
+  if( gal_blank_present(binary, 0) ) /* blank flag should not be changed.*/
     do *l++ = *b==GAL_BLANK_UINT8 ? GAL_BLANK_INT32 : 0; while(++b<bf);
 
 
@@ -548,6 +548,7 @@ gal_binary_connected_components(gal_data_t *binary, gal_data_t **out,
   l=lab->array;
   b=binary->array;
   for(i=0;i<binary->size;++i)
+
     /* Check if this pixel is already labeled. */
     if( b[i] && l[i]==0 )
       {
@@ -650,7 +651,8 @@ gal_binary_connected_indexs(gal_data_t *binary, int connectivity)
 	/* Parsing has finished, put all the indexs into an array. */
 	onelabarr=gal_list_sizet_to_array(onelab, 1, &onelabnum);
 	gal_list_data_add_alloc(&lines, onelabarr, GAL_TYPE_SIZE_T, 1,
-				&onelabnum, NULL, 0, -1, 1, NULL, NULL, NULL);
+				&onelabnum, NULL, 0, -1, 1, NULL, NULL,
+                                NULL);
 
 	/* Clean up. */
 	gal_list_sizet_free(onelab);
@@ -1051,18 +1053,16 @@ gal_binary_holes_fill(gal_data_t *input, int connectivity, size_t maxsize)
           "It has to be between 1 and the number of input's dimensions "
           "(%zu)", __func__, connectivity, input->ndim);
 
-
   /* Make the inverse image. */
   inv=binary_make_padded_inverse(input, &tile);
-
 
   /* Label the holes */
   numholes=gal_binary_connected_components(inv, &holelabs, connectivity);
 
-
-  /* Any pixel with a label larger than 1 is a hole in the input image and
-     we should invert the respective pixel. To do it, we'll use the tile
-     that was defined before, just change its block and array.*/
+  /* Any pixel with a label that is not touching the edges is a hole in the
+     input image and we should invert the respective pixel. To do it, we'll
+     use the tile that was defined before, just change its block and
+     array. */
   in=input->array;
   tile->array=gal_tile_block_relative_to_other(tile, holelabs);
   tile->block=holelabs; /* has to be after correcting 'tile->array'. */
@@ -1090,9 +1090,16 @@ gal_binary_holes_fill(gal_data_t *input, int connectivity, size_t maxsize)
   /* The type of the tile is already known (it is 'int32_t') and we have no
      output, so we'll just put 'int' as a place-holder. In this way we can
      avoid the switch statement of GAL_TILE_PARSE_OPERATE, and directly use
-     the workhorse macro 'GAL_TILE_PO_OISET'. */
+     the workhorse macro 'GAL_TILE_PO_OISET'.
+
+     For inputs of any dimensionality, the label=1 is not a hole. For 1D
+     data, the last label is also not a hole (because in 1D the start and
+     end of the array don't touch).
+  */
   GAL_TILE_PO_OISET(int32_t, int, tile, NULL, 0, 0, {
-      *in = *i>1 && *i!=GAL_BLANK_INT32 ? 1 : *in;
+      *in = ( *i==GAL_BLANK_INT32
+              || *i==1
+              || (input->ndim==1 && *i==numholes) ) ? *in : 1;
       ++in;
     });
 

@@ -48,7 +48,7 @@ __BEGIN_C_DECLS  /* From C++ preparations */
 
 
 /* Maximum number of tests for sigma-clipping convergence. */
-#define GAL_STATISTICS_SIG_CLIP_MAX_CONVERGE 50
+#define GAL_STATISTICS_CLIP_MAX_CONVERGE 50
 
 /* Least acceptable mode symmetricity.*/
 #define GAL_STATISTICS_MODE_GOOD_SYM         0.2f
@@ -57,13 +57,30 @@ __BEGIN_C_DECLS  /* From C++ preparations */
 
 
 
-enum bin_status
+enum gal_statistics_bin_status
 {
   GAL_STATISTICS_BINS_INVALID,           /* ==0 by C standard.  */
 
   GAL_STATISTICS_BINS_REGULAR,
   GAL_STATISTICS_BINS_IRREGULAR,
 };
+
+enum gal_statistics_clip_outcol
+{
+  GAL_STATISTICS_CLIP_OUTCOL_NUMBER_USED, /* =0 by C standard. */
+  GAL_STATISTICS_CLIP_OUTCOL_MEAN,
+  GAL_STATISTICS_CLIP_OUTCOL_STD,
+  GAL_STATISTICS_CLIP_OUTCOL_MEDIAN,
+  GAL_STATISTICS_CLIP_OUTCOL_MAD,
+  GAL_STATISTICS_CLIP_OUTCOL_NUMBER_CLIPS,
+
+  GAL_STATISTICS_CLIP_OUT_SIZE,
+};
+
+/* The optional measurements to do after sigma-clipping. */
+#define GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_MEAN 0x1
+#define GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_STD  0x2
+#define GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_MAD  0x4
 
 
 /****************************************************************
@@ -96,6 +113,12 @@ gal_statistics_std_from_sums(double sum, double sump2, size_t num);
 
 gal_data_t *
 gal_statistics_median(gal_data_t *input, int inplace);
+
+gal_data_t *
+gal_statistics_mad(gal_data_t *input, int inplace);
+
+gal_data_t *
+gal_statistics_median_mad(gal_data_t *input, int inplace);
 
 size_t
 gal_statistics_quantile_index(size_t size, double quantile);
@@ -180,14 +203,19 @@ gal_statistics_cfp(gal_data_t *data, gal_data_t *bins, int normalize);
  *****************         Outliers          ********************
  ****************************************************************/
 gal_data_t *
-gal_statistics_sigma_clip(gal_data_t *input, float multip, float param,
-                          int inplace, int quiet);
+gal_statistics_clip_sigma(gal_data_t *input, float multip, float param,
+                          uint8_t extrastats, int inplace, int quiet);
+
+gal_data_t *
+gal_statistics_clip_mad(gal_data_t *input, float multip, float param,
+                        uint8_t extrastats, int inplace, int quiet);
 
 gal_data_t *
 gal_statistics_outlier_bydistance(int pos1_neg0, gal_data_t *input,
                                   size_t window_size, float sigma,
-                                  float sigclip_multip, float sigclip_param,
-                                  int inplace, int quiet);
+                                  float sigclip_multip,
+                                  float sigclip_param, int inplace,
+                                  int quiet);
 
 gal_data_t *
 gal_statistics_outlier_flat_cfp(gal_data_t *input, size_t numprev,

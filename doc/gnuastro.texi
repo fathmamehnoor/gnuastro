@@ -20,6 +20,7 @@
 
 @c So dashes and underscores can be used in HTMLs
 @allowcodebreaks true
+
 @c So function output type is printed on first line
 @deftypefnnewline on
 
@@ -275,6 +276,7 @@ Tutorials
 * Zero point of an image::      Estimate the zero point of an image.
 * Pointing pattern design::     Optimizing the pointings of your observations.
 * Moire pattern in stacking and its correction::  How to avoid this grid-based artifact.
+* Clipping outliers::  How to avoid outliers in your measurements.
 
 General program usage tutorial
 
@@ -344,6 +346,13 @@ Pointing pattern design
 * Larger steps sizes for better calibration::  The initial small dither is not enough.
 * Pointings that account for sky curvature::  Sky curvature will cause problems!
 * Accounting for non-exposed pixels::  Parts of the detector do not get exposed to light.
+
+Clipping outliers
+
+* Building inputs and analysis without clipping::  Building a dataset for demonstration below.
+* Sigma clipping::              Standard deviation (STD) clipping.
+* MAD clipping::                Median Absolute Deviation (MAD) clipping.
+* Filled re-clipping::          Two clips with holes filled in the middle.
 
 Installation
 
@@ -619,7 +628,6 @@ Statistics
 
 * Histogram and Cumulative Frequency Plot::  Basic definitions.
 * 2D Histograms::               Plotting the distribution of two variables.
-* Sigma clipping::              Definition of @mymath{\sigma}-clipping.
 * Least squares fitting::       Fitting with various parametric functions.
 * Sky value::                   Definition and derivation of the Sky value.
 * Invoking aststatistics::      Arguments and options to Statistics.
@@ -2044,6 +2052,7 @@ For an explanation of the conventions we use in the example codes through the bo
 * Zero point of an image::      Estimate the zero point of an image.
 * Pointing pattern design::     Optimizing the pointings of your observations.
 * Moire pattern in stacking and its correction::  How to avoid this grid-based artifact.
+* Clipping outliers::  How to avoid outliers in your measurements.
 @end menu
 
 
@@ -9986,7 +9995,7 @@ So we will leave this as an exercise.
 
 
 
-@node Moire pattern in stacking and its correction,  , Pointing pattern design, Tutorials
+@node Moire pattern in stacking and its correction, Clipping outliers, Pointing pattern design, Tutorials
 @section Moir@'e pattern in stacking and its correction
 
 @cindex Moir@'e pattern or fringes
@@ -10212,11 +10221,683 @@ Note that this discussion is on small shifts between pointings (dithers), not la
 
 
 
+@node Clipping outliers,  , Moire pattern in stacking and its correction, Tutorials
+@section Clipping outliers
+
+@cindex Outlier
+@cindex Clipping of outliers
+Outliers occur often in data sets.
+For example cosmic rays in astronomical imaging: the image of your target galaxy can be affected by a cosmic ray in one of the five exposures you took in one night.
+As a result, when you compare the measured magnitude of your target galaxy in all the exposures, you will get measurements like this (all in magnitudes) 19.8, 20.1, 20.5, 17.0, 19.9 (all fluctuating around magnitude 20, except the much brighter 17th magnitude measurement).
+
+Normally, you would simply take the mean of these measurements to estimate the magnitude of your target with more precision.
+However, the 17th magnitude measurement above is clearly wrong and will significantly affect the mean: without it, the mean magnitude is 20.07, but with it, the mean is 19.46:
+
+@example
+$ echo " 19.8 20.1 20.5 17 19.9" \
+       | tr ' ' '\n' \
+       | aststatistics --mean
+1.94600000000000e+01
+
+$ echo " 19.8 20.1 20.5 19.9" \
+       | tr ' ' '\n' \
+       | aststatistics --mean
+2.00750000000000e+01
+@end example
+
+This difference of 0.61 magnitudes (or roughly 1.75 times) is significant (for the definition of magnitudes in astronomy, see @ref{Brightness flux magnitude}).
+In the simple example above, you can visually identify the ``outlier'' and manually remove it.
+But in most common situations you will not be so lucky!
+For example when you want to stack the five images of the five exposures above, and each image has @mymath{4000\times4000} (or 16 million!) pixels and not possible by hand in a reasonable time (an average human's lifetime!).
+
+This tutorial reviews the effect of outliers and different available ways to remove them.
+In particular, we will be looking at stacking of multiple datasets and collapsing one dataset along one of its dimensions.
+But the concepts and methods are applicable to any analysis that is affected by outliers.
+
+@menu
+* Building inputs and analysis without clipping::  Building a dataset for demonstration below.
+* Sigma clipping::              Standard deviation (STD) clipping.
+* MAD clipping::                Median Absolute Deviation (MAD) clipping.
+* Filled re-clipping::          Two clips with holes filled in the middle.
+@end menu
+
+@node Building inputs and analysis without clipping, Sigma clipping, Clipping outliers, Clipping outliers
+@subsection Building inputs and analysis without clipping
+
+As described in @ref{Clipping outliers}, the goal of this tutorial is to demonstrate the effects of outliers and show how to ``clip'' them from basic statistics measurements.
+This is best done on an actual dataset (rather than pure theory).
+In this section we will build nine noisy images with the script below, such that one of the images has a circle in the middle.
+We will then stack the 9 images into one final image based on different statistical measurements: the mean, median, standard deviation (STD), median absolute deviation (MAD) and number of inputs used in each pixel.
+We will then analyze the resulting stacks to demonstrate the problem with outliers.
+
+Put the script below into a plain-text file (assuming it is called @file{script.sh}), and run it with @command{bash ./script.sh}.
+For more on writing and good practices in shell scripts, see @ref{Writing scripts to automate the steps}.
+The last command of the script above calls DS9 to visualize the five output stacked images mentioned above.
+
+@verbatim
+# Constants
+list=""
+sigma=10
+number=9
+radius=30
+width=201
+bdir=build
+profsum=3e5
+background=10
+random_seed=1699270427
 
 
+# Clipping parameters (will be set later when we start clipping).
+# clip_multiple:  3   for sigma; 4.48 for MAD
+# clip_tolerance: 0.1 for sigma; 0.01 for MAD
+clip_operator=""
+clip_multiple=""
+clip_tolerance=""
 
 
+# Stop if there is any error.
+set -e
 
+
+# If the build directory does not exist, build it.
+if ! [ -d $bdir ]; then mkdir $bdir; fi
+
+
+# The final image (with largest number) will contain the outlier:
+# we'll put a flat circle in the center of the image as the outlier
+# structure.
+outlier=$bdir/in-$number.fits
+nn=$bdir/$number-no-noise.fits
+export GSL_RNG_SEED=$random_seed
+center=$(echo $width | awk '{print int($1/2)+1}')
+echo "1 $center $center 5 $radius 0 0 1 $profsum 1" \
+    | astmkprof --mode=img --mergedsize=$width,$width \
+                --oversample=1 --output=$nn --mcolissum
+astarithmetic $nn $background + $sigma mknoise-sigma \
+	      --envseed -o$outlier
+
+
+# Build pure noise and add elements to the list of images to stack.
+list=$outlier
+numnoise=$(echo $number | awk '{print $1-1}')
+for i in $(seq 1 $numnoise); do
+    img="$bdir/in-$i.fits"
+    if ! [ -f $img ]; then
+	export GSL_RNG_SEED=$(echo $random_seed | awk '{print $1+'$i'}')
+	astarithmetic $width $width 2 makenew float32 $background + \
+		      $sigma mknoise-sigma --envseed --output=$img
+    fi
+    list="$list $img"
+done
+
+
+# Stack the images,
+for op in mean median std mad number; do
+    if [ x"$clip_operator" = x ]; then
+	out=$bdir/stack-$op.fits
+	astarithmetic $list $number $op -g1 --output=$out
+    else
+	operator=$clip_operator-$op
+	out=$bdir/stack-$operator.fits
+	astarithmetic $list $number $clip_multiple $clip_tolerance \
+		      $operator -g1 --output=$out
+    fi
+done
+
+
+# Collapse the first and last image along the 2nd dimension.
+for i in 1 $number; do
+    if [ x"$clip_operator" = x ]; then
+	out=$bdir/collapsed-$i.fits
+	astarithmetic $bdir/in-$i.fits 2 collapse-median counter \
+		      --writeall --output=$out
+    else
+	out=$bdir/collapsed-$clip_operator-$i.fits
+	astarithmetic $bdir/in-$i.fits $clip_multiple $clip_tolerance \
+		      2 collapse-$clip_operator-median counter \
+		      --writeall --output=$out
+    fi
+done
+@end verbatim
+
+@noindent
+After the script finishes, you can see the generated input images with the first command below.
+The second command shows the stacked images.
+
+@example
+$ astscript-fits-view build/in-*.fits --ds9extra="-lock scalelimits yes"
+$ astscript-fits-view build/stack-*.fits
+@end example
+
+Color-blind readers may not clearly see the issue in the opened images with this color bar.
+In this case, please choose the ``color'' menu at the top of the DS9 and select ``gray'' or any other color that makes the circle most visible.
+
+The effect of an outlier on the different measurements above can be visually seen (and quatitatively measured) through the visibility of the circle (that was only present in one image, of nine).
+Let's look at them one by one (from the one that is most affected to the least):
+
+@table @file
+@item std.fits
+The standard deviation (third image in DS9) is the most strongly affected statistic by an outlier.
+This is so strong that the edge of the circle is also clearly visible!
+The standard deviation is calculated by first finding th mean, and estimating the difference of each element from the mean.
+Those differences are then taken to the power of two and finally the square root is taken (after a division by the number).
+It is the power-of-two component that amplifies the effect of the single outlier as you see here.
+
+@item mean.fits
+The mean (first image in DS9) is also affected by the outlier such
+
+@item median.fits
+The median (second image in DS9) is also affected by the outlier; although much less significantly than the standard deviation or mean.
+At first sight the circle may not be too visible!
+To see it more clearly, click on the ``Analysis'' menu in DS9 and then the ``smooth'' item.
+After smoothing, you will see how the single outlier has leaked into the median stack.
+
+Intuitively, we would think that since the median is calculated from the middle element after sorting, the outlier goes to the end and won't affect the result.
+However, this is not the case as we see here: with 9 elements, the ``central'' element is the 5th (counting from 1; after sorting).
+Since the pixels covered by the circle only have 8 pure noise elements; the ``true'' median should have been the average of the 4th and 5th elements (after sorting).
+By definition, the 5th element is always larger than the mean of the 4th and 5th (because the 4th element after sorting has a smaller value than the 5th element).
+Therefore, using the 5th element (after sorting), we are systematically choosing higher noise values in regions that are covered by the circle!
+
+With larger datasets, the difference between the central elements will be less.
+However, the improved precision (in the elements without an outlier) will also be more.
+A detailed analysis of the effect of a single outlier on the median based on the number of inputs can be done as an excersize; but in general, as this argument shows, the median is not immune to outliers; especially when you care about low signal-to-noise signal (as we do in astronomy: low surface brightness science).
+
+@item mad.fits
+The median absolute deviation (fourth image in DS9) is affected by outliers in a similar fashion to the median.
+
+@item number.fits
+The number image (last image in DS9) shows the number of images that went into each pixel.
+Since we haven't rejected any outliers (yet!), all the pixels in this image have a value of 9.
+@end table
+
+The example above included a single outlier.
+But we are not usually that lucky: there are usually more outliers!
+For example, the last command in the script above collapsed @file{1.fits} (that was pure noise, without the circle) and @file{9.fits} (with the circle) along their second dimension (the vertical).
+Collapsing was done by taking the median along all the pixels in the vertical dimension.
+The output of collapsing has one less dimension; in this case, producing a 1D table (with the same number of rows as the image's horizontal axis).
+To easily plot the output afterwards, we have also used the @code{counter} operator.
+With the command below, you can open both tables and compare them:
+
+@example
+$ astscript-fits-view build/collapsed-*.fits
+@end example
+
+The last command opens TOPCAT.
+In the ``Graphics'' menu, select plane plot and you will see all the values fluctuating around zero (with a maximum/minimum around @mymath{\pm2}).
+Afterwards, click on the ``Layers'' menu and click on ``Add position control''.
+In the opened tab at the bottom (where the scroll bar infront of ``Table'' is empty), select the other table.
+In the regions that there was no circle in any of the vertical axises, the two match nicely (the noise level is the same).
+However, you see that the image columns that were partly covered by the outlying circle gradually get more affected as the width of the circle in that column increases (the full diameter of the circle was in the middle of the image).
+This shows how the median is biased by outliers as their number increases.
+
+To see the problem more prominently, use the @code{collapse-mean} operator instead of the median.
+The reason that the mean is more strongly affected by the outlier is exactly the same as above for the stacking of the input images.
+In the subsections below, we will describe some of the basic ways to reject the effect of these outliers (and have better stacks or collapses).
+But the methodology is not limited to these types of data and can be generically applied; unless specified explicitly.
+
+@node Sigma clipping, MAD clipping, Building inputs and analysis without clipping, Clipping outliers
+@subsection Sigma clipping
+
+Let's assume that you have pure noise (centered on zero) with a clear @url{https://en.wikipedia.org/wiki/Normal_distribution,Gaussian distribution}, or see @ref{Photon counting noise}.
+Now let's assume you add very bright objects (signal) on the image which have a very sharp boundary.
+By a sharp boundary, we mean that there is a clear cutoff (from the noise) at the pixels the objects finish.
+In other words, at their boundaries, the objects do not fade away into the noise.
+
+In optical astronomical imaging, cosmic rays (when they collide at a near normal incidence angle) are a very good example of such outliers.
+The tracks they leave behind in the image are perfectly immune to the blurring caused by the atmosphere on images of stars or galaxies and they have a very high signal-to-noise ratio.
+They are also very energetic and so their borders are usually clearly separated from the surrounding noise.
+See Figure 15 in Akhlaghi and Ichikawa, @url{https://arxiv.org/abs/1505.01664,2015}.
+
+In such a case, when you plot the histogram (see @ref{Histogram and Cumulative Frequency Plot}) of the distribution, the pixels relating to those objects will be clearly separate from pixels that belong to parts of the image that did not have any signal (were just noise).
+In the cumulative frequency plot, after a steady rise (due to the noise), you would observe a long flat region were for a certain range of data (horizontal axis), there is no increase in the index (vertical axis).
+
+In the previous section (@ref{Building inputs and analysis without clipping}) we created one such dataset (@file{9.fits}).
+With the command below, let's have a look at its histogram and cumulative frequency plot (in simple ASCII format; we are decreasing the default number of bins with @option{--numasciibins} to show them easily within the width of the print version of this manual; feel free to change this).
+
+@example
+$ aststatistics build/in-9.fits --asciihist --asciicfp \
+                --numasciibins=65
+
+ASCII Histogram:
+Number: 40401
+Y: (linear: 0 to 4191)
+X: (linear: -31.9714 -- 150.323, in 65 bins)
+ |              **
+ |             ****
+ |            ******
+ |            ******
+ |           ********
+ |           ********
+ |          **********
+ |         ************
+ |        **************
+ |      ******************                          ******
+ |*******************************         *************************
+ |-----------------------------------------------------------------
+
+
+ASCII Cumulative frequency plot:
+Y: (linear: 0 to 40401)
+X: (linear: -31.9714 -- 150.323, in 65 bins)
+ |                                                  ***************
+ |                   **********************************************
+ |                  ***********************************************
+ |                *************************************************
+ |               **************************************************
+ |              ***************************************************
+ |             ****************************************************
+ |            *****************************************************
+ |           ******************************************************
+ |         ********************************************************
+ |*****************************************************************
+ |-----------------------------------------------------------------
+@end example
+
+@cindex Cosmic rays
+Outliers like the example above can significantly bias the measurement of the background noise statistics.
+For example let's compare the median, mean and standard deviation of the image above with @file{1.fits}:
+
+@example
+$ aststatistics build/in-1.fits --median --mean --std
+9.90529778313248e+00 9.96143102101206e+00 1.00137568561776e+01
+
+$ aststatistics build/in-9.fits --median --mean --std
+1.09305819367634e+01 1.74470443173776e+01 2.88895986970341e+01
+@end example
+
+The effect of the outliers is obvious in all three measures: the median has become 1.10 times larger, the mean 1.75 times and the standard deviation about 2.88 times!
+The differing effect of outliers in different statistics was already discussed in @ref{Building inputs and analysis without clipping}; also see @ref{Quantifying signal in a tile}.
+
+@mymath{\sigma}-clipping is one way to remove/clip the effect of such very strong outliers in measures like the above.
+@mymath{\sigma}-clipping is defined as the very simple iteration below.
+In each iteration, the range of input data might decrease.
+When the outliers are as strong as above, the outliers will be removed through this iteration.
+
+@enumerate
+@item
+Calculate the standard deviation (@mymath{\sigma}) and median (@mymath{m}) of a distribution.
+The median used because, as shown above, the mean is too significantly affected by the presence of outliers.
+@item
+Remove all points that are smaller or larger than @mymath{m\pm\alpha\sigma}.
+@item
+Go back to step 1, unless the selected exit criteria is reached.
+There are commonly two types of exit criteria (to stop the @mymath{\sigma}-clipping iteration).
+Within Gnuastro's programs that use sigma-clipping, the exit criteria is the second value to the @option{--sclipparams} option (the first value is the @mymath{m} above):
+
+@itemize
+@item
+When a certain number of iterations has taken place (exit criteria is an integer, larger than 1).
+@item
+When the new measured standard deviation is within a certain tolerance level of the previous iteration (exit criteria is floating point and less than 1.0).
+The tolerance level is defined by:
+
+@dispmath{\sigma_{old}-\sigma_{new} \over \sigma_{new}}
+
+In each clipping, the dispersion in the distribution is either less or equal.
+So @mymath{\sigma_{old}\geq\sigma_{new}}.
+@end itemize
+@end enumerate
+
+Let's see the algorithm in practice with the @option{--sigmaclip} option of Gnuastro's Statistics program (using the default configuration of @mymath{3\sigma} clipping and tolerance of 0.1):
+
+@example
+$ aststatistics build/in-9.fits --sigmaclip
+Statistics (GNU Astronomy Utilities) @value{VERSION}
+-------
+Input: build/in-9.fits (hdu: 1)
+-------
+3-sigma clipping steps until relative change in STD is less than 0.1:
+
+round number     median       STD
+1     40401      1.09306e+01  2.88896e+01
+2     37660      1.00306e+01  1.07153e+01
+3     37539      1.00080e+01  9.93741e+00
+-------
+Statistics (after clipping):
+  Number of input elements:                40401
+  Number of clips:                         2
+  Final number of elements:                37539
+  Median:                                  1.000803e+01
+  Mean:                                    1.001822e+01
+  Standard deviation:                      9.937410e+00
+  Median Absolute Deviation:               6.772760e+00
+@end example
+
+After the basic information about the input and settings, the Statistics program has printed the information for each round (iteration) of clipping.
+Initially, there was 40401 elements (the image is @mymath{201\times201} pixels).
+After the first round of clipping, only 37660 elements remained and because the difference in standard deviation was larger than the tolerance level, a third clipping was one.
+But the change in standard deviation after the third clip was smaller than the tolerance level, so the exit criteria was activated and the clipping finished with 37539 elements.
+In the end, we see that the final median, mean and standard deviation are very similar to the data without any outlier (@file{build/1.fits} in the example above).
+
+The example above provided a single statistic from a single dataset.
+Other scenarios where sigma-clipping becomes necessary are stacking and collapsing (that was the main goal of the script in @ref{Building inputs and analysis without clipping}).
+To generate @mymath{\sigma}-clipped stacks and collapsed tables, you just need to change the values of the three variables of the script (shown below).
+After making this change in your favorite text editor, have a look at the outputs:
+
+@example
+$ grep ^clip_ script.sh
+clip_operator=sigclip    # These variables will be used more
+clip_multiple=3          # effectively with the clipping
+clip_tolerance=0.1       # operators of the next sections.
+
+$ bash ./script.sh
+
+$ astscript-fits-view build/stack-std.fits \
+                      build/stack-sigclip-std.fits \
+                      build/stack-*mean.fits \
+                      build/stack-*median.fits \
+                      build/stack-*number.fits \
+                      --ds9extra="-tile grid layout 2 4 -scale minmax"
+@end example
+
+It is clear that the @mymath{\sigma}-clipped results have significantly improved in all four measures (images in the right column in DS9).
+The reason is clear in the @file{stack-sigclip-number.fits} image (which show how many images were used for each pixel): almost all of the outlying circle has been accounted for (the pixel values are 8, not 9, showing 8 images went into those).
+It is the leaked holes in the @file{stack-sigclip-number.fits} image (with value of 9) that keep the circle in the final stack of the other measures (at various levels).
+See @ref{Filled re-clipping} for stacking operators that can account for this.
+
+So far, @mymath{\sigma}-clipping has preformed nicely.
+However, there are important caveats to @mymath{\sigma}-clipping that are listed in the box below and further elaborated (with examples) afterwards.
+
+@cartouche
+@noindent
+@strong{Caveats of @mymath{\sigma}-clipping}: There are some important caveats to @mymath{\sigma}-clipping:
+@itemize
+@item
+The standard deviation is itself heavily influenced by the presence of outliers.
+Therefore a sufficiently small number of outliers can expand the standard deviation such that they stay within the boundaries.
+
+@item
+When the outliers do not consititute a clearly distinct distribution like the example here, sigma-clipping will not be able to separate them like here.
+@end itemize
+@end cartouche
+
+To demonstrate how weaker outliers will not be clipped in sigma clipping, let's decrease the total sum of values in the outlying circle, then re-run the script:
+
+@example
+$ grep ^profsum script.sh
+profsum=1e5
+
+$ bash ./script.sh
+@end example
+
+Let's have a look at the new outlying circle with the first command below.
+With the second command, let's view its pixel value histogram (recall that previously, the circle had a clearly separate distribution):
+
+@example
+$ astscript-fits-view build/in-9.fits
+
+$ aststatistics build/in-9.fits --asciihist --numasciibins=65
+ASCII Histogram:
+Number: 40401
+Y: (linear: 0 to 2654)
+X: (linear: -31.9714 -- 79.4266, in 65 bins)
+ |                        **
+ |                      *****
+ |                    *********
+ |                    **********
+ |                  *************
+ |                  **************
+ |                *****************
+ |               *******************
+ |             ***********************
+ |          ****************************************
+ |*****************************************************************
+ |-----------------------------------------------------------------
+@end example
+
+We see that even tough the circle is still clearly visible in the noise, the histogram is not longer separate; it has blended into the noise, and just caused a skewnewss in the otherwise symmetric noise distribution.
+Let's try running the @option{--sigmaclip} option as above:
+
+@example
+$ aststatistics build/in-9.fits --sigmaclip
+Statistics (GNU Astronomy Utilities) @value{VERSION}
+-------
+Input: build/in-9.fits (hdu: 1)
+-------
+3-sigma clipping steps until relative change in STD is less than 0.1:
+
+round number     median       STD
+1     40401      1.09295e+01  1.34784e+01
+2     39618      1.06762e+01  1.19852e+01
+3     39126      1.05265e+01  1.12983e+01
+-------
+Statistics (after clipping):
+  Number of input elements:                40401
+  Number of clips:                         2
+  Final number of elements:                39126
+  Median:                                  1.052652e+01
+  Mean:                                    1.114819e+01
+  Standard deviation:                      1.129831e+01
+  Median Absolute Deviation:               7.106166e+00
+@end example
+
+We see that the median, mean and standard deviation are over estimated (each worse than the previous!).
+Let's see how the @mymath{\sigma}-clipping stacking on this outlying flat circle:
+
+@example
+$ astscript-fits-view build/stack-std.fits \
+                      build/stack-sigclip-std.fits \
+                      build/stack-*mean.fits \
+                      build/stack-*median.fits \
+                      build/stack-*number.fits \
+                      --ds9extra="-tile grid layout 2 4 -scale minmax"
+@end example
+
+Compared to the previous run (where the outlying circle was brighter), we see that @mymath{\sigma}-clipping is now less successful in removing the outlying circle from the stacks; or in the single value measurements.
+This is particularly visible in the @file{stack-sigclip-number.fits} image: the circle barely visible any more: there is only a very weak clustering of pixels with a value of 8 over the circle's pixels.
+This has happened because the outliers have biased the standard deviation itself to a level that includes them with this multiple of the standard deviation.
+
+To gauge if @mymath{\sigma}-clipping will be useful for your dataset, look at the histogram (see @ref{Histogram and Cumulative Frequency Plot}).
+The ASCII histogram that is printed on the command-line with @option{--asciihist} (like above) is good enough in most cases.
+But you can't do this manually in every case (as in the stacking which involved more than forty thousand pixels)!
+Clipping outliers should be based on a measure of scatter that is less affected by outliers!
+Therefore, in Gnuastro we also have median absolute deviation (MAD) clipping which is described in the next section (@ref{MAD clipping}).
+
+@node MAD clipping, Filled re-clipping, Sigma clipping, Clipping outliers
+@subsection MAD clipping
+
+@cindex Median absolute deviation (MAD)
+@cindex MAD (median absolute deviation)
+When clipping outliers, it is important that the used measure of dispersion is itself not strongly affected by the outliers.
+Previously (in @ref{Sigma clipping}), we saw that the standard deviation is not a good measure of dispersion because of its strong dependency on outliers.
+In this section, we'll introduce clipping operators that are based on the @url{https://en.wikipedia.org/wiki/Median_absolute_deviation, median absolute deviation} (MAD).
+
+The median absolute deviation is defined as the median of the differences of each element from the median of the elements.
+As mathematically derived in the Wikipedia page above, for a pure Gaussian distribution, the median absolute deviation will be roughly @mymath{0.67449\sigma}.
+We can confirm this numerically from the images with pure noise that we created previously in @ref{Building inputs and analysis without clipping}.
+With the first command below we can see the raw standard deviation and median absolute deviation values and the second command shows their division:
+
+@verbatim
+$ aststatistics build/in-1.fits --std --mad
+1.00137568561776e+01 6.74662296703343e+00
+
+$ aststatistics build/in-1.fits --std --mad | awk '{print $2/$1}'
+0.673735
+@end verbatim
+
+The algorithm of MAD-clipping is identical to @mymath{\sigma}-clipping, except that instead of @mymath{\sigma}, it uses the median absolute deviation.
+Since the median absolute deviation is smaller than the standard deviation by roughly 0.67, if you regularly use @mymath{3\sigma} there, you should use @mymath{(3/0.67)\rm{MAD}=(4.48)\rm{MAD}} when doing MAD-clipping.
+The usual tolerance should also be changed due to the differing nature of the median absolute deviation (based on sorted differences) in relation to the standard deviation (based on the sum of squared differences).
+A tolerance of 0.01 is better suited to the termination criteria of MAD-clipping.
+
+To demonstrate the steps in practice, let's assume you have the original script in @ref{Building inputs and analysis without clipping} with the changes shown in the first command below.
+With the second command we'll execute the script, and with the third command we'll do the iterations of MAD-clipping:
+
+@verbatim
+$ grep '^clip_\|^profsum' script.sh
+profsum=1e5
+clip_operator=madclip
+clip_multiple=4.48
+clip_tolerance=0.01
+
+$ bash ./script.sh
+
+$ aststatistics build/in-9.fits --madclip
+Statistics (GNU Astronomy Utilities) 0.21.6-28a1
+-------
+Input: build/in-9.fits (hdu: 1)
+-------
+4.48-MAD clipping steps until relative change in MAD
+(median absolute deviation) is less than 0.01:
+
+round number     median       MAD
+1     40401      1.09295e+01  7.38609e+00
+2     38789      1.04261e+01  7.03508e+00
+3     38549      1.03469e+01  6.97927e+00
+-------
+Statistics (after clipping):
+  Number of input elements:                40401
+  Number of clips:                         2
+  Final number of elements:                38549
+  Median:                                  1.034690e+01
+  Mean:                                    1.068946e+01
+  Standard deviation:                      1.062083e+01
+  Median Absolute Deviation:               6.979274e+00
+@end verbatim
+
+We see that the median, mean and standard deviation after MAD-clipping is much better than the basic @mymath{\sigma}-clipping (see @ref{Sigma clipping}): the median is now 10.3 (was 10.5 in @mymath{\sigma}-clipping), mean is 10.7 (was 10.11) and the standard deviation is 10.6 (was 10.12).
+
+Let'scompare the MAD-clipped stacks with the results of the previous section.
+Since we want the images shown in a certain order, we'll first construct the list of images (with a @code{for} loop that will fill the @file{imgs} variable).
+Note that this assumes you have ran and carefully read/understand all the commands in the previous sections (@ref{Building inputs and analysis without clipping} and @ref{Sigma clipping}).
+Tip: the three @option{--ds9extra} options ensure that the bottom row (showing the number of images used in each pixel) has the same scale and limits in all three columns.
+
+@example
+$ imgs=""
+$ p=build/stack   # 'p' is short for "prefix"
+$ for m in std mean median mad number; do \
+   imgs="$imgs $p-$m.fits $p-sigclip-$m.fits $p-madclip-$m.fits"; \
+  done
+$ astscript-fits-view $imgs --ds9extra="-tile grid layout 3 5" \
+                      --ds9extra="-scale limits 1 9" \
+                      --ds9extra="-frame move back -scale limits 1 9" \
+                      --ds9extra="-frame move back -scale limits 1 9"
+@end example
+
+The third column shows the newly created MAD-clipped stacks.
+We see that the outlying circle is much more weaker in the MAD-clipped stacks than in the @mymath{\sigma}-clipped stacks in all measures (except for the ``number'' measure where the circle should be stronger).
+
+However, unfortunately even MAD-clipping is not perfect and we still see the circle in all four cases, even with the MAD-clipped median (more clearly: after smoothing/blocking).
+The reason is similar to what was described in @mymath{\sigma}-clipping (using the original @code{profsum=3e5}: the leaked holes in the numbers image.
+Because the circle is not too distant from the noise some of its elements do not get clipped, and their stacked value gets systematically higher than the rest of the image.
+In Gnuastro, we have a fix for this that is described fully in the next section (@ref{Filled re-clipping}).
+
+@node Filled re-clipping,  , MAD clipping, Clipping outliers
+@subsection Filled re-clipping
+
+When source of the outlier covers more than one element, and its flux is close to the noise level, not all of its elements will be clipped: because of noise, some of its elements will remain un-clipped; and thus affecting the output.
+Examples of this were created and thoroughly discussed in previous sections with @mymath{\sigma}-clipping and MAD-clipping (see @ref{Sigma clipping} and @ref{MAD clipping}).
+
+To avoid this problem, in Gnuastro we have an extra set of clipping operators that will do two rounds of clips and with some basic operations in the middle.
+@enumerate
+@item
+The requested clipping is first applied.
+This will the return the median and dispersion measure (MAD or STD).
+@item
+A mask is created for each input image (in stacking) or 1D array (in collapsing).
+Any pixel that is outside the requested clip range is set to 1; the rest are set to 0.
+@item
+Isolated regions are found:
+@itemize
+@item
+For 2D images (were each pixel has 8 neighbors) the mask pixels are first dilated (so the edges of the regions are closed off from the surrounding noise).
+@item
+For 1D arrays (where each element only has two neighbors), the mask is first eroded.
+This is necessary because the next step (where the holes are filled), two pixels that have been clipped purely due to noise with a large distance between them can wrongly mask a very large range of the input data.
+@end itemize
+@item
+Any 0-valued pixel in the masks that are fully surrounded by 1s (or ``holes'') are filled (given a value of 1).
+@item
+All the pixels that have a value of 1 in the mask are set to NaN in the respective input data (that the mask corresponds to).
+@item
+The requested clipping is repeated on the newly masked inputs.
+@end enumerate
+
+Through this process, the less significant outliers (which do not get clipped independently) are clipped based on their surrounding elements.
+The filled re-clipping operators have an extra @code{-fill} in their names.
+For example the filled MAD-clipped mean is called @code{madclip-fill-mean} (while the simple MAD-clipped mean operator was called @code{madclip-mean}).
+Let's run our script with the filled @mymath{\sigma}-clipping and @mymath{MAD}-clipping (before each run, make sure the values shown under the @code{grep} command are correct).
+
+With the last command, we'll view all the outputs generated so far (in this section and the previous ones (@ref{Building inputs and analysis without clipping}, @ref{Sigma clipping} and @ref{MAD clipping}):
+
+@verbatim
+$ grep '^clip_\|^profsum' script.sh
+profsum=1e5
+clip_operator=madclip-fill
+clip_multiple=4.48
+clip_tolerance=0.01
+
+$ bash ./script
+
+$ $  grep '^clip_\|^profsum' script.sh
+profsum=1e5
+clip_operator=sigclip-fill
+clip_multiple=3
+clip_tolerance=0.1
+
+$ bash ./script
+
+$ imgs=""
+$ for m in std mean median mad number; do \
+   imgs="$imgs $p-$m.fits $p-sigclip-$m.fits $p-sigclip-fill-$m.fits" \
+   imgs="$p-madclip-$m.fits $p-madclip-fill-$m.fits"; \
+  done
+$ astscript-fits-view $imgs --ds9extra="-tile grid layout 5 6" \
+                            --ds9extra="-scale limits 1 9" \
+                            --ds9extra="-frame move back -scale limits 1 9" \
+                            --ds9extra="-frame move back -scale limits 1 9" \
+                            --ds9extra="-frame move back -scale limits 1 9" \
+                            --ds9extra="-frame move back -scale limits 1 9"
+@end verbatim
+
+The last column (belonging to the @code{madclip-fill-*} operators) is @emph{finally} free of the outlying circle (that was present in only one of nine inputs).
+The filling operation did not affect the @code{sigclip-fill-*} operators (third column DS9 from the last command above)!
+The reason is clear from the bottom row (showing the number of images used in each pixel).
+The weak over density of clipped pixels over the circle is barely visible and was not strong enough for defining ``holes'' (that will be filled).
+On the contrary, when comparing the @file{madclip-number.fits} and @file{madclip-fill-number.fits}, the filled holes within the circle are clearly visible.
+
+But the script also generated collapsed columns of @file{build/in-9.fits} (to a 1D table).
+In this case, for each column, the number of outliers increase as we enter the circle and reach a maximum in the middle of the image.
+Let's have a look at those outputs:
+
+@example
+$ astscript-fits-view build/collapsed-madclip-9.fits \
+                      build/collapsed-madclip-fill-9.fits
+@end example
+
+When comparing the two in TOPCAT (following the same process described in @ref{Building inputs and analysis without clipping}) you will notice that the difference is only in the edges of the circle.
+The 4.48 multiple of MAD-clipping (corresponding to 3 sigma), was not successful in removing the many outlying pixels due to the circle in the central pixels of the image.
+
+This is a relatively high threshold and was used because for the images, we only had 9 elements in each clipping for every pixel.
+But for the collapsing, we have many more pixels in each vertical direction fo the image (201 pixels).
+Let's decrease the threshold to 3 and calculate the collapsed mean after MAD-clipping, once with filled re-clipping and once without it:
+
+@example
+$ for m in mean number; do \
+   for clip in madclip madclip-fill; do \
+    astarithmetic build/in-9.fits 3 0.01 2 collapse-$clip-$m \
+                  counter --writeall -ocollapse-$clip-$m.fits; \
+   done; \
+  done
+@end example
+
+The two loops above created four tables.
+First, with the command below, let's look at the two measured mean values (one with filling and the other without it):
+
+@example
+$ astscript-fits-view collapse-*-mean.fits
+@end example
+
+In the table without filled re-clipping, you see a small shift in the center of the image (around 100 in the horizontal axis).
+Let's have a look at the final number of pixels used in each clipping:
+
+@example
+$ astscript-fits-view collapse-*-number.fits
+@end example
+
+The difference is now clearly visible when you plot both in one ``Plane plot'' window.
+In the filled re-clipping case, we see a clear dip in the number of pixels that very nicely corresponds to the number of pixels associated to the circle.
+But the dip is much more noisy in the simple MAD-clipping.
 
 
 
@@ -10310,8 +10991,8 @@ The @url{http://www.gnu.org/software/gsl/, GNU Scientific Library}, or GSL, is a
 To download and install GSL from source, you can run the following commands.
 
 @example
-$ wget http://ftpmirror.gnu.org/gsl/gsl-latest.tar.gz
-$ tar xf gsl-latest.tar.gz
+$ wget https://ftp.gnu.org/gnu/gsl/gsl-latest.tar.gz
+$ tar -xf gsl-latest.tar.gz
 $ cd gsl-X.X                     # Replace X.X with version number.
 $ ./configure CFLAGS="$CFLAGS -g0 -O3"
 $ make -j8                       # Replace 8 with no. CPU threads.
@@ -10354,7 +11035,7 @@ The commands necessary to download the source, decompress, build and install CFI
 @example
 $ urlbase=http://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c
 $ wget $urlbase/cfitsio_latest.tar.gz
-$ tar xf cfitsio_latest.tar.gz
+$ tar -xf cfitsio_latest.tar.gz
 $ cd cfitsio-X.XX                   # Replace X.XX with version
 $ ./configure --prefix=/usr/local --enable-sse2 --enable-reentrant \
               CFLAGS="$CFLAGS -g0 -O3"
@@ -10412,7 +11093,7 @@ To download, configure, build, check and install WCSLIB from source, you can fol
 @example
 ## Download and unpack the source tarball
 $ wget ftp://ftp.atnf.csiro.au/pub/software/wcslib/wcslib.tar.bz2
-$ tar xf wcslib.tar.bz2
+$ tar -xf wcslib.tar.bz2
 
 ## In the `cd' command, replace `X.X' with version number.
 $ cd wcslib-X.X
@@ -10779,6 +11460,13 @@ This arguably makes Debian-based OSs the largest, and most used, class of GNU/Li
 All of them use Debian's Advanced Packaging Tool (APT, for example, @command{apt-get}) for managing packages.
 
 @table @asis
+@item Development features (Ubuntu or derivatives)
+By default, a newly installed Ubuntu does not contain the low-level tools that are necessary for building a software from source.
+Therefore, if you are using Ubuntu, please run the following command.
+@example
+$ sudo apt-get install gcc make zlib1g-dev lzip
+@end example
+
 @item Mandatory dependencies
 Without these, Gnuastro cannot be built, they are necessary for input/output and low-level mathematics (see @ref{Mandatory dependencies})!
 @example
@@ -10791,7 +11479,7 @@ If present, these libraries can be used in Gnuastro's build for extra features, 
 @example
 $ sudo apt-get install ghostscript libtool-bin \
                        libjpeg-dev libtiff-dev \
-                       libgit2-dev curl lzip
+                       libgit2-dev curl
 @end example
 
 @item Programs to view FITS images or tables
@@ -20559,29 +21247,12 @@ For example, you have taken ten exposures of your scientific target, and you wou
 
 When calling these operators you should determine how many operands they should take in (unlike the rest of the operators that have a fixed number of input operands).
 As described in the first operand below, you do this through their first popped operand (which should be a single integer number that is larger than one).
+Below are Some important points for all the stacking operators described in this section:
 
-@table @command
-
-@cindex NaN
-@item min
-For each pixel, find the minimum value in all given datasets.
-The output will have the same type as the input.
-
-The first popped operand to this operator must be a positive integer number which specifies how many further operands should be popped from the stack.
-All the subsequently popped operands must have the same type and size.
-This operator (and all the variable-operand operators similar to it that are discussed below) will work in multi-threaded mode unless Arithmetic is called with the @option{--numthreads=1} option, see @ref{Multi-threaded operations}.
-
-Each pixel of the output of the @code{min} operator will be given the minimum value of the same pixel from all the popped operands/images.
-For example, the following command will produce an image with the same size and type as the three inputs, but each output pixel value will be the minimum of the same pixel's values in all three input images.
-
-@example
-$ astarithmetic a.fits b.fits c.fits 3 min --output=min.fits
-@end example
-
-Important notes:
 @itemize
 
 @item
+@cindex NaN
 NaN/blank pixels will be ignored, see @ref{Blank pixels}.
 
 @item
@@ -20594,65 +21265,32 @@ The operation will be multi-threaded, greatly speeding up the process if you hav
 You can disable multi-threaded operations with the @option{--numthreads=1} option (see @ref{Multi-threaded operations}).
 @end itemize
 
-@item max
-For each pixel, find the maximum value in all given datasets.
-The output will have the same type as the input.
-This operator is called similar to the @command{min} operator, please see there for more.
-For example
+@table @command
+
+@item  min
+@itemx max
+@itemx sum
+@itemx std
+@itemx mad
+@itemx mean
+@itemx median
+@itemx number
+For each pixel, calculate the respective statistic from in all given datasets.
+For the @code{min} and @code{max} operators, the output will have the same type as the input. For the @code{number} operator, the output will have an unsigned 32-bit integer type and the rest will be 32-bit floating point.
+
+The first popped operand to this operator must be a positive integer number which specifies how many further operands should be popped from the stack.
+All the subsequently popped operands must have the same type and size.
+This operator (and all the variable-operand operators similar to it that are discussed below) will work in multi-threaded mode unless Arithmetic is called with the @option{--numthreads=1} option, see @ref{Multi-threaded operations}.
+
+For example, the following command will produce an image with the same size and type as the three inputs, but each output pixel value will be the minimum of the same pixel's values in all three input images.
+
 @example
-$ astarithmetic a.fits b.fits c.fits 3 max -omax.fits
+$ astarithmetic a.fits b.fits c.fits 3 min --output=min.fits
 @end example
 
-
-@item number
-For each pixel count the number of non-blank pixels in all given datasets.
-The output will be an unsigned 32-bit integer datatype (see @ref{Numeric data types}).
-This operator is called similar to the @command{min} operator, please see there for more.
-For example
-@example
-$ astarithmetic a.fits b.fits c.fits 3 number -onum.fits
-@end example
-
-Some datasets may have blank values (which are also ignored in all similar operators like @command{min}, @command{sum}, @command{mean} or @command{median}).
+Regarding the @code{number} operator: some datasets may have blank values (which are also ignored in all similar operators like @command{min}, @command{sum}, @command{mean} or @command{median}).
 Hence, the final pixel values of this operator will not, in general, be equal to the number of inputs.
 This operator is therefore mostly called in parallel with those operators to know the ``weight'' of each pixel (in case you want to only keep pixels that had the full exposure for example).
-
-@item sum
-For each pixel, calculate the sum in all given datasets.
-The output will have the a single-precision (32-bit) floating point type.
-This operator is called similar to the @command{min} operator, please see there for more.
-For example
-@example
-$ astarithmetic a.fits b.fits c.fits 3 sum -ostack-sum.fits
-@end example
-
-@item mean
-For each pixel, calculate the mean in all given datasets.
-The output will have the a single-precision (32-bit) floating point type.
-This operator is called similar to the @command{min} operator, please see there for more.
-For example
-@example
-$ astarithmetic a.fits b.fits c.fits 3 mean -ocoadd-mean.fits
-@end example
-
-@item std
-For each pixel, find the standard deviation in all given datasets.
-The output will have the a single-precision (32-bit) floating point type.
-This operator is called similar to the @command{min} operator, please see there for more.
-For example
-@example
-$ astarithmetic a.fits b.fits c.fits 3 std -ostd.fits
-@end example
-
-@item median
-For each pixel, find the median in all given datasets.
-The output will have the a single-precision (32-bit) floating point type.
-This operator is called similar to the @command{min} operator, please see there for more.
-For example
-@example
-$ astarithmetic a.fits b.fits c.fits 3 median \
-                --output=stack-median.fits
-@end example
 
 @item quantile
 For each pixel, find the quantile from all given datasets.
@@ -20667,18 +21305,112 @@ In the example below, the first-popped operand (@command{0.7}) is the quantile, 
 astarithmetic a.fits b.fits c.fits 3 0.7 quantile
 @end example
 
-@item sigclip-number
-For each pixel, find the sigma-clipped number (after removing outliers) in all given datasets.
-The output will have the an unsigned 32-bit integer type (see @ref{Numeric data types}).
+@item  madclip-fill-mad
+@itemx madclip-fill-std
+@itemx madclip-fill-mean
+@itemx madclip-fill-median
+@itemx madclip-fill-number
+@cindex Median absolute deviation (MAD)
+@cindex MAD (Median absolute deviation)
+Find the respective statistic after median absolute deviation (MAD) filled re-clipping of the values of the same element (pixel in an image) of all the inputs.
+For a complete tutorial on clipping outliers see @ref{Clipping outliers} (if you haven't read it yet, we encourage you to read through it before continuing).
+For the particular case of filled re-clipping (the @code{madclip-fill-*} operators here) see @ref{Filled re-clipping}.
+Spoiler alert: this is currently the most robust stacking operator in Gnuastro.
+
+The output data type of all these operators is a 32-bit floating point number, except for @code{madclip-fill-number}, where an unsigned 32-bit integer is returned (see @ref{Numeric data types}).
+This operator will combine the given inputs into a single output of the same dimension as one of the inputs.
+Each pixel of the output contains the requested statistic from the remaining values after filled MAD re-clipping.
+This operator is very similar to @command{min}, with the exception that it expects two extra operands (parameters for MAD-clipping) before the total number of inputs.
+The first popped operand is the termination criteria and the second is the multiple of the median absolute deviation.
+
+For example, in the command below, the first popped operand (@command{0.01}) is the MAD-clipping termination criteria.
+If the termination criteria is larger than, or equal to, 1 it is interpreted as a pre-defined the number of clips.
+But if it is between 0 and 1, then it is the tolerance level on the change in the median absolute devaition (see @ref{MAD clipping}).
+The second popped operand (@command{5}) is the multiple of the median absolute deviation to use in MAD-clipping.
+The third popped operand (@command{3}) is number of datasets that will be used (similar to the first popped operand to @command{min}).
+
+@example
+$ astarithmetic a.fits b.fits c.fits 3 5 0.01 madclip-fill-std
+@end example
+
+@item  madclip-mad
+@itemx madclip-std
+@itemx madclip-mean
+@itemx madclip-median
+@itemx madclip-number
+Find the number of useful values after median absolute deviation (MAD) clipping of the values of the same element (pixel in an image) of all the inputs.
+These operators are called in an identical fashion to the @code{madclip-fill-*} operators described above; see the description there for more.
+
+@item sigclip-fill-number
+Find the number of useful values after filled sigma (@mymath{\sigma}, which stands for the standard deviation) re-clipping of the values of the same element (pixel in an image) of all the inputs.
+For a complete tutorial on clipping outliers see @ref{Clipping outliers} (if you haven't read it yet, we encourage you to read through it before continuing).
+For the particular case of filled re-clipping (the @code{sigclip-fill-*} operators here) see @ref{Filled re-clipping}.
+Spoiler alert: MAD filled re-clipping is currently most robust stacking operator in Gnuastro (the @code{madclip-fill-*} operators).
 
 This operator will combine the specified number of inputs into a single output that contains the number of remaining elements after @mymath{\sigma}-clipping on each element/pixel (for more on @mymath{\sigma}-clipping, see @ref{Sigma clipping}).
-This operator is very similar to @command{min}, with the exception that it expects two operands (parameters for sigma-clipping) before the total number of inputs.
+This operator is very similar to @command{min}, with the exception that it expects two operands (parameters for @mymath{\sigma}-clipping) before the total number of inputs.
 The first popped operand is the termination criteria and the second is the multiple of @mymath{\sigma}.
 
 For example, in the command below, the first popped operand (@command{0.2}) is the sigma clipping termination criteria.
 If the termination criteria is larger than, or equal to, 1 it is interpreted as the number of clips to do.
 But if it is between 0 and 1, then it is the tolerance level on the standard deviation (see @ref{Sigma clipping}).
-The second popped operand (@command{5}) is the multiple of sigma to use in sigma-clipping.
+The second popped operand (@command{5}) is the multiple of sigma to use in @mymath{\sigma}-clipping.
+The third popped operand (@command{10}) is number of datasets that will be used (similar to the first popped operand to @command{min}).
+
+@example
+astarithmetic a.fits b.fits c.fits 3 5 0.2 sigclip-fill-number
+@end example
+
+@item sigclip-fill-median
+For each pixel, find the @mymath{\sigma}-clipped median in all given datasets.
+The output will have the a single-precision (32-bit) floating point type.
+This operator is called similar to the @command{sigclip-fill-number} operator, please see there for more.
+For example
+@example
+astarithmetic a.fits b.fits c.fits 3 5 0.2 sigclip-fill-median
+@end example
+
+@item sigclip-fill-mean
+For each pixel, find the @mymath{\sigma}-clipped mean in all given datasets.
+The output will have the a single-precision (32-bit) floating point type.
+This operator is called similar to the @command{sigclip-fill-number} operator, please see there for more.
+For example
+@example
+astarithmetic a.fits b.fits c.fits 3 5 0.2 sigclip-fill-mean
+@end example
+
+@item sigclip-fill-std
+For each pixel, find the @mymath{\sigma}-clipped standard deviation in all given datasets.
+The output will have the a single-precision (32-bit) floating point type.
+This operator is called similar to the @command{sigclip-fill-number} operator, please see there for more.
+For example
+@example
+astarithmetic a.fits b.fits c.fits 3 5 0.2 sigclip-fill-std
+@end example
+
+@item sigclip-fill-mad
+For each pixel, find the @mymath{\sigma}-clipped median absolute deviation (MAD) in all given datasets.
+The output will have the a single-precision (32-bit) floating point type.
+This operator is called similar to the @command{sigclip-fill-number} operator, please see there for more.
+For example
+@example
+astarithmetic a.fits b.fits c.fits 3 5 0.2 sigclip-fill-mad
+@end example
+
+@item sigclip-number
+Find the number of useful values after sigma (@mymath{\sigma}, which stands for the standard deviation) clipping of the values of the same element (pixel in an image) of all the inputs.
+For a complete tutorial on clipping outliers see @ref{Clipping outliers} (if you haven't read it yet, we encourage you to read through it before continuing).
+For the particular case of @mymath{\sigma}-clipping (the @code{sigclip-*} operators here) see @ref{Sigma clipping}.
+Spoiler alert: MAD filled re-clipping is currently most robust stacking operator in Gnuastro (the @code{madclip-fill-*} operators).
+
+This operator will combine the specified number of inputs into a single output that contains the number of remaining elements after @mymath{\sigma}-clipping on each element/pixel (for more on @mymath{\sigma}-clipping, see @ref{Sigma clipping}).
+This operator is very similar to @command{min}, with the exception that it expects two operands (parameters for @mymath{\sigma}-clipping) before the total number of inputs.
+The first popped operand is the termination criteria and the second is the multiple of @mymath{\sigma}.
+
+For example, in the command below, the first popped operand (@command{0.2}) is the sigma clipping termination criteria.
+If the termination criteria is larger than, or equal to, 1 it is interpreted as the number of clips to do.
+But if it is between 0 and 1, then it is the tolerance level on the standard deviation (see @ref{Sigma clipping}).
+The second popped operand (@command{5}) is the multiple of sigma to use in @mymath{\sigma}-clipping.
 The third popped operand (@command{10}) is number of datasets that will be used (similar to the first popped operand to @command{min}).
 
 @example
@@ -20686,7 +21418,7 @@ astarithmetic a.fits b.fits c.fits 3 5 0.2 sigclip-number
 @end example
 
 @item sigclip-median
-For each pixel, find the sigma-clipped median in all given datasets.
+For each pixel, find the @mymath{\sigma}-clipped median in all given datasets.
 The output will have the a single-precision (32-bit) floating point type.
 This operator is called similar to the @command{sigclip-number} operator, please see there for more.
 For example
@@ -20695,7 +21427,7 @@ astarithmetic a.fits b.fits c.fits 3 5 0.2 sigclip-median
 @end example
 
 @item sigclip-mean
-For each pixel, find the sigma-clipped mean in all given datasets.
+For each pixel, find the @mymath{\sigma}-clipped mean in all given datasets.
 The output will have the a single-precision (32-bit) floating point type.
 This operator is called similar to the @command{sigclip-number} operator, please see there for more.
 For example
@@ -20704,14 +21436,26 @@ astarithmetic a.fits b.fits c.fits 3 5 0.2 sigclip-mean
 @end example
 
 @item sigclip-std
-For each pixel, find the sigma-clipped standard deviation in all given datasets.
+For each pixel, find the @mymath{\sigma}-clipped standard deviation in all given datasets.
 The output will have the a single-precision (32-bit) floating point type.
 This operator is called similar to the @command{sigclip-number} operator, please see there for more.
 For example
 @example
 astarithmetic a.fits b.fits c.fits 3 5 0.2 sigclip-std
 @end example
+
+@item sigclip-mad
+For each pixel, find the @mymath{\sigma}-clipped median absolute deviation (MAD) in all given datasets.
+The output will have the a single-precision (32-bit) floating point type.
+This operator is called similar to the @command{sigclip-number} operator, please see there for more.
+For example
+@example
+astarithmetic a.fits b.fits c.fits 3 5 0.2 sigclip-mad
+@end example
 @end table
+
+
+
 
 @node Filtering operators, Pooling operators, Stacking operators, Arithmetic operators
 @subsubsection Filtering (smoothing) operators
@@ -21129,6 +21873,33 @@ $ astarithmetic seg.fits -hINPUT-NO-SKY seg.fits -hOBJECTS \
                 263 ne nan where trim --output=obj-263.fits
 @end example
 
+@item add-dimension-slow
+Build a higher-dimensional dataset from all the input datasets stacked after one another (along the slowest dimension).
+The first popped operand has to be a single number.
+It is used by the operator to know how many operands it should pop from the stack (and the size of the output in the new dimension).
+The rest of the operands must have the same size and numerical data type.
+This operator currently only works for 2D input operands, please contact us if you want inputs to have different dimensions.
+
+The output's WCS (which should have a different dimensionality compared to the inputs) can be read from another file with the @option{--wcsfile} option.
+If no file is specified for the WCS, the first dataset's WCS will be used, you can later add/change the necessary WCS keywords with the FITS keyword modification features of the Fits program (see @ref{Fits}).
+
+If your datasets do not have the same type, you can use the type transformation operators of Arithmetic that are discussed below.
+Just beware of overflow if you are transforming to a smaller type, see @ref{Numeric data types}.
+
+For example, let's assume you have 3 two-dimensional images @file{a.fits}, @file{b.fits} and @file{c.fits} (each with @mymath{200\times100} pixels).
+You can construct a 3D data cube with @mymath{200\times100\times3} voxels (volume-pixels) using the command below:
+
+@example
+$ astarithmetic a.fits b.fits c.fits 3 add-dimension-slow
+@end example
+
+@item add-dimension-fast
+Similar to @code{add-dimension-slow} but along the fastest dimension.
+This operator currently only works for 1D input operands, please contact us if you want inputs to have different dimensions.
+
+For example, let's assume you have 3 one-dimensional datasets, each with 100 elements.
+With this operator, you can construct a @mymath{3\times100} pixel FITS image that has 3 pixels along the horizontal and 5 pixels along the vertical.
+
 @item collapse-sum
 Collapse the given dataset (second popped operand), by summing all elements along the first popped operand (a dimension in FITS standard: counting from one, from fastest dimension).
 The returned dataset has one dimension less compared to the input.
@@ -21156,40 +21927,33 @@ The command below will collapse the whole third dimension into a 2D array the si
 $ astarithmetic cube.fits 3 collapse-sum float32
 @end example
 
-@item collapse-mean
-Similar to @option{collapse-sum}, but the returned dataset will be the mean value along the collapsed dimension, not the sum.
+@item  collapse-min
+@itemx collapse-max
+@itemx collapse-mean
+@itemx collapse-median
+Similar to @option{collapse-sum}, but the returned dataset will be the desired statistic along the collapsed dimension, not the sum.
 
-@item collapse-number
-Similar to @option{collapse-sum}, but the returned dataset will be the number of non-blank values along the collapsed dimension.
-The output will have a 32-bit signed integer type.
-If the input dataset does not have blank values, all the elements in the returned dataset will have a single value (the length of the collapsed dimension).
-Therefore this is mostly relevant when there are blank values in the dataset.
+@item  collapse-madclip-fill-mad
+@itemx collapse-madclip-fill-std
+@itemx collapse-madclip-fill-mean
+@itemx collapse-madclip-fill-median
+@itemx collapse-madclip-fill-number
+Collapse the input dataset (fourth popped operand) along the FITS dimension given as the first popped operand by calculating the desired statistic after median absolute deviation (MAD) filled re-cliping.
+The MAD-clipping parameters (namely, the multiple of sigma and termination criteria) are read as the third and second popped operands respectively.
 
-@item collapse-min
-Similar to @option{collapse-sum}, but the returned dataset will have the same numeric type as the input and will contain the minimum value for each pixel along the collapsed dimension.
-
-@item collapse-max
-Similar to @option{collapse-sum}, but the returned dataset will have the same numeric type as the input and will contain the maximum value for each pixel along the collapsed dimension.
-
-@item collapse-median
-Similar to @option{collapse-sum}, but the returned dataset will have the same numeric type as the input and will contain the median value for each pixel along the collapsed dimension.
-
-The median involves sorting, therefore @code{collapse-median} will do each calculation in different CPU threads to speed up the operation.
-By default, Arithmetic will detect and use all available threads, but you can override this with the @option{--numthreads} (or @option{-N}) option.
-
-@item collapse-sigclip-mean
-Collapse the input dataset (fourth popped operand) along the FITS dimension given as the first popped operand by calculating the sigma-clipped mean.
-The sigma-clipping parameters (namely, the multiple of sigma and termination criteria) are read as the third and second popped operands respectively.
-For more on sigma-clipping, see @ref{Sigma clipping}.
+This is the most robust method to reject outliers; for more on filled re-clipping and its advantages, see @ref{Filled re-clipping}.
+For a more general tutorial on rejecting outliers, see @ref{Clipping outliers}.
+If you have not done this tutorial yet, we recommend you to take an hour or so and go through that tutorial for optimal understanding and results.
 
 For example, with the command below, the pixels of the input 2 dimensional @file{image.fits} will be collapsed to a single dimension output.
 The first popped operand is @code{2}, so it will collapse all the pixels that are vertically on top of each other.
 Such that the output will have the same number of pixels as the horizontal axis of the input.
 During the collapsing, all pixels that are more than @mymath{3\sigma} (third popped operand) are rejected, and the clipping will continue until the standard deviation changes less than @mymath{0.2} between clips.
+Finally the @code{counter} operator is used to have a two-column table with the first one being a simple counter starting from one (see @ref{Size and position operators}).
 
 @example
 $ astarithmetic image.fits 3 0.2 2 collapse-sigclip-mean \
-                --output=collapsed-vertical.fits
+                counter --output=collapsed-vertical.fits
 @end example
 
 @cartouche
@@ -21202,44 +21966,29 @@ The FITS format is always superior (since it stores the value in binary, therefo
 But if you are forced to save the output in plain-text, use the @code{float64} operator after this to change the type to 64-bit floating point (which will print more decimals).
 @end cartouche
 
-@item collapse-sigclip-std
-Collapse the input dataset along the given FITS dimension by calculating the sigma-clipped standard deviation.
-Except for returning the standard deviation after clipping, this function is similar to @code{collapse-sigclip-mean}, see the description of that operator for more.
+@item  collapse-madclip-mad
+@itemx collapse-madclip-std
+@itemx collapse-madclip-mean
+@itemx collapse-madclip-median
+@itemx collapse-madclip-number
+Collapse the input dataset (fourth popped operand) along the FITS dimension given as the first popped operand by calculating the desired statistic after median absolute deviation (MAD) cliping.
+This operator is called similarly to the @code{collapse-madclip-fill-*} operators, see the description there for more.
 
-@item collapse-sigclip-median
-Collapse the input dataset along the given FITS dimension by calculating the sigma-clipped median.
-Except for returning the median after clipping, this function is similar to @code{collapse-sigclip-mean}, see the description of that operator for more.
+@item  collapse-sigclip-fill-mad
+@itemx collapse-sigclip-fill-std
+@itemx collapse-sigclip-fill-mean
+@itemx collapse-sigclip-fill-median
+@itemx collapse-sigclip-fill-number
+Collapse the input dataset (fourth popped operand) along the FITS dimension given as the first popped operand by calculating the desired statistic after filled @mymath{\sigma} re-clipping.
+This operator is called similarly to the @code{collapse-madclip-fill-*} operators, see the description there for more.
 
-@item collapse-sigclip-number
-Collapse the input dataset along the given FITS dimension by calculating the number of elements that remain after sigma-clipped.
-Except for returning the number after clipping, this function is similar to @code{collapse-sigclip-mean}, see the description of that operator for more.
-
-@item add-dimension-slow
-Build a higher-dimensional dataset from all the input datasets stacked after one another (along the slowest dimension).
-The first popped operand has to be a single number.
-It is used by the operator to know how many operands it should pop from the stack (and the size of the output in the new dimension).
-The rest of the operands must have the same size and numerical data type.
-This operator currently only works for 2D input operands, please contact us if you want inputs to have different dimensions.
-
-The output's WCS (which should have a different dimensionality compared to the inputs) can be read from another file with the @option{--wcsfile} option.
-If no file is specified for the WCS, the first dataset's WCS will be used, you can later add/change the necessary WCS keywords with the FITS keyword modification features of the Fits program (see @ref{Fits}).
-
-If your datasets do not have the same type, you can use the type transformation operators of Arithmetic that are discussed below.
-Just beware of overflow if you are transforming to a smaller type, see @ref{Numeric data types}.
-
-For example, let's assume you have 3 two-dimensional images @file{a.fits}, @file{b.fits} and @file{c.fits} (each with @mymath{200\times100} pixels).
-You can construct a 3D data cube with @mymath{200\times100\times3} voxels (volume-pixels) using the command below:
-
-@example
-$ astarithmetic a.fits b.fits c.fits 3 add-dimension-slow
-@end example
-
-@item add-dimension-fast
-Similar to @code{add-dimension-slow} but along the fastest dimension.
-This operator currently only works for 1D input operands, please contact us if you want inputs to have different dimensions.
-
-For example, let's assume you have 3 one-dimensional datasets, each with 100 elements.
-With this operator, you can construct a @mymath{3\times100} pixel FITS image that has 3 pixels along the horizontal and 5 pixels along the vertical.
+@item  collapse-sigclip-mad
+@itemx collapse-sigclip-std
+@itemx collapse-sigclip-mean
+@itemx collapse-sigclip-median
+@itemx collapse-sigclip-number
+Collapse the input dataset (fourth popped operand) along the FITS dimension given as the first popped operand by calculating the desired statistic after @mymath{\sigma}-cliping.
+This operator is called similarly to the @code{collapse-madclip-fill-*} operators, see the description there for more.
 @end table
 
 @node Conditional operators, Mathematical morphology operators, Dimensionality changing operators, Arithmetic operators
@@ -24616,7 +25365,6 @@ The Statistics program is designed for such situations.
 @menu
 * Histogram and Cumulative Frequency Plot::  Basic definitions.
 * 2D Histograms::               Plotting the distribution of two variables.
-* Sigma clipping::              Definition of @mymath{\sigma}-clipping.
 * Least squares fitting::       Fitting with various parametric functions.
 * Sky value::                   Definition and derivation of the Sky value.
 * Invoking aststatistics::      Arguments and options to Statistics.
@@ -24662,7 +25410,7 @@ Formally, an interval/bin between a and b is represented by [a, b).
 When the over-all range of the dataset is specified (with the @option{--greaterequal}, @option{--lessthan}, or @option{--qrange} options), the acceptable values of the dataset are also defined with a similar inclusive-exclusive manner.
 But when the range is determined from the actual dataset (none of these options is called), the last element in the dataset is included in the last bin's count.
 
-@node 2D Histograms, Sigma clipping, Histogram and Cumulative Frequency Plot, Statistics
+@node 2D Histograms, Least squares fitting, Histogram and Cumulative Frequency Plot, Statistics
 @subsection 2D Histograms
 @cindex 2D histogram
 @cindex Histogram, 2D
@@ -24917,78 +25665,12 @@ $ pdflatex cmd-report.tex
 The improved quality, blending in with the text, vector-graphics resolution and other features make this plot pleasing to the eye, and let your readers focus on the main point of your scientific argument.
 PGFPlots can also built the PDF of the plot separately from the rest of the paper/report, see @ref{2D histogram as a table for plotting} for the necessary changes in the preamble.
 
-@node  Sigma clipping, Least squares fitting, 2D Histograms, Statistics
-@subsection Sigma clipping
-
-Let's assume that you have pure noise (centered on zero) with a clear @url{https://en.wikipedia.org/wiki/Normal_distribution,Gaussian distribution}, or see @ref{Photon counting noise}.
-Now let's assume you add very bright objects (signal) on the image which have a very sharp boundary.
-By a sharp boundary, we mean that there is a clear cutoff (from the noise) at the pixels the objects finish.
-In other words, at their boundaries, the objects do not fade away into the noise.
-In such a case, when you plot the histogram (see @ref{Histogram and Cumulative Frequency Plot}) of the distribution, the pixels relating to those objects will be clearly separate from pixels that belong to parts of the image that did not have any signal (were just noise).
-In the cumulative frequency plot, after a steady rise (due to the noise), you would observe a long flat region were for a certain range of data (horizontal axis), there is no increase in the index (vertical axis).
-
-@cindex Blurring
-@cindex Cosmic rays
-@cindex Aperture blurring
-@cindex Atmosphere blurring
-Outliers like the example above can significantly bias the measurement of noise statistics.
-@mymath{\sigma}-clipping is defined as a way to avoid the effect of such outliers.
-In astronomical applications, cosmic rays (when they collide at a near normal incidence angle) are a very good example of such outliers.
-The tracks they leave behind in the image are perfectly immune to the blurring caused by the atmosphere and the aperture.
-They are also very energetic and so their borders are usually clearly separated from the surrounding noise.
-So @mymath{\sigma}-clipping is very useful in removing their effect on the data.
-See Figure 15 in Akhlaghi and Ichikawa, @url{https://arxiv.org/abs/1505.01664,2015}.
-
-@mymath{\sigma}-clipping is defined as the very simple iteration below.
-In each iteration, the range of input data might decrease and so when the outliers have the conditions above, the outliers will be removed through this iteration.
-The exit criteria will be discussed below.
-
-@enumerate
-@item
-Calculate the standard deviation (@mymath{\sigma}) and median (@mymath{m})
-of a distribution.
-@item
-Remove all points that are smaller or larger than
-@mymath{m\pm\alpha\sigma}.
-@item
-Go back to step 1, unless the selected exit criteria is reached.
-@end enumerate
-
-@noindent
-The reason the median is used as a reference and not the mean is that the mean is too significantly affected by the presence of outliers, while the median is less affected, see @ref{Quantifying signal in a tile}.
-As you can tell from this algorithm, besides the condition above (that the signal have clear high signal to noise boundaries) @mymath{\sigma}-clipping is only useful when the signal does not cover more than half of the full data set.
-If they do, then the median will lie over the outliers and @mymath{\sigma}-clipping might remove the pixels with no signal.
-
-There are commonly two exit criteria to stop the @mymath{\sigma}-clipping
-iteration:
-
-@itemize
-@item
-When a certain number of iterations has taken place (second value to the @option{--sclipparams} option is larger than 1).
-@item
-When the new measured standard deviation is within a certain tolerance level of the old one (second value to the @option{--sclipparams} option is less than 1).
-The tolerance level is defined by:
-
-@dispmath{\sigma_{old}-\sigma_{new} \over \sigma_{new}}
-
-The standard deviation is used because it is heavily influenced by the presence of outliers.
-Therefore the fact that it stops changing between two iterations is a sign that we have successfully removed outliers.
-Note that in each clipping, the dispersion in the distribution is either less or equal.
-So @mymath{\sigma_{old}\geq\sigma_{new}}.
-@end itemize
-
-@cartouche
-@noindent
-When working on astronomical images, objects like galaxies and stars are blurred by the atmosphere and the telescope aperture, therefore their signal sinks into the noise very gradually.
-Galaxies in particular do not appear to have a clear high signal to noise cutoff at all.
-Therefore @mymath{\sigma}-clipping will not be useful in removing their effect on the data.
-
-To gauge if @mymath{\sigma}-clipping will be useful for your dataset, look at the histogram (see @ref{Histogram and Cumulative Frequency Plot}).
-The ASCII histogram that is printed on the command-line with @option{--asciihist} is good enough in most cases.
-@end cartouche
 
 
-@node Least squares fitting, Sky value, Sigma clipping, Statistics
+
+
+
+@node Least squares fitting, Sky value, 2D Histograms, Statistics
 @subsection Least squares fitting
 
 @cindex Radial profile
@@ -25692,6 +26374,9 @@ Print the mean (average) of all used elements.
 @itemx --std
 Print the standard deviation of all used elements.
 
+@item --mad
+Print the median absolute deviation (MAD) of all used elements.
+
 @item -E
 @itemx --median
 Print the median of all used elements.
@@ -25760,13 +26445,13 @@ distributions are no longer symmetric, see @option{--mode} and Appendix C
 of @url{https://arxiv.org/abs/1505.01664, Akhlaghi and Ichikawa 2015} for
 more.
 
-@item --sigclip-number
-Number of elements after applying @mymath{\sigma}-clipping (see @ref{Sigma clipping}).
-@mymath{\sigma}-clipping configuration is done with the @option{--sigclipparams} option.
-
-@item --sigclip-median
-Median after applying @mymath{\sigma}-clipping (see @ref{Sigma clipping}).
-@mymath{\sigma}-clipping configuration is done with the @option{--sigclipparams} option.
+@item  --sigclip-std
+@item  --sigclip-mad
+@itemx --sigclip-mean
+@itemx --sigclip-number
+@itemx --sigclip-median
+Calculate the desired statistic after applying @mymath{\sigma}-clipping (see @ref{Sigma clipping}, part of the tutorial @ref{Clipping outliers}).
+@mymath{\sigma}-clipping configuration is done with the @option{--sclipparams} option.
 
 @cindex Outlier
 Here is one scenario where this can be useful: assume you have a table and you would like to remove the rows that are outliers (not within the @mymath{\sigma}-clipping range).
@@ -25812,15 +26497,15 @@ $ asttable table.fits --range=COLUMN,$r
 
 To save the resulting table (that is clean of outliers) in another file (for example, named @file{cleaned.fits}, it can also have a @file{.txt} suffix), just add @option{--output=cleaned.fits} to the command above.
 
+@item  --madclip-std
+@item  --madclip-mad
+@itemx --madclip-mean
+@itemx --madclip-number
+@itemx --madclip-median
+Calculate the desired statistic after applying median absolute deviation (MAD) clipping (see @ref{MAD clipping}, part of the tutorial @ref{Clipping outliers}).
+MAD-clipping configuration is done with the @option{--mclipparams} option.
 
-@item --sigclip-mean
-Mean after applying @mymath{\sigma}-clipping (see @ref{Sigma clipping}).
-@mymath{\sigma}-clipping configuration is done with the @option{--sigclipparams} option.
-
-@item --sigclip-std
-Standard deviation after applying @mymath{\sigma}-clipping (see @ref{Sigma clipping}).
-@mymath{\sigma}-clipping configuration is done with the @option{--sigclipparams} option.
-
+This option behaves similarly to @option{--sigclip-*} options, read their description for usage examples.
 @end table
 
 @node Generating histograms and cumulative frequency plots, Fitting options, Single value measurements, Invoking aststatistics
@@ -25909,10 +26594,15 @@ The third will be number of input points that fall within that box.
 @itemx --cumulative
 Save the cumulative frequency plot of the usable values in the input dataset into a table, similar to @option{--histogram}.
 
+@item --madclip
+Do median absolute deviation (MAD) clipping on the usable pixels of the input dataset.
+See @ref{MAD clipping} for a description on MAD-clipping and @ref{Clipping outliers} for a complete tutorial on clipping of outliers.
+The MAD-clipping parameters can be set through the @option{--mclipparams} option (see below).
+
 @item -s
 @itemx --sigmaclip
 Do @mymath{\sigma}-clipping on the usable pixels of the input dataset.
-See @ref{Sigma clipping} for a full description on @mymath{\sigma}-clipping and also to better understand this option.
+See @ref{Sigma clipping} for a full description on @mymath{\sigma}-clipping and @ref{Clipping outliers} for a complete tutorial on clipping of outliers.
 The @mymath{\sigma}-clipping parameters can be set through the @option{--sclipparams} option (see below).
 
 @item --mirror=FLT
@@ -26241,6 +26931,10 @@ The first value to this option is the multiple of @mymath{\sigma} that will be c
 The second value is the exit criteria.
 If it is less than 1, then it is interpreted as tolerance and if it is larger than one it is a specific number.
 Hence, in the latter case the value must be an integer.
+
+@item --mclipparams=FLT,FLT
+The MAD-clipping parameters.
+This is very similar to @option{--sclipparams} above, see there for more.
 
 @item --outliersclip=FLT,FLT
 @mymath{\sigma}-clipping parameters for the outlier rejection of the Sky
@@ -36234,11 +36928,30 @@ For more on @code{minmapsize} and @code{quietmmap} see @ref{Memory management}.
 For more on sigma clipping, see @ref{Sigma clipping}.
 @end deftypefun
 
+@deftypefun {gal_data_t *} gal_dimension_collapse_sclip_fill_std (gal_data_t @code{*in}, size_t @code{c_dim}, float @code{multip}, float @code{param}, size_t @code{numthreads}, size_t @code{minmapsize}, int @code{quietmmap})
+Similar to @code{gal_dimension_collapse_sclip_std}, but with filled re-clipping (see @ref{Filled re-clipping}).
+@end deftypefun
+
+@deftypefun {gal_data_t *} gal_dimension_collapse_sclip_mad (gal_data_t @code{*in}, size_t @code{c_dim}, float @code{multip}, float @code{param}, size_t @code{numthreads}, size_t @code{minmapsize}, int @code{quietmmap})
+Collapse the input dataset (@code{in}) along the given dimension (@code{c_dim}, in C definition: starting from zero, from the slowest dimension), by finding the median absolute deviation (MAD) of pixels along that dimension after sigma-clipping.
+Since sigma-clipping involves sorting, this operator benefits from many threads (which needs to be set with @code{numthreads}).
+For more on @code{minmapsize} and @code{quietmmap} see @ref{Memory management}.
+For more on sigma clipping, see @ref{Sigma clipping}.
+@end deftypefun
+
+@deftypefun {gal_data_t *} gal_dimension_collapse_sclip_fill_mad (gal_data_t @code{*in}, size_t @code{c_dim}, float @code{multip}, float @code{param}, size_t @code{numthreads}, size_t @code{minmapsize}, int @code{quietmmap})
+Similar to @code{gal_dimension_collapse_sclip_mad}, but with filled re-clipping (see @ref{Filled re-clipping}).
+@end deftypefun
+
 @deftypefun {gal_data_t *} gal_dimension_collapse_sclip_mean (gal_data_t @code{*in}, size_t @code{c_dim}, float @code{multip}, float @code{param}, size_t @code{numthreads}, size_t @code{minmapsize}, int @code{quietmmap})
 Collapse the input dataset (@code{in}) along the given dimension (@code{c_dim}, in C definition: starting from zero, from the slowest dimension), by finding the mean of pixels along that dimension after sigma-clipping.
 Since sigma-clipping involves sorting, this operator benefits from many threads (which needs to be set with @code{numthreads}).
 For more on @code{minmapsize} and @code{quietmmap} see @ref{Memory management}.
 For more on sigma clipping, see @ref{Sigma clipping}.
+@end deftypefun
+
+@deftypefun {gal_data_t *} gal_dimension_collapse_sclip_fill_mean (gal_data_t @code{*in}, size_t @code{c_dim}, float @code{multip}, float @code{param}, size_t @code{numthreads}, size_t @code{minmapsize}, int @code{quietmmap})
+Similar to @code{gal_dimension_collapse_sclip_mean}, but with filled re-clipping (see @ref{Filled re-clipping}).
 @end deftypefun
 
 @deftypefun {gal_data_t *} gal_dimension_collapse_sclip_median (gal_data_t @code{*in}, size_t @code{c_dim}, float @code{multip}, float @code{param}, size_t @code{numthreads}, size_t @code{minmapsize}, int @code{quietmmap})
@@ -36248,11 +36961,74 @@ For more on @code{minmapsize} and @code{quietmmap} see @ref{Memory management}.
 For more on sigma clipping, see @ref{Sigma clipping}.
 @end deftypefun
 
+@deftypefun {gal_data_t *} gal_dimension_collapse_sclip_fill_median (gal_data_t @code{*in}, size_t @code{c_dim}, float @code{multip}, float @code{param}, size_t @code{numthreads}, size_t @code{minmapsize}, int @code{quietmmap})
+Similar to @code{gal_dimension_collapse_sclip_median}, but with filled re-clipping (see @ref{Filled re-clipping}).
+@end deftypefun
+
 @deftypefun {gal_data_t *} gal_dimension_collapse_sclip_number (gal_data_t @code{*in}, size_t @code{c_dim}, float @code{multip}, float @code{param}, size_t @code{numthreads}, size_t @code{minmapsize}, int @code{quietmmap})
 Collapse the input dataset (@code{in}) along the given dimension (@code{c_dim}, in C definition: starting from zero, from the slowest dimension), by finding the number of pixels along that dimension after sigma-clipping.
 Since sigma-clipping involves sorting, this operator benefits from many threads (which needs to be set with @code{numthreads}).
 For more on @code{minmapsize} and @code{quietmmap} see @ref{Memory management}.
 For more on sigma clipping, see @ref{Sigma clipping}.
+@end deftypefun
+
+@deftypefun {gal_data_t *} gal_dimension_collapse_sclip_fill_number (gal_data_t @code{*in}, size_t @code{c_dim}, float @code{multip}, float @code{param}, size_t @code{numthreads}, size_t @code{minmapsize}, int @code{quietmmap})
+Similar to @code{gal_dimension_collapse_sclip_number}, but with filled re-clipping (see @ref{Filled re-clipping}).
+@end deftypefun
+
+@deftypefun {gal_data_t *} gal_dimension_collapse_mclip_std (gal_data_t @code{*in}, size_t @code{c_dim}, float @code{multip}, float @code{param}, size_t @code{numthreads}, size_t @code{minmapsize}, int @code{quietmmap})
+Collapse the input dataset (@code{in}) along the given dimension (@code{c_dim}, in C definition: starting from zero, from the slowest dimension), by finding the standard deviation of pixels along that dimension after median absolute deviation (MAD) clipping.
+Since MAD-clipping involves sorting, this operator benefits from many threads (which needs to be set with @code{numthreads}).
+For more on @code{minmapsize} and @code{quietmmap} see @ref{Memory management}.
+For more on MAD-clipping, see @ref{MAD clipping}.
+@end deftypefun
+
+@deftypefun {gal_data_t *} gal_dimension_collapse_mclip_fill_std (gal_data_t @code{*in}, size_t @code{c_dim}, float @code{multip}, float @code{param}, size_t @code{numthreads}, size_t @code{minmapsize}, int @code{quietmmap})
+Similar to @code{gal_dimension_collapse_mclip_std}, but with filled re-clipping (see @ref{Filled re-clipping}).
+@end deftypefun
+
+@deftypefun {gal_data_t *} gal_dimension_collapse_mclip_mad (gal_data_t @code{*in}, size_t @code{c_dim}, float @code{multip}, float @code{param}, size_t @code{numthreads}, size_t @code{minmapsize}, int @code{quietmmap})
+Collapse the input dataset (@code{in}) along the given dimension (@code{c_dim}, in C definition: starting from zero, from the slowest dimension), by finding the median absolute deviation (MAD) of pixels along that dimension after median absolute deviation (MAD) clipping.
+Since MAD-clipping involves sorting, this operator benefits from many threads (which needs to be set with @code{numthreads}).
+For more on @code{minmapsize} and @code{quietmmap} see @ref{Memory management}.
+For more on MAD-clipping, see @ref{MAD clipping}.
+@end deftypefun
+
+@deftypefun {gal_data_t *} gal_dimension_collapse_mclip_fill_mad (gal_data_t @code{*in}, size_t @code{c_dim}, float @code{multip}, float @code{param}, size_t @code{numthreads}, size_t @code{minmapsize}, int @code{quietmmap})
+Similar to @code{gal_dimension_collapse_mclip_mad}, but with filled re-clipping (see @ref{Filled re-clipping}).
+@end deftypefun
+
+@deftypefun {gal_data_t *} gal_dimension_collapse_mclip_mean (gal_data_t @code{*in}, size_t @code{c_dim}, float @code{multip}, float @code{param}, size_t @code{numthreads}, size_t @code{minmapsize}, int @code{quietmmap})
+Collapse the input dataset (@code{in}) along the given dimension (@code{c_dim}, in C definition: starting from zero, from the slowest dimension), by finding the mean of pixels along that dimension after median absolute deviation (MAD) clipping.
+Since MAD-clipping involves sorting, this operator benefits from many threads (which needs to be set with @code{numthreads}).
+For more on @code{minmapsize} and @code{quietmmap} see @ref{Memory management}.
+For more on MAD-clipping, see @ref{MAD clipping}.
+@end deftypefun
+
+@deftypefun {gal_data_t *} gal_dimension_collapse_mclip_fill_mean (gal_data_t @code{*in}, size_t @code{c_dim}, float @code{multip}, float @code{param}, size_t @code{numthreads}, size_t @code{minmapsize}, int @code{quietmmap})
+Similar to @code{gal_dimension_collapse_mclip_mean}, but with filled re-clipping (see @ref{Filled re-clipping}).
+@end deftypefun
+
+@deftypefun {gal_data_t *} gal_dimension_collapse_mclip_median (gal_data_t @code{*in}, size_t @code{c_dim}, float @code{multip}, float @code{param}, size_t @code{numthreads}, size_t @code{minmapsize}, int @code{quietmmap})
+Collapse the input dataset (@code{in}) along the given dimension (@code{c_dim}, in C definition: starting from zero, from the slowest dimension), by finding the median of pixels along that dimension after median absolute deviation (MAD) clipping.
+Since MAD-clipping involves sorting, this operator benefits from many threads (which needs to be set with @code{numthreads}).
+For more on @code{minmapsize} and @code{quietmmap} see @ref{Memory management}.
+For more on MAD-clipping, see @ref{MAD clipping}.
+@end deftypefun
+
+@deftypefun {gal_data_t *} gal_dimension_collapse_mclip_fill_median (gal_data_t @code{*in}, size_t @code{c_dim}, float @code{multip}, float @code{param}, size_t @code{numthreads}, size_t @code{minmapsize}, int @code{quietmmap})
+Similar to @code{gal_dimension_collapse_mclip_median}, but with filled re-clipping (see @ref{Filled re-clipping}).
+@end deftypefun
+
+@deftypefun {gal_data_t *} gal_dimension_collapse_mclip_number (gal_data_t @code{*in}, size_t @code{c_dim}, float @code{multip}, float @code{param}, size_t @code{numthreads}, size_t @code{minmapsize}, int @code{quietmmap})
+Collapse the input dataset (@code{in}) along the given dimension (@code{c_dim}, in C definition: starting from zero, from the slowest dimension), by finding the number of pixels along that dimension after median absolute deviation (MAD) clipping.
+Since MAD-clipping involves sorting, this operator benefits from many threads (which needs to be set with @code{numthreads}).
+For more on @code{minmapsize} and @code{quietmmap} see @ref{Memory management}.
+For more on MAD-clipping, see @ref{MAD clipping}.
+@end deftypefun
+
+@deftypefun {gal_data_t *} gal_dimension_collapse_mclip_fill_number (gal_data_t @code{*in}, size_t @code{c_dim}, float @code{multip}, float @code{param}, size_t @code{numthreads}, size_t @code{minmapsize}, int @code{quietmmap})
+Similar to @code{gal_dimension_collapse_mclip_number}, but with filled re-clipping (see @ref{Filled re-clipping}).
 @end deftypefun
 
 @deftypefun size_t gal_dimension_remove_extra (size_t @code{ndim}, size_t @code{*dsize}, struct wcsprm @code{*wcs})
@@ -40530,6 +41306,21 @@ If the symmetricity of the derived mode is less than this value, all the returne
 Macros used to identify if the regularity of the bins when defining bins.
 @end deffn
 
+@deffn  Macro GAL_STATISTICS_CLIP_OUTCOL_STD
+@deffnx Macro GAL_STATISTICS_CLIP_OUTCOL_MAD
+@deffnx Macro GAL_STATISTICS_CLIP_OUTCOL_MEAN
+@deffnx Macro GAL_STATISTICS_CLIP_OUTCOL_MEDIAN
+@deffnx Macro GAL_STATISTICS_CLIP_OUTCOL_NUMBER_USED
+@deffnx Macro GAL_STATISTICS_CLIP_OUTCOL_NUMBER_CLIPS
+Macros containing the index of the clipping outputs, see the descriptions of @code{gal_statistics_clip_sigma} below.
+@end deffn
+
+@deffn  Macro GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_STD
+@deffnx Macro GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_MAD
+@deffnx Macro GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_MEAN
+Macros containing bit flags for optional clipping outputs, see the descriptions of @code{gal_statistics_clip_sigma} below.
+@end deffn
+
 @cindex Number
 @deftypefun {gal_data_t *} gal_statistics_number (gal_data_t @code{*input})
 Return a single-element dataset with type @code{size_t} which contains the number of non-blank elements in @code{input}.
@@ -40589,6 +41380,24 @@ The numerical datatype of the output is the same as @code{input}.
 Calculating the median involves sorting the dataset and removing blank values, for better performance (and less memory usage), you can give a non-zero value to the @code{inplace} argument.
 In this case, the sorting and removal of blank elements will be done directly on the input dataset.
 However, after this function the original dataset may have changed (if it was not sorted or had blank values).
+@end deftypefun
+
+@cindex Median absolute deviation (MAD)
+@cindex MAD (Median absolute deviation)
+@deftypefun {gal_data_t *} gal_statistics_mad (gal_data_t @code{*input}, int @code{inplace})
+Return a single-element dataset with same type as input, containing the median absolute deviation (MAD) of the non-blank values in @code{input}.
+
+If @code{inplace==0}, the input dataset will remain untouched.
+Otherwise, the MAD calculation will be done on the input dataset without allocating a new one (its values will be changed after this function).
+This is good when you do not need the input after this function and avoid taking extra RAM and CPU.
+@end deftypefun
+
+@deftypefun {gal_data_t *} gal_statistics_median_mad (gal_data_t @code{*input}, int @code{inplace})
+Return a two-element dataset with same type as input, containing the median and median absolute deviation (MAD) of the non-blank values in @code{input}.
+
+If @code{inplace==0}, the input dataset will remain untouched.
+Otherwise, the MAD calculation will be done on the input dataset without allocating a new one (its values will be changed after this function).
+This is good when you do not need the input after this function and avoid taking extra RAM and CPU.
 @end deftypefun
 
 @cindex Quantile
@@ -40787,7 +41596,7 @@ When a histogram is given and it is normalized, the CFP will also be normalized 
 @end deftypefun
 
 
-@deftypefun {gal_data_t *} gal_statistics_sigma_clip (gal_data_t @code{*input}, float @code{multip}, float @code{param}, int @code{inplace}, int @code{quiet})
+@deftypefun {gal_data_t *} gal_statistics_clip_sigma (gal_data_t @code{*input}, float @code{multip}, float @code{param}, float @code{extrastats}, int @code{inplace}, int @code{quiet})
 Apply @mymath{\sigma}-clipping on a given dataset and return a dataset that contains the results.
 For a description of @mymath{\sigma}-clipping see @ref{Sigma clipping}.
 @code{multip} is the multiple of the standard deviation (or @mymath{\sigma}, that is used to define outliers in each round of clipping).
@@ -40796,21 +41605,43 @@ The role of @code{param} is determined based on its value.
 If @code{param} is larger than @code{1} (one), it must be an integer and will be interpreted as the number clips to do.
 If it is less than @code{1} (one), it is interpreted as the tolerance level to stop the iteration.
 
-The returned dataset (let's call it @code{out}) contains a four-element array with type @code{GAL_TYPE_FLOAT32}.
-The final number of clips is stored in the @code{out->status}.
+The returned dataset (let's call it @code{out}) contains a 6-element array with type @code{GAL_TYPE_FLOAT32}.
+Through the @code{GAL_STATISTICS_CLIP_OUTCOL_*} macros below, you can access any particular measurement.
+
 @example
+out=gal_statistics_clip_sigma(input, ....);
 float *array=out->array;
-array[0]: Number of points used.
-array[1]: Median.
-array[2]: Mean.
-array[3]: Standard deviation.
+
+array[ GAL_STATISTICS_CLIP_OUTCOL_NUMBER_USED  ]
+array[ GAL_STATISTICS_CLIP_OUTCOL_MEAN         ]
+array[ GAL_STATISTICS_CLIP_OUTCOL_STD          ]
+array[ GAL_STATISTICS_CLIP_OUTCOL_MEDIAN       ]
+array[ GAL_STATISTICS_CLIP_OUTCOL_MAD          ]
+array[ GAL_STATISTICS_CLIP_OUTCOL_NUMBER_CLIPS ]
 @end example
 
-If the @mymath{\sigma}-clipping does not converge or all input elements are
-blank, then this function will return NaN values for all the elements
-above.
+However, note that all are not measured by default!
+Since the mean and MAD are not necessary during sigma-clipping, if you want them, you have to set the following two bit flags in the @code{extrastats} argument as below.
+
+@example
+int extrastats=0;       /* To initialize all bits */
+
+/* If you want the sigma-clipped MAD. */
+extrastats |= GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_MAD;
+
+/* If you want the sigma-clipped mean. */
+extrastats |= GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_MEAN;
+@end example
+
+If the @mymath{\sigma}-clipping does not converge or all input elements are blank, then this function will return NaN values for all the elements above.
 @end deftypefun
 
+@deftypefun {gal_data_t *} gal_statistics_clip_mad (gal_data_t @code{*input}, float @code{multip}, float @code{param}, uint8_t @code{extrastats}, int @code{inplace}, int @code{quiet})
+Similar to @code{gal_statistics_clip_sigma}, but will do median absolute deviation (MAD) based clipping, see @ref{MAD clipping}.
+
+The only difference is that for this function the MAD is automatically calculated during clipping.
+It is the mean and standard deviation that will not be calculated unless requested with the @code{GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_MEAN} and @code{GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_STD} bit flats respectively.
+@end deftypefun
 
 @deftypefun {gal_data_t *} gal_statistics_outlier_bydistance (int @code{pos1_neg0}, gal_data_t @code{*input}, size_t @code{window_size}, float @code{sigma}, float @code{sigclip_multip}, float @code{sigclip_param}, int @code{inplace}, int @code{quiet})
 
@@ -45052,7 +45883,7 @@ Let's get back to PGPLOT for the sake of WCSLIB.
 Installing it is a little tricky (mainly because it is so old!).
 
 You can download the most recent version from the FTP link in its web page@footnote{@url{http://www.astro.caltech.edu/~tjp/pgplot/}}.
-You can unpack it with the @command{tar xf} command.
+You can unpack it with the @command{tar -xf} command.
 Let's assume the directory you have unpacked it to is @file{PGPLOT}, most probably it is: @file{/home/username/Downloads/pgplot/}.
 Open the @file{drivers.list} file:
 @example

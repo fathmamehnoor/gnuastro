@@ -182,12 +182,29 @@ enum gal_arithmetic_operators
   GAL_ARITHMETIC_OP_SUM,          /* Sum per pixel of multiple arrays.     */
   GAL_ARITHMETIC_OP_MEAN,         /* Mean per pixel of multiple arrays.    */
   GAL_ARITHMETIC_OP_STD,          /* STD per pixel of multiple arrays.     */
+  GAL_ARITHMETIC_OP_MAD,          /* MAD per pixel of multiple arrays.     */
   GAL_ARITHMETIC_OP_MEDIAN,       /* Median per pixel of multiple arrays.  */
   GAL_ARITHMETIC_OP_QUANTILE,     /* Quantile per pixel of multiple arrays.*/
   GAL_ARITHMETIC_OP_SIGCLIP_NUMBER,/* Sigma-clipped number of mult. arrays.*/
   GAL_ARITHMETIC_OP_SIGCLIP_MEAN, /* Sigma-clipped mean of multiple arrays.*/
   GAL_ARITHMETIC_OP_SIGCLIP_MEDIAN,/* Sigma-clipped median of mult. arrays.*/
   GAL_ARITHMETIC_OP_SIGCLIP_STD,  /* Sigma-clipped STD of multiple arrays. */
+  GAL_ARITHMETIC_OP_SIGCLIP_MAD,  /* Sigma-clipped STD of multiple arrays. */
+  GAL_ARITHMETIC_OP_SIGCLIP_FILL_NUMBER,  /* MAD-clipped num. of arrays.   */
+  GAL_ARITHMETIC_OP_SIGCLIP_FILL_MEAN,   /* MAD-clipped mean of arrays.    */
+  GAL_ARITHMETIC_OP_SIGCLIP_FILL_MEDIAN,  /* MAD-clipped median of arrays. */
+  GAL_ARITHMETIC_OP_SIGCLIP_FILL_STD,     /* MAD-clipped STD of arrays.    */
+  GAL_ARITHMETIC_OP_SIGCLIP_FILL_MAD,     /* MAD-clipped STD of arrays.    */
+  GAL_ARITHMETIC_OP_MADCLIP_NUMBER,/* MAD-clipped number of mult. arrays.  */
+  GAL_ARITHMETIC_OP_MADCLIP_MEAN,  /* MAD-clipped mean of multiple arrays. */
+  GAL_ARITHMETIC_OP_MADCLIP_MEDIAN,/* MAD-clipped median of mult. arrays.  */
+  GAL_ARITHMETIC_OP_MADCLIP_STD,   /* MAD-clipped STD of multiple arrays.  */
+  GAL_ARITHMETIC_OP_MADCLIP_MAD,   /* MAD-clipped STD of multiple arrays.  */
+  GAL_ARITHMETIC_OP_MADCLIP_FILL_NUMBER,/* MAD-clipped num. of arrays.   */
+  GAL_ARITHMETIC_OP_MADCLIP_FILL_MEAN, /* MAD-clipped mean of arrays.    */
+  GAL_ARITHMETIC_OP_MADCLIP_FILL_MEDIAN,/* MAD-clipped median of arrays. */
+  GAL_ARITHMETIC_OP_MADCLIP_FILL_STD,   /* MAD-clipped STD of arrays.    */
+  GAL_ARITHMETIC_OP_MADCLIP_FILL_MAD,   /* MAD-clipped STD of arrays.    */
 
   GAL_ARITHMETIC_OP_MKNOISE_SIGMA,/* Fixed-sigma noise to every element.   */
   GAL_ARITHMETIC_OP_MKNOISE_SIGMA_FROM_MEAN, /* Sigma comes from background. */

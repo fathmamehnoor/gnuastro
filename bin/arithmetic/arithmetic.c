@@ -69,8 +69,8 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
     if(a>0) return a;    }
 
 static size_t
-pop_number_of_operands(struct arithmeticparams *p, int op, char *token_string,
-                       gal_data_t **params)
+pop_number_of_operands(struct arithmeticparams *p, int op,
+                       char *token_string, gal_data_t **params)
 {
   char *cstring="first";
   size_t c, numparams=0;
@@ -83,10 +83,26 @@ pop_number_of_operands(struct arithmeticparams *p, int op, char *token_string,
     case GAL_ARITHMETIC_OP_QUANTILE:
       numparams=1;
       break;
+    case GAL_ARITHMETIC_OP_MADCLIP_STD:
     case GAL_ARITHMETIC_OP_SIGCLIP_STD:
+    case GAL_ARITHMETIC_OP_MADCLIP_MAD:
+    case GAL_ARITHMETIC_OP_SIGCLIP_MAD:
+    case GAL_ARITHMETIC_OP_MADCLIP_MEAN:
     case GAL_ARITHMETIC_OP_SIGCLIP_MEAN:
+    case GAL_ARITHMETIC_OP_MADCLIP_MEDIAN:
     case GAL_ARITHMETIC_OP_SIGCLIP_MEDIAN:
+    case GAL_ARITHMETIC_OP_MADCLIP_NUMBER:
     case GAL_ARITHMETIC_OP_SIGCLIP_NUMBER:
+    case GAL_ARITHMETIC_OP_MADCLIP_FILL_MAD:
+    case GAL_ARITHMETIC_OP_SIGCLIP_FILL_MAD:
+    case GAL_ARITHMETIC_OP_MADCLIP_FILL_STD:
+    case GAL_ARITHMETIC_OP_SIGCLIP_FILL_STD:
+    case GAL_ARITHMETIC_OP_MADCLIP_FILL_MEAN:
+    case GAL_ARITHMETIC_OP_SIGCLIP_FILL_MEAN:
+    case GAL_ARITHMETIC_OP_MADCLIP_FILL_MEDIAN:
+    case GAL_ARITHMETIC_OP_SIGCLIP_FILL_MEDIAN:
+    case GAL_ARITHMETIC_OP_MADCLIP_FILL_NUMBER:
+    case GAL_ARITHMETIC_OP_SIGCLIP_FILL_NUMBER:
       numparams=2;
       break;
     }
@@ -205,6 +221,7 @@ arithmetic_filter(void *in_prm)
   gal_data_t *input=afp->input;
 
   size_t sind=-1;
+  int clipflags=0;
   size_t ind, index, one=1;
   gal_data_t *sigclip, *result=NULL;
   size_t *hpfsize=afp->hpfsize, *hnfsize=afp->hnfsize;
@@ -282,15 +299,21 @@ arithmetic_filter(void *in_prm)
 
         case ARITHMETIC_OP_FILTER_SIGCLIP_MEAN:
         case ARITHMETIC_OP_FILTER_SIGCLIP_MEDIAN:
-          /* Find the sigma-clipped results. */
-          sigclip=gal_statistics_sigma_clip(tile, afp->sclip_multip,
-                                            afp->sclip_param, 0, 1);
+          /* The median is always available with a sigma-clip, but the mean
+             needs to be explicitly requested. */
+          if(afp->operator == ARITHMETIC_OP_FILTER_SIGCLIP_MEAN)
+            clipflags = GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_MEAN;
+          sigclip=gal_statistics_clip_sigma(tile, afp->sclip_multip,
+                                            afp->sclip_param, clipflags,
+                                            0, 1);
 
           /* Set the required index. */
           switch(afp->operator)
             {
-            case ARITHMETIC_OP_FILTER_SIGCLIP_MEAN:   sind = 2; break;
-            case ARITHMETIC_OP_FILTER_SIGCLIP_MEDIAN: sind = 1; break;
+            case ARITHMETIC_OP_FILTER_SIGCLIP_MEAN:
+              sind = GAL_STATISTICS_CLIP_OUTCOL_MEAN; break;
+            case ARITHMETIC_OP_FILTER_SIGCLIP_MEDIAN:
+              sind = GAL_STATISTICS_CLIP_OUTCOL_MEDIAN; break;
             default:
               error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at "
                     "%s to fix the problem. The 'afp->operator' value "
@@ -917,8 +940,8 @@ arithmetic_interpolate(struct arithmeticparams *p, int operator, char *token)
       interpop=GAL_INTERPOLATE_NEIGHBORS_FUNC_MEDIAN;
       break;
     default:
-      error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to fix "
-            "the problem. The operator code %d isn't recognized",
+      error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to "
+            "fix the problem. The operator code %d isn't recognized",
             __func__, PACKAGE_BUGREPORT, operator);
     }
 
@@ -943,15 +966,16 @@ arithmetic_collapse_single_value(gal_data_t *input, char *counter,
                                  int checkint)
 {
   if( input->ndim!=1 || input->size!=1)
-    error(EXIT_FAILURE, 0, "%s popped operand of 'collapse-%s*' operators "
-          "(%s) must be a single number (single-element, "
-          "one-dimensional dataset). But it has %zu dimension(s) and %zu "
-          "element(s).", counter, opstr, description, input->ndim, input->size);
+    error(EXIT_FAILURE, 0, "%s popped operand of 'collapse-%s*' "
+          "operators (%s) must be a single number (single-element, "
+          "one-dimensional dataset). But it has %zu dimension(s) and "
+          "%zu element(s).", counter, opstr, description, input->ndim,
+          input->size);
   if(checkint)
     if(input->type==GAL_TYPE_FLOAT32 || input->type==GAL_TYPE_FLOAT64)
-      error(EXIT_FAILURE, 0, "%s popped operand of 'collapse-%s*' operators "
-            "(%s) must have an integer type, but it has a floating point "
-            "type ('%s')", counter, opstr, description,
+      error(EXIT_FAILURE, 0, "%s popped operand of 'collapse-%s*' "
+            "operators (%s) must have an integer type, but it has a "
+            "floating point type ('%s')", counter, opstr, description,
             gal_type_name(input->type,1));
 }
 
@@ -976,10 +1000,26 @@ arithmetic_collapse(struct arithmeticparams *p, char *token, int operator)
 
   /* If we are on any of the sigma-clipping operators, we need to pop two
      more operands. */
-  if(    operator==ARITHMETIC_OP_COLLAPSE_SIGCLIP_STD
+  if(    operator==ARITHMETIC_OP_COLLAPSE_MADCLIP_MAD
+      || operator==ARITHMETIC_OP_COLLAPSE_MADCLIP_STD
+      || operator==ARITHMETIC_OP_COLLAPSE_MADCLIP_MEAN
+      || operator==ARITHMETIC_OP_COLLAPSE_MADCLIP_MEDIAN
+      || operator==ARITHMETIC_OP_COLLAPSE_MADCLIP_NUMBER
+      || operator==ARITHMETIC_OP_COLLAPSE_SIGCLIP_MAD
+      || operator==ARITHMETIC_OP_COLLAPSE_SIGCLIP_STD
       || operator==ARITHMETIC_OP_COLLAPSE_SIGCLIP_MEAN
       || operator==ARITHMETIC_OP_COLLAPSE_SIGCLIP_MEDIAN
-      || operator==ARITHMETIC_OP_COLLAPSE_SIGCLIP_NUMBER )
+      || operator==ARITHMETIC_OP_COLLAPSE_SIGCLIP_NUMBER
+      || operator==ARITHMETIC_OP_COLLAPSE_MADCLIP_FILL_MAD
+      || operator==ARITHMETIC_OP_COLLAPSE_MADCLIP_FILL_STD
+      || operator==ARITHMETIC_OP_COLLAPSE_MADCLIP_FILL_MEAN
+      || operator==ARITHMETIC_OP_COLLAPSE_MADCLIP_FILL_MEDIAN
+      || operator==ARITHMETIC_OP_COLLAPSE_MADCLIP_FILL_NUMBER
+      || operator==ARITHMETIC_OP_COLLAPSE_SIGCLIP_FILL_MAD
+      || operator==ARITHMETIC_OP_COLLAPSE_SIGCLIP_FILL_STD
+      || operator==ARITHMETIC_OP_COLLAPSE_SIGCLIP_FILL_MEAN
+      || operator==ARITHMETIC_OP_COLLAPSE_SIGCLIP_FILL_MEDIAN
+      || operator==ARITHMETIC_OP_COLLAPSE_SIGCLIP_FILL_NUMBER )
     {
       param2=operands_pop(p, token); /* Termination criteria. */
       param1=operands_pop(p, token); /* Multiple of sigma. */
@@ -996,9 +1036,9 @@ arithmetic_collapse(struct arithmeticparams *p, char *token, int operator)
   dimension=gal_data_copy_to_new_type_free(dimension, GAL_TYPE_LONG);
   dim=((long *)(dimension->array))[0];
   if(dim<=0)
-    error(EXIT_FAILURE, 0, "first popped operand of 'collapse-*' operators "
-          "(dimension to collapse) must be positive (larger than zero), it "
-          "is %ld", dim);
+    error(EXIT_FAILURE, 0, "first popped operand of 'collapse-*' "
+          "operators (dimension to collapse) must be positive (larger "
+          "than zero), it is %ld", dim);
   if(dim > input->ndim)
     error(EXIT_FAILURE, 0, "input dataset to '%s' has %zu dimension(s), "
           "but you have asked to collapse along dimension %ld", token,
@@ -1006,9 +1046,11 @@ arithmetic_collapse(struct arithmeticparams *p, char *token, int operator)
   if(param1)
     {
       arithmetic_collapse_single_value(param1, "third", "sigclip-",
-                                       "sigma-clip's multiple of sigma", 0);
+                                       "sigma-clip's multiple of sigma",
+                                       0);
       arithmetic_collapse_single_value(param2, "second", "sigclip-",
-                                       "sigma-clip's termination param", 0);
+                                       "sigma-clip's termination param",
+                                       0);
       param1=gal_data_copy_to_new_type_free(param1, GAL_TYPE_FLOAT32);
       param2=gal_data_copy_to_new_type_free(param2, GAL_TYPE_FLOAT32);
       p1=((float *)(param1->array))[0];
@@ -1057,9 +1099,74 @@ arithmetic_collapse(struct arithmeticparams *p, char *token, int operator)
                                               nt, mms, qmm);
       break;
 
+    case ARITHMETIC_OP_COLLAPSE_MADCLIP_MAD:
+      collapsed=gal_dimension_collapse_mclip_std(input, input->ndim-dim,
+                                                 p1, p2, nt, mms, qmm);
+      break;
+
+    case ARITHMETIC_OP_COLLAPSE_MADCLIP_FILL_MAD:
+      collapsed=gal_dimension_collapse_mclip_fill_std(input,
+                                input->ndim-dim, p1, p2, nt, mms, qmm);
+      break;
+
+    case ARITHMETIC_OP_COLLAPSE_MADCLIP_STD:
+      collapsed=gal_dimension_collapse_mclip_std(input, input->ndim-dim,
+                                                 p1, p2, nt, mms, qmm);
+      break;
+
+    case ARITHMETIC_OP_COLLAPSE_MADCLIP_FILL_STD:
+      collapsed=gal_dimension_collapse_mclip_fill_std(input,
+                                input->ndim-dim, p1, p2, nt, mms, qmm);
+      break;
+
+    case ARITHMETIC_OP_COLLAPSE_MADCLIP_MEAN:
+      collapsed=gal_dimension_collapse_mclip_mean(input, input->ndim-dim,
+                                                  p1, p2, nt, mms, qmm);
+      break;
+
+    case ARITHMETIC_OP_COLLAPSE_MADCLIP_FILL_MEAN:
+      collapsed=gal_dimension_collapse_mclip_fill_mean(input,
+                                 input->ndim-dim, p1, p2, nt, mms, qmm);
+      break;
+
+    case ARITHMETIC_OP_COLLAPSE_MADCLIP_MEDIAN:
+      collapsed=gal_dimension_collapse_mclip_median(input, input->ndim-dim,
+                                                    p1, p2, nt, mms, qmm);
+      break;
+
+    case ARITHMETIC_OP_COLLAPSE_MADCLIP_FILL_MEDIAN:
+      collapsed=gal_dimension_collapse_mclip_fill_median(input,
+                                   input->ndim-dim, p1, p2, nt, mms, qmm);
+      break;
+
+    case ARITHMETIC_OP_COLLAPSE_MADCLIP_NUMBER:
+      collapsed=gal_dimension_collapse_mclip_number(input, input->ndim-dim,
+                                                    p1, p2, nt, mms, qmm);
+      break;
+
+    case ARITHMETIC_OP_COLLAPSE_MADCLIP_FILL_NUMBER:
+      collapsed=gal_dimension_collapse_mclip_fill_number(input,
+                                   input->ndim-dim, p1, p2, nt, mms, qmm);
+      break;
+
+    case ARITHMETIC_OP_COLLAPSE_SIGCLIP_MAD:
+      collapsed=gal_dimension_collapse_sclip_std(input, input->ndim-dim,
+                                                 p1, p2, nt, mms, qmm);
+      break;
+
+    case ARITHMETIC_OP_COLLAPSE_SIGCLIP_FILL_MAD:
+      collapsed=gal_dimension_collapse_sclip_fill_std(input,
+                                 input->ndim-dim, p1, p2, nt, mms, qmm);
+      break;
+
     case ARITHMETIC_OP_COLLAPSE_SIGCLIP_STD:
       collapsed=gal_dimension_collapse_sclip_std(input, input->ndim-dim,
                                                  p1, p2, nt, mms, qmm);
+      break;
+
+    case ARITHMETIC_OP_COLLAPSE_SIGCLIP_FILL_STD:
+      collapsed=gal_dimension_collapse_sclip_fill_std(input,
+                                input->ndim-dim, p1, p2, nt, mms, qmm);
       break;
 
     case ARITHMETIC_OP_COLLAPSE_SIGCLIP_MEAN:
@@ -1067,9 +1174,19 @@ arithmetic_collapse(struct arithmeticparams *p, char *token, int operator)
                                                   p1, p2, nt, mms, qmm);
       break;
 
+    case ARITHMETIC_OP_COLLAPSE_SIGCLIP_FILL_MEAN:
+      collapsed=gal_dimension_collapse_sclip_fill_mean(input,
+                                 input->ndim-dim, p1, p2, nt, mms, qmm);
+      break;
+
     case ARITHMETIC_OP_COLLAPSE_SIGCLIP_MEDIAN:
       collapsed=gal_dimension_collapse_sclip_median(input, input->ndim-dim,
                                                     p1, p2, nt, mms, qmm);
+      break;
+
+    case ARITHMETIC_OP_COLLAPSE_SIGCLIP_FILL_MEDIAN:
+      collapsed=gal_dimension_collapse_sclip_fill_median(input,
+                                   input->ndim-dim, p1, p2, nt, mms, qmm);
       break;
 
     case ARITHMETIC_OP_COLLAPSE_SIGCLIP_NUMBER:
@@ -1077,10 +1194,15 @@ arithmetic_collapse(struct arithmeticparams *p, char *token, int operator)
                                                     p1, p2, nt, mms, qmm);
       break;
 
+    case ARITHMETIC_OP_COLLAPSE_SIGCLIP_FILL_NUMBER:
+      collapsed=gal_dimension_collapse_sclip_fill_number(input,
+                                   input->ndim-dim, p1, p2, nt, mms, qmm);
+      break;
+
     default:
-      error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to fix the "
-            "problem. The operator code %d is not recognized", __func__,
-            PACKAGE_BUGREPORT, operator);
+      error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to "
+            "fix the problem. The operator code %d is not recognized",
+            __func__, PACKAGE_BUGREPORT, operator);
     }
 
 
@@ -1384,6 +1506,18 @@ arithmetic_set_operator(char *string, size_t *num_operands, int *inlib)
         { op=ARITHMETIC_OP_COLLAPSE_MEDIAN;       *num_operands=0; }
       else if (!strcmp(string, "collapse-median"))
         { op=ARITHMETIC_OP_COLLAPSE_MEDIAN;       *num_operands=0; }
+      else if (!strcmp(string, "collapse-madclip-mad"))
+        { op=ARITHMETIC_OP_COLLAPSE_MADCLIP_MAD;  *num_operands=0; }
+      else if (!strcmp(string, "collapse-madclip-std"))
+        { op=ARITHMETIC_OP_COLLAPSE_MADCLIP_STD;  *num_operands=0; }
+      else if (!strcmp(string, "collapse-madclip-mean"))
+        { op=ARITHMETIC_OP_COLLAPSE_MADCLIP_MEAN; *num_operands=0; }
+      else if (!strcmp(string, "collapse-madclip-median"))
+        { op=ARITHMETIC_OP_COLLAPSE_MADCLIP_MEDIAN;*num_operands=0;}
+      else if (!strcmp(string, "collapse-madclip-number"))
+        { op=ARITHMETIC_OP_COLLAPSE_MADCLIP_NUMBER;*num_operands=0;}
+      else if (!strcmp(string, "collapse-sigclip-mad"))
+        { op=ARITHMETIC_OP_COLLAPSE_SIGCLIP_MAD;  *num_operands=0; }
       else if (!strcmp(string, "collapse-sigclip-std"))
         { op=ARITHMETIC_OP_COLLAPSE_SIGCLIP_STD;  *num_operands=0; }
       else if (!strcmp(string, "collapse-sigclip-mean"))
@@ -1392,6 +1526,26 @@ arithmetic_set_operator(char *string, size_t *num_operands, int *inlib)
         { op=ARITHMETIC_OP_COLLAPSE_SIGCLIP_MEDIAN;*num_operands=0;}
       else if (!strcmp(string, "collapse-sigclip-number"))
         { op=ARITHMETIC_OP_COLLAPSE_SIGCLIP_NUMBER;*num_operands=0;}
+      else if (!strcmp(string, "collapse-madclip-fill-mad"))
+        { op=ARITHMETIC_OP_COLLAPSE_MADCLIP_FILL_MAD;  *num_operands=0; }
+      else if (!strcmp(string, "collapse-madclip-fill-std"))
+        { op=ARITHMETIC_OP_COLLAPSE_MADCLIP_FILL_STD;  *num_operands=0; }
+      else if (!strcmp(string, "collapse-madclip-fill-mean"))
+        { op=ARITHMETIC_OP_COLLAPSE_MADCLIP_FILL_MEAN; *num_operands=0; }
+      else if (!strcmp(string, "collapse-madclip-fill-median"))
+        { op=ARITHMETIC_OP_COLLAPSE_MADCLIP_FILL_MEDIAN;*num_operands=0;}
+      else if (!strcmp(string, "collapse-madclip-fill-number"))
+        { op=ARITHMETIC_OP_COLLAPSE_MADCLIP_FILL_NUMBER;*num_operands=0;}
+      else if (!strcmp(string, "collapse-sigclip-fill-mad"))
+        { op=ARITHMETIC_OP_COLLAPSE_SIGCLIP_FILL_MAD;  *num_operands=0; }
+      else if (!strcmp(string, "collapse-sigclip-fill-std"))
+        { op=ARITHMETIC_OP_COLLAPSE_SIGCLIP_FILL_STD;  *num_operands=0; }
+      else if (!strcmp(string, "collapse-sigclip-fill-mean"))
+        { op=ARITHMETIC_OP_COLLAPSE_SIGCLIP_FILL_MEAN; *num_operands=0; }
+      else if (!strcmp(string, "collapse-sigclip-fill-median"))
+        { op=ARITHMETIC_OP_COLLAPSE_SIGCLIP_FILL_MEDIAN;*num_operands=0;}
+      else if (!strcmp(string, "collapse-sigclip-fill-number"))
+        { op=ARITHMETIC_OP_COLLAPSE_SIGCLIP_FILL_NUMBER;*num_operands=0;}
       else if (!strcmp(string, "add-dimension-slow"))
         { op=ARITHMETIC_OP_ADD_DIMENSION_SLOW;    *num_operands=0; }
       else if (!strcmp(string, "add-dimension-fast"))
@@ -1625,10 +1779,26 @@ arithmetic_operator_run(struct arithmeticparams *p, int operator,
         case ARITHMETIC_OP_COLLAPSE_MEAN:
         case ARITHMETIC_OP_COLLAPSE_MEDIAN:
         case ARITHMETIC_OP_COLLAPSE_NUMBER:
+        case ARITHMETIC_OP_COLLAPSE_MADCLIP_MAD:
+        case ARITHMETIC_OP_COLLAPSE_SIGCLIP_MAD:
+        case ARITHMETIC_OP_COLLAPSE_MADCLIP_STD:
         case ARITHMETIC_OP_COLLAPSE_SIGCLIP_STD:
+        case ARITHMETIC_OP_COLLAPSE_MADCLIP_MEAN:
         case ARITHMETIC_OP_COLLAPSE_SIGCLIP_MEAN:
+        case ARITHMETIC_OP_COLLAPSE_MADCLIP_MEDIAN:
         case ARITHMETIC_OP_COLLAPSE_SIGCLIP_MEDIAN:
+        case ARITHMETIC_OP_COLLAPSE_MADCLIP_NUMBER:
         case ARITHMETIC_OP_COLLAPSE_SIGCLIP_NUMBER:
+        case ARITHMETIC_OP_COLLAPSE_MADCLIP_FILL_MAD:
+        case ARITHMETIC_OP_COLLAPSE_SIGCLIP_FILL_MAD:
+        case ARITHMETIC_OP_COLLAPSE_MADCLIP_FILL_STD:
+        case ARITHMETIC_OP_COLLAPSE_SIGCLIP_FILL_STD:
+        case ARITHMETIC_OP_COLLAPSE_MADCLIP_FILL_MEAN:
+        case ARITHMETIC_OP_COLLAPSE_SIGCLIP_FILL_MEAN:
+        case ARITHMETIC_OP_COLLAPSE_MADCLIP_FILL_MEDIAN:
+        case ARITHMETIC_OP_COLLAPSE_SIGCLIP_FILL_MEDIAN:
+        case ARITHMETIC_OP_COLLAPSE_MADCLIP_FILL_NUMBER:
+        case ARITHMETIC_OP_COLLAPSE_SIGCLIP_FILL_NUMBER:
           arithmetic_collapse(p, operator_string, operator);
           break;
 

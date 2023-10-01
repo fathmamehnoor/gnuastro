@@ -5,6 +5,117 @@ See the end of the file for license conditions.
 
 * Noteworthy changes in release X.XX (library XX.0.0) (YYYY-MM-DD)
 ** New features
+*** Arithmetic
+  - New operators:
+    - mad: Median Absolute Deviation (MAD) stacking.
+    - madclip-mad: MAD after MAD-clipping stacking.
+    - madclip-std: Standard deviation after MAD-clipping stacking.
+    - madclip-mean: Mean after MAD-clipping stacking.
+    - madclip-median: Median after MAD-clipping stacking.
+    - madclip-number: Number of elements after MAD-clipping stacking.
+    - madclip-fill-mad: MAD after filled MAD-clipping stacking: this
+                        involves a two-phase clipping: after the first
+                        clipping, Arithmetic will "fill" the unclipped
+                        holes in each input and masks them for a second
+                        round. This is critical for clipping more
+                        diffuse outliers: where a pixel may not be
+                        clipped individually and will produce biased
+                        results, but due to proximity with many nearby
+                        clipped pixels, it can be discarded and thus its
+                        effect on the final stack be removed.
+    - madclip-fill-std: Standard deviation after filled MAD-clipping stacking.
+    - madclip-fill-mean: Mean after filled MAD-clipping stacking.
+    - madclip-fill-median: Median after filled MAD-clipping stacking.
+    - madclip-fill-number: Num. of elements after filled MAD-clipping stacking.
+    - sigclip-fill-mad: MAD after filled MAD-clipping stacking.
+    - sigclip-fill-std: Standard deviation after filled MAD-clipping stacking.
+    - sigclip-fill-mean: Mean after filled MAD-clipping stacking.
+    - sigclip-fill-median: Median after filled MAD-clipping stacking.
+    - sigclip-fill-number: Num. of elements after filled MAD-clipping stacking.
+    - sigclip-mad: MAD after sigma-clipping stacking.
+    - collapse-madclip-mad: Collapse dim. by MAD-clipped MAD.
+    - collapse-madclip-std: Collapse dim. by MAD-clipped STD.
+    - collapse-madclip-mean: Collapse dim. by MAD-clipped mean.
+    - collapse-madclip-median: Collapse dim. by MAD-clipped median.
+    - collapse-madclip-number: Collapse dim. by MAD-clipped number.
+    - collapse-madclip-fill-mad: Collapse dim. by filled MAD-clipped MAD.
+    - collapse-madclip-fill-std: Collapse dim. by filled MAD-clipped STD.
+    - collapse-madclip-fill-mean: Collapse dim. by filled MAD-clipped mean.
+    - collapse-madclip-fill-median: Collapse dim. by filled MAD-clipped median.
+    - collapse-madclip-fill-number: Collapse dim. by filled MAD-clipped num.
+    - collapse-sigclip-mad: Collapse dim. by sigma-clipped MAD.
+    - collapse-sigclip-fill-mad: Collapse dim. by filled sigma-clipped MAD.
+    - collapse-sigclip-fill-std: Collapse dim. by filled sigma-clipped STD.
+    - collapse-sigclip-fill-mean: Collapse dim. by filled sigma-clipped mean.
+    - collapse-sigclip-fill-median: Collapse dim. by filled sigma-clip. median.
+    - collapse-sigclip-fill-number: Collapse dim. by filled sigma-clipped num.
+
+*** Statistics
+  --mad: Median Absolute Deviation (MAD) of input dataset.
+  --madclip: MAD-clipping, showing intermediate results.
+  --sigclip-mad: MAD of input after sigma-clipping.
+  --madclip-number: Number of input elements after MAD-clipping.
+  --madclip-median: Median of input elements after MAD-clipping.
+  --madclip-mean: Mean of input elements after MAD-clipping.
+  --madclip-std: Standard deviation of input elements after MAD-clipping.
+  --madclip-mad: MAD of input elements after MAD-clipping.
+  --mclipparams: Parameters of MAD-clipping, similar to sigma-clipping. Note
+                 that in a Gaussian distribution, MAD = 0.67 sigma, so if
+                 you want something similar to 3-sigma (the default), you
+                 should set the MAD multiple to 5 (the default).
+
+*** Library
+**** Functions
+  - gal_dimension_collapse_mclip_mad: MAD-clipped MAD.
+  - gal_dimension_collapse_mclip_fill_mad: filled MAD-clipped MAD.
+  - gal_dimension_collapse_mclip_std: MAD-clipped STD.
+  - gal_dimension_collapse_mclip_fill_std: filled MAD-clipped STD.
+  - gal_dimension_collapse_mclip_mean: MAD-clipped mean.
+  - gal_dimension_collapse_mclip_fill_mean: filled MAD-clipped mean
+  - gal_dimension_collapse_mclip_median: MAD-clipped median.
+  - gal_dimension_collapse_mclip_fill_median: filled MAD-clipped median.
+  - gal_dimension_collapse_mclip_number: MAD-clipped number.
+  - gal_dimension_collapse_mclip_fill_number: filled MAD-clipped number.
+  - gal_dimension_collapse_sclip_mad: sigma-clipped MAD
+  - gal_dimension_collapse_sclip_fill_mad: filled sigma-clipped MAD.
+  - gal_dimension_collapse_sclip_fill_std: filled sigma-clipped STD.
+  - gal_dimension_collapse_sclip_fill_mean: filled sigma-clipped mean
+  - gal_dimension_collapse_sclip_fill_median: filled sigma-clipped median.
+  - gal_dimension_collapse_sclip_fill_number: filled sigma-clipped number.
+  - gal_statistics_clip_mad: MAD clipping of given input.
+  - gal_statistics_mad: return median absolute deviation (MAD).
+  - gal_statistics_median_mad: return median and MAD.
+
+**** Macros
+  - Used by 'gal_arithmetic':
+    - GAL_ARITHMETIC_OP_SIGCLIP_MAD: Sigma-clipped MAD.
+    - GAL_ARITHMETIC_OP_SIGCLIP_MAD: Sigma-clipped STD.
+    - GAL_ARITHMETIC_OP_SIGCLIP_FILL_NUMBER: MAD-clipped num. of arrays.
+    - GAL_ARITHMETIC_OP_SIGCLIP_FILL_MEAN: MAD-clipped mean of arrays.
+    - GAL_ARITHMETIC_OP_SIGCLIP_FILL_MEDIAN: MAD-clipped median of arrays.
+    - GAL_ARITHMETIC_OP_SIGCLIP_FILL_STD: MAD-clipped STD of arrays.
+    - GAL_ARITHMETIC_OP_SIGCLIP_FILL_MAD: MAD-clipped STD of arrays.
+    - GAL_ARITHMETIC_OP_MADCLIP_NUMBER: MAD-clipped number of mult. arrays.
+    - GAL_ARITHMETIC_OP_MADCLIP_MEAN: MAD-clipped mean of multiple arrays.
+    - GAL_ARITHMETIC_OP_MADCLIP_MEDIAN: MAD-clipped median of mult. arrays.
+    - GAL_ARITHMETIC_OP_MADCLIP_STD: MAD-clipped STD of multiple arrays.
+    - GAL_ARITHMETIC_OP_MADCLIP_MAD: MAD-clipped STD of multiple arrays.
+    - GAL_ARITHMETIC_OP_MADCLIP_FILL_NUMBER: MAD-clipped num. of arrays.
+    - GAL_ARITHMETIC_OP_MADCLIP_FILL_MEAN: MAD-clipped mean of arrays.
+    - GAL_ARITHMETIC_OP_MADCLIP_FILL_MEDIAN: MAD-clipped median of arrays.
+    - GAL_ARITHMETIC_OP_MADCLIP_FILL_STD: MAD-clipped STD of arrays.
+    - GAL_ARITHMETIC_OP_MADCLIP_FILL_MAD: MAD-clipped STD of arrays.
+  - Used by 'gal_statistics_clip_sigma' and 'gal_statistics_clip_mad':
+    - GAL_STATISTICS_CLIP_OUTCOL_NUMBER_USED: index of final number in output.
+    - GAL_STATISTICS_CLIP_OUTCOL_MEAN: index of clipped mean in output.
+    - GAL_STATISTICS_CLIP_OUTCOL_STD: index of clipped STD in output.
+    - GAL_STATISTICS_CLIP_OUTCOL_MEDIAN: index of clipped median in output.
+    - GAL_STATISTICS_CLIP_OUTCOL_MAD: index of clipped MAD in output.
+    - GAL_STATISTICS_CLIP_OUTCOL_NUMBER_CLIPS: index of clipped number in output.
+    - GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_MEAN: bit flag for measuring mean.
+    - GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_STD: bit flag for measuring STD.
+    - GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_MAD: bit flag for measuring MAD.
+
 ** Removed features
 ** Changed features
 *** Arithmetic
@@ -16,6 +127,12 @@ See the end of the file for license conditions.
     crash with an error rather than print a warning. This was suggested by
     Sepideh Eskandarlou and implemented by Faezeh Bidjarchian after a poll
     on Gnuastro's Matrix chat channel (#gnuastro:openastronomy.org).
+
+*** Library
+  - GAL_STATISTICS_CLIP_MAX_CONVERGE: new name for the old
+    'GAL_STATISTICS_SIG_CLIP_MAX_CONVERGE'. Since we now also have
+    MAD-clipping.
+  - gal_statistics_clip_sigma: new name for 'gal_statistics_sigma_clip'.
 
 ** Bugs fixed
   - bug #64852: astscript-zeropoint: crash when input is in 0-th HDU;
@@ -130,20 +247,6 @@ See the end of the file for license conditions.
   - New measurements:
     --river-min: minimum river value around a clump.
     --river-max: minimum river value around a clump.
-
-*** Statistics
-  --mad: Median Absolute Deviation (MAD) of input dataset.
-  --madclip: MAD-clipping, showing intermediate results.
-  --sigclip-mad: MAD of input after sigma-clipping.
-  --madclip-number: Number of input elements after MAD-clipping.
-  --madclip-median: Median of input elements after MAD-clipping.
-  --madclip-mean: Mean of input elements after MAD-clipping.
-  --madclip-std: Standard deviation of input elements after MAD-clipping.
-  --madclip-mad: MAD of input elements after MAD-clipping.
-  --mclipparams: Parameters of MAD-clipping, similar to sigma-clipping. Note
-                 that in a Gaussian distribution, MAD = 0.67 sigma, so if
-                 you want something similar to 3-sigma (the default), you
-                 should set the MAD multiple to 5 (the default).
 
 *** Table
   --info-num-cols: print the number of the input table's columns and abort.

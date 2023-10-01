@@ -92,16 +92,43 @@ statistics_read_check_args(struct statisticsparams *p)
 
 
 
+/* This function checks if any of the optional clipping measurements are
+   requested (among all the single-valued measuremens) or not. If so, it
+   will add their respective flag. */
+static uint8_t
+statistics_one_row_clip_flags(struct statisticsparams *p, int32_t mean,
+                              int32_t std, int32_t mad)
+{
+  uint8_t flags=0;
+  gal_list_i32_t *tmp;
+
+  for(tmp=p->singlevalue; tmp!=NULL; tmp=tmp->next)
+    {
+      if(tmp->v==std)  flags |= GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_STD;
+      if(tmp->v==mad)  flags |= GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_MAD;
+      if(tmp->v==mean) flags |= GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_MEAN;
+    }
+
+  return flags;
+}
+
+
+
+
+
 static void
 statistics_print_one_row(struct statisticsparams *p)
 {
   int mustfree;
   char *toprint;
   double arg, *d;
+  uint8_t clipflag;
   gal_list_i32_t *tmp;
+  gal_data_t *medmad=NULL;
   size_t dsize=1, counter;
-  gal_data_t *sum=NULL, *med=NULL, *meanstd=NULL, *modearr=NULL;
-  gal_data_t *tmpv, *sclip=NULL, *out=NULL, *num=NULL, *min=NULL, *max=NULL;
+  gal_data_t *sclip=NULL, *mclip=NULL;
+  gal_data_t *sum=NULL, *meanstd=NULL, *modearr=NULL;
+  gal_data_t *tmpv, *out=NULL, *num=NULL, *min=NULL, *max=NULL;
 
   /* The user can ask for any of the operators more than once, also some
      operators might return more than one usable value (like mode). So we
@@ -121,12 +148,14 @@ statistics_print_one_row(struct statisticsparams *p)
         max = max ? max : gal_statistics_maximum(p->input);          break;
       case UI_KEY_SUM:
         sum = sum ? sum : gal_statistics_sum(p->input);              break;
-      case UI_KEY_MEDIAN:
-        med = med ? med : gal_statistics_median(p->sorted, 0); break;
       case UI_KEY_STD:
       case UI_KEY_MEAN:
       case UI_KEY_QUANTOFMEAN:
         meanstd = meanstd ? meanstd : gal_statistics_mean_std(p->input);
+        break;
+      case UI_KEY_MAD:
+      case UI_KEY_MEDIAN:
+        medmad = medmad ? medmad : gal_statistics_median_mad(p->input, 0);
         break;
       case UI_KEY_MODE:
       case UI_KEY_MODEQUANT:
@@ -138,17 +167,38 @@ statistics_print_one_row(struct statisticsparams *p)
         d=modearr->array;
         if(d[2]<GAL_STATISTICS_MODE_GOOD_SYM) d[0]=d[1]=NAN;
         break;
+      case UI_KEY_MADCLIPSTD:
+      case UI_KEY_MADCLIPMAD:
+      case UI_KEY_MADCLIPMEAN:
+      case UI_KEY_MADCLIPNUMBER:
+      case UI_KEY_MADCLIPMEDIAN:
+        if(mclip==NULL)
+          {
+            clipflag=statistics_one_row_clip_flags(p, UI_KEY_MADCLIPMEAN,
+                                                   UI_KEY_MADCLIPSTD,
+                                                   UI_KEY_MADCLIPMAD);
+            mclip=gal_statistics_clip_mad(p->sorted, p->mclipparams[0],
+                                          p->mclipparams[1], clipflag,
+                                          0, 1);
+          }
+        break;
       case UI_KEY_SIGCLIPSTD:
+      case UI_KEY_SIGCLIPMAD:
       case UI_KEY_SIGCLIPMEAN:
       case UI_KEY_SIGCLIPNUMBER:
       case UI_KEY_SIGCLIPMEDIAN:
-        sclip = ( sclip
-                  ? sclip
-                  : gal_statistics_sigma_clip(p->sorted, p->sclipparams[0],
-                                              p->sclipparams[1], 0, 1) );
+        if(sclip==NULL)
+          {
+            clipflag=statistics_one_row_clip_flags(p, UI_KEY_SIGCLIPMEAN,
+                                                   UI_KEY_SIGCLIPSTD,
+                                                   UI_KEY_SIGCLIPMAD);
+            sclip=gal_statistics_clip_sigma(p->sorted, p->sclipparams[0],
+                                            p->sclipparams[1], clipflag,
+                                            0, 1);
+          }
         break;
 
-      /* Will be calculated as printed. */
+      /* These will be calculated as printed. */
       case UI_KEY_QUANTILE:
       case UI_KEY_QUANTFUNC:
         break;
@@ -176,7 +226,10 @@ statistics_print_one_row(struct statisticsparams *p)
         case UI_KEY_MINIMUM:    out=min;                  break;
         case UI_KEY_MAXIMUM:    out=max;                  break;
         case UI_KEY_SUM:        out=sum;                  break;
-        case UI_KEY_MEDIAN:     out=med;                  break;
+        case UI_KEY_MEDIAN:
+          out=statistics_pull_out_element(medmad, 0);  mustfree=1; break;
+        case UI_KEY_MAD:
+          out=statistics_pull_out_element(medmad, 1);  mustfree=1; break;
         case UI_KEY_MEAN:
           out=statistics_pull_out_element(meanstd, 0); mustfree=1; break;
         case UI_KEY_STD:
@@ -189,14 +242,46 @@ statistics_print_one_row(struct statisticsparams *p)
           out=statistics_pull_out_element(modearr, 2); mustfree=1; break;
         case UI_KEY_MODESYMVALUE:
           out=statistics_pull_out_element(modearr, 3); mustfree=1; break;
+        case UI_KEY_MADCLIPMAD:
+          out=statistics_pull_out_element(mclip,
+                                         GAL_STATISTICS_CLIP_OUTCOL_MAD);
+          mustfree=1; break;
+        case UI_KEY_MADCLIPSTD:
+          out=statistics_pull_out_element(mclip,
+                                         GAL_STATISTICS_CLIP_OUTCOL_STD);
+          mustfree=1; break;
+        case UI_KEY_MADCLIPMEAN:
+          out=statistics_pull_out_element(mclip,
+                                        GAL_STATISTICS_CLIP_OUTCOL_MEAN);
+          mustfree=1; break;
+        case UI_KEY_MADCLIPMEDIAN:
+          out=statistics_pull_out_element(mclip,
+                                      GAL_STATISTICS_CLIP_OUTCOL_MEDIAN);
+          mustfree=1; break;
+        case UI_KEY_MADCLIPNUMBER:
+          out=statistics_pull_out_element(mclip,
+                                 GAL_STATISTICS_CLIP_OUTCOL_NUMBER_USED);
+          mustfree=1; break;
+        case UI_KEY_SIGCLIPMAD:
+          out=statistics_pull_out_element(sclip,
+                                         GAL_STATISTICS_CLIP_OUTCOL_MAD);
+          mustfree=1; break;
         case UI_KEY_SIGCLIPSTD:
-          out=statistics_pull_out_element(sclip,   3); mustfree=1; break;
+          out=statistics_pull_out_element(sclip,
+                                         GAL_STATISTICS_CLIP_OUTCOL_STD);
+          mustfree=1; break;
         case UI_KEY_SIGCLIPMEAN:
-          out=statistics_pull_out_element(sclip,   2); mustfree=1; break;
+          out=statistics_pull_out_element(sclip,
+                                        GAL_STATISTICS_CLIP_OUTCOL_MEAN);
+          mustfree=1; break;
         case UI_KEY_SIGCLIPMEDIAN:
-          out=statistics_pull_out_element(sclip,   1); mustfree=1; break;
+          out=statistics_pull_out_element(sclip,
+                                      GAL_STATISTICS_CLIP_OUTCOL_MEDIAN);
+          mustfree=1; break;
         case UI_KEY_SIGCLIPNUMBER:
-          out=statistics_pull_out_element(sclip,   0); mustfree=1; break;
+          out=statistics_pull_out_element(sclip,
+                                 GAL_STATISTICS_CLIP_OUTCOL_NUMBER_USED);
+          mustfree=1; break;
 
         /* Not previously calculated. */
         case UI_KEY_QUANTILE:
@@ -253,8 +338,8 @@ statistics_print_one_row(struct statisticsparams *p)
   if(min)     gal_data_free(min);
   if(max)     gal_data_free(max);
   if(sum)     gal_data_free(sum);
-  if(med)     gal_data_free(med);
   if(sclip)   gal_data_free(sclip);
+  if(medmad)  gal_data_free(medmad);
   if(meanstd) gal_data_free(meanstd);
   if(modearr) gal_data_free(modearr);
 }
@@ -1105,23 +1190,32 @@ print_basics(struct statisticsparams *p)
 /**************            Sigma clipping            ***************/
 /*******************************************************************/
 void
-print_sigma_clip(struct statisticsparams *p)
+print_clip(struct statisticsparams *p, int sig1_mad0)
 {
   float *a;
   char *mode;
   int namewidth=40;
-  gal_data_t *sigclip;
+  gal_data_t *result;
+  double clipparams[2];
+  uint8_t flags = ( GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_MEAN
+                    | GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_STD
+                    | GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_MAD );
+
+  /* Fill in the clipparams. */
+  clipparams[0] = sig1_mad0 ? p->sclipparams[0] : p->mclipparams[0];
+  clipparams[1] = sig1_mad0 ? p->sclipparams[1] : p->mclipparams[1];
 
   /* Set the mode for printing: */
-  if( p->sclipparams[1]>=1.0f )
+  if( clipparams[1]>=1.0f )
     {
-      if( asprintf(&mode, "for %g clips", p->sclipparams[1])<0 )
+      if( asprintf(&mode, "for %g clips", clipparams[1])<0 )
         error(EXIT_FAILURE, 0, "%s: asprintf allocation", __func__);
     }
   else
     {
-      if( asprintf(&mode, "until relative change in STD is less than %g",
-                   p->sclipparams[1])<0 )
+      if( asprintf(&mode, "until relative change in %s is less than %g",
+                   sig1_mad0 ? "STD" : "MAD (median absolute deviation)",
+                   clipparams[1])<0 )
         error(EXIT_FAILURE, 0, "%s: asprintf allocation", __func__);
     }
 
@@ -1129,31 +1223,46 @@ print_sigma_clip(struct statisticsparams *p)
   if(!p->cp.quiet)
     {
       print_input_info(p);
-      printf("%g-sigma clipping steps %s:\n\n", p->sclipparams[0], mode);
+      printf("%g-%s clipping steps %s:\n\n", clipparams[0],
+             sig1_mad0?"sigma":"MAD", mode);
     }
 
-  /* Do the Sigma clipping: */
-  sigclip=gal_statistics_sigma_clip(p->sorted, p->sclipparams[0],
-                                    p->sclipparams[1], 0, p->cp.quiet);
-  a=sigclip->array;
+  /* Do the Sigma clipping. In-place is not activated because
+     sigma-clipping reduces the total number of points and users may
+     call other operators also. */
+  result = ( sig1_mad0
+             ? gal_statistics_clip_sigma(p->sorted, clipparams[0],
+                                         clipparams[1], flags, 0, p->cp.quiet)
+             : gal_statistics_clip_mad(p->sorted, clipparams[0],
+                                       clipparams[1], flags, 0, p->cp.quiet) );
+  a=result->array;
 
   /* Finish the introduction. */
   if(!p->cp.quiet)
-    printf("-------\nSummary:\n");
+    printf("-------\nStatistics (after clipping):\n");
   else
-    printf("%g-sigma clipped %s:\n", p->sclipparams[0], mode);
+    printf("%g-%s clipped %s:\n", clipparams[0], sig1_mad0?"sigma":"MAD",
+           mode);
 
   /* Print the final results: */
   printf("  %-*s %zu\n", namewidth, "Number of input elements:",
          p->input->size);
-  if( p->sclipparams[1] < 1.0f )
-    printf("  %-*s %d\n", namewidth, "Number of clips:",     sigclip->status);
-  printf("  %-*s %.0f\n", namewidth, "Final number of elements:", a[0]);
-  printf("  %-*s %g\n", namewidth, "Median:",                a[1]);
-  printf("  %-*s %g\n", namewidth, "Mean:",                  a[2]);
-  printf("  %-*s %g\n", namewidth, "Standard deviation:",    a[3]);
+  if( clipparams[1] < 1.0f )
+    printf("  %-*s %.0f\n", namewidth, "Number of clips:",
+           a[GAL_STATISTICS_CLIP_OUTCOL_NUMBER_CLIPS]);
+  printf("  %-*s %.0f\n", namewidth, "Final number of elements:",
+         a[GAL_STATISTICS_CLIP_OUTCOL_NUMBER_USED]);
+  printf("  %-*s %.6e\n", namewidth, "Median:",
+         a[GAL_STATISTICS_CLIP_OUTCOL_MEDIAN]);
+  printf("  %-*s %.6e\n", namewidth, "Mean:",
+         a[GAL_STATISTICS_CLIP_OUTCOL_MEAN]);
+  printf("  %-*s %.6e\n", namewidth, "Standard deviation:",
+         a[GAL_STATISTICS_CLIP_OUTCOL_STD]);
+  printf("  %-*s %.6e\n", namewidth, "Median Absolute Deviation:",
+         a[GAL_STATISTICS_CLIP_OUTCOL_MAD]);
 
   /* Clean up. */
+  gal_data_free(result);
   free(mode);
 }
 
@@ -1829,7 +1938,14 @@ statistics(struct statisticsparams *p)
   if( p->sigmaclip )
     {
       print_basic_info=0;
-      print_sigma_clip(p);
+      print_clip(p, 1);
+    }
+
+  /* Print the MAD-clipped results. */
+  if( p->madclip )
+    {
+      print_basic_info=0;
+      print_clip(p, 0);
     }
 
   /* Make the mirror table. */

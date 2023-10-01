@@ -30,10 +30,13 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 
 #include <gnuastro/wcs.h>
+#include <gnuastro/binary.h>
 #include <gnuastro/pointer.h>
 #include <gnuastro/threads.h>
+#include <gnuastro/convolve.h>
 #include <gnuastro/dimension.h>
 #include <gnuastro/statistics.h>
+#include <gnuastro/arithmetic.h>
 
 
 
@@ -321,22 +324,22 @@ gal_dimension_dist_elliptical(double *center, double *pa_deg, double *q,
       s3 = sin( pa_deg[2] * DEGREESTORADIANS );
 
       /* Calculate the distance. */
-      Xr = x*(  c3*c1   - s3*c2*s1 ) + y*( c3*s1   + s3*c2*c1) + z*( s3*s2 );
-      Yr = x*( -1*s3*c1 - c3*c2*s1 ) + y*(-1*s3*s1 + c3*c2*c1) + z*( c3*s2 );
-      Zr = x*(  s1*s2              ) + y*(-1*s2*c1           ) + z*( c2    );
+      Xr = x*( c3*c1   - s3*c2*s1) + y*( c3*s1   + s3*c2*c1) + z*( s3*s2 );
+      Yr = x*(-1*s3*c1 - c3*c2*s1) + y*(-1*s3*s1 + c3*c2*c1) + z*( c3*s2 );
+      Zr = x*( s1*s2             ) + y*(-1*s2*c1           ) + z*( c2    );
       return sqrt( Xr*Xr + Yr*Yr/q1/q1 + Zr*Zr/q2/q2 );
       break;
 
     default:
       error(EXIT_FAILURE, 0, "%s: currently only 2 and 3 dimensional "
-            "distances are supported, you have asked for an %zu-dimensional "
-            "dataset", __func__, ndim);
+            "distances are supported, you have asked for an "
+            "%zu-dimensional dataset", __func__, ndim);
 
     }
 
   /* Control should never reach here. */
-  error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to address the "
-        "problem. Control should not reach the end of this function",
+  error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s to address "
+        "the problem. Control should not reach the end of this function",
         __func__, PACKAGE_BUGREPORT);
   return NAN;
 }
@@ -372,10 +375,26 @@ enum dimension_collapse_operation
  DIMENSION_COLLAPSE_MEAN,
  DIMENSION_COLLAPSE_MEDIAN,
  DIMENSION_COLLAPSE_NUMBER,
+ DIMENSION_COLLAPSE_MADCLIP_MAD,
+ DIMENSION_COLLAPSE_SIGCLIP_MAD,
+ DIMENSION_COLLAPSE_MADCLIP_STD,
  DIMENSION_COLLAPSE_SIGCLIP_STD,
+ DIMENSION_COLLAPSE_MADCLIP_MEAN,
  DIMENSION_COLLAPSE_SIGCLIP_MEAN,
+ DIMENSION_COLLAPSE_MADCLIP_MEDIAN,
  DIMENSION_COLLAPSE_SIGCLIP_MEDIAN,
+ DIMENSION_COLLAPSE_MADCLIP_NUMBER,
  DIMENSION_COLLAPSE_SIGCLIP_NUMBER,
+ DIMENSION_COLLAPSE_MADCLIP_FILL_MAD,
+ DIMENSION_COLLAPSE_SIGCLIP_FILL_MAD,
+ DIMENSION_COLLAPSE_MADCLIP_FILL_STD,
+ DIMENSION_COLLAPSE_SIGCLIP_FILL_STD,
+ DIMENSION_COLLAPSE_MADCLIP_FILL_MEAN,
+ DIMENSION_COLLAPSE_SIGCLIP_FILL_MEAN,
+ DIMENSION_COLLAPSE_MADCLIP_FILL_MEDIAN,
+ DIMENSION_COLLAPSE_SIGCLIP_FILL_MEDIAN,
+ DIMENSION_COLLAPSE_MADCLIP_FILL_NUMBER,
+ DIMENSION_COLLAPSE_SIGCLIP_FILL_NUMBER,
 };
 
 
@@ -392,8 +411,9 @@ dimension_collapse_sanity_check(gal_data_t *in, gal_data_t *weight,
   /* The requested dimension to collapse cannot be larger than the input's
      number of dimensions. */
   if( c_dim > (in->ndim-1) )
-    error(EXIT_FAILURE, 0, "%s: the input has %zu dimension(s), but you have "
-          "asked to collapse dimension %zu", __func__, in->ndim, c_dim);
+    error(EXIT_FAILURE, 0, "%s: the input has %zu dimension(s), but you "
+          "have asked to collapse dimension %zu", __func__, in->ndim,
+          c_dim);
 
   /* If there is no blank value, there is no point in calculating the
      number of points in each collapsed dataset (when necessary). In that
@@ -405,8 +425,9 @@ dimension_collapse_sanity_check(gal_data_t *in, gal_data_t *weight,
   if(weight)
     {
       if( weight->ndim!=1 )
-        error(EXIT_FAILURE, 0, "%s: the weight dataset has %zu dimensions, "
-              "it must be one-dimensional", __func__, weight->ndim);
+        error(EXIT_FAILURE, 0, "%s: the weight dataset has %zu "
+              "dimensions, it must be one-dimensional", __func__,
+              weight->ndim);
       if( in->dsize[c_dim]!=weight->size )
         error(EXIT_FAILURE, 0, "%s: the weight dataset has %zu elements, "
               "but the input dataset has %zu elements in dimension %zu",
@@ -825,7 +846,8 @@ gal_dimension_collapse_minmax(gal_data_t *in, size_t c_dim, int max1_min0)
   if(hasblank)
     {
       num=gal_data_alloc(NULL, GAL_TYPE_UINT8, outndim, outdsize, in->wcs,
-                         1, in->minmapsize, in->quietmmap, NULL, NULL, NULL);
+                         1, in->minmapsize, in->quietmmap, NULL, NULL,
+                         NULL);
       iarr=num->array;
     }
 
@@ -881,11 +903,241 @@ struct dimension_sortbased_p
 
 
 static void
-dimension_csb_copy(gal_data_t *in, size_t from, gal_data_t *work, size_t to)
+dimension_csb_copy(gal_data_t *in, size_t from, gal_data_t *work,
+                   size_t to)
 {
   memcpy(gal_pointer_increment(work->array, to,   in->type),
          gal_pointer_increment(in->array,   from, in->type),
          gal_type_sizeof(in->type));
+}
+
+
+
+
+
+static gal_data_t *
+dimension_collapse_sortbased_operation(struct dimension_sortbased_p *p,
+                                       gal_data_t *work, uint8_t clipflags,
+                                       uint8_t isfill)
+{
+  gal_data_t *out=NULL;
+
+  /* Do the operation. */
+  switch(p->operator)
+    {
+    case DIMENSION_COLLAPSE_MEDIAN:
+      out=gal_statistics_median(work, 1);
+      break;
+    case DIMENSION_COLLAPSE_MADCLIP_MAD:
+    case DIMENSION_COLLAPSE_MADCLIP_STD:
+    case DIMENSION_COLLAPSE_MADCLIP_MEAN:
+    case DIMENSION_COLLAPSE_MADCLIP_MEDIAN:
+    case DIMENSION_COLLAPSE_MADCLIP_NUMBER:
+    case DIMENSION_COLLAPSE_MADCLIP_FILL_MAD:
+    case DIMENSION_COLLAPSE_MADCLIP_FILL_STD:
+    case DIMENSION_COLLAPSE_MADCLIP_FILL_MEAN:
+    case DIMENSION_COLLAPSE_MADCLIP_FILL_MEDIAN:
+    case DIMENSION_COLLAPSE_MADCLIP_FILL_NUMBER:
+      /* When we are dealing with a clip-fill operator, the order of
+         the elements matter, so we don't want it to be done inplace.*/
+      out=gal_statistics_clip_mad(work, p->sclipmultip,
+                                   p->sclipparam, clipflags,
+                                   isfill?0:1, 1);
+      break;
+
+    case DIMENSION_COLLAPSE_SIGCLIP_MAD:
+    case DIMENSION_COLLAPSE_SIGCLIP_STD:
+    case DIMENSION_COLLAPSE_SIGCLIP_MEAN:
+    case DIMENSION_COLLAPSE_SIGCLIP_MEDIAN:
+    case DIMENSION_COLLAPSE_SIGCLIP_NUMBER:
+    case DIMENSION_COLLAPSE_SIGCLIP_FILL_MAD:
+    case DIMENSION_COLLAPSE_SIGCLIP_FILL_STD:
+    case DIMENSION_COLLAPSE_SIGCLIP_FILL_MEAN:
+    case DIMENSION_COLLAPSE_SIGCLIP_FILL_MEDIAN:
+    case DIMENSION_COLLAPSE_SIGCLIP_FILL_NUMBER:
+      /* When we are dealing with a clip-fill operator, the order of
+         the elements matter, so we don't want it to be done inplace.*/
+      out=gal_statistics_clip_sigma(work, p->sclipmultip,
+                                     p->sclipparam, clipflags,
+                                     isfill?0:1, 1);
+      break;
+    default:
+      error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at '%s' "
+            "to fix the problem. The operator code %d isn't "
+            "recognized", __func__, PACKAGE_BUGREPORT, p->operator);
+    }
+
+  /* Return the output. */
+  return out;
+}
+
+
+
+
+
+static gal_data_t *
+dimension_collapse_sortbased_fill(struct dimension_sortbased_p *p,
+                                  gal_data_t *fstat, gal_data_t *work,
+                                  gal_data_t *conv, uint8_t clipflags,
+                                  int check)
+{
+  size_t one=1;
+  int std1_mad0=0;
+  float *farr=fstat->array;
+  gal_data_t *formask=conv?conv:work, *out=NULL;
+  gal_data_t *tmp, *multip, *upper, *lower, *center, *spread;
+  int aflags=GAL_ARITHMETIC_FLAG_NUMOK; /* Don't free the inputs. */
+
+  /* Basic checks. */
+  switch(p->operator)
+    {
+    case DIMENSION_COLLAPSE_MADCLIP_FILL_MAD:
+    case DIMENSION_COLLAPSE_MADCLIP_FILL_STD:
+    case DIMENSION_COLLAPSE_MADCLIP_FILL_MEAN:
+    case DIMENSION_COLLAPSE_MADCLIP_FILL_MEDIAN:
+    case DIMENSION_COLLAPSE_MADCLIP_FILL_NUMBER:
+      std1_mad0=0; break;
+    case DIMENSION_COLLAPSE_SIGCLIP_FILL_MAD:
+    case DIMENSION_COLLAPSE_SIGCLIP_FILL_STD:
+    case DIMENSION_COLLAPSE_SIGCLIP_FILL_MEAN:
+    case DIMENSION_COLLAPSE_SIGCLIP_FILL_MEDIAN:
+    case DIMENSION_COLLAPSE_SIGCLIP_FILL_NUMBER:
+      std1_mad0=1; break;
+    default:
+      error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at '%s' to "
+            "fix the problem. The operator code '%d' is not recognized",
+            __func__, PACKAGE_BUGREPORT, p->operator);
+    }
+
+  /* Convert the first clipped statistics ('fstat') into two datasets with
+     the center and spread. */
+  center=gal_data_alloc(NULL, GAL_TYPE_FLOAT32, 1, &one, NULL, 0, -1, 1,
+                        NULL, NULL, NULL);
+  spread=gal_data_alloc(NULL, GAL_TYPE_FLOAT32, 1, &one, NULL, 0, -1, 1,
+                        NULL, NULL, NULL);
+  ((float *)(center->array))[0]=farr[GAL_STATISTICS_CLIP_OUTCOL_MEDIAN];
+  ((float *)(spread->array))[0]=farr[ std1_mad0
+                                      ? GAL_STATISTICS_CLIP_OUTCOL_STD
+                                      : GAL_STATISTICS_CLIP_OUTCOL_MAD ];
+
+  /* Find the upper and lower thresholds based on the user's desired
+     multiple. */
+  multip=gal_data_alloc(NULL, GAL_TYPE_FLOAT32, 1, &one, NULL, 0, -1, 1,
+                        NULL, NULL, NULL);
+  ((float *)(multip->array))[0]=p->sclipmultip;
+  tmp=gal_arithmetic(GAL_ARITHMETIC_OP_MULTIPLY, 1, aflags,
+                     spread, multip);
+  upper=gal_arithmetic(GAL_ARITHMETIC_OP_PLUS, 1, aflags,
+                       center, tmp);
+  lower=gal_arithmetic(GAL_ARITHMETIC_OP_MINUS, 1, aflags,
+                       center, tmp);
+  gal_data_free(tmp);
+
+  /* Build a flag with bad elements having a value of 1. For a 1D dataset,
+     the largest possible "hole" size should be smaller than higher
+     dimensionality data, because two elements that are very far from each
+     other can create a very large "hole".*/
+  tmp=gal_arithmetic(GAL_ARITHMETIC_OP_OR, 1, aflags,
+                     gal_arithmetic(GAL_ARITHMETIC_OP_GT, 1, aflags,
+                                    formask, upper),
+                     gal_arithmetic(GAL_ARITHMETIC_OP_LE, 1, aflags,
+                                    formask, lower));
+
+  /* For a check (define 'int check' as an argument, and when calling this
+     function, set 'index==XXX').
+  if(check)
+    {
+      size_t i;
+      double *f=formask->array;
+      uint8_t *u=tmp->array;
+      for(i=0;i<formask->size;++i)
+        printf("%-5zu %-5u %f\n", i, u[i], f[i]);
+      printf("%s: upper:%f, lower: %f\n", __func__,
+             ((float *)(upper->array))[0],
+             ((float *)(lower->array))[0] );
+    }
+  */
+
+  /* For a 1D array, do erosion because after filling holes, two single
+     elements outside the range can mask a very large portion of the
+     input. */
+  tmp = ( formask->ndim==1
+          ? gal_binary_erode(tmp, 1, 1, 1)
+          : gal_binary_dilate(tmp, 1, 1, 1) );
+  gal_binary_holes_fill(tmp, formask->ndim, -1);
+  tmp=gal_binary_erode(tmp, 2, formask->ndim, 1);
+  tmp=gal_binary_dilate(tmp, formask->ndim==1?4:2, formask->ndim, 1);
+
+  /* Apply the flag onto the input (to set the pixels to NaN). */
+  gal_blank_flag_apply(work, tmp);
+
+  /* For a check (define 'int check' as an argument, and when calling this
+     function, set 'index==XXX').
+  if(check)
+    {
+      size_t i;
+      double *f=work->array; // CHECK THE TYPE OF YOUR INPUT
+      uint8_t *u=tmp->array;
+      for(i=0;i<work->size;++i)
+        printf("%-5zu %-5u %f\n", i, u[i], f[i]);
+      printf("%s: GOOD\n", __func__); exit(0);
+    }
+  */
+
+  /* Apply the operation: note that 'isfill' is zero here because we don't
+     care about the order of elements any more ('isfill' is only used to do
+     the operation inplace or not). */
+  out=dimension_collapse_sortbased_operation(p, work, clipflags, 0);
+
+  /* Clean up and return. */
+  gal_data_free(tmp);
+  gal_data_free(fstat);
+  gal_data_free(upper);
+  gal_data_free(lower);
+  gal_data_free(multip);
+  gal_data_free(center);
+  gal_data_free(spread);
+  return out;
+}
+
+
+
+
+
+gal_data_t *
+dimension_collapse_sortbased_conv(gal_data_t *work /*, int check*/)
+{
+  float *karr;
+  gal_data_t *in, *out, *kernel;
+  size_t i, ksize[3]={3,3,3};  /* Extra dimensions will not be used. */
+
+  /* Set the input. */
+  in = ( work->type==GAL_TYPE_FLOAT32
+         ? work
+         : gal_data_copy_to_new_type(work, GAL_TYPE_FLOAT32) );
+
+  /* Build a kernel and fill it with equal values (so their sum is 1). */
+  kernel=gal_data_alloc(NULL, GAL_TYPE_FLOAT32, work->ndim, ksize,
+                        NULL, 0, -1, 1, NULL, NULL, NULL);
+  karr=kernel->array;
+  for(i=0;i<kernel->size;++i) karr[i]=1.0/kernel->size;
+
+  /* Convolve the work array with the given kernel. */
+  out=gal_convolve_spatial(in, kernel, 1, 1, 0, 1);
+
+  /* For a check.
+  if(check)
+    {
+      float *ia=in->array, *oa=out->array;
+      for(i=0;i<in->size;++i)
+        printf("%-5zu %-10.3f %-10.3f\n", i, ia[i], oa[i]);
+    }
+  */
+
+  /* Clean up and return. */
+  if(in!=work) gal_data_free(in);
+  gal_data_free(kernel);
+  return out;
 }
 
 
@@ -903,13 +1155,31 @@ dimension_collapse_sortbased_worker(void *in_prm)
   gal_data_t *in=p->in;
 
   /* Subsequent definitions. */
-  gal_data_t *work, *stat=NULL;
+  uint8_t clipflags=0, isfill=0;
   size_t a, b, c, sind=GAL_BLANK_SIZE_T;
+  gal_data_t *work, *conv=NULL, *stat=NULL;
   size_t i, j, index, c_dim=p->c_dim, wdsize=in->dsize[c_dim];
 
   /* Allocate the dataset that will be sorted. */
   work=gal_data_alloc(NULL, in->type, 1, &wdsize, NULL, 0,
                       p->minmapsize, p->quietmmap, NULL, NULL, NULL);
+
+  /* Some things are unique for fill-based operators. */
+  switch(p->operator)
+    {
+    case DIMENSION_COLLAPSE_MADCLIP_FILL_MAD:
+    case DIMENSION_COLLAPSE_SIGCLIP_FILL_MAD:
+    case DIMENSION_COLLAPSE_MADCLIP_FILL_STD:
+    case DIMENSION_COLLAPSE_SIGCLIP_FILL_STD:
+    case DIMENSION_COLLAPSE_MADCLIP_FILL_MEAN:
+    case DIMENSION_COLLAPSE_SIGCLIP_FILL_MEAN:
+    case DIMENSION_COLLAPSE_MADCLIP_FILL_MEDIAN:
+    case DIMENSION_COLLAPSE_SIGCLIP_FILL_MEDIAN:
+    case DIMENSION_COLLAPSE_MADCLIP_FILL_NUMBER:
+    case DIMENSION_COLLAPSE_SIGCLIP_FILL_NUMBER:
+      isfill=1;
+      break;
+    }
 
   /* Go over all the actions (pixels in this case) that were assigned to
      this thread. */
@@ -930,14 +1200,15 @@ dimension_collapse_sortbased_worker(void *in_prm)
         {
         /* One-dimensional data. */
         case 1:
-          memcpy(work->array, in->array, in->size*gal_type_sizeof(in->type));
+          memcpy(work->array, in->array,
+                 in->size*gal_type_sizeof(in->type));
           break;
 
         /* Two dimensional data. */
         case 2:
           a=in->dsize[0];
           b=in->dsize[1];
-          if(c_dim) /* c_dim==1 The dim. to collapse is already contiguous. */
+          if(c_dim) /* c_dim==1 dim. to collapse, already contiguous. */
             memcpy(work->array,
                    gal_pointer_increment(in->array,   index*b, in->type),
                    b*gal_type_sizeof(in->type));
@@ -959,7 +1230,8 @@ dimension_collapse_sortbased_worker(void *in_prm)
 
             case 1:
               for(j=0;j<b;++j)
-                dimension_csb_copy(in, (index/c)*b*c+j*c+(index%c), work, j);
+                dimension_csb_copy(in, (index/c)*b*c+j*c+(index%c),
+                                   work, j);
               break;
 
             case 2: /* Fastest dimension: contiguous in memory. */
@@ -984,45 +1256,88 @@ dimension_collapse_sortbased_worker(void *in_prm)
                 "dimensions", __func__, PACKAGE_BUGREPORT, in->ndim);
         }
 
-      /* For a check.
-      if(index==0)
+      /* For a check
+      if(index==250)
       {
-        float *f=work->array;
+        double *f=work->array;
         for(j=0;j<wdsize;++j)
-          printf("%zu: %f\n", j, f[j]);
-        printf("%s: GOOD\n", __func__); exit(0);
+          printf("%zu  %f\n", j, f[j]);
+        printf("%s: GOOD\n", __func__); //exit(0);
       }
       */
 
+      /* Set the necessary flag for extra calculation during sigma-clipping
+         (this is not necessary for some). */
+      switch(p->operator)
+        {
+        case DIMENSION_COLLAPSE_MADCLIP_STD:
+        case DIMENSION_COLLAPSE_MADCLIP_FILL_STD:
+          clipflags=GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_STD;  break;
+        case DIMENSION_COLLAPSE_SIGCLIP_MAD:
+        case DIMENSION_COLLAPSE_SIGCLIP_FILL_MAD:
+          clipflags=GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_MAD;  break;
+        case DIMENSION_COLLAPSE_MADCLIP_MEAN:
+        case DIMENSION_COLLAPSE_SIGCLIP_MEAN:
+        case DIMENSION_COLLAPSE_MADCLIP_FILL_MEAN:
+        case DIMENSION_COLLAPSE_SIGCLIP_FILL_MEAN:
+          clipflags=GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_MEAN; break;
+        }
+
+      /* Create a convolved image (currently disabled, because 'work' will
+         always be non-NULL, kept for further investigation later!). */
+      conv=work?NULL:dimension_collapse_sortbased_conv(work);
+
       /* Do the necessary statistical operation. */
+      stat=dimension_collapse_sortbased_operation(p, conv?conv:work,
+                                                  clipflags, isfill);
+
+      /* If this is a "filling" operation, then repeat the operation with
+         the fill. */
+      if(isfill)
+        stat=dimension_collapse_sortbased_fill(p, stat, work, conv,
+                                               clipflags, index==-1);
+
+      /* Set the index in the output 'stat' array. These can't be set in
+         the main operation 'switch' because the functions are different,
+         while 'sind' is the same. Note also that this should be done after
+         the actual operation because some operators need to correct the
+         type. */
       switch(p->operator)
         {
         case DIMENSION_COLLAPSE_MEDIAN:
-          sind=0;
-          stat=gal_statistics_median(work, 1);
-          break;
+          stat=gal_data_copy_to_new_type_free(stat, GAL_TYPE_FLOAT32);
+          sind=0; break;
+        case DIMENSION_COLLAPSE_MADCLIP_MAD:
+        case DIMENSION_COLLAPSE_SIGCLIP_MAD:
+        case DIMENSION_COLLAPSE_MADCLIP_FILL_MAD:
+        case DIMENSION_COLLAPSE_SIGCLIP_FILL_MAD:
+          sind=GAL_STATISTICS_CLIP_OUTCOL_MAD; break;
+        case DIMENSION_COLLAPSE_MADCLIP_STD:
         case DIMENSION_COLLAPSE_SIGCLIP_STD:
+        case DIMENSION_COLLAPSE_MADCLIP_FILL_STD:
+        case DIMENSION_COLLAPSE_SIGCLIP_FILL_STD:
+          sind=GAL_STATISTICS_CLIP_OUTCOL_STD; break;
+        case DIMENSION_COLLAPSE_MADCLIP_MEAN:
         case DIMENSION_COLLAPSE_SIGCLIP_MEAN:
+        case DIMENSION_COLLAPSE_MADCLIP_FILL_MEAN:
+        case DIMENSION_COLLAPSE_SIGCLIP_FILL_MEAN:
+          sind=GAL_STATISTICS_CLIP_OUTCOL_MEAN; break;
+        case DIMENSION_COLLAPSE_MADCLIP_MEDIAN:
         case DIMENSION_COLLAPSE_SIGCLIP_MEDIAN:
+        case DIMENSION_COLLAPSE_MADCLIP_FILL_MEDIAN:
+        case DIMENSION_COLLAPSE_SIGCLIP_FILL_MEDIAN:
+          sind=GAL_STATISTICS_CLIP_OUTCOL_MEDIAN; break;
+        case DIMENSION_COLLAPSE_MADCLIP_NUMBER:
         case DIMENSION_COLLAPSE_SIGCLIP_NUMBER:
-          stat=gal_statistics_sigma_clip(work, p->sclipmultip,
-                                         p->sclipparam, 1, 1);
-          switch(p->operator)
-            {
-            case DIMENSION_COLLAPSE_SIGCLIP_STD:     sind=3; break;
-            case DIMENSION_COLLAPSE_SIGCLIP_MEAN:    sind=2; break;
-            case DIMENSION_COLLAPSE_SIGCLIP_MEDIAN:
-              stat=gal_data_copy_to_new_type_free(stat, in->type);
-              sind=1; break;
-            case DIMENSION_COLLAPSE_SIGCLIP_NUMBER:
-              stat=gal_data_copy_to_new_type_free(stat, GAL_TYPE_UINT32);
-              sind=0; break;
-            }
-          break;
+        case DIMENSION_COLLAPSE_MADCLIP_FILL_NUMBER:
+        case DIMENSION_COLLAPSE_SIGCLIP_FILL_NUMBER:
+          stat=gal_data_copy_to_new_type_free(stat, GAL_TYPE_UINT32);
+          sind=GAL_STATISTICS_CLIP_OUTCOL_NUMBER_USED; break;
         default:
           error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at '%s' "
-                "to fix the problem. The operator code %d isn't "
-                "recognized", __func__, PACKAGE_BUGREPORT, p->operator);
+                "to fix the problem. The operator code '%d' is not "
+                "recognized when writing the output", __func__,
+                PACKAGE_BUGREPORT, p->operator);
         }
 
       /* Copy the result from the statistics output into the output array
@@ -1075,11 +1390,29 @@ dimension_collapse_sortbased(gal_data_t *in, size_t c_dim, int operator,
   /* The output array (and its type). */
   switch(operator)
     {
-    case DIMENSION_COLLAPSE_MEDIAN:         otype=in->type;         break;
-    case DIMENSION_COLLAPSE_SIGCLIP_STD:    otype=GAL_TYPE_FLOAT32; break;
-    case DIMENSION_COLLAPSE_SIGCLIP_MEAN:   otype=GAL_TYPE_FLOAT32; break;
-    case DIMENSION_COLLAPSE_SIGCLIP_MEDIAN: otype=in->type;         break;
-    case DIMENSION_COLLAPSE_SIGCLIP_NUMBER: otype=GAL_TYPE_UINT32;  break;
+    case DIMENSION_COLLAPSE_MADCLIP_NUMBER:
+    case DIMENSION_COLLAPSE_SIGCLIP_NUMBER:
+    case DIMENSION_COLLAPSE_MADCLIP_FILL_NUMBER:
+    case DIMENSION_COLLAPSE_SIGCLIP_FILL_NUMBER:
+      otype=GAL_TYPE_UINT32;  break;
+    case DIMENSION_COLLAPSE_MEDIAN:
+    case DIMENSION_COLLAPSE_MADCLIP_MAD:
+    case DIMENSION_COLLAPSE_SIGCLIP_MAD:
+    case DIMENSION_COLLAPSE_MADCLIP_STD:
+    case DIMENSION_COLLAPSE_SIGCLIP_STD:
+    case DIMENSION_COLLAPSE_MADCLIP_MEAN:
+    case DIMENSION_COLLAPSE_SIGCLIP_MEAN:
+    case DIMENSION_COLLAPSE_MADCLIP_MEDIAN:
+    case DIMENSION_COLLAPSE_SIGCLIP_MEDIAN:
+    case DIMENSION_COLLAPSE_MADCLIP_FILL_MAD:
+    case DIMENSION_COLLAPSE_SIGCLIP_FILL_MAD:
+    case DIMENSION_COLLAPSE_MADCLIP_FILL_STD:
+    case DIMENSION_COLLAPSE_SIGCLIP_FILL_STD:
+    case DIMENSION_COLLAPSE_MADCLIP_FILL_MEAN:
+    case DIMENSION_COLLAPSE_SIGCLIP_FILL_MEAN:
+    case DIMENSION_COLLAPSE_MADCLIP_FILL_MEDIAN:
+    case DIMENSION_COLLAPSE_SIGCLIP_FILL_MEDIAN:
+      otype=GAL_TYPE_FLOAT32; break;
     default:
       error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at '%s' "
             "to fix the problem. The operator code %d is not a "
@@ -1129,6 +1462,185 @@ gal_dimension_collapse_median(gal_data_t *in, size_t c_dim,
 
 
 
+gal_data_t *
+gal_dimension_collapse_mclip_mad(gal_data_t *in, size_t c_dim,
+                                 float multip, float param,
+                                 size_t numthreads, size_t minmapsize,
+                                 int quietmmap)
+{
+  int op=DIMENSION_COLLAPSE_MADCLIP_MAD;
+  return dimension_collapse_sortbased(in, c_dim, op, multip, param,
+                                      numthreads, minmapsize, quietmmap);
+}
+
+
+
+
+
+gal_data_t *
+gal_dimension_collapse_mclip_fill_mad(gal_data_t *in, size_t c_dim,
+                                      float multip, float param,
+                                      size_t numthreads, size_t minmapsize,
+                                      int quietmmap)
+{
+  int op=DIMENSION_COLLAPSE_MADCLIP_FILL_MAD;
+  return dimension_collapse_sortbased(in, c_dim, op, multip, param,
+                                      numthreads, minmapsize, quietmmap);
+}
+
+
+
+
+
+gal_data_t *
+gal_dimension_collapse_mclip_std(gal_data_t *in, size_t c_dim,
+                                 float multip, float param,
+                                 size_t numthreads, size_t minmapsize,
+                                 int quietmmap)
+{
+  int op=DIMENSION_COLLAPSE_MADCLIP_STD;
+  return dimension_collapse_sortbased(in, c_dim, op, multip, param,
+                                      numthreads, minmapsize, quietmmap);
+}
+
+
+
+
+
+gal_data_t *
+gal_dimension_collapse_mclip_fill_std(gal_data_t *in, size_t c_dim,
+                                      float multip, float param,
+                                      size_t numthreads, size_t minmapsize,
+                                      int quietmmap)
+{
+  int op=DIMENSION_COLLAPSE_MADCLIP_FILL_STD;
+  return dimension_collapse_sortbased(in, c_dim, op, multip, param,
+                                      numthreads, minmapsize, quietmmap);
+}
+
+
+
+
+
+gal_data_t *
+gal_dimension_collapse_mclip_mean(gal_data_t *in, size_t c_dim,
+                                  float multip, float param,
+                                  size_t numthreads, size_t minmapsize,
+                                  int quietmmap)
+{
+  int op=DIMENSION_COLLAPSE_MADCLIP_MEAN;
+  return dimension_collapse_sortbased(in, c_dim, op, multip, param,
+                                      numthreads, minmapsize, quietmmap);
+}
+
+
+
+
+
+gal_data_t *
+gal_dimension_collapse_mclip_fill_mean(gal_data_t *in, size_t c_dim,
+                                       float multip, float param,
+                                       size_t numthreads, size_t minmapsize,
+                                       int quietmmap)
+{
+  int op=DIMENSION_COLLAPSE_MADCLIP_FILL_MEAN;
+  return dimension_collapse_sortbased(in, c_dim, op, multip, param,
+                                      numthreads, minmapsize, quietmmap);
+}
+
+
+
+
+
+gal_data_t *
+gal_dimension_collapse_mclip_median(gal_data_t *in, size_t c_dim,
+                                    float multip, float param,
+                                    size_t numthreads, size_t minmapsize,
+                                    int quietmmap)
+{
+  int op=DIMENSION_COLLAPSE_MADCLIP_MEDIAN;
+  return dimension_collapse_sortbased(in, c_dim, op, multip, param,
+                                      numthreads, minmapsize, quietmmap);
+}
+
+
+
+
+
+gal_data_t *
+gal_dimension_collapse_mclip_fill_median(gal_data_t *in, size_t c_dim,
+                                         float multip, float param,
+                                         size_t numthreads,
+                                         size_t minmapsize, int quietmmap)
+{
+  int op=DIMENSION_COLLAPSE_MADCLIP_FILL_MEDIAN;
+  return dimension_collapse_sortbased(in, c_dim, op, multip, param,
+                                      numthreads, minmapsize, quietmmap);
+}
+
+
+
+
+
+gal_data_t *
+gal_dimension_collapse_mclip_number(gal_data_t *in, size_t c_dim,
+                                    float multip, float param,
+                                    size_t numthreads, size_t minmapsize,
+                                    int quietmmap)
+{
+  int op=DIMENSION_COLLAPSE_MADCLIP_NUMBER;
+  return dimension_collapse_sortbased(in, c_dim, op, multip, param,
+                                      numthreads, minmapsize, quietmmap);
+}
+
+
+
+
+
+gal_data_t *
+gal_dimension_collapse_mclip_fill_number(gal_data_t *in, size_t c_dim,
+                                         float multip, float param,
+                                         size_t numthreads,
+                                         size_t minmapsize, int quietmmap)
+{
+  int op=DIMENSION_COLLAPSE_MADCLIP_FILL_NUMBER;
+  return dimension_collapse_sortbased(in, c_dim, op, multip, param,
+                                      numthreads, minmapsize, quietmmap);
+}
+
+
+
+
+
+gal_data_t *
+gal_dimension_collapse_sclip_mad(gal_data_t *in, size_t c_dim,
+                                 float multip, float param,
+                                 size_t numthreads, size_t minmapsize,
+                                 int quietmmap)
+{
+  int op=DIMENSION_COLLAPSE_SIGCLIP_MAD;
+  return dimension_collapse_sortbased(in, c_dim, op, multip, param,
+                                      numthreads, minmapsize, quietmmap);
+}
+
+
+
+
+
+gal_data_t *
+gal_dimension_collapse_sclip_fill_mad(gal_data_t *in, size_t c_dim,
+                                      float multip, float param,
+                                      size_t numthreads, size_t minmapsize,
+                                      int quietmmap)
+{
+  int op=DIMENSION_COLLAPSE_SIGCLIP_FILL_MAD;
+  return dimension_collapse_sortbased(in, c_dim, op, multip, param,
+                                      numthreads, minmapsize, quietmmap);
+}
+
+
+
+
 
 gal_data_t *
 gal_dimension_collapse_sclip_std(gal_data_t *in, size_t c_dim,
@@ -1137,6 +1649,21 @@ gal_dimension_collapse_sclip_std(gal_data_t *in, size_t c_dim,
                                  int quietmmap)
 {
   int op=DIMENSION_COLLAPSE_SIGCLIP_STD;
+  return dimension_collapse_sortbased(in, c_dim, op, multip, param,
+                                      numthreads, minmapsize, quietmmap);
+}
+
+
+
+
+
+gal_data_t *
+gal_dimension_collapse_sclip_fill_std(gal_data_t *in, size_t c_dim,
+                                      float multip, float param,
+                                      size_t numthreads, size_t minmapsize,
+                                      int quietmmap)
+{
+  int op=DIMENSION_COLLAPSE_SIGCLIP_FILL_STD;
   return dimension_collapse_sortbased(in, c_dim, op, multip, param,
                                       numthreads, minmapsize, quietmmap);
 }
@@ -1161,6 +1688,21 @@ gal_dimension_collapse_sclip_mean(gal_data_t *in, size_t c_dim,
 
 
 gal_data_t *
+gal_dimension_collapse_sclip_fill_mean(gal_data_t *in, size_t c_dim,
+                                       float multip, float param,
+                                       size_t numthreads, size_t minmapsize,
+                                       int quietmmap)
+{
+  int op=DIMENSION_COLLAPSE_SIGCLIP_FILL_MEAN;
+  return dimension_collapse_sortbased(in, c_dim, op, multip, param,
+                                      numthreads, minmapsize, quietmmap);
+}
+
+
+
+
+
+gal_data_t *
 gal_dimension_collapse_sclip_median(gal_data_t *in, size_t c_dim,
                                     float multip, float param,
                                     size_t numthreads, size_t minmapsize,
@@ -1170,6 +1712,25 @@ gal_dimension_collapse_sclip_median(gal_data_t *in, size_t c_dim,
   return dimension_collapse_sortbased(in, c_dim, op, multip, param,
                                       numthreads, minmapsize, quietmmap);
 }
+
+
+
+
+
+gal_data_t *
+gal_dimension_collapse_sclip_fill_median(gal_data_t *in, size_t c_dim,
+                                         float multip, float param,
+                                         size_t numthreads,
+                                         size_t minmapsize, int quietmmap)
+{
+  int op=DIMENSION_COLLAPSE_SIGCLIP_FILL_MEDIAN;
+  return dimension_collapse_sortbased(in, c_dim, op, multip, param,
+                                      numthreads, minmapsize, quietmmap);
+}
+
+
+
+
 
 gal_data_t *
 gal_dimension_collapse_sclip_number(gal_data_t *in, size_t c_dim,
@@ -1181,6 +1742,22 @@ gal_dimension_collapse_sclip_number(gal_data_t *in, size_t c_dim,
   return dimension_collapse_sortbased(in, c_dim, op, multip, param,
                                       numthreads, minmapsize, quietmmap);
 }
+
+
+
+
+
+gal_data_t *
+gal_dimension_collapse_sclip_fill_number(gal_data_t *in, size_t c_dim,
+                                         float multip, float param,
+                                         size_t numthreads,
+                                         size_t minmapsize, int quietmmap)
+{
+  int op=DIMENSION_COLLAPSE_SIGCLIP_FILL_NUMBER;
+  return dimension_collapse_sortbased(in, c_dim, op, multip, param,
+                                      numthreads, minmapsize, quietmmap);
+}
+
 
 
 

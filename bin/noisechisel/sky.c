@@ -61,16 +61,19 @@ sky_mean_std_undetected(void *in_prm)
   int setblank, type=GAL_TYPE_FLOAT32;
   uint8_t *noskytiles=p->noskytiles->array;
   size_t i, tind, numsky, bdsize=2, ndim=p->sky->ndim;
+  gal_data_t *tile, *fusage, *busage, *bintile, *clip;
   size_t refarea, twidth=gal_type_sizeof(GAL_TYPE_FLOAT32);
-  gal_data_t *tile, *fusage, *busage, *bintile, *sigmaclip;
-
+  uint8_t mclipflags = ( GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_MEAN
+                         | GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_STD );
 
   /* Put the temporary usage space for this thread into a data set for easy
      processing. */
   fusage=gal_data_alloc(NULL, type, ndim, p->maxtsize, NULL, 0,
-                        p->cp.minmapsize, p->cp.quietmmap, NULL, NULL, NULL);
+                        p->cp.minmapsize, p->cp.quietmmap, NULL, NULL,
+                        NULL);
   busage=gal_data_alloc(NULL, GAL_TYPE_UINT8, ndim, p->maxtsize, NULL, 0,
-                        p->cp.minmapsize, p->cp.quietmmap, NULL, NULL, NULL);
+                        p->cp.minmapsize, p->cp.quietmmap, NULL, NULL,
+                        NULL);
 
 
   /* An empty dataset to replicate a tile on the binary array. */
@@ -129,9 +132,10 @@ sky_mean_std_undetected(void *in_prm)
               gal_blank_flag_apply(fusage, busage);
 
 
-              /* Do the sigma-clipping. */
-              sigmaclip=gal_statistics_sigma_clip(fusage, p->sigmaclip[0],
-                                                  p->sigmaclip[1], 1, 1);
+              /* Do the MAD-clipping. */
+              clip=gal_statistics_clip_sigma(fusage, p->sigmaclip[0],
+                                             p->sigmaclip[1], mclipflags,
+                                             1, 1);
 
 
               /* When there are zero-valued pixels on the edges of the
@@ -140,25 +144,27 @@ sky_mean_std_undetected(void *in_prm)
                  binary value of 1 and so the Sky and its standard
                  deviation can become zero. So, we need ignore such
                  tiles. */
-              if( ((float *)(sigmaclip->array))[3]==0.0 )
+              if( ((float *)(clip->array))[3]==0.0 )
                 setblank=1;
               else
                 {
                   /* Copy the sigma-clipped mean and STD to their
                      respective places in the tile arrays. But first, make
-                     sure 'sigmaclip' has the same type as the sky and std
+                     sure 'clip' has the same type as the sky and std
                      arrays. */
-                  sigmaclip=gal_data_copy_to_new_type_free(sigmaclip, type);
+                  clip=gal_data_copy_to_new_type_free(clip, type);
                   memcpy(gal_pointer_increment(p->sky->array, tind, type),
-                         gal_pointer_increment(sigmaclip->array, 2, type),
+                         gal_pointer_increment(clip->array,
+                                   GAL_STATISTICS_CLIP_OUTCOL_MEAN, type),
                          twidth);
                   memcpy(gal_pointer_increment(p->std->array, tind, type),
-                         gal_pointer_increment(sigmaclip->array, 3, type),
+                         gal_pointer_increment(clip->array,
+                                    GAL_STATISTICS_CLIP_OUTCOL_STD, type),
                          twidth);
                 }
 
               /* Clean up. */
-              gal_data_free(sigmaclip);
+              gal_data_free(clip);
             }
           else
             setblank=1;
