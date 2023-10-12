@@ -5,10 +5,8 @@ See the end of the file for license conditions.
 
 
 * Noteworthy changes in release 0.XX (library XX.X.X) (YYYY-MM-DD)
-
 ** New features
-
-  New program:
+*** New program
   - 'astscript-pointing-simulate': a new installed script that will
     simplify the process of designing a pointing pattern for your observing
     strategy. It takes into account the distortion of the camera, runs in
@@ -17,7 +15,7 @@ See the end of the file for license conditions.
     steps. A new tutorial has been added in the Tutorials chapter of the
     book on how to use this new script.
 
-  Book:
+*** Book
   - New tutorial on a low surface brightness optimized design of a pointing
     pattern using the newly added installed script in Gnuastro for
     simulating the exposure map of a pointing pattern stack (it is called as
@@ -29,7 +27,7 @@ See the end of the file for license conditions.
     fundamental difference between the two (which are sometimes confused
     with each other). This was written with the help of Raul Infante-Sainz.
 
-  Configuration files
+*** Configuration files
   - To separate the option name and value, you can now also use the '='
     character. This allows your custom configuration files to also be
     loaded into a shell (with 'source') or Make (with 'include'). Until
@@ -40,7 +38,7 @@ See the end of the file for license conditions.
     the different configuration files of different instances of the same
     program without overwriting them. See the example in the book.
 
-  Arithmetic:
+*** Arithmetic
   - New operators (see book for a full description):
     - pool-min: Min-pooling to reduce the size of the input by calculating
                 the minimum of a the pixels within the pooling window
@@ -93,17 +91,31 @@ See the end of the file for license conditions.
     - supergalactic-to-ec-j2000: Same input as above; to ecliptic J2000.
     - supergalactic-to-galactic: Same input as above; to Galactic.
 
-  ConvertType:
+*** ConvertType
   - It is now possible to write TIFF files in the output (until now,
     Gnuastro could only read TIFF files). This step was written by Fathma
     Mehnoor.
 
-  MakeCatalog:
+*** MakeCatalog
   - New measurements:
     --river-min: minimum river value around a clump.
     --river-max: minimum river value around a clump.
 
-  Table:
+*** Statistics
+  --mad: Median Absolute Deviation (MAD) of input dataset.
+  --madclip: MAD-clipping, showing intermediate results.
+  --sigclip-mad: MAD of input after sigma-clipping.
+  --madclip-number: Number of input elements after MAD-clipping.
+  --madclip-median: Median of input elements after MAD-clipping.
+  --madclip-mean: Mean of input elements after MAD-clipping.
+  --madclip-std: Standard deviation of input elements after MAD-clipping.
+  --madclip-mad: MAD of input elements after MAD-clipping.
+  --mclipparams: Paramters of MAD-clipping, similar to sigma-clipping. Note
+                 that in a Gaussian distribution, MAD = 0.67 sigma, so if
+                 you want something similar to 3-sigma (the default), you
+                 should set the MAD multiple to 5 (the default).
+
+*** Table
   --info-num-cols: print the number of the input table's columns and abort.
   --info-num-rows: print the number of the input table's rows and abort.
   - '$_all' in column arithmetic: when an arithmetic expression contains
@@ -122,12 +134,12 @@ See the end of the file for license conditions.
       designin dither patterns for example (where you know the final
       shape/distanced after flatting; and want coordinates on the sphere).
 
-  astscript-zeropoint:
+*** astscript-zeropoint
   --mksrc: use a custom Makefile for estimating the zeropoint, not the
     default installed Makefile. This is primarily intended for debugging or
     developing this script, not for normal usage.
 
-  Library:
+*** Library
   - gal_blank_not_minmax_coords: returns the minimum/maximum coordinates of
     non-blank regions of input dataset.
   - gal_blank_trim: trim all outer blank regions from the input dataset.
@@ -137,6 +149,9 @@ See the end of the file for license conditions.
   - gal_pool_sum: sum-pooling function, see 'pool-min' above.
   - gal_pool_mean: mean-pooling function, see 'pool-min' above.
   - gal_pool_median: median-pooling function, see 'pool-min' above.
+  - gal_statistics_mad: Calculate the Median Absolute Deviation (MAD).
+  - gal_statistics_median_mad: Calculate the Median and MAD.
+  - gal_statistics_clip_mad: Median Absolute Deviation (MAD) clipping.
   - gal_tiff_write: write 'gal_data_t' to a TIFF file; written by
     Fathma Mehnoor.
   - gal_wcs_projection_name_to_id: convert projection names to IDs.
@@ -148,8 +163,7 @@ See the end of the file for license conditions.
     system's longitude and latitude.
 
 ** Removed features
-
-  MakeNoise:
+*** MakeNoise
     - MakeNoise (with executable name 'astmknoise') has been removed from
       Gnuastro. This is because the 'mknoise-*' operators of Arithmetic do
       the same job, but in a much more customizable, modular and managable
@@ -158,8 +172,7 @@ See the end of the file for license conditions.
       documentation also.
 
 ** Changed features
-
-  Arithmetic:
+*** Arithmetic
     - mknoise-sigma-from-mean: new name for the old 'mknoise-poisson'
       random number distribution.
     - mknoise-poisson: now produces correct Poisson distribution output,
@@ -170,7 +183,7 @@ See the end of the file for license conditions.
       generators" operators sub-section of the "Arithmetic operators"
       section of the Gnuastro book.
 
-  MakeCatalog:
+*** MakeCatalog
   - The dash in the column names of the following measurement names has
     been replced by underscore to conform with the general stardard of
     using underscores between words in column names (reported by Raul
@@ -201,29 +214,31 @@ See the end of the file for license conditions.
     label, not the original labels (the old behavior was therefore very
     inconvenient!).
 
-  Segment
+*** Segment
   - The default name of the first extension of Segment's output is now
     'INPUT-NO-SKY', until now, it was 'INPUT'. This was necessary because
     the first extension of the output is not the exact input file (if a
     value is given to '--sky' it will be subtracted from the input in the
     first extension). Implemented by Sepideh Eskandarlou.
 
-  astscript-psf-stamp:
+*** astscript-psf-stamp
   - After applying the signal-to-noise threshold (if it is requested), any
     extra pixels that are not connected to the central target are also
     masked. Such pixels can remain in rivers between bright clumps and
     would cause problem in the final stack and were not removed until now.
     Implemented by Sepideh Eskandarlou
 
-  Library:
+*** Library
   - gal_polygon_area_flat: new name for the old 'gal_polygon_area'
     function. This was necessary because this function assumes flat
     coordinates and can lead to wrong results when used with a polygon
     defined by RA,Dec for example.
+  - gal_statistics_clip_sigma: new name for 'gal_statistics_sigma_clip',
+    also, a new argument has been added to measure statistics that were not
+    automatically calculated during the clipping.
   - gal_wcs_distortion_name_to_id: new name of gal_wcs_distortion_from_string.
   - gal_wcs_distortion_name_from_id: new name of gal_wcs_distortion_to_string.
   - gal_wcs_coordsys_name_to_id: new name of gal_wcs_coordsys_from_string.
-
 
 ** Bugs fixed
   bug #64138: Arithmetic's mknoise-poisson only using first pixel value.
@@ -275,10 +290,8 @@ See the end of the file for license conditions.
 
 
 * Noteworthy changes in release 0.20 (library 18.0.0) (2023-04-29)
-
 ** New features
-
-   New program:
+*** New program
    - astscript-zeropoint: this script is used for calibrating the pixel
      values in one image (finding its "zero point") based on a reference
      catalog or (any number of) reference image(s). The script allows for
@@ -290,7 +303,7 @@ See the end of the file for license conditions.
      and including (in alphabetical order): Elham Saremi, Giulia Golini,
      Raul Infante-Sainz, Samane Raji, Zahra Sharbaf, Zohreh Ghaffari.
 
-   Book:
+*** Book
    - New tutorial on detection and spectrum extraction from 3D data has
      been added in the "Tutorials" chapter. It uses a MUSE cube and
      demonstrates how to subtract the continuum, run NoiseChisel, Segment
@@ -301,7 +314,7 @@ See the end of the file for license conditions.
      useful shell tips and tricks that can be useful when using Gnuastro's
      programs.
 
-   Arithmetic
+*** Arithmetic
    --writeall: Write all datasets on the stack as separate HDUs in the
      output; this is useful in debugging incomplete Arithmetic commands.
    - New operators (also available in Table).
@@ -347,7 +360,7 @@ See the end of the file for license conditions.
      - f32: same as 'float32' (to convert to 32-bit floating point).
      - f64: same as 'float64' (to convert to 64-bit floating point).
 
-   CosmicCalculator:
+*** CosmicCalculator
    - Spectral line database has been increased to 235 spectral lines in the
      UV and optical (previously only had 41 lines!) from:
      http://astronomy.nmsu.edu/drewski/tableofemissionlines.html
@@ -356,14 +369,14 @@ See the end of the file for license conditions.
      line wavelengths. Currently, it take four units: 'm', 'micron', 'nm'
      and 'angstrom'. We can add any other unit easily, just let us know.
 
-   Crop:
+*** Crop
    --append: if the output file already exists, append the cropped image
      HDU to the already existing HDUs of the file. Without this option, any
      existing HDUs in the output file will be removed (default behavior).
    --metaname: Specify the name of the cropped output HDU (value to the
      'EXTNAME' keyword in FITS).
 
-   MakeCatalog:
+*** MakeCatalog
    - Book: with the increasing number of possible measurements the
      "MakeCatalog measurements" section of the Gnuastro book has been
      broken into separate sub-section and contextually similar measurements
@@ -397,7 +410,7 @@ See the end of the file for license conditions.
    --sum-other-err-in-slice: [3D in; vector out] Area in
      '--sum-other-in-slice'.
 
-   NoiseChisel:
+*** NoiseChisel
    --outliernumngb: the number of neighboring tiles to reject those that
      have passed (the mean-median quantile difference criteria) because of
      being on the wings of bright stars/galaxies. Until now, this number
@@ -410,10 +423,10 @@ See the end of the file for license conditions.
      galaxies, THE BEST solution is most-probably to increase
      '--outliernumngb'. This was done after a discussion with Elham Saremi.
 
-   Statistics:
+*** Statistics
    --outliernumngb: see description of same option in NoiseChisel.
 
-   Table:
+*** Table
    - Vector columns with multiple values per column are now supported. The
      following features have been added to help working on vector columns:
      - Book: a new "Vector columns" section has been added under the Table
@@ -450,14 +463,14 @@ See the end of the file for license conditions.
        '--customtable' feature in MakeProfiles (to build a 2D image a
        custom profile).
 
-   astscript-radial-profile:
+*** astscript-radial-profile
    --precision: sample the radial profile at precision less than one
      pixel. This is useful when you need to sample the profile within the
      central few pixels more accurately than integer pixels. See the
      documentation of this option in the book for a complete explanation
      with examples.
 
-   Library:
+*** Library
    - GAL_ARITHMETIC_OP_SWAP: swap the top two operands.
    - GAL_ARITHMETIC_OP_INDEX: An index (counting from 0) for every element.
    - GAL_ARITHMETIC_OP_INDEXONLY: Similar to 'GAL_ARITHMETIC_OP_INDEX'.
@@ -489,8 +502,7 @@ See the end of the file for license conditions.
      vertices of a rectangle on a sphere from its center and width/height.
 
 ** Removed features
-
-  MakeCatalog
+*** MakeCatalog
   - Removed the short option format for the following measurements
     (columns). This was done because the short options affect the sorting
     in the output of '--help', making it hard to find the options
@@ -511,8 +523,7 @@ See the end of the file for license conditions.
 
 
 ** Changed features
-
-  Configuration:
+*** Configuration
   --with-python: this has replaced the old '--without-python' option. The
     Python extension features in the Gnuastro library are no longer built
     by default. To have them, you need to explicitly configure Gnuastro
@@ -523,13 +534,13 @@ See the end of the file for license conditions.
     installing pre-built binaries it through services like PyPI, so they
     won't be needing it either.
 
-  CosmicCalculator:
+*** CosmicCalculator
   - Given the major increase of the spectral line database, the old line
     names have been changed to accommodate the full database. For example
     'H-alpha' has replaced 'halpha'. Please run 'astcosmiccal --listlines'
     to see the new names for the previous lines.
 
-  MakeCatalog:
+*** MakeCatalog
   - "Sum" used instead of "brightness"
     --sum: new name for the old '--brightness' column. "Brightness" has a
       specific meaning in astronomy/physics and has units of
@@ -629,18 +640,18 @@ See the end of the file for license conditions.
        --upperlimitskew                 --upperlimit-skew
        --weightarea                     --weight-area
 
-  MakeNoise:
+*** MakeNoise
   --bgnotmag: new name for the old '--bgisbrightness' option. See the
     description of changed '--sum' in MakeCatalog (above) for more.
 
-  MakeProfiles:
+*** MakeProfiles
   --mcolissum: new name for the old '--mcolisbrightness' option. See the
     description of changed '--sum' in MakeCatalog (above) for more.
   - Units of the output FITS image (value to 'BUNIT' keyword) is now
     "counts", until now, it was "brightness". See the description of
     changed '--sum' in MakeCatalog (above) for more.
 
-  Table:
+*** Table
   - Given the newly added vector columns, the precedence on operations has
     been updated. Please read the "Operation precedence in Table" section
     of the book.
@@ -654,16 +665,16 @@ See the end of the file for license conditions.
   -A: new short format for --txtf64format. The '-d' short format was
    conflicting with the short option name for '--descending'.
 
-  astscript-psf-select-stars:
+*** astscript-psf-select-stars
   - Now uses the Gaia DR3 dataset by default (until now it was using eDR3).
 
-  astscript-psf-stamp:
-  astscript-psf-unite:
-  astscript-radial-profile:
+*** astscript-psf-stamp
+*** astscript-psf-unite
+*** astscript-radial-profile
   --axis-ratio: new name for old '--axisratio'
   --position-angle: new name for old '--positionangle'
 
-  Library:
+*** Library:
   - gal_blank_remove_rows: new 'onlydim0' argument to ignore vector columns
     when checking for blanks.
   - gal_list_str_cat: new 'delimiter' argument to specify the character for
@@ -705,17 +716,15 @@ See the end of the file for license conditions.
 
 
 * Noteworthy changes in release 0.19 (library 17.0.0) (2022-10-24)
-
 ** New features
-
-  Book:
+*** Book
   - Two new sections added to the "General program usage tutorial" for
     describing how to prepare a FITS image for high quality publication (in
     PDF), and drawing vector graphics marks from a catalog over it (for
     example to show your selected galaxies in the field of view). The use
     the newly added features of ConvertType.
 
-  Arithmetic:
+*** Arithmetic
   - Added new type operators and physical constants. All are also available
     in Table's column arithmetic also).
     - e: Base of the natural logarithm (no units).
@@ -739,7 +748,7 @@ See the end of the file for license conditions.
     - collapse-sigclip-median: Collapse with sigma-clipped median.
     - collapse-sigclip-number: Collapse with number remaining after sigma-clip.
 
-  ConvertType:
+*** ConvertType
   - It is now possible to draw vector graphics marks from a catalog over
     the output PDF images. The following options have been added to
     ConvertType for doing this. See the "General program usage tutorial"
@@ -771,7 +780,7 @@ See the end of the file for license conditions.
   - It is now possible to select the color of the border of images produced
     in vector graphics outputs (EPS and PDF) with '--bordercolor'.
 
-  Fits:
+*** Fits
   --pixelareaarcsec2: print the image pixel area in units of arcsec^2 to
     standard output. Among other things, this is useful in creating a
     surface brightness image using the new 'counts-to-sb' operator of
@@ -784,7 +793,7 @@ See the end of the file for license conditions.
   --edgesampling: extra sampling along each pixel's edge used to configure
     the output of '--pixelareaonwcs', similar to Warp.
 
-  Statistics:
+*** Statistics
   - Linear and Polynomial least squares fitting are now available and very
     easy to call on the command-line. They are wrappers over the respective
     least squares fitting functions of the GNU Scientific Library. The
@@ -811,7 +820,7 @@ See the end of the file for license conditions.
     --fitestimatehdu: HDU containing table in file given to '--fitestimate'.
     --fitestimatecol: Column containing X axis values for '--fitestimate'.
 
-  Table:
+*** Table
   - It is now possible to customize the format of floating point numbers in
     the plain-text outputs: when output is printed on the standard output
     (command-line) or in plain-text files. The following new options have
@@ -827,7 +836,7 @@ See the end of the file for license conditions.
     --txtf32precision (or '-B'): number of digits following the
       decimal-point of 32-bit floating point columns.
 
-  Warp:
+*** Warp
   - Can correct distortions (with any standard recognized by WCSLIB) and
     simultaneously align the image to the coordinate system. When no named
     linear operation (like '--rotate', '--scale' or etc) is requested, Warp
@@ -856,12 +865,12 @@ See the end of the file for license conditions.
       pattern and its correction" section of the book for more on its
       basics and how to reduce it in your outputs.
 
-  astscript-fits-view:
+*** astscript-fits-view
   --ds9colorbarmulti: show a separate color-bar for each image in DS9. By
     default this script will show a single color-bar for all the images to
     help save space on the monitor when there are many images.
 
-  astscript-psf-stamp:
+*** astscript-psf-stamp
   - sub-pixel warping is applied to ensure that your coordinate is at the
     center of the central pixel of the output image. This results in a
     _major_ improvement when estimating the center of the PSF.
@@ -877,7 +886,7 @@ See the end of the file for license conditions.
     inner parts of the star, they degrade the stack's outer parts. With
     this option, the fainter stars won't harm the outer parts.
 
-  GNU Make extensions (in a Makefile)
+*** GNU Make extensions (in a Makefile)
     It is now possible to use custom Gnuastro functions in GNU Make, using
     its extension facilities with Dynamic libraries. GNU Make is a very
     powerful workflow manager that is also used for data analysis (not just
@@ -903,7 +912,7 @@ See the end of the file for license conditions.
       FITS files. It will return all the unique values given to that
       keyword within the FITS files.
 
-  Library:
+*** Library:
   - GAL_CONFIG_HAVE_PYTHON: non-zero if Python3+Numpy features included.
   - GAL_CONFIG_HAVE_GNUMAKE_H: non-zero if GNU Make extensions can be made.
   - gal_box_border_rotate_around_center: width of box after rotation.
@@ -949,42 +958,40 @@ See the end of the file for license conditions.
   - gal_wcs_free: free a WCS structure that is created or read by Gnuastro.
 
 ** Removed features
-
-  Statistics:
+*** Statistics
   --refcol has been removed because it breaks the modularity principle
     (given that it is the job of Gnuastro's Table program to limit rows
     from a larger table based on many different criteria). The output of
     Table can be directly piped to Statistics to achieve the same (and much
     more feature-rich effect).
 
-  Warp:
+*** Warp
   --align: has been removed. This is because aligning an image (while
     correcting for any possible distortion) is now the default behavior of
     Warp (when no linear operations have been requested).
 
 ** Changed features
-
-  Book:
+*** Book
   - The "General program usage tutorial" section is now the first section
     of the Tutorial chapter, since it introduces the tools at a more basic
     level. The "Sufi simulates a detection" (which was previously first)
     has been moved to the fourth section.
 
-  Warp:
+*** Warp
   - The short format of the '--centeroncorner' option has been removed. The
     '-c' is now the short format for the new '--center' option to Warp.
 
-  astscript-psf-scale-factor:
+*** astscript-psf-scale-factor
   --widthinpix: new name for the old '--stampwidth' option. This was done
     to have the same name to a similar option in Crop and help in
     remembering.
 
-  astscript-psf-stamp:
+*** astscript-psf-stamp
   --widthinpix: new name for the old '--stampwidth' option. This was done
     to have the same name to a similar option in Crop and help in
     remembering.
 
-  Library
+*** Library
   - gal_eps_write: two new arguments have been added to draw marks, and to
         set the border color.
   - gal_pdf_write: similar to 'gal_eps_write'.
@@ -1026,10 +1033,8 @@ See the end of the file for license conditions.
 
 
 * Noteworthy changes in release 0.18 (library 16.0.0) (2022-07-21)
-
 ** New features
-
-  Book:
+*** Book
    - New "Measuring the dataset limits" section has been added in second
      tutorial. Using the catalogs produced during the analysis, it shows
      how to derive a dataset's magnitude limit, completeness limit
@@ -1038,7 +1043,7 @@ See the end of the file for license conditions.
      written with the help of S. Zahra Hosseini Shahisavandi and Sepideh
      Eskandarlou.
 
-  Arithmetic:
+*** Arithmetic
    - New operators (also available in Table's column arithmetic):
      - stitch: connect any number of input images along the given dimension
        (for example to stitch the images of separate amplifiers of a CCD
@@ -1080,7 +1085,7 @@ See the end of the file for license conditions.
          astarithmetic img-a.fits img-b.fits + --metaname="my-sum" \
                        --output=sum.fits
 
-  Crop:
+*** Crop
    --oneelemstdout: when a crop has a single pixel and this option is
      called, the single pixel's value will be printed on the standard
      output instead of creating a FITS file. This option can be useful in
@@ -1088,7 +1093,7 @@ See the end of the file for license conditions.
      certain coordiante/pixel corresponds to). This option was suggested by
      Raul Infante-Sainz.
 
-  Fits:
+*** Fits
    - When no option is specified (thus printing the HDU metadata in the
      given file), the units of the HDUs are also printed as a new
      column. For tables, it will be blank ('n/a'); because tables have
@@ -1102,7 +1107,7 @@ See the end of the file for license conditions.
      suggested by Juan Antonio Fernández Ontiveros and implemented with the
      help of Jash Shah.
 
-  MakeProfiles:
+*** MakeProfiles
    - It is now possible to insert a custom image as a new (10th)
      'custom-img' profile. This is useful when you have no-noise FITS
      images from numerical simulations for example, and you want to insert
@@ -1114,13 +1119,13 @@ See the end of the file for license conditions.
   --mcolnocustprof: new option to disable scaling of custom radial profiles
     to required magnitude when building a 2D image from them.
 
-  Query:
+*** Query
    - Short name for Gaia's DR3 dataset has been added for both ESA's Gaia
      database and VizieR, for example with the following commands:
          astquery gaia   --dataset=dr3     --center=1.234,5.678 --radius=0.01
          astquery vizier --dataset=gaiadr3 --center=1.234,5.678 --radius=0.01
 
-  astscript-radial-profile:
+*** astscript-radial-profile
    --zeroisnotblank: new option to account for zero-valued pixels in the
      profile measurement. By default, during the internal cropping phase,
      zero-valued pixels are set to blank (and thus not considered during
@@ -1129,7 +1134,7 @@ See the end of the file for license conditions.
      the same name). This was suggested by Ignacio Ruiz Cejudo and
      implemented by Sepideh Eskandarlou.
 
-  Library:
+*** Library
    - GAL_ARITHMETIC_OP_UNIQUE: to find unique elements in dataset.
    - GAL_ARITHMETIC_OP_NOBLANK: to remove blank elements from dataset.
    - GAL_ARITHMETIC_OP_STITCH: to stitch multiple datasets.
@@ -1142,10 +1147,8 @@ See the end of the file for license conditions.
      sum, sum of squares and number of a distribution.
 
 ** Removed features
-
 ** Changed features
-
-  MakeCatalog:
+*** MakeCatalog
    --std: measures the standard deviation of the object/clump pixels of the
           values image. Until now, there was no column to calculate this,
           and the '--std' column returned the _sky_ standard deviation over
@@ -1167,7 +1170,7 @@ See the end of the file for license conditions.
      continues. This was suggested by S. Zahra Hosseini Shahisavandi and
      Ignacio Trujillo.
 
-  MakeProfiles:
+*** MakeProfiles
    - The string identifier for custom radial profiles is now called
      'custom-prof' (until now, it was called 'custom'). This was necessary
      because of the new custom image feature that has been added. The code
@@ -1181,7 +1184,7 @@ See the end of the file for license conditions.
      behavior, use the new '--mcolnocustprof' option. This new
      functionality was proposed by Elham Saremi.
 
-  Table:
+*** Table
    --catcolumnfile: the '-N' suffix (where 'N' is a counter for the files
      with concatenated, or appended, column) is only added if a column with
      a identical column name (not case sensitive) existed in the
@@ -1194,7 +1197,7 @@ See the end of the file for license conditions.
      the old name was very confusing and would not directly convey this
      behavior.
 
-  Radial profile script:
+*** astscript-radial-profile
    --azimuth: if the first azimuthal angle is larger than the second, the
      outer region between the two angles will be used. For example
      '--azimuth=80,40' will use the full azimuthal range except for the
