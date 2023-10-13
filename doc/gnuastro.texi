@@ -10790,7 +10790,7 @@ $ sudo apt-get install libgsl-dev libcfitsio-dev \
 If present, these libraries can be used in Gnuastro's build for extra features, see @ref{Optional dependencies}.
 @example
 $ sudo apt-get install ghostscript libtool-bin \
-                       libjpeg-dev libtiff-dev
+                       libjpeg-dev libtiff-dev \
                        libgit2-dev curl lzip
 @end example
 
