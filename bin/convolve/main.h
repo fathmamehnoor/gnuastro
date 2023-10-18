@@ -83,6 +83,7 @@ struct convolveparams
   char            *domainstr;  /* String value specifying domain.         */
   size_t          makekernel;  /* Make a kernel to create input.          */
   uint8_t   noedgecorrection;  /* Do not correct spatial edge effects.    */
+  uint8_t      conv_on_blank;  /* Do convolution on blank pixels also.    */
 
   /* Internal */
   int                 isfits;  /* Input is a FITS file.                   */

@@ -99,8 +99,8 @@ struct per_thread_spatial_prm
   size_t *overlap_start;     /* Starting coordinate of kernel overlap.    */
   size_t  *kernel_start;     /* Kernel starting point.                    */
   size_t    *host_start;     /* Starting coordinate of host.              */
-  size_t           *pix;     /* 2*ndim: starting and ending of tile,
-                                Later, just the pixel being convolved.    */
+  size_t           *pix;     /* 2*ndim: starting and ending of tile,      */
+                             /* Later, just the pixel being convolved.    */
   int           on_edge;     /* If the tile is on the edge or not.        */
   gal_data_t      *host;     /* Size of host (channel or block).          */
   struct spatial_params *cprm; /* Link to main structure for all threads. */
@@ -120,6 +120,7 @@ struct spatial_params
   gal_data_t *tocorrect;     /* (possible) convolved image to correct.    */
   int        convoverch;     /* Ignore channel edges in convolution.      */
   int    edgecorrection;     /* Correct convolution's edge effects.       */
+  uint8_t conv_on_blank;     /* Do convolution over blank pixels also.    */
   struct per_thread_spatial_prm *pprm; /* Array of per-thread parameters. */
 };
 
@@ -358,7 +359,7 @@ convolve_spatial_tile(struct per_thread_spatial_prm *pprm)
           /* If the input on this pixel is a NaN, then just set the output
              to NaN too and go onto the next pixel. 'in_v' is the pointer
              on this pixel. */
-          if( isnan(*in_v) )
+          if( isnan(*in_v) && cprm->conv_on_blank==0 )
             out[ in_v - in ]=NAN;
           else
             {
@@ -487,7 +488,8 @@ convolve_spatial_on_thread(void *inparam)
 static gal_data_t *
 gal_convolve_spatial_general(gal_data_t *tiles, gal_data_t *kernel,
                              size_t numthreads, int edgecorrection,
-                             int convoverch, gal_data_t *tocorrect)
+                             int convoverch, uint8_t conv_on_blank,
+                             gal_data_t *tocorrect)
 {
   struct spatial_params params;
   gal_data_t *out, *block=gal_tile_block(tiles);
@@ -536,6 +538,7 @@ gal_convolve_spatial_general(gal_data_t *tiles, gal_data_t *kernel,
   params.kernel=kernel;
   params.tocorrect=tocorrect;
   params.convoverch=convoverch;
+  params.conv_on_blank=conv_on_blank;
   params.edgecorrection=edgecorrection;
 
 
@@ -569,7 +572,8 @@ gal_convolve_spatial_general(gal_data_t *tiles, gal_data_t *kernel,
    input, the 'next' element has to be 'NULL'. */
 gal_data_t *
 gal_convolve_spatial(gal_data_t *tiles, gal_data_t *kernel,
-                     size_t numthreads, int edgecorrection, int convoverch)
+                     size_t numthreads, int edgecorrection, int convoverch,
+                     int conv_on_blank)
 {
   /* When there isn't any tile structure, 'convoverch' must be set to
      one. Recall that the input can be a single full dataset also. */
@@ -577,7 +581,8 @@ gal_convolve_spatial(gal_data_t *tiles, gal_data_t *kernel,
 
   /* Call the general function. */
   return gal_convolve_spatial_general(tiles, kernel, numthreads,
-                                      edgecorrection, convoverch, NULL);
+                                      edgecorrection, convoverch,
+                                      conv_on_blank, NULL);
 }
 
 
@@ -593,7 +598,7 @@ gal_convolve_spatial(gal_data_t *tiles, gal_data_t *kernel,
 void
 gal_convolve_spatial_correct_ch_edge(gal_data_t *tiles, gal_data_t *kernel,
                                      size_t numthreads, int edgecorrection,
-                                     gal_data_t *tocorrect)
+                                     int conv_on_blank, gal_data_t *tocorrect)
 {
   gal_data_t *block=gal_tile_block(tiles);
 
@@ -609,5 +614,6 @@ gal_convolve_spatial_correct_ch_edge(gal_data_t *tiles, gal_data_t *kernel,
 
   /* Call the general function, which will do the correction. */
   gal_convolve_spatial_general(tiles, kernel, numthreads,
-                               edgecorrection, 0, tocorrect);
+                               edgecorrection, 0, conv_on_blank,
+                               tocorrect);
 }

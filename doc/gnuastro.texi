@@ -23686,6 +23686,15 @@ By default, the input kernel is flipped to avoid the output getting flipped; see
 Do not normalize the kernel after reading it, such that the sum of its pixels is unity.
 As described in @ref{Convolution process}, the kernel is normalized by default.
 
+@item --conv-on-blank
+Do not ignore blank pixels in the convolution.
+The output pixels that were originally non-blank are not affected by this option (they will have the same value if this option is called or not).
+This option just expands/dilates the non-blank regions of your dataset into the blank regions and only works in spatial domain convolution.
+Therefore, with this option convolution can be used as a proxy for interpolation or dilation.
+
+By default, blank pixels are ignored during spatial domain convolution; so the input and output have exactly the same number of blank pixels.
+With this option, the blank pixels that are sufficiently close to non-blank pixels (based on the kernel) will be given a value based on the non-blank elements that overlap with the kernel for that blank pixel (see @ref{Edges in the spatial domain}).
+
 @item -d STR
 @itemx --domain=STR
 @cindex Discrete Fourier transform
@@ -23694,7 +23703,6 @@ The acceptable values are `@code{spatial}' and `@code{frequency}', corresponding
 
 For large images, the frequency domain process will be more efficient than convolving in the spatial domain.
 However, the edges of the image will loose some flux (see @ref{Edges in the spatial domain}) and the image must not contain any blank pixels, see @ref{Spatial vs. Frequency domain}.
-
 
 @item --checkfreqsteps
 With this option a file with the initial name of the output file will be created that is suffixed with @file{_freqsteps.fits}, all the steps done to arrive at the final convolved image are saved as extensions in this file.
@@ -41408,9 +41416,10 @@ Because of the complete introduction that was presented there, we will directly 
 As of this version, only spatial domain convolution is available in Gnuastro's libraries.
 We have not had the time to liberate the frequency domain function convolution and de-convolution functions that are available in the Convolve program@footnote{Hence any help would be greatly appreciated.}.
 
-@deftypefun {gal_data_t *} gal_convolve_spatial (gal_data_t @code{*tiles}, gal_data_t @code{*kernel}, size_t @code{numthreads}, int @code{edgecorrection}, int @code{convoverch})
+@deftypefun {gal_data_t *} gal_convolve_spatial (gal_data_t @code{*tiles}, gal_data_t @code{*kernel}, size_t @code{numthreads}, int @code{edgecorrection}, int @code{convoverch}, int @code{conv_on_blank})
 Convolve the given @code{tiles} dataset (possibly a list of tiles, see @ref{List of gal_data_t} and @ref{Tessellation library}) with @code{kernel} on @code{numthreads} threads.
 When @code{edgecorrection} is non-zero, it will correct for the edge dimming effects as discussed in @ref{Edges in the spatial domain}.
+When @code{conv_on_blank} is non-zero, this function will also attempt convolution over the blank pixels (and therefore give values to the blank pixels that are near non-blank pixels).
 
 @code{tiles} can be a single/complete dataset, but in that case the speed will be very slow.
 Therefore, for larger images, it is recommended to give a list of tiles covering a dataset.
@@ -41425,13 +41434,14 @@ This behavior may be disabled when @code{convoverch} is non-zero.
 In this case, it will ignore channel borders (if they exist) and mix all pixels that cover the kernel within the dataset.
 @end deftypefun
 
-@deftypefun void gal_convolve_spatial_correct_ch_edge (gal_data_t @code{*tiles}, gal_data_t @code{*kernel}, size_t @code{numthreads}, int @code{edgecorrection}, gal_data_t @code{*tocorrect})
+@deftypefun void gal_convolve_spatial_correct_ch_edge (gal_data_t @code{*tiles}, gal_data_t @code{*kernel}, size_t @code{numthreads}, int @code{edgecorrection}, int @code{conv_on_blank}, gal_data_t @code{*tocorrect})
 Correct the edges of channels in an already convolved image when it was initially convolved with @code{gal_convolve_spatial} and @code{convoverch==0}.
 In that case, strong boundaries might exist on the channel edges.
 So if you later need to remove those boundaries at later steps of your processing, you can call this function.
 It will only do convolution on the tiles that are near the edge and were effected by the channel borders.
 Other pixels in the image will not be touched.
 Hence, it is much faster.
+When @code{conv_on_blank} is non-zero, this function will also attempt convolution over the blank pixels (and therefore give values to the blank pixels that are near non-blank pixels).
 @end deftypefun
 
 @node Pooling functions, Interpolation, Convolution functions, Gnuastro library

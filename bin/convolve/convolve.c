@@ -800,7 +800,8 @@ convolve(struct convolveparams *p)
       out=gal_convolve_spatial(multidim ? cp->tl.tiles : p->input, p->kernel,
                                cp->numthreads,
                                multidim ? !p->noedgecorrection : 1,
-                               multidim ? cp->tl.workoverch : 1 );
+                               multidim ? cp->tl.workoverch : 1,
+                               p->conv_on_blank);
 
       /* Clean up: free the actual input and replace it's pointer with the
          convolved dataset to save as output. */

@@ -96,6 +96,12 @@ See the end of the file for license conditions.
     Gnuastro could only read TIFF files). This step was written by Fathma
     Mehnoor.
 
+*** Convolve
+  --conv-on-blank: do not ignore blank pixels in the convolution. This will
+    effectively expand the non-blank regions of your dataset into the blank
+    regions and only works in spatial-domain convolution. This was
+    suggested by Raul Infante-Sainz.
+
 *** MakeCatalog
   - New measurements:
     --river-min: minimum river value around a clump.
@@ -229,6 +235,10 @@ See the end of the file for license conditions.
     Implemented by Sepideh Eskandarlou
 
 *** Library
+  - gal_convolve_spatial: new argument to allow convolution over blank
+    elements.
+  - gal_convolve_spatial_correct_ch_edge: new argument to allow convolution
+    over blank elements.
   - gal_polygon_area_flat: new name for the old 'gal_polygon_area'
     function. This was necessary because this function assumes flat
     coordinates and can lead to wrong results when used with a polygon

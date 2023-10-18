@@ -75,7 +75,8 @@ segment_convolve(struct segmentparams *p)
           /* Make the convolved image. */
           if(!p->cp.quiet) gettimeofday(&t1, NULL);
           p->conv = gal_convolve_spatial(tl->tiles, p->kernel,
-                                         p->cp.numthreads, 1, tl->workoverch);
+                                         p->cp.numthreads, 1,
+                                         tl->workoverch, 0);
 
           /* Report and write check images if necessary. */
           if(!p->cp.quiet)

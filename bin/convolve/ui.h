@@ -62,6 +62,7 @@ enum option_keys_enum
   /* Only with long version (start with a value 1000, the rest will be set
      automatically). */
   UI_KEY_KERNELCOLUMN = 1000,
+  UI_KEY_CONVONBLANK,
   UI_KEY_NOKERNELFLIP,
   UI_KEY_NOKERNELNORM,
   UI_KEY_NOEDGECORRECTION,

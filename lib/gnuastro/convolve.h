@@ -46,12 +46,14 @@ __BEGIN_C_DECLS  /* From C++ preparations */
 
 gal_data_t *
 gal_convolve_spatial(gal_data_t *tiles, gal_data_t *kernel,
-                     size_t numthreads, int edgecorrection, int convoverch);
+                     size_t numthreads, int edgecorrection,
+                     int convoverch, int conv_on_blank);
 
 
 void
 gal_convolve_spatial_correct_ch_edge(gal_data_t *tiles, gal_data_t *kernel,
                                      size_t numthreads, int edgecorrection,
+                                     int conv_on_blank,
                                      gal_data_t *tocorrect);
 
 
