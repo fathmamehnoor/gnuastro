@@ -130,7 +130,7 @@ Please cite the following record(s) and add the acknowledgement statement below 
 
 Paper describing this script
 ----------------------------
-  @ARTICLE{2023RNAAS...7..211A,
+  @ARTICLE{astscript-pointing-simulate,
          author = {{Akhlaghi}, Mohammad},
           title = "{Gnuastro: Simulating the Exposure Map of a Pointing Pattern}",
         journal = {Research Notes of the American Astronomical Society},
