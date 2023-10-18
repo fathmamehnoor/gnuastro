@@ -128,8 +128,25 @@ Citations and acknowledgement are vital for the continued work on Gnuastro.
 
 Please cite the following record(s) and add the acknowledgement statement below in your work to support us. Please note that different Gnuastro programs may have different corresponding papers. Hence, please check all the programs you used. Don't forget to also include the version as shown above for reproducibility.
 
-First paper introducing Gnuastro
---------------------------------
+Paper describing this script
+----------------------------
+  @ARTICLE{2023RNAAS...7..211A,
+         author = {{Akhlaghi}, Mohammad},
+          title = "{Gnuastro: Simulating the Exposure Map of a Pointing Pattern}",
+        journal = {Research Notes of the American Astronomical Society},
+           year = 2023,
+          month = oct,
+         volume = {7},
+         number = {10},
+            eid = {211},
+          pages = {211},
+            doi = {10.3847/2515-5172/acfc44},
+         adsurl = {https://ui.adsabs.harvard.edu/abs/2023RNAAS...7..211A},
+        adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+  }
+
+First paper introducing Gnuastro (currently main citation)
+----------------------------------------------------------
   @ARTICLE{gnuastro,
      author = {{Akhlaghi}, M. and {Ichikawa}, T.},
       title = "{Noise-based Detection and Segmentation of Nebulous Objects}",

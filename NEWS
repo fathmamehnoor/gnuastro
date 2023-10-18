@@ -13,7 +13,9 @@ See the end of the file for license conditions.
     parallel and allows customizations (for example to account for
     vignetting, or large blobs of bad pixels) through hooks at relevant
     steps. A new tutorial has been added in the Tutorials chapter of the
-    book on how to use this new script.
+    book on how to use this new script. The following research note has
+    also been published for this script:
+    https://ui.adsabs.harvard.edu/abs/2023RNAAS...7..211A
 
 *** Book
   - New tutorial on a low surface brightness optimized design of a pointing

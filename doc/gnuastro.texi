@@ -32948,6 +32948,7 @@ For a practical tutorial on using this script, see @ref{Pointing pattern design}
 @subsection Invoking astscript-pointing-simulate
 
 This installed script will simulate a final stacked image from a certain pointing pattern (given as a table).
+A general overview of this script has been published in @url{https://ui.adsabs.harvard.edu/abs/2023RNAAS...7..211A,Akhlaghi (2023)}; please cite it if this script proves useful in your research.
 The executable name is @file{astscript-pointing-simulate}, with the following general template:
 
 @example
