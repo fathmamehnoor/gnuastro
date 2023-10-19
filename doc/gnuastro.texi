@@ -273,7 +273,7 @@ Tutorials
 * Detecting lines and extracting spectra in 3D data::  Extracting spectra and emission line properties.
 * Color channels in same pixel grid::  Aligning images to same grid to build color image.
 * Zero point of an image::      Estimate the zero point of an image.
-* Pointing pattern design::
+* Pointing pattern design::     Optimizing the pointings of your observations.
 * Moire pattern in stacking and its correction::  How to avoid this grid-based artifact.
 
 General program usage tutorial
@@ -2042,7 +2042,7 @@ For an explanation of the conventions we use in the example codes through the bo
 * Detecting lines and extracting spectra in 3D data::  Extracting spectra and emission line properties.
 * Color channels in same pixel grid::  Aligning images to same grid to build color image.
 * Zero point of an image::      Estimate the zero point of an image.
-* Pointing pattern design::
+* Pointing pattern design::     Optimizing the pointings of your observations.
 * Moire pattern in stacking and its correction::  How to avoid this grid-based artifact.
 @end menu
 
