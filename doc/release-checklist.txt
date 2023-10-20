@@ -249,8 +249,7 @@ all the commits needed for this release have been completed.
    - Delete the temporary tags and files:
 
      $ rm gnuastro-0.XXXX.tar.*
-     $ git tag -d vXXXX
-     $ git tag -d vYYYY
+     $ git tag -d vXXXX vYYYY
 
 
  - Based on previous announcements, add an intro, the NEWS file and the
