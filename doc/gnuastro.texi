@@ -1140,7 +1140,7 @@ They can be run just like a program and behave very similarly (with minor differ
 
 @table @code
 @item astscript-pointing-simulate
-(See @ref{Pointing pattern simulation}) Given a table of pointings on the sky, create and a reference image that contain's your camera's distortions and properties, generate a stacked exposure map.
+(See @ref{Pointing pattern simulation}) Given a table of pointings on the sky, create and a reference image that contains your camera's distortions and properties, generate a stacked exposure map.
 This is very useful in testing the coverage of dither patterns when designing your observing strategy and it is highly customizable, see the tutorial in @ref{Pointing pattern design}.
 
 @item astscript-ds9-region
@@ -1216,7 +1216,7 @@ Anscombe uses this (now famous) quartet, which was introduced in the paper quote
 Echoing Anscombe's concern after 44 years, some of the highly recognized statisticians of our time (Leek, McShane, Gelman, Colquhoun, Nuijten and Goodman), wrote in Nature that:
 
 @quotation
-We need to appreciate that data analysis is not purely computational and algorithmic -- it is a human behaviour....Researchers who hunt hard enough will turn up a result that fits statistical criteria -- but their discovery will probably be a false positive.
+We need to appreciate that data analysis is not purely computational and algorithmic -- it is a human behavior....Researchers who hunt hard enough will turn up a result that fits statistical criteria -- but their discovery will probably be a false positive.
 @author Five ways to fix statistics, Nature, 551, Nov 2017.
 @end quotation
 
@@ -2023,8 +2023,8 @@ But they need to be as realistic as possible, so this tutorial is dedicated to t
 
 There are other tutorials also, on things that are commonly necessary in astronomical research:
 In @ref{Detecting lines and extracting spectra in 3D data}, we use MUSE cubes (an IFU dataset) to show how you can subtract the continuum, detect emission-line features, extract spectra and build pseudo narrow-band images.
-In @ref{Color channels in same pixel grid} we demonstrate how you can warp multiple images into a single pixel grid (often necessary with mult-wavelength data), and build a single color image.
-In @ref{Moire pattern in stacking and its correction} we show how you can avoid the un-wanted Moir@'e pattern which happens when warping separate exposures to build a stacked/co-add deeper image.
+In @ref{Color channels in same pixel grid} we demonstrate how you can warp multiple images into a single pixel grid (often necessary with multi-wavelength data), and build a single color image.
+In @ref{Moire pattern in stacking and its correction} we show how you can avoid the unwanted Moir@'e pattern which happens when warping separate exposures to build a stacked/co-add deeper image.
 In @ref{Zero point of an image} we review the process of estimating the zero point of an image using a reference image or catalog.
 Finally, in @ref{Pointing pattern design} we show the process by which you can simulate a dither pattern to find the best observing strategy for your next exciting scientific project.
 
@@ -9381,7 +9381,7 @@ In other words, after astrometry, but before warping into any other pixel grid (
 The image will give us the default number of the camera's pixels, its pixel scale (width of pixel in arcseconds) and the camera distortion.
 These are reference parameters that are independent of the position of the image on the sky.
 
-Because the actual position of the reference image is irrelevant, let's assume that in a previous project, persumably on @url{https://en.wikipedia.org/wiki/NGC_4395, NGC 4395}, you already had the download command of the following single exposure image.
+Because the actual position of the reference image is irrelevant, let's assume that in a previous project, presumably on @url{https://en.wikipedia.org/wiki/NGC_4395, NGC 4395}, you already had the download command of the following single exposure image.
 With the last command, please take a look at this image before continuing and explore it.
 
 @example
@@ -9506,7 +9506,7 @@ If you are interested in the low surface brightness parts of this galaxy, it is 
 To be able to accurately calibrate the image (in particular to estimate the flat field pattern and subtract the sky), you do not want this to happen!
 You want each exposure to cover very different sources of astrophysical signal, so you can accurately calibrate the artifacts created by the instrument or environment (for example flat field) or of natural causes (for example the Sky).
 
-For an example of how these calibration issues can ruine low surface brightness science, please see the image of M94 in the @url{https://www.legacysurvey.org/viewer,Legacy Survey interactive viewer}.
+For an example of how these calibration issues can ruin low surface brightness science, please see the image of M94 in the @url{https://www.legacysurvey.org/viewer,Legacy Survey interactive viewer}.
 After it is loaded, at the bottom-left corner of the window, write ``M94'' in the box of ``Jump to object'' and press ENTER.
 At first, M94 looks good with a black background, but as you increase the ``Brightness'' (by scrolling it to the right and seeing what is under the originally black pixels), you will see the calibration artifacts clearly.
 
@@ -9566,7 +9566,7 @@ $ astarithmetic deep-pix-area.fits deep.fits isblank nan where -g1 \
 
 Therefore, the actual area that is covered is less than the simple multiplication above.
 At these declinations, the dominant cause of this difference is the first point above (that RA needs correction), this will be discussed in more detail later in this tutorial (see @ref{Pointings that account for sky curvature}).
-Genearlly, using this method to measure the area of your non-NAN pixels in an image is very easy and robust (automatically takes into account the curvature, coordinate system, projection and blank pixels of the image).
+Generally, using this method to measure the area of your non-NAN pixels in an image is very easy and robust (automatically takes into account the curvature, coordinate system, projection and blank pixels of the image).
 
 @node Script with pointing simulation steps so far, Larger steps sizes for better calibration, Area of non-blank pixels on sky, Pointing pattern design
 @subsection Script with pointing simulation steps so far
@@ -9579,7 +9579,7 @@ Therefore, it is better to write the steps above (after downloading the referenc
 In this way, you can simply change those variables and see the final result fast by running your script.
 For more on writing scripts, see as described in @ref{Writing scripts to automate the steps}.
 
-Here is a summary of some points to remember when transfering the code in the sections before into a script:
+Here is a summary of some points to remember when transferring the code in the sections before into a script:
 
 @itemize
 @item
@@ -9606,7 +9606,7 @@ Here is the script that summarizes the steps in @ref{Preparing input and generat
 # provided the copyright notice and this notice are preserved.  This
 # file is offered as-is, without any warranty.
 
-# Paramters of the script
+# Parameters of the script
 deep_thresh=5
 step_arcmin=1
 center_ra=192.721250
@@ -9619,7 +9619,7 @@ bdir=build
 # Abort the script in case of an error.
 set -e
 
-# Make the build directory if it doesn't alreay exist.
+# Make the build directory if it doesn't already exist.
 if ! [ -d $bdir ]; then mkdir $bdir; fi
 
 # Build the 5-pointing pointing pattern (with the step size above).
@@ -9657,7 +9657,7 @@ astarithmetic $pixarea $deep isblank nan where -g1 \
               sumvalue --quiet
 @end verbatim
 
-For a description of how to make it exectable and how to run it, see @ref{Writing scripts to automate the steps}.
+For a description of how to make it executable and how to run it, see @ref{Writing scripts to automate the steps}.
 Note that as you start adding your own text to the script, be sure to add your name (and year that you modified) in the copyright notice at the start of the script (this is very important!).
 
 @node Larger steps sizes for better calibration, Pointings that account for sky curvature, Script with pointing simulation steps so far, Pointing pattern design
@@ -9751,7 +9751,7 @@ This is because the surface brightness limit in the single-exposure regions is @
 This almost one magnitude difference in surface brightness is significant and clearly visible in the stacked image (recall that magnitudes are measured in a logarithmic scale).
 
 Thanks to the argument above, we can now have a sufficiently large area with a usable depth.
-However, each pointing's center will still contain the central part of the galaxy.
+However, each the center of each pointing will still contain the central part of the galaxy.
 In other words, M94 will be present in all the exposures while doing the calibrations.
 Even in not-too-deep observations, we already see a large ring around this galaxy.
 When we do a low surface brightness optimized reduction, there is a good chance that the size of the galaxy is much larger than that ring.
@@ -9779,7 +9779,7 @@ $ astscript-fits-view build/deep.fits --ds9scale=minmax
 
 You will see that the region with 5 exposure depth is a horizontally elongated rectangle now!
 Also, the vertical component of the cross with four exposures is much thicker than the horizontal component!
-Where does this assymmetry come from? All the steps in our pointing strategy had the same (fixed) size of 40 arc minutes.
+Where does this asymmetry come from? All the steps in our pointing strategy had the same (fixed) size of 40 arc minutes.
 
 This happens because the same change in RA and Dec (defined on the curvature of a sphere) will result in different absolute changes on the equator.
 To visually see this, let's look at the pointing positions in TOPCAT:
@@ -9800,8 +9800,8 @@ $ astscript-fits-view build/pointing.fits
 
 After TOPCAT opens, under the ``graphics'' window, select ``Plane Plot''.
 In the newly opened window, click on the ``Axes'' item on the bottom-left list of items.
-Then activate the ``Aspect lock'' box so the vertical and horizontal axises have the same scaling.
-You will see what you expect from the numbers: we have a beautifully symmetic set of 5 points shaped like a `+' sign.
+Then activate the ``Aspect lock'' box so the vertical and horizontal axes have the same scaling.
+You will see what you expect from the numbers: we have a beautifully symmetric set of 5 points shaped like a `+' sign.
 
 Keep the previous window, and let's go back to the original TOPCAT window.
 In the first TOPCAT window, click on ``Graphics'' again, but this time, select ``Sky plot''.
@@ -9872,7 +9872,7 @@ When the minimum and maximum RA and Dec differ by larger than half a degree, you
 For more, see the description of these operators in @ref{Column arithmetic}.
 @end cartouche
 
-Try slighly increasing @code{step_arcmin} to make the cross-like region with 4 exposures as thin as possible.
+Try to slightly increase @code{step_arcmin} to make the cross-like region with 4 exposures as thin as possible.
 For example, set it to @code{step_arcmin=42}.
 When you open @file{deep.fits}, you will see that the depth across this image is almost contiguous (which is another positive factor!).
 Try increasing it to 43 arc minutes to see that the central cross will become almost fully NaN in @file{deep.fits} (which is bad!).
@@ -9899,7 +9899,7 @@ In @ref{Accounting for non-exposed pixels}, we will show how this can be done wi
 @cindex Vignetting
 @cindex Bad pixels
 At the end of @ref{Pointings that account for sky curvature} we were able to maximize the region of same depth in our stack.
-But we noticed that issues like strong @url{https://en.wikipedia.org/wiki/Vignetting,vignetting} can create discontiuity in our final stacked data product.
+But we noticed that issues like strong @url{https://en.wikipedia.org/wiki/Vignetting,vignetting} can create discontinuity in our final stacked data product.
 In this section, we'll review the steps to account for such effects.
 Generally, the full area of a detector is not usually used in the final stack.
 Vignetting is one cause, it can be due to other problems also.
@@ -20196,13 +20196,13 @@ See @url{https://en.wikipedia.org/wiki/Fine-structure_constant, Wikipedia}.
 Different celestial coordinate systems are useful for different scenarios.
 For example, assume you have the RA and Dec of large sample of galaxies that you plan to study the halos of galaxies from.
 For such studies, you prefer to stay as far away as possible from the Galactic plane, because the density of stars and interstellar filaments (cirrus) significantly increases as you get close to the Milky way's disk.
-But the @url{https://en.wikipedia.org/wiki/Equatorial_coordinate_system, Equatorial coordinate system} which defines the RA and Dec and is based on Earth's equator; and does not show the position of your objects in relationt to the galactic disk.
+But the @url{https://en.wikipedia.org/wiki/Equatorial_coordinate_system, Equatorial coordinate system} which defines the RA and Dec and is based on Earth's equator; and does not show the position of your objects in relation to the galactic disk.
 
 The best way forward in the example above is to convert your RA and Dec table into the @url{https://en.wikipedia.org/wiki/Galactic_coordinate_system, Galactic coordinate system}; and select those with a large (positive or negative) Galactic latitude.
-Alternatively, if you observe a bright point on a galaxy and want to confirm if it was actually a super-nova and not a moving asteriod, a first step is to convert your RA and Dec to the @url{https://en.wikipedia.org/wiki/Ecliptic_coordinate_system, Ecliptic coordinate system} and confirm if you are sufficiently distant from the ecliptic (plane of the Solar System; where fast moving objects are most common).
+Alternatively, if you observe a bright point on a galaxy and want to confirm if it was actually a super-nova and not a moving asteroid, a first step is to convert your RA and Dec to the @url{https://en.wikipedia.org/wiki/Ecliptic_coordinate_system, Ecliptic coordinate system} and confirm if you are sufficiently distant from the ecliptic (plane of the Solar System; where fast moving objects are most common).
 
 The operators described in this section are precisely for the purpose above: to convert various celestial coordinate systems that are supported within Gnuastro into each other.
-For example, if you want to convert the RA and Dec equatorial (at the Julian year 2000 equinox) coordinates (within the @code{RA} and @code{DEC} columns) of @file{points.fits} into Galactic longitude and latitutde, you can use the command below (the column metadata are not mandatory, but to avoid later confusion, it is always good to have them in your output.
+For example, if you want to convert the RA and Dec equatorial (at the Julian year 2000 equinox) coordinates (within the @code{RA} and @code{DEC} columns) of @file{points.fits} into Galactic longitude and latitude, you can use the command below (the column metadata are not mandatory, but to avoid later confusion, it is always good to have them in your output.
 
 @example
 $ asttable points.fits -c'arith RA DEC eq-j2000-to-galactic' \
@@ -20216,14 +20216,14 @@ Therefore these two (equatorial and ecliptic) coordinate systems are defined wit
 So when dealing with these coordinates one of the `@code{-b1950}' or `@code{-j2000}' suffixes are necessary (for example @code{eq-j2000} or @code{ec-b1950}).
 
 @cindex ICRS
-The Galactic or Supergalactic coordiantes are not defined based on the Earth's dynamics; therefore they do not have any epoch associated with them.
+The Galactic or Supergalactic coordinates are not defined based on the Earth's dynamics; therefore they do not have any epoch associated with them.
 Extra-galactic studies do not depend on the dynamics of the earth, but the equatorial coordinate system is the most dominant in that field.
 Therefore in its 23rd General Assembly, the International Astronomical Union approved the @url{https://en.wikipedia.org/wiki/International_Celestial_Reference_System_and_its_realizations, International Celestial Reference System} or ICRS based on quasars (which are static within our observational limitations)viewed through long baseline radio interferometry (the most accurate method of observation that we currently have).
 ICRS is designed to be within the errors of the Equatorial J2000 coordinate system, so they are currently very similar; but ICRS has much better accuracy.
 We will be adding ICRS in the operators below soon.
 
 @strong{Floating point errors:} The operation to convert between the coordinate systems involves many sines, cosines (and their inverse).
-Therefore, floating point errors (due to the limited precision of the definition of floating points in bits) can cause small offests.
+Therefore, floating point errors (due to the limited precision of the definition of floating points in bits) can cause small offsets.
 For example see the code below were we convert equatorial to galactic and back, then compare the input and output (which is in the 5th and 6th decimal of a degree; or about 0.2 or 0.01 arcseconds).
 
 @example
@@ -21695,7 +21695,7 @@ Add a Gaussian noise with pre-defined @mymath{\sigma} to each element of the inp
 @mymath{\sigma} is the standard deviation of the @url{https://en.wikipedia.org/wiki/Normal_distribution, Gaussian or Normal distribution}.
 This operator takes two arguments: the top/first popped operand is the noise standard deviation, the next popped operand is the dataset that the noise should be added to.
 
-For example, with the first command below, let's put a S@'ersic profile with S@'ersic index 1 and effective radius 10 pixels, tructated at 5 times the effective radius in the center of a mock image that is @mymath{100\times100} pixels wide.
+For example, with the first command below, let's put a S@'ersic profile with S@'ersic index 1 and effective radius 10 pixels, truncated at 5 times the effective radius in the center of a mock image that is @mymath{100\times100} pixels wide.
 We will also give it a position angle of 45 degrees and an axis ratio of 0.8, and set it to have a total electron count of 10000 (@code{1e4} in the command).
 Note that this example is focused on this operator, for a robust simulation, see the tutorial in @ref{Sufi simulates a detection}.
 With the second command, let's add noise to this image and with the third command, we'll subtract the raw image from the noised image.
@@ -21722,7 +21722,7 @@ These behaviors will be different in the case for @code{mknoise-sigma-from-mean}
 @cindex Poisson noise
 Replace each input element (e.g., pixel in an image) of the input with a random value taken from a Gaussian distribution (for pixel @mymath{i}) with mean @mymath{\mu_i} and standard deviation @mymath{\sigma_i}.
 Where, @mymath{\sigma_i=\sqrt{I_i+B_i}} and @mymath{\mu_i=I_i+B_i} and @mymath{I_i} and @mymath{B_i} are respectively the values of the input image, and background in that same pixel.
-In other words, this can be seen as approximating a Poisson distribution at high mean values (where the Poisson distribution becomes identical to the Guassian distribution).
+In other words, this can be seen as approximating a Poisson distribution at high mean values (where the Poisson distribution becomes identical to the Gaussian distribution).
 
 This operator takes two arguments: 1. the first popped operand (just before the operator) is the @emph{per-pixel} background value (in units of electron counts).
 2. The second popped operand is the dataset that the noise should be added to.
@@ -21743,7 +21743,7 @@ $ astscript-fits-view diff-sigma.fits \
 @end example
 
 You clearly see how the noise in the center of the S@'ersic profile is much stronger than the outer parts.
-As described, above, this is behaviour we would expect in a ``real'' observation: the regions with stronger signal, also have stronger noise as defined through the @url{https://en.wikipedia.org/wiki/Poisson_distribution, Poisson distribution}!
+As described, above, this is behavior we would expect in a ``real'' observation: the regions with stronger signal, also have stronger noise as defined through the @url{https://en.wikipedia.org/wiki/Poisson_distribution, Poisson distribution}!
 The reason we described this operator as ``Poisson-like'' is that, it has some shortcomings as opposed to the @code{mknoise-poisson} operator (that is described below):
 @itemize
 @item
@@ -21803,7 +21803,7 @@ $ astarithmetic raw.fits 4 mknoise-poisson \
 
 $ astscript-fits-view sigma-from-mean.fits poisson.fits
 
-$ astatistics sigma-from-mean.fits --lessthan=10
+$ aststatistics sigma-from-mean.fits --lessthan=10
 -------
 Histogram:
  |                       ***
@@ -21836,7 +21836,7 @@ Histogram:
  |------------------------------------------------------------
 @end example
 
-The extra skew-ness in the Poisson distribution, and the fact that it only returns integers is therefore clear with the commands above.
+The extra skewness in the Poisson distribution, and the fact that it only returns integers is therefore clear with the commands above.
 The comparison was further made above in the description of @code{mknoise-sigma-from-mean}.
 In summary, you should prefer the Poisson distribution when you are simulating the following scenarios:
 @itemize
@@ -27910,7 +27910,7 @@ Therefore the measurements discussed here are commonly used in units of magnitud
 @subsubsection Standard deviation vs error
 The error and the standard deviation are sometimes confused with each other.
 Therefore, before continuing with the various measurement limits below, let's review these two fundamental concepts.
-Instead of going into the theoretical defitions of the two (which you can see in their resepctive Wikipedia pages), we'll discuss the concepts in a hands-on and practical way here.
+Instead of going into the theoretical definitions of the two (which you can see in their respective Wikipedia pages), we'll discuss the concepts in a hands-on and practical way here.
 
 Let's simulate an observation of the sky, but without any astronomical sources!
 In other words, where we only a background flux level (from the sky emission).
@@ -27932,7 +27932,7 @@ $ astscript-fits-view 1.fits
 Each pixel shows the result of one sampling from the Poisson distribution.
 In other words, assuming the sky emission in our simulation is constant over our field of view, each pixel's value shows one measurement of the sky emission.
 Statistically speaking, a ``measurement'' is a sampling from an underlying distribution of values.
-Through our measurements, we aim to identfy that underlying distribution (the ``truth'')!
+Through our measurements, we aim to identify that underlying distribution (the ``truth'')!
 With the command below, let's look at the pixel statistics of @file{1.fits} (output is shown immediately under it).
 
 @c If you change this output, replace the standard deviation (10.09) below
@@ -27971,7 +27971,7 @@ As expected, you see that the ASCII histogram nicely resembles a normal distribu
 The measured mean and standard deviation (@mymath{\sigma_x}) are also very similar to the input (mean of 100, standard deviation of @mymath{\sigma=10}).
 But the measured mean (and standard deviation) aren't exactly equal to the input!
 
-Every time we make a different simulated image from the same distribution, the measured mean and standrad deviation will slightly differ.
+Every time we make a different simulated image from the same distribution, the measured mean and standard deviation will slightly differ.
 With the second command below, let's build 500 images like above and measure their mean and standard deviation.
 The outputs will be written into a file (@file{mean-stds.txt}; in the first command we are deleting it to make sure we write into an empty file within the loop).
 With the third command, let's view the top 10 rows:
@@ -28069,7 +28069,7 @@ In astronomical literature, this is simply referred to as the ``error''.
 
 In other words, when asking for an ``error'' measurement with MakeCatalog, a separate standard deviation dataset should be always provided.
 This dataset should take into account all sources of scatter.
-For example, during the reduction of an image, the standard deviation dataset should take into account the dispersion of each pixel that cames from the bias, dark, flat fielding, etc.
+For example, during the reduction of an image, the standard deviation dataset should take into account the dispersion of each pixel that comes from the bias, dark, flat fielding, etc.
 If this image is not available, it is possible to use the  @code{SKY_STD} extension from NoiseChisel as an estimation.
 For more see @ref{NoiseChisel output}.
 @end table
@@ -32904,7 +32904,7 @@ However, the Earth is orbiting the Sun at a very high speed of roughly 15 degree
 Keeping the (often very large!) telescopes in track with this fast moving sky is not easy; such that most cannot continue accurate tracking more than 10 minutes.
 @item
 @cindex Seeing
-For ground-based observations, the turbulance of the atmosphere changes very fast (on the scale of minutes!).
+For ground-based observations, the turbulence of the atmosphere changes very fast (on the scale of minutes!).
 So if you plan to observe at 10 minutes and at the start of your observations the seeing is good, it may happen that on the 8th minute, it becomes bad.
 This will affect the quality of your final exposure!
 @item
@@ -32913,7 +32913,7 @@ When an exposure is taken, the instrument/environment imprint a lot of artifacts
 One common example that we also see in normal cameras is @url{https://en.wikipedia.org/wiki/Vignetting, vignetting}; where the center receives a larger fraction of the incoming light than the periphery).
 In order to characterize and remove such artifacts (which depend on many factors at the precision that we need in astronomy!), we need to take many exposures of our science target.
 @item
-By taking many exposures we can build a stack that has a higher resolution; this is often done in under-sampled data, like those in the hubble space telescope or JWST.
+By taking many exposures we can build a stack that has a higher resolution; this is often done in under-sampled data, like those in the Hubble Space Telescope (HST) or James Webb Space Telescope (JWST).
 @item
 The scientific target can be larger than the field of view of your telescope and camera.
 @end itemize
@@ -32922,7 +32922,7 @@ The scientific target can be larger than the field of view of your telescope and
 In the jargon of observational astronomers, each exposure is also known as a ``dither'' (literally/generally meaning ``trembling'' or ``vibration'').
 This name was chosen because two exposures are not usually taken on exactly the same position of the sky (known as ``pointing'').
 In order to improve all the item above, we often move the center of the field of view from one exposure to the next.
-In most cases this movement is small compared to the field of view, so most of the central part of the final stack has a fixed depth, but the edges are shallower (conveying a sence of vibration).
+In most cases this movement is small compared to the field of view, so most of the central part of the final stack has a fixed depth, but the edges are shallower (conveying a sense of vibration).
 When the spacing between pointings is large, they are known as an ``offset''.
 A ``pointing'' is used to refer to either a dither or an offset.
 
@@ -32965,7 +32965,7 @@ $ astscript-pointing-simulate pointing.fits --output=stack.fits \
 
 The default output of this script is a stacked image that results from placing the given image (given to @option{--img}) in the pointings of a pointing pattern.
 The Right Ascension (RA) and Declination (Dec) of each pointing is given in the main input catalog (@file{pointing.fits} in the example above).
-The center and width of the final stack (both in degrees by default) should be speficied using the @option{--width} option.
+The center and width of the final stack (both in degrees by default) should be specified using the @option{--width} option.
 Therefore, in order to successfully run, this script at least needs the following four inputs:
 @table @asis
 @item Pointing positions
@@ -33028,7 +33028,7 @@ The central RA and Declination of the final stack in degrees.
 
 @item -w FLT,FLT
 @itemx --width=FLT,FLT
-The width of the final stack in degress.
+The width of the final stack in degrees.
 If @option{--widthinpix} is given, the two values given to this option will be interpreted as degrees.
 
 @item --widthinpix
@@ -33052,7 +33052,7 @@ If it is not created by your script, the script will complain and abort.
 This file will be given to Warp to be warped into the output pixel grid.
 @end table
 
-For an example of using hooks with an exteded discussion, see @ref{Pointing pattern design} and @ref{Accounting for non-exposed pixels}.
+For an example of using hooks with an extended discussion, see @ref{Pointing pattern design} and @ref{Accounting for non-exposed pixels}.
 
 To develop your command, you can use @command{--hook-warp-before='...; echo GOOD; exit 1'} (where @code{...} can be replaced by any command) and run the script on a single thread (with @option{--numthreads=1}) to produce a single file and simplify the checking that your desired operation works as expected.
 All the files will be within the temporary directory (see @option{--tmpdir}).
@@ -33103,7 +33103,7 @@ Keep the temporary directory (and do not delete it).
 
 @item -?
 @itemx --help
-Print a list of all the options, along with a short descrioption and context for the program.
+Print a list of all the options, along with a short description and context for the program.
 For more, see @option{Operating mode options}.
 
 @item -N INT
@@ -33113,7 +33113,7 @@ If not given (by default), the script will try to find the number of available t
 For more, see @option{Operating mode options}.
 
 @item --cite
-Give BibTeX and Acknowledgement information for citing this script within your paper.
+Give BibTeX and acknowledgment information for citing this script within your paper.
 For more, see @option{Operating mode options}.
 
 @item -q
@@ -35689,7 +35689,7 @@ Return a ``flag'' dataset with the same size as the input, but with an @code{uin
 
 @deftypefun {size_t *} gal_blank_not_minmax_coords (gal_data_t @code{*input})
 Find the minimum and maximum coordinates of the non-blank regions within the input dataset.
-The coordinates are in C order: starting from 0, and with the slowest dimsion being first.
+The coordinates are in C order: starting from 0, and with the slowest dimension being first.
 The output is an allocated array (that should be freed later) with @mymath{2\times N} elements; where @mymath{N} is the number of dimensions.
 The first two elements contain the minimum and maximum of regions containing non-blank elements along the 0-th dimension (the slowest), the second two elements contain the next dimension's extrema; and so on.
 @end deftypefun
@@ -38708,7 +38708,7 @@ If you want the operation to be done in place (without allocating a new dataset)
 
 @deftypefun void gal_wcs_coordsys_sys1_ref_in_sys2 (int @code{sys1}, int @code{sys2}, double @code{*lng2}, double @code{*lat2})
 Return the longitude and latitude of the reference point (on the equator) of the first coordinate system (@code{sys1}) within the second system (@code{sys2}).
-Coordinate systems are identifed by the @code{GAL_WCS_COORDSYS_*} macros above.
+Coordinate systems are identified by the @code{GAL_WCS_COORDSYS_*} macros above.
 @end deftypefun
 
 @cindex WCS distortion
@@ -41282,7 +41282,7 @@ This will allow easy (non-confusing) access to the indices of each (meaningful) 
 
 @code{numlabs} is the number of labels in the dataset.
 If it is given a value of zero, then the maximum value in the input (largest label) will be found and used.
-Therefore if it is given, but smaller than the actual number of labels, this function may/will crash (it will write in unallocated space).
+Therefore if it is given, but smaller than the actual number of labels, this function may/will crash (it will write in un-allocated space).
 @code{numlabs} is therefore useful in a highly optimized/checked environment.
 
 For example, if the returned array is called @code{indexs}, then
@@ -41449,7 +41449,7 @@ When @code{conv_on_blank} is non-zero, this function will also attempt convoluti
 @subsection Pooling functions (@file{pool.h})
 
 Pooling is the process of reducing the complexity of the input image (its size and variation of pixel values).
-Its underlying concepts and an analysis of its usefuless is fully descibed in @ref{Pooling operators}.
+Its underlying concepts, and an analysis of its usefulness, is fully described in @ref{Pooling operators}.
 The following functions are available pooling in Gnuastro.
 Just note that unlike the Arithmetic operators, the output of these functions should contain a correct WCS in their output.
 
@@ -41558,12 +41558,12 @@ The number of terms in the interpolating polynomial is equal to the number of po
 @cindex Cubic spline interpolation
 @cindex Spline (cubic) interpolation
 [From GSL:] Cubic spline with natural boundary conditions.
-The resulting curve is piecewise cubic on each interval, with matching first and second derivatives at the supplied data-points.
+The resulting curve is piece-wise cubic on each interval, with matching first and second derivatives at the supplied data-points.
 The second derivative is chosen to be zero at the first point and last point.
 @end deffn
 @deffn Macro GAL_INTERPOLATE_1D_CSPLINE_PERIODIC
 [From GSL:] Cubic spline with periodic boundary conditions.
-The resulting curve is piecewise cubic on each interval, with matching first and second derivatives at the supplied data-points.
+The resulting curve is piece-wise cubic on each interval, with matching first and second derivatives at the supplied data-points.
 The derivatives at the first and last points are also matched.
 Note that the last point in the data must have the same y-value as the first point, otherwise the resulting periodic interpolation will have a discontinuity at the boundary.
 @end deffn
@@ -41584,7 +41584,7 @@ This method uses the non-rounded corner algorithm of Wodicka.
 @cindex Interpolation: monotonic
 [From GSL:] Steffen's method@footnote{@url{http://adsabs.harvard.edu/abs/1990A%26A...239..443S}} guarantees the monotonicity of the interpolating function between the given data points.
 Therefore, minima and maxima can only occur exactly at the data points, and there can never be spurious oscillations between data points.
-The interpolated function is piecewise cubic in each interval.
+The interpolated function is piece-wise cubic in each interval.
 The resulting curve and its first derivative are guaranteed to be continuous, but the second derivative may be discontinuous.
 @end deffn
 
@@ -43385,7 +43385,7 @@ If a research project begins using Python 3.x today, there is no telling how com
 @cindex JVM: Java virtual machine
 @cindex Java Virtual Machine (JVM)
 Java is also fully object-oriented, but uses a different paradigm: its compilation generates a hardware-independent @emph{bytecode}, and a @emph{Java Virtual Machine} (JVM) is required for the actual execution of this bytecode on a computer.
-Java also evolved with time, and tried to remain backward compatible, but inevitably some evolutions required discontinuities and replacements of a few Java components which were first declared as becoming @emph{deprecated}, and removed from later versions.
+Java also evolved with time, and tried to remain backward compatible, but inevitably this evolution required discontinuities and replacements of a few Java components which were first declared as becoming @emph{deprecated}, and removed from later versions.
 
 @cindex Reproducibility
 This stems from the core principles of high-level languages like Python or Java: that they evolve significantly on the scale of roughly 5 to 10 years.
