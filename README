@@ -110,12 +110,6 @@ running a program in a special way), Gnuastro also installs Bash scripts
 (all prefixed with 'astscript-'). They can be run like a program and behave
 very similarly (with minor differences, as explained in the book).
 
-  - astscript-pointing-simulate: Given a table of pointings on the sky,
-    create and a reference image that contain's your camera's distortions
-    and properties, generate a stacked exposure map. This is very useful in
-    testing the coverage of dither patterns when planning your observing
-    strategy and it is highly customizable.
-
   - astscript-ds9-region: Given a table (either as a file or from
     standard input), create an SAO DS9 region file from the requested
     positional columns (WCS or image coordinates).
@@ -123,6 +117,12 @@ very similarly (with minor differences, as explained in the book).
   - astscript-fits-view Given any number of FITS files, this script will
     either open SAO DS9 (for images or cubes) or TOPCAT (for tables) to
     view them in a graphic user interface (GUI).
+
+  - astscript-pointing-simulate: Given a table of pointings on the sky,
+    create and a reference image that contain's your camera's distortions
+    and properties, generate a stacked exposure map. This is very useful in
+    testing the coverage of dither patterns when planning your observing
+    strategy and it is highly customizable.
 
   - astscript-radial-profile: Calculate the radial profile of an object
     within an image. The object can be at any location in the image, using

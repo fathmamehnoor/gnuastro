@@ -4,7 +4,7 @@ Copyright (C) 2015-2023 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
-* Noteworthy changes in release 0.XX (library XX.X.X) (YYYY-MM-DD)
+* Noteworthy changes in release 0.21 (library 19.0.0) (2023-10-20)
 ** New features
 *** New program
   - 'astscript-pointing-simulate': a new installed script that will
@@ -44,7 +44,7 @@ See the end of the file for license conditions.
   - New operators (see book for a full description):
     - pool-min: Min-pooling to reduce the size of the input by calculating
                 the minimum of a the pixels within the pooling window
-                (accounting for a stride). See the new "Pooling opeators"
+                (accounting for a stride). See the new "Pooling operators"
                 section of the book for more. The pooling operators were
                 all implemented by Faezeh Bidjarchian.
     - pool-max: Similar to 'pool-min' but using maximum.
@@ -118,7 +118,7 @@ See the end of the file for license conditions.
   --madclip-mean: Mean of input elements after MAD-clipping.
   --madclip-std: Standard deviation of input elements after MAD-clipping.
   --madclip-mad: MAD of input elements after MAD-clipping.
-  --mclipparams: Paramters of MAD-clipping, similar to sigma-clipping. Note
+  --mclipparams: Parameters of MAD-clipping, similar to sigma-clipping. Note
                  that in a Gaussian distribution, MAD = 0.67 sigma, so if
                  you want something similar to 3-sigma (the default), you
                  should set the MAD multiple to 5 (the default).
@@ -174,7 +174,7 @@ See the end of the file for license conditions.
 *** MakeNoise
     - MakeNoise (with executable name 'astmknoise') has been removed from
       Gnuastro. This is because the 'mknoise-*' operators of Arithmetic do
-      the same job, but in a much more customizable, modular and managable
+      the same job, but in a much more customizable, modular and manageable
       manner; allowing to mix with other operators. The "Noise basics"
       sub-section of the book has been moved under the Arithmetic program's
       documentation also.
@@ -193,7 +193,7 @@ See the end of the file for license conditions.
 
 *** MakeCatalog
   - The dash in the column names of the following measurement names has
-    been replced by underscore to conform with the general stardard of
+    been replaced by underscore to conform with the general standard of
     using underscores between words in column names (reported by Raul
     Infante-Sainz). Also, in the case of '--sigclip-mean-sb-delta' the
     column name didn't correspond to the option name.

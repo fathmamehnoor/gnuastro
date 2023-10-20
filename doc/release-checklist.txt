@@ -89,6 +89,8 @@ all the commits needed for this release have been completed.
        $ git remote add fork YOUR-FORK-GIT-LOCATION
        $ git checkout -b XXXX-dev
        $ emacs recipe/meta.yaml
+          --> Don't touch the version! The development versioning format
+              of Gnuastro is going to cause problems with the '-'.
           --> Completely replace the URL to the one you uploaded to.
           --> Update the SHA256 checksum to the one you obtained above.
        $ git add -u
@@ -100,9 +102,14 @@ all the commits needed for this release have been completed.
      start a build on all available Conda architectures that Gnuastro has
      been configured for. This will usually take about half an hour!
 
-   - If there is any problem, you need to fix it. Otherwise (if all the
-     tests pass), you can close the pull request and delete the branch in
-     your fork.
+   - If there is any problem, you need to fix it with a new commit on the
+     branch; closing the merge request and opening a new one.
+     - Note that if the build takes more than ten minutes, the first
+       generic test will fail. But as long as the other tests are running,
+       everything is fine; once they pass, the generic one will pass also.
+
+   - Once all the tests pass successfully, you can close the pull request
+     and delete the branch in your fork.
 
 
  - [STABLE] Update the versions in the NEWS file and do a spell-check.
@@ -148,7 +155,7 @@ all the commits needed for this release have been completed.
  - [STABLE] Make sure the tarball doesn't have any problems:
 
      $ cd build
-     $ make distcheck -j8
+     $ make distcheck -j12
 
 
  - [STABLE]: After the 'make distcheck' is safely finished, tag the release:
