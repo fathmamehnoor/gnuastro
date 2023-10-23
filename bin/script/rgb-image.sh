@@ -80,7 +80,9 @@ quiet=""
 tmpdir=""
 keeptmp=0
 checkparams=0
-output="color-image.jpg"
+output="rgb-image.jpg"
+
+grayback=0
 
 version=@VERSION@
 scriptname=@SCRIPT_NAME@
@@ -146,6 +148,7 @@ $scriptname options:
                           this overrides --brightness or --contrast)
 
  Color and gray parameters
+      --grayback            Generate the gray-background color image.
       --grayval=FLT         Value that defines the black and white (for gray regions).
       --colorval=FLT        Value that defines the separation between color and gray.
       --graykernelfwhm=FLT  Kernel FWHM for convolving the background image.
@@ -179,7 +182,7 @@ EOF
 print_version() {
     cat <<EOF
 $scriptname (GNU Astronomy Utilities) $version
-Copyright (C) 2021, Free Software Foundation, Inc.
+Copyright (C) 2021-2023, Free Software Foundation, Inc.
 License GPLv3+: GNU General public license version 3 or later.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
@@ -282,6 +285,7 @@ do
         -b=*|--brightness=*) brightness="${1#*=}";                       check_v "$1" "$brightness";  shift;;
         -b*)                 brightness=$(echo "$1"  | sed -e's/-b//');  check_v "$1" "$brightness";  shift;;
 
+        --grayback)         grayback=1; shift;;
         --grayval)          grayval="$2";                              check_v "$1" "$grayval";  shift;shift;;
         --grayval=*)        grayval="${1#*=}";                         check_v "$1" "$grayval";  shift;;
         --colorval)         colorval="$2";                             check_v "$1" "$colorval";  shift;shift;;
@@ -292,7 +296,7 @@ do
         --colorkernelfwhm=*) colorkernelfwhm="${1#*=}";                check_v "$1" "$colorkernelfwhm";  shift;;
 
         # Output parameters
-        --checkparams) checkparams=1; shift;;
+        --checkparams)    checkparams=1; shift;;
         -k|--keeptmp)     keeptmp=1; shift;;
         -k*|--keeptmp=*)  on_off_option_error --keeptmp -k;;
         -t|--tmpdir)      tmpdir="$2";                          check_v "$1" "$tmpdir";  shift;shift;;
@@ -771,251 +775,246 @@ fi
 
 
 
-# Make the color figure
-# ---------------------
-#
-# Once all the previous treatment has been done for each image, then combine
-# all with Convert program to obtain the colored image. Limit fluxes used
-# here correspond to the gray-computed ones in order to obtain exactly the
-# same color as the gray-background image (for those pixels that are not
-# background).
-astconvertt $I_R_transformed -h1 \
-            $I_G_transformed -h1 \
-            $I_B_transformed -h1 \
-            --output=$output $quiet
+# If the user wants the gray background image
+if [ x$grayback = x1 ]; then
+
+    # Until now, all necessary threshold and parameters have been computed (if
+    # the user did not specify any value) from the R,G,B images. The following
+    # steps are necessary for constructing the gray background color image. So,
+    # low brightness will be showed in gray while high brightness wil be showed
+    # in color.
+
+    # Convolve the gray threshold image and set it to 0-100 range values
+    # ------------------------------------------------------------------
+    #
+    # Convolve the image that is going to be used for defining the threshold
+    # for splitting the COLOR and GRAY parts. By doing this, instead of having
+    # a noised frontier, the border would be more clear. If the user don't want
+    # to convolve, just make a symbolic link.
+    I_COLORGRAY_threshold="$tmpdir/COLORGRAY_threshold.fits"
+    if [ $colorkernelfwhm = 0 ]; then
+      # Change pixel values to the wanted range
+      astarithmetic $I_RGB_asinh_norm -h1 set-image \
+                    image minvalue set-oldmin \
+                    image maxvalue set-oldmax \
+                    $minvalrange set-newmin \
+                    $maxvalrange set-newmax \
+                    oldmax oldmin - set-oldrange \
+                    newmax newmin - set-newrange \
+                    image oldmin - newrange x oldrange / newmin + set-transformed \
+                    transformed --output=$I_COLORGRAY_threshold $quiet
+    else
+      I_COLORGRAY_kernel="$tmpdir/COLORGRAY_kernel.fits"
+      astmkprof --kernel=gaussian,$colorkernelfwhm,3 \
+                --output=$I_COLORGRAY_kernel $quiet
+
+      I_COLORGRAY_convolved="$tmpdir/COLORGRAY_kernel.fits"
+      astconvolve $I_RGB_asinh_norm --hdu=1 --kernel=$I_COLORGRAY_kernel \
+                  --domain=spatial --output=$I_COLORGRAY_convolved $quiet
+
+      # Change pixel values to the wanted range
+      astarithmetic $I_COLORGRAY_convolved -h1 set-image \
+                    image minvalue set-oldmin \
+                    image maxvalue set-oldmax \
+                    $minvalrange set-newmin \
+                    $maxvalrange set-newmax \
+                    oldmax oldmin - set-oldrange \
+                    newmax newmin - set-newrange \
+                    image oldmin - newrange x oldrange / newmin + set-transformed \
+                    transformed --output=$I_COLORGRAY_threshold $quiet
+    fi
 
 
 
 
 
-# Remove images
-if [ $keeptmp = 0 ]; then
-  rm $rscaled $gscaled $bscaled \
-     $rclipped $gclipped $bclipped
-fi
+    # Find the COLOR threshold
+    # ------------------------
+    #
+    # The color image with the gray background is constructed by separating the
+    # original image into two regimes: COLOR and GRAY. Here, the pixel value
+    # used for separate these two regions is computed. It is obtained from the
+    # asinh-transformed image. If the user does not provide a value then use
+    # ghe computed one (guessed). If the user provide a value, then use it
+    # directly. Note that the guessed value is computed in any case.
+    colorval_guessed=$(aststatistics $I_COLORGRAY_threshold --median -q)
+    if [ x$colorval = x"" ]; then
+      colorval=$colorval_guessed
+    fi
 
 
 
 
 
-# GRAY BACKGROUND
-# ---------------
-#
-# Until now, all necessary threshold and parameters have been computed (if
-# the user did not specify any value) from the R,G,B images. The following
-# steps are necessary for constructing the gray background color image. So,
-# low brightness will be showed in gray while high brightness wil be showed
-# in color.
+    # Binary mask for COLOR (1) and GRAY (0) parts
+    # --------------------------------------------
+    #
+    # Here the image is separated into two parts: COLOR (pixels=1) and GRAY
+    # (pixels = 0). To obtain this mask, the colorval is considered as the
+    # threshold on the asinhed image. So:
+    #   asinhed < colorval -->  COLOR = 1
+    #   asinhed > colorval -->  GRAY  = 0
+    I_COLORGRAY_mask="$tmpdir/COLORGRAY_mask-1color-0gray.fits"
+    astarithmetic $I_COLORGRAY_threshold set-ref \
+                  ref $colorval lt -o $I_COLORGRAY_mask $quiet
 
 
 
 
 
+    # Convolve the GRAY background reference image
+    # --------------------------------------------
+    #
+    # Convolve the image that is going to be used for the gray parts. This is
+    # done for smoothing the image and increase the signal to noise ratio of
+    # the black-white regions.
+    if [ x$ninputs = x3 ]; then
+      I_GRAY=$I_RGB_stack
+      khdu=1
+    else
+      I_GRAY=$kclipped
+    fi
 
-# Convolve the gray threshold image and set it to 0-100 range values
-# ------------------------------------------------------------------
-#
-# Convolve the image that is going to be used for defining the threshold
-# for splitting the COLOR and GRAY parts. By doing this, instead of having
-# a noised frontier, the border would be more clear. If the user don't want
-# to convolve, just make a symbolic link.
-I_COLORGRAY_threshold="$tmpdir/COLORGRAY_threshold.fits"
-if [ $colorkernelfwhm = 0 ]; then
-  # Change pixel values to the wanted range
-  astarithmetic $I_RGB_asinh_norm -h1 set-image \
-                image minvalue set-oldmin \
-                image maxvalue set-oldmax \
-                $minvalrange set-newmin \
-                $maxvalrange set-newmax \
-                oldmax oldmin - set-oldrange \
-                newmax newmin - set-newrange \
-                image oldmin - newrange x oldrange / newmin + set-transformed \
-                transformed --output=$I_COLORGRAY_threshold $quiet
+    I_GRAY_convolved="$tmpdir/GRAY_convolved.fits"
+    if [ $graykernelfwhm = 0 ]; then
+      ln -sf $(realpath $I_GRAY) $I_GRAY_convolved
+    else
+      I_GRAY_kernel="$tmpdir/GRAY_kernel.fits"
+      astmkprof --kernel=gaussian,$graykernelfwhm,3 \
+                --oversample=1 --output=$I_GRAY_kernel $quiet
+
+      astconvolve $I_GRAY --hdu=$khdu --kernel=$I_GRAY_kernel \
+                  --domain=spatial --output=$I_GRAY_convolved $quiet
+    fi
+
+
+
+
+
+    # Gray background image
+    # ---------------------
+    #
+    # We use the specified gray background image after some modifications to
+    # obtain the GRAY part. For futher highlight the interesting diffuse flux,
+    # we need to invert it the brigher pixels are darker.
+    #
+    # Here is the logic of the steps we take:
+    #   1. We call the convolved image 'values'.
+    #   2. We call the mask image 'mask'.
+    #   3. Pixels equal to 1 in 'mask' are set to nan in 'values': 'masked'.
+    #   4. The min value of this image is 'oldmin'.
+    #   5. The max value of this image is 'oldmax'.
+    #   6. The new min value of the final image is 'newmin'.
+    #   7. The new max value of the final image is 'newmax'.
+    #   (Note that they are equal but inverted of the general range values).
+    #   7. The old range (oldmax - oldmin) is 'oldrange'.
+    #   8. The new range (newmax - newmin) is 'newrange'.
+    #   9. The 'masked' image is transformed to have the new range of values.
+    #   (Note that 'grayscale' will transform the pixel value in case of any
+    #   function is specified. E.g., log, sqrt, asinh, etc.)
+    grayscale=""
+    I_GRAY_colormasked="$tmpdir/GRAY_colormasked.fits"
+    astarithmetic $I_GRAY_convolved -h1 set-values \
+                  $I_COLORGRAY_mask -h1 set-mask \
+                  values mask nan where $grayscale set-masked \
+                  masked minvalue set-oldmin \
+                  masked maxvalue set-oldmax \
+                  $maxvalrange set-newmin \
+                  $minvalrange set-newmax \
+                  oldmax oldmin - set-oldrange \
+                  newmax newmin - set-newrange \
+                  masked oldmin - newrange x oldrange / newmin + set-transformed \
+                  transformed --output=$I_GRAY_colormasked $quiet
+
+
+
+
+
+    # Find the GRAY thresholds
+    # ------------------------
+    #
+    # Once the COLOR and GRAY parts have been separated, the gray part can be
+    # also separated into BLACK and WHITE. To separate these two parts, here a
+    # threshold is estimated as the median of the GRAY values.
+    I_GRAY_colormasked_clipped="$tmpdir/GRAY_colormasked_clipped.fits"
+    grayval_guessed=$(aststatistics $I_GRAY_colormasked --median -q)
+
+    if [ x$grayval = x"" ]; then
+      ln -sf $(realpath $I_GRAY_colormasked) $I_GRAY_colormasked_clipped
+    else
+      astarithmetic $I_GRAY_colormasked -h1 set-i \
+                    i i $grayval lt $minvalrange where \
+                    --output=$I_GRAY_colormasked_clipped
+    fi
+
+
+
+
+
+    # Use color for high S/N and gray for low S/N
+    # -------------------------------------------
+    #
+    # Once the gray-mask has been obtained, use it for replace all pixels less
+    # than the gray-threshold with the pixels of the reference image. This is
+    # done for each input image (band).  Output images end with -gray.fits,
+    # generated into the for loop.
+    I_R_transformed_gray="$tmpdir/R_transformed_gray.fits"
+    I_G_transformed_gray="$tmpdir/G_transformed_gray.fits"
+    I_B_transformed_gray="$tmpdir/B_transformed_gray.fits"
+    for f in $I_R_transformed $I_G_transformed $I_B_transformed; do
+      outputname=$(echo "$f" | sed -e's/.fits/_gray.fits/')
+      astarithmetic $f \
+                    $I_GRAY_colormasked_clipped isblank not \
+                    $I_GRAY_colormasked_clipped \
+                    where -g1 --output=$outputname $quiet;
+    done
+
+
+
+
+
+    # Make the color-gray image
+    # -------------------------
+    #
+    # Once all the previous treatment has been done for each image, then
+    # combine all with Convert program to obtain the colored image (with the
+    # low S/N regions in gray).
+    astconvertt $I_R_transformed_gray -h1 \
+                $I_G_transformed_gray -h1 \
+                $I_B_transformed_gray -h1 \
+                --output=$output $quiet
+
+
+
+
+
+# If user does not want the gray background image
 else
-  I_COLORGRAY_kernel="$tmpdir/COLORGRAY_kernel.fits"
-  astmkprof --kernel=gaussian,$colorkernelfwhm,3 \
-            --output=$I_COLORGRAY_kernel $quiet
 
-  I_COLORGRAY_convolved="$tmpdir/COLORGRAY_kernel.fits"
-  astconvolve $I_RGB_asinh_norm --hdu=1 --kernel=$I_COLORGRAY_kernel \
-              --domain=spatial --output=$I_COLORGRAY_convolved $quiet
+    # Make the color figure
+    # ---------------------
+    #
+    # Once all the previous treatment has been done for each image, then combine
+    # all with Convert program to obtain the colored image. Limit fluxes used
+    # here correspond to the gray-computed ones in order to obtain exactly the
+    # same color as the gray-background image (for those pixels that are not
+    # background).
+    astconvertt $I_R_transformed -h1 \
+                $I_G_transformed -h1 \
+                $I_B_transformed -h1 \
+                --output=$output $quiet
 
-  # Change pixel values to the wanted range
-  astarithmetic $I_COLORGRAY_convolved -h1 set-image \
-                image minvalue set-oldmin \
-                image maxvalue set-oldmax \
-                $minvalrange set-newmin \
-                $maxvalrange set-newmax \
-                oldmax oldmin - set-oldrange \
-                newmax newmin - set-newrange \
-                image oldmin - newrange x oldrange / newmin + set-transformed \
-                transformed --output=$I_COLORGRAY_threshold $quiet
+
+
+
+
+    # Remove images
+    if [ $keeptmp = 0 ]; then
+      rm $rscaled $gscaled $bscaled \
+         $rclipped $gclipped $bclipped
+    fi
+
 fi
-
-
-
-
-
-# Find the COLOR threshold
-# ------------------------
-#
-# The color image with the gray background is constructed by separating the
-# original image into two regimes: COLOR and GRAY. Here, the pixel value
-# used for separate these two regions is computed. It is obtained from the
-# asinh-transformed image. If the user does not provide a value then use
-# ghe computed one (guessed). If the user provide a value, then use it
-# directly. Note that the guessed value is computed in any case.
-colorval_guessed=$(aststatistics $I_COLORGRAY_threshold --median -q)
-if [ x$colorval = x"" ]; then
-  colorval=$colorval_guessed
-fi
-
-
-
-
-
-# Binary mask for COLOR (1) and GRAY (0) parts
-# --------------------------------------------
-#
-# Here the image is separated into two parts: COLOR (pixels=1) and GRAY
-# (pixels = 0). To obtain this mask, the colorval is considered as the
-# threshold on the asinhed image. So:
-#   asinhed < colorval -->  COLOR = 1
-#   asinhed > colorval -->  GRAY  = 0
-I_COLORGRAY_mask="$tmpdir/COLORGRAY_mask-1color-0gray.fits"
-astarithmetic $I_COLORGRAY_threshold set-ref \
-              ref $colorval lt -o $I_COLORGRAY_mask $quiet
-	      #2 fill-holes
-
-
-
-
-
-# Convolve the GRAY background reference image
-# --------------------------------------------
-#
-# Convolve the image that is going to be used for the gray parts. This is
-# done for smoothing the image and increase the signal to noise ratio of
-# the black-white regions.
-if [ x$ninputs = x3 ]; then
-  I_GRAY=$I_RGB_stack
-  khdu=1
-else
-  I_GRAY=$kclipped
-fi
-
-I_GRAY_convolved="$tmpdir/GRAY_convolved.fits"
-if [ $graykernelfwhm = 0 ]; then
-  ln -sf $(realpath $I_GRAY) $I_GRAY_convolved
-else
-  I_GRAY_kernel="$tmpdir/GRAY_kernel.fits"
-  astmkprof --kernel=gaussian,$graykernelfwhm,3 \
-            --oversample=1 --output=$I_GRAY_kernel $quiet
-
-  astconvolve $I_GRAY --hdu=$khdu --kernel=$I_GRAY_kernel \
-              --domain=spatial --output=$I_GRAY_convolved $quiet
-fi
-
-
-
-
-
-# Gray background image
-# ---------------------
-#
-# We use the specified gray background image after some modifications to
-# obtain the GRAY part. For futher highlight the interesting diffuse flux,
-# we need to invert it the brigher pixels are darker.
-#
-# Here is the logic of the steps we take:
-#   1. We call the convolved image 'values'.
-#   2. We call the mask image 'mask'.
-#   3. Pixels equal to 1 in 'mask' are set to nan in 'values': 'masked'.
-#   4. The min value of this image is 'oldmin'.
-#   5. The max value of this image is 'oldmax'.
-#   6. The new min value of the final image is 'newmin'.
-#   7. The new max value of the final image is 'newmax'.
-#   (Note that they are equal but inverted of the general range values).
-#   7. The old range (oldmax - oldmin) is 'oldrange'.
-#   8. The new range (newmax - newmin) is 'newrange'.
-#   9. The 'masked' image is transformed to have the new range of values.
-#   (Note that 'grayscale' will transform the pixel value in case of any
-#   function is specified. E.g., log, sqrt, asinh, etc.)
-grayscale=""
-I_GRAY_colormasked="$tmpdir/GRAY_colormasked.fits"
-astarithmetic $I_GRAY_convolved -h1 set-values \
-              $I_COLORGRAY_mask -h1 set-mask \
-              values mask nan where $grayscale set-masked \
-              masked minvalue set-oldmin \
-              masked maxvalue set-oldmax \
-              $maxvalrange set-newmin \
-              $minvalrange set-newmax \
-              oldmax oldmin - set-oldrange \
-              newmax newmin - set-newrange \
-              masked oldmin - newrange x oldrange / newmin + set-transformed \
-              transformed --output=$I_GRAY_colormasked $quiet
-
-
-
-
-
-# Find the GRAY thresholds
-# ------------------------
-#
-# Once the COLOR and GRAY parts have been separated, the gray part can be
-# also separated into BLACK and WHITE. To separate these two parts, here a
-# threshold is estimated as the median of the GRAY values.
-I_GRAY_colormasked_clipped="$tmpdir/GRAY_colormasked_clipped.fits"
-grayval_guessed=$(aststatistics $I_GRAY_colormasked --median -q)
-
-if [ x$grayval = x"" ]; then
-  ln -sf $(realpath $I_GRAY_colormasked) $I_GRAY_colormasked_clipped
-else
-  astarithmetic $I_GRAY_colormasked -h1 set-i \
-                i i $grayval lt $minvalrange where \
-                --output=$I_GRAY_colormasked_clipped
-fi
-
-
-
-
-
-# Use color for high S/N and gray for low S/N
-# -------------------------------------------
-#
-# Once the gray-mask has been obtained, use it for replace all pixels less
-# than the gray-threshold with the pixels of the reference image. This is
-# done for each input image (band).  Output images end with -gray.fits,
-# generated into the for loop.
-I_R_transformed_gray="$tmpdir/R_transformed_gray.fits"
-I_G_transformed_gray="$tmpdir/G_transformed_gray.fits"
-I_B_transformed_gray="$tmpdir/B_transformed_gray.fits"
-for f in $I_R_transformed $I_G_transformed $I_B_transformed; do
-  outputname=$(echo "$f" | sed -e's/.fits/_gray.fits/')
-  astarithmetic $f \
-                $I_GRAY_colormasked_clipped isblank not \
-                $I_GRAY_colormasked_clipped \
-                where -g1 --output=$outputname $quiet;
-done
-
-
-
-
-
-
-
-
-# Make the color-gray image
-# -------------------------
-#
-# Once all the previous treatment has been done for each image, then
-# combine all with Convert program to obtain the colored image (with the
-# low S/N regions in gray).
-output_gray=$(echo "$output" | sed -e's/.jpg/-gray.jpg/')
-astconvertt $I_R_transformed_gray -h1 \
-            $I_G_transformed_gray -h1 \
-            $I_B_transformed_gray -h1 \
-            --output=$output_gray $quiet
 
 
 
@@ -1049,30 +1048,32 @@ if [ ! x$quiet = x"--quiet" ]; then
   aststatistics $I_GRAY_colormasked
   fi
 
-
   cat <<EOF
+
+TIPS:
+  # Use '--checkparams'to check the pixel value distributions.
+  # First use the default options to guess the parameters.
+  # Select a good sky background value of the images.
+      A minimum value of zero could be a good option: --minimum=0.0
+  # Focus on the bright regions and twek '--stretch' and '-qbright'.
+      Try low values of '--qbright' tho show the bright parts.
+      Then, adjust '--stretch' for showing the fainter regions around bright parts.
+      Overall, play with these two parameters to show the color regions appropriately.
+  # (next tips only for gray background image: --grayback)
+  # Change '--colorval' to select the value that separates the color and gray regions.
+      --colorval=100 means all will be shown in color.
+      --colorval=0 means everything will become gray.
+  # Change '--grayval' to change the gray pixels to black (from $grayval_guessed to 100.0).
+      --grayval=100 means all gray regions will become black.
 
 PARAMETERS:
   Guessed: --qbright=$qbright_guessed --stretch=$stretch_guessed --colorval=$colorval_guessed --grayval=$grayval_guessed
   Used   : --qbright=$qbright_value --stretch=$stretch_value --colorval=$colorval --grayval=$grayval
 
-TIPS:
-  # First use the default options to guess the parameters.
-  # Select a good sky background value of the images.
-    A minimum value of zero could be a good option: --minimum=0.0
-  # Focus on the bright regions and twek '--stretch' and '-qbright'.
-    Try low values of '--qbright' tho show the bright parts.
-    Then, adjust '--stretch' for showing the fainter regions around bright parts.
-    Overall, play with these two parameters to show the color regions appropiately.
-  # Change '--colorval' to select the value that separates the color and gray regions.
-    --colorval=100 means all will be shown in color.
-    --colorval=0 means everything will become gray.
-  # Change '--grayval' to change the gray pixels to black (from $grayval_guessed to 100.0).
-    --grayval=100 means all gray regions will become black.
-  # Use the '-c' or '--checkparams'to see the distributions.
-
+Output written to '$output'.
 EOF
 fi
+
 
 
 
