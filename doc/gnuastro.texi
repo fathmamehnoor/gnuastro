@@ -33853,6 +33853,214 @@ Print the version of the running Gnuastro along with a copyright notice and list
 For more, see @option{Operating mode options}.
 @end table
 
+
+@node RGB image creation, Installed scripts
+@section RGB image
+A RGB (Red, Green, Blue) image is a color image generated using images from three different filters or channels.
+More info at @url{https://en.wikipedia.org/wiki/RGB_color_model}.
+Typical astronomical images have a very wide range of pixel values and generally it is difficult to show the entire dynamical range in a color image.
+For example, by using @ref{ConvertType}, it is possible to obtain a color image.
+However, depending on the pixel distribution, it could be very difficult to see the different regions of the images appropriately (faint and bright objects at the same time).
+The reason is that images use to contain a lot of faint pixels (near to the sky background or noise values), and few bright pixels (corresponding to the center of stars, galaxies, etc.).
+As a consequence, by considering the images without any modification, it is extremely hard to show the entire range of values in a color image.
+To solve this issue, it is possible to perform some transformations of the images and then obtain the color image.
+This is actually what the current script does: it makes some transformations and then uses Gnuastro's ConvertType to generate the color image.
+
+This script is inspired by Lupton et al. (2004, @url{http://doi.org/10.1086/382245}).
+In short: it performs an inverse hyperbolic sinus (asinh) transformation of the images in order to change the dynamical range and show the bright and faint regions at the same time.
+There are several parameters and options in order to change the final output, see below.
+A general overview of this script will be published in @url{REF}; please cite it if this script proves useful in your research.
+
+@node Invoking astscript-rgb-image
+@subsection Invoking astscript-rgb-image
+This installed script will consider several images for combining them into a single color image.
+
+The executable name is @file{astscript-rgb-image}, with the following general template:
+
+@example
+$ astscript-rgb-image [OPTION...] r.fits g.fits b.fits
+@end example
+
+@noindent
+Examples (for a tutorial, see @ref{Color channels in same pixel grid}):
+
+@example
+## Generate a color image from three images with default options.
+$ astscript-rgb-image r.fits g.fits b.fits --output color.jpg
+
+## Generate a color image, consider the minimum value to be zero.
+$ astscript-rgb-image r.fits g.fits b.fits --minimum 0.0 \
+                      --output color.jpg
+
+## Generate a color image considering different weights, minimum values,
+## zero points, and contrast.
+$ astscript-rgb-image r.fits g.fits b.fits \
+                      --weights 0.9,1.0,1.1 \
+                      --minimum -0.1,0.0,0.1 \
+                      --zeropoints=22.4,25.5,24.6 \
+                      --contrast 3 --output color.jpg
+
+@end example
+
+This script considers three images to generate a color image as the output.
+The order of the images matter, it should be provided from reder to bluer: R, G, B.
+These images are internally manipulated by a series of asinh transformation and normalization to homogeneize and finally combine them into a color image.
+In general, for typical astronomical images, the default output is an image with the bright pixels in color and the noise pixels in black.
+
+The option @option{--minimum} sets the minimum value to be show and it is an key parameter, it uses to be a value close to the sky background level.
+The two important parameters that control the asinh transformation are @option{--qthresh} and @option{--stretch}.
+With the option @option{--grayback}, it is possible to generate a color image with the sky background in gray: bright pixels in color, the intermediate pixels in black, and the sky background (or noise) values in white.
+The black and white regions is what we call gray region.
+It is possible to provide a fourth image (K) that will be used for showing the gray region: R, G, B, K
+
+The generation of a good color image is something that requires several trials, so we encourage the user to play with the different parameters in a clever way.
+After some testing, we find useful to follow the steps:
+
+@enumerate
+@item
+Use the default options to guess the parameters.
+By running the script with no options at all, it will estimate the parameters and they will be printed on the command-line.
+@item
+Select a good sky background value of the images.
+A minimum value of zero could be a good option: @option{--minimum=0.0}.
+@item
+Focus on the bright regions and twek @option{--stretch} and @option{-qbright}.
+Try low values of @option{--qbright} tho show the bright parts.
+Then, adjust @option{--stretch} for showing the fainter regions around bright parts.
+Overall, play with these two parameters to show the color regions appropriately.
+@item
+Use @option{--checkparams} to check the pixel value distributions.
+@end enumerate
+
+@table @code
+@item -h
+@itemx --hdus=STR,STR,STR,[STR]
+HDU/extensions (comma separated) for each R, G, B, K FITS images.
+
+@item -H
+@itemx --hdu=STR
+Common HDU/extension for the (R,G,B,K) channel FITS images (this overrides -h or --hdus).
+
+@item -m
+@itemx --minimums=FLT,FLT,FLT,[FLT]
+Minimum values (comma separated) to be mapped for each R, G, B, K FITS images.
+This parameter controls the black level.
+In general, it is a good decision to set this value close the sky background level.
+Changing this value even slighly can dramatically change the output color image.
+
+@item -M
+@itemx --minimum=FLT
+Common minimum value for the (R,G,B,K) channel FITS images (this overrides -m or --minimums).
+
+@item -z
+@itemx --zeropoints=FLT,FLT,FLT
+Zero point values (comma separated) of each R, G, B, K FITS images.
+Internally, the zero point values are used to transform the pixel values in units of Janskies.
+The units are not important for a color image, but the fact that the images are photometrically calibrated is important for obtaining an output color image whose color distribution is realistic.
+
+@item -Z
+@itemx --zeropoint=FLT
+Common zero point value for the (R,G,B,K) channel FITS images (this overrides -z or --zeropoints).
+
+@item -w
+@itemx --weights=FLT,FLT,FLT
+Relative weights for the images (comma separated values).
+With this parameter it is possible to change the importance of each channel in order to modify the color of the image.
+For example, @option{--weights=1,2,5} indicates that the B band will be 5 times more important than the R band, and that the G band is 2 times more important than the R channel.
+In this particular example, the combination will be done as: @mymath{\rm{colored}=(1{\times}\rm{R}+2{\times}\rm{G}+5{\times}\rm{B})/(1 + 2 + 5)=0.125{\times}\rm{R} + 0.250{\times}\rm{G} + 0.625{\times}\rm{B}}.
+In principle, a color image should recreate real colors, but this is a very subjetive matter and with this option is possible to change the color balance.
+It is a decision of the user to use this parameter with careful.
+
+@item -Q
+@itemx --qbright=FLT
+It is one of the parameters that controls the asinh transformation.
+It should be used with in combination with @option{--stretch}.
+In general, it has to be set to low values.
+Then adjust @option{--stretch} to set the linear stretch (show the intermediate/faint structures).
+Finally, change @option{--qbright} to bring out the brighter features of the image.
+
+@item -s
+@itemx --stretch=FLT
+It is one of the parameters that controls the asinh transformation.
+It should be used with in combination with @option{--qbright}.
+It is used for bringing out the faint/intermediate bright structures of the image that are shown linearly.
+In general, this parameter is choosen after setting @option{--qbright} to a low value.
+
+@itemx --grayback
+By default, a black-background image is generated.
+That is, the lowest pixelvalues are shown in black.
+By using this option, a gray-background image will be generated.
+An averaged image from the three R, G, B is computed for the gray-background image.
+If a fourth image (K) is provided, then it is considered for the gray-background.
+See below for more options that control the color and gray regions.
+
+@itemx --colorval=FLT
+When @option{--grayback} is used, this parameter defines the value that separates the color and black regions.
+It ranges from 100 (all pixels becoming in color) to 0 (all pixels becoming black).
+Check the the histogram 'FOR COLOR-THRESHOLD'  with the option @option{--checkparams} for selecting a good value.
+
+@itemx --grayval=FLT
+When @option{--grayback} is used, this parameter defines the value that separates the black and white regions.
+It ranges from 100 (all pixels becoming black) to 0 (all pixels becoming white).
+Check the the histogram 'FOR GRAY-THRESHOLD'  with the option @option{--checkparams} to select the value.
+
+@itemx --colorkernelfwhm=FLT
+Gaussian kernel FWHM (in pixels) for convolving the color regions.
+Sometimes, a convolution of the color regions (bright pixels) is desired.
+With this option, the convolution will be done internally.
+
+@itemx --graykernelfwhm=FLT
+Gaussian kernel FWHM (in pixels) for convolving the background image.
+Sometimes, a convolution of the background image is necessary in order to smooth the noisier regions.
+With this option, the convolution will be done internally.
+
+@item -b
+@itemx --brightness=FLT
+Change the brightness of the final image.
+By increasing this value, more brightness will be added to the color image.
+This is applied at the same time than @option{--contrast}, see below.
+
+@item -c
+@itemx --contrast=FLT
+Change the contrast of the final image.
+This is applied at the same time than @option{--brightness}, see above.
+The transformation is: @mymath{\rm{output}=\rm{contrast}\times{image}+brightness}.
+
+@item -g
+@itemx --gamma=FLT
+Gamma exponent value for a gamma transformation.
+This transformation is not linear: @mymath{\rm{output}=\rm{image}^{gamma}}.
+This option overrides @option{--brightness} or @option{--contrast}.
+
+
+@itemx --keeptmp
+Do not remove the temporary directory (see description of This option is
+useful for debugging and checking the outputs of internal steps.
+
+@itemx --checkparams
+Print the statistics of intermediate images that are used for estimating the parameters.
+This option is useful to decide the optimum set of parameters.
+
+@item -o
+@itemx --output
+Output color image name.
+
+@item --cite
+Give BibTeX and acknowledgment information for citing this script within your paper.
+For more, see @option{Operating mode options}.
+
+@item -q
+@itemx --quiet
+Do not print the series of commands or their outputs in the terminal.
+For more, see @option{Operating mode options}.
+
+@item -V
+@itemx --version
+Print the version of the running Gnuastro along with a copyright notice and list of authors that contributed to this script.
+For more, see @option{Operating mode options}.
+@end table
+
+
 @node PSF construction and subtraction,  , Pointing pattern simulation, Installed scripts
 @section PSF construction and subtraction
 

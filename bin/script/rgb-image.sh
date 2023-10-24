@@ -150,14 +150,14 @@ $scriptname options:
  Color and gray parameters
       --grayback            Generate the gray-background color image.
       --grayval=FLT         Value that defines the black and white (for gray regions).
-      --colorval=FLT        Value that defines the separation between color and gray.
+      --colorval=FLT        Value that defines the separation between color and black.
       --graykernelfwhm=FLT  Kernel FWHM for convolving the background image.
       --colorkernelfwhm=FLT Kernel FWHM for convolving the reference image that is used
-                            for defining the separation between the color and gray parts.
+                            for defining the separation between the color and black parts.
  Output:
       --checkparams       Print the distribution of values for obtaining the parameters.
   -k, --keeptmp           Keep temporal/auxiliar files.
-  -o, --output            Output table with the radial profile.
+  -o, --output            Output color image name.
 
  Operating mode:
   -h, --help              Print this help list.
@@ -940,6 +940,7 @@ if [ x$grayback = x1 ]; then
     grayval_guessed=$(aststatistics $I_GRAY_colormasked --median -q)
 
     if [ x$grayval = x"" ]; then
+      grayval=$grayval_guessed
       ln -sf $(realpath $I_GRAY_colormasked) $I_GRAY_colormasked_clipped
     else
       astarithmetic $I_GRAY_colormasked -h1 set-i \
@@ -1036,15 +1037,15 @@ if [ ! x$quiet = x"--quiet" ]; then
   # that are going to be used. This will helps to guess appropiate parameters
   if [ x$checkparams = x1 ]; then
   echo "                   "
-  echo "FOR ASINH TRANSFORMATION ('--strech' and '--qbright' parameters)."
+  echo "FOR ASINH-TRANSFORMATION ('--strech' and '--qbright' parameters)."
   aststatistics $I_RGB_stack
 
   echo "                   "
-  echo "FOR COLOR THRESHOLD (separation between color and gray, '--colorval' parameter)"
+  echo "FOR COLOR-THRESHOLD (separation between color and black, '--colorval' parameter)"
   aststatistics $I_COLORGRAY_threshold
 
   echo "                   "
-  echo "FOR BLACK THRESHOLD (separation between black and white, '--grayval' parameter)"
+  echo "FOR GRAY-THRESHOLD (separation between black and white, '--grayval' parameter)"
   aststatistics $I_GRAY_colormasked
   fi
 
@@ -1060,15 +1061,17 @@ TIPS:
       Then, adjust '--stretch' for showing the fainter regions around bright parts.
       Overall, play with these two parameters to show the color regions appropriately.
   # (next tips only for gray background image: --grayback)
-  # Change '--colorval' to select the value that separates the color and gray regions.
-      --colorval=100 means all will be shown in color.
-      --colorval=0 means everything will become gray.
-  # Change '--grayval' to change the gray pixels to black (from $grayval_guessed to 100.0).
-      --grayval=100 means all gray regions will become black.
+  # Change '--colorval' to select the value that separates the color and black regions.
+      --colorval->100 --> all becoming color.
+      --colorval->0   --> all becoming black.
+  # Change '--grayval' to select the value that separates the black and white regions
+      (from $grayval_guessed to 100.0)
+      --grayval->100 --> all becoming black.
+      --grayval->0   --> all becoming white.
 
 PARAMETERS:
-  Guessed: --qbright=$qbright_guessed --stretch=$stretch_guessed --colorval=$colorval_guessed --grayval=$grayval_guessed
-  Used   : --qbright=$qbright_value --stretch=$stretch_value --colorval=$colorval --grayval=$grayval
+  Estimated: --qbright=$qbright_guessed --stretch=$stretch_guessed --colorval=$colorval_guessed --grayval=$grayval_guessed
+  Used     : --qbright=$qbright_value --stretch=$stretch_value --colorval=$colorval --grayval=$grayval
 
 Output written to '$output'.
 EOF
