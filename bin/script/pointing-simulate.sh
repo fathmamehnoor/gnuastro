@@ -141,6 +141,9 @@ Paper describing this script
             eid = {211},
           pages = {211},
             doi = {10.3847/2515-5172/acfc44},
+archivePrefix = {arXiv},
+       eprint = {2310.15006},
+ primaryClass = {astro-ph.IM},
          adsurl = {https://ui.adsabs.harvard.edu/abs/2023RNAAS...7..211A},
         adsnote = {Provided by the SAO/NASA Astrophysics Data System}
   }
