@@ -1056,9 +1056,9 @@ TIPS:
   # First use the default options to guess the parameters.
   # Select a good sky background value of the images.
       A minimum value of zero could be a good option: --minimum=0.0
-  # Focus on the bright regions and twek '--stretch' and '-qbright'.
-      Try low values of '--qbright' tho show the bright parts.
-      Then, adjust '--stretch' for showing the fainter regions around bright parts.
+  # Focus on the bright regions and tweak '--stretch' and '-qbright'.
+      Try low values of '--qbright' to show the bright parts.
+      Then, adjust '--stretch' to show the fainter regions around bright parts.
       Overall, play with these two parameters to show the color regions appropriately.
   # (next tips only for gray background image: --grayback)
   # Change '--colorval' to select the value that separates the color and black regions.
