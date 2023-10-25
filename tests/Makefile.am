@@ -239,7 +239,8 @@ if COND_WARP
 endif
 
 # Script tests.
-SCRIPT_TESTS = script/psf-unite.sh \
+SCRIPT_TESTS = script/rgb-image.sh \
+               script/psf-unite.sh \
                script/psf-stamp.sh \
                script/zeropoint.sh \
                script/psf-subtract.sh \
