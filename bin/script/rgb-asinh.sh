@@ -80,7 +80,7 @@ quiet=""
 tmpdir=""
 keeptmp=0
 checkparams=0
-output="rgb-image.jpg"
+output="rgb-asinh.jpg"
 
 grayback=0
 

@@ -42,7 +42,7 @@ astscript-fits-view.desktop: $(srcdir)/fits-view.desktop.desktop Makefile
 bin_SCRIPTS = astscript-fits-view \
               astscript-psf-unite \
               astscript-psf-stamp \
-              astscript-rgb-image \
+              astscript-rgb-asinh \
               astscript-zeropoint \
               astscript-ds9-region \
               astscript-psf-subtract \
@@ -55,7 +55,7 @@ bin_SCRIPTS = astscript-fits-view \
 EXTRA_DIST = fits-view.sh \
              psf-unite.sh \
              psf-stamp.sh \
-             rgb-image.sh \
+             rgb-asinh.sh \
              zeropoint.sh \
              zeropoint.mk \
              ds9-region.sh \
@@ -130,6 +130,6 @@ astscript-zeropoint: zeropoint.sh Makefile
 	$(do_subst) < $(srcdir)/zeropoint.sh > $@
 	chmod +x $@
 
-astscript-rgb-image: rgb-image.sh Makefile
-	$(do_subst) < $(srcdir)/rgb-image.sh > $@
+astscript-rgb-asinh: rgb-asinh.sh Makefile
+	$(do_subst) < $(srcdir)/rgb-asinh.sh > $@
 	chmod +x $@

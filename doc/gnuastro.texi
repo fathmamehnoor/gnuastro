@@ -333,6 +333,10 @@ Detecting lines and extracting spectra in 3D data
 * Extracting a single spectrum and plotting it::  Extracting a single vector row.
 * Pseudo narrow-band images::   Collapsing the third dimension into a 2D image.
 
+Color channels in same pixel grid
+
+* Color image using asinh transformation::
+
 Zero point of an image
 
 * Zero point tutorial with reference image::  Using a reference image.
@@ -767,7 +771,7 @@ Installed scripts
 * Viewing FITS file contents with DS9 or TOPCAT::  Open DS9 (images/cubes) or TOPCAT (tables).
 * Zero point estimation::       Zero point of an image from reference catalog or image(s).
 * Pointing pattern simulation::  Simulate a stack with a given series of pointings.
-* RGB image creation::
+* RGB asinh image::
 * PSF construction and subtraction::  Set of scripts to create extended PSF of an image.
 
 Sort FITS files by night
@@ -799,9 +803,9 @@ Pointing pattern simulation
 
 * Invoking astscript-pointing-simulate::  Options and running mode.
 
-RGB image
+RGB asinh image
 
-* Invoking astscript-rgb-image::
+* Invoking astscript-rgb-asinh::
 
 PSF construction and subtraction
 
@@ -8792,7 +8796,26 @@ This shows how green and red channels have been slightly shifted to put your ast
 If you don't want to have those, or if you want the outer parts of the final image (where there was no data) to be white, some more complex commands are necessary.
 We'll leave those as an exercise for you to try your self using @ref{Warp} and/or @ref{Crop} to pre-process the inputs before converting it to a color image.
 
+@menu
+* Color image using asinh transformation::
+@end menu
 
+@node Color image using asinh transformation,  , Color channels in same pixel grid, Color channels in same pixel grid
+@subsection Color image using asinh transformation
+Once the three channel images are at the same pixel grid, it is also possible to create a color image with the Gnuastro's @command{astscript-rgb-asinh}.
+The difference with respect to @command{astconvertt} is the transformations of the input images that is done in advance.
+Basically, the input images are transformed (by the asinh operator) in order to be able to show the entire range of pixel values.
+By running the following command, a color image with a gray background is generated,
+
+@example
+$ astscript-rgb-asinh i.fits r.fits g.fits --hdu 1 --minimum 0.0 \
+                      --grayback --contrast 3 --output m51-asinh.pdf
+@end example
+
+In this example, zero has been set as the minimum value to be shown, we asked for a gray background, and we increased the contrast by 3.
+Have a look and check the differences with respect to the color image obtained above.
+Note that now it is possible to visualize the complete range of pixel values (from the brightest to the sky background).
+For more information about the @command{astscript-rgb-asinh} script and its options see @ref{RGB asinh image}.
 
 
 
@@ -32490,7 +32513,7 @@ If you do confront such strange errors, please submit a bug report so we fix it 
 * Viewing FITS file contents with DS9 or TOPCAT::  Open DS9 (images/cubes) or TOPCAT (tables).
 * Zero point estimation::       Zero point of an image from reference catalog or image(s).
 * Pointing pattern simulation::  Simulate a stack with a given series of pointings.
-* RGB image creation::
+* RGB asinh image::
 * PSF construction and subtraction::  Set of scripts to create extended PSF of an image.
 @end menu
 
@@ -33620,7 +33643,7 @@ When this option is given, the default installed Makefile will not be used: the 
 @end table
 
 
-@node Pointing pattern simulation, RGB image creation, Zero point estimation, Installed scripts
+@node Pointing pattern simulation, RGB asinh image, Zero point estimation, Installed scripts
 @section Pointing pattern simulation
 
 @cindex Depth of data
@@ -33860,8 +33883,8 @@ For more, see @option{Operating mode options}.
 @end table
 
 
-@node RGB image creation, PSF construction and subtraction, Pointing pattern simulation, Installed scripts
-@section RGB image
+@node RGB asinh image, PSF construction and subtraction, Pointing pattern simulation, Installed scripts
+@section RGB asinh image
 A RGB (Red, Green, Blue) image is a color image generated using images from three different filters or channels.
 More info at @url{https://en.wikipedia.org/wiki/RGB_color_model}.
 Typical astronomical images have a very wide range of pixel values and generally, it is difficult to show the entire dynamical range in a color image.
@@ -33878,16 +33901,16 @@ There are several parameters and options in order to change the final output, se
 A general overview of this script will be published in @url{REF}; please cite it if this script proves useful in your research.
 
 @menu
-* Invoking astscript-rgb-image::
+* Invoking astscript-rgb-asinh::
 @end menu
 
-@node Invoking astscript-rgb-image,  , RGB image creation, RGB image creation
-@subsection Invoking astscript-rgb-image
+@node Invoking astscript-rgb-asinh,  , RGB asinh image, RGB asinh image
+@subsection Invoking astscript-rgb-asinh
 This installed script will consider several images to combine them into a single color image.
-The executable name is @file{astscript-rgb-image}, with the following general template:
+The executable name is @file{astscript-rgb-asinh}, with the following general template:
 
 @example
-$ astscript-rgb-image [OPTION...] r.fits g.fits b.fits
+$ astscript-rgb-asinh [OPTION...] r.fits g.fits b.fits
 @end example
 
 @noindent
@@ -33895,15 +33918,15 @@ Some examples (to obtain three appropriate images see @ref{Color channels in sam
 
 @example
 ## Generate a color image from three images with default options.
-$ astscript-rgb-image r.fits g.fits b.fits --output color.jpg
+$ astscript-rgb-asinh r.fits g.fits b.fits --output color.jpg
 
 ## Generate a color image, consider the minimum value to be zero.
-$ astscript-rgb-image r.fits g.fits b.fits --minimum 0.0 \
+$ astscript-rgb-asinh r.fits g.fits b.fits --minimum 0.0 \
                       --output color.jpg
 
 ## Generate a color image considering different weights, minimum values,
 ## zero points, and contrast.
-$ astscript-rgb-image r.fits g.fits b.fits \
+$ astscript-rgb-asinh r.fits g.fits b.fits \
                       --weights 0.9,1.0,1.1 \
                       --minimum -0.1,0.0,0.1 \
                       --zeropoints 22.4,25.5,24.6 \
@@ -34072,7 +34095,7 @@ For more, see @option{Operating mode options}.
 @end table
 
 
-@node PSF construction and subtraction,  , RGB image creation, Installed scripts
+@node PSF construction and subtraction,  , RGB asinh image, Installed scripts
 @section PSF construction and subtraction
 
 The point spread function (PSF) describes how the light of a point-like source is affected by several optical scattering effects (atmosphere, telescope, instrument, etc.).
