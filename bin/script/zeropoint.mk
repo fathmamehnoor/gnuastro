@@ -65,6 +65,7 @@ $(stars): $(input) | $(tmpdir)
 ifeq ($(strip $(starcat)),)
 	raw=$(subst .fits,-raw.fits,$@); \
 	astquery gaia --dataset=dr3 \
+	         --hdu=$(hduinput) \
 	         --overlapwith=$(input) \
 	         -csource_id -cra -cdec -cparallax \
 	         -cparallax_error -cpmra -cpmdec --output=$$raw; \

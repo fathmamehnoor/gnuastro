@@ -8911,8 +8911,8 @@ HDU (extension) information: 'jplus.fits.fz'.
 
 Therefore, in order to be able to compare the SDSS and J-PLUS images, we should first subtract the sky from the J-PLUS image.
 To do that, we can either subtract the @code{BACKGROUND_MODEL} HDU from the @code{IMAGE} HDU using @ref{Arithmetic}, or we can use @ref{NoiseChisel} to find a good sky ourselves.
-As scientists we like to tweak and be creative, so let's estimate it ourselves!
-Also, in some cases, you may not have a pre-estimated Sky estimation, so you should be prepared:
+As scientists we like to tweak and be creative, so let's estimate it ourselves with the command below.
+Generally, you may not have a pre-estimated Sky estimation like above, so you should be prepared to subtract the sky yourself.
 
 @example
 $ astnoisechisel jplus-crop.fits --output=jplus-nc.fits
