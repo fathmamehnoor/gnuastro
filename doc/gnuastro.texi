@@ -8888,7 +8888,7 @@ Remember that there are a lot of pixels close to zero and only a few that are ve
 As a consequence, let's consider cutting brighter pixels.
 In general, a multiple of the standard deviation can be used for estimating this parameters.
 But we note the reader that this is very sensitive to each dataset, so be careful with the selection.
-Here, we will use @command{--fluxhigh 3.0} because it is roughly 3 times the standard deviation value of the i-band image.
+Here, we will use @option{--fluxhigh 3.0} because it is roughly 3 times the standard deviation value of the i-band image.
 
 @example
 $ astconvertt i.fits r.fits g.fits -g1 \
@@ -8899,8 +8899,8 @@ $ astconvertt i.fits r.fits g.fits -g1 \
 Open the color image and see that now the image shows some regions of the M51 group.
 The most central part of the bright objects are visible.
 But still the vast majority of the image is in black.
-Play with different values of @command{--fluxhigh} to improve the image and obtain a better result.
-For example, with @command{--fluxlow 0.0} and @option{--fluxhigh 0.1} it is possible to obtain a color image in which the faint regions (pixels between 0.0 - 0.1) are visible, but consequently, the bright parts are "saturated".
+Play with different values of @option{--fluxhigh} to improve the image and obtain a better result.
+For example, with @option{--fluxlow 0.0} and @option{--fluxhigh 0.1} it is possible to obtain a color image in which the faint regions (pixels between 0.0 - 0.1) are visible, but consequently, the bright parts are "saturated".
 
 In some situations, depending on the scientific goal, this kind of images could be good enough.
 However, it may happen that other cases require even better color images in which the entire dynamical range is properly seeing, for example to visualize low surface brightness structures.
@@ -8936,22 +8936,191 @@ We have implemented a check in Warp to inform you when the images are not aligne
 
 @node Color image using asinh transformation,  , Color image using linear transformation, Creating color images
 @subsection Color image using asinh transformation
-Once the three channel images are at the same pixel grid, it is also possible to create a color image with the Gnuastro's @command{astscript-rgb-asinh}.
-The difference with respect to @command{astconvertt} is the transformations of the input images that is done in advance.
-Basically, the input images are transformed (by the asinh operator) in order to be able to show the entire range of pixel values.
-By running the following command, a color image with a gray background is generated,
+In the previous sections  we have aligned three SDSS images of M51 group @ref{Color channels in same pixel grid}, and create color images using @command{astconvertt}, @ref{Color image using linear transformation}.
+In this section we will show how to use the @command{astscript-rgb-asinh} script to generate color images.
+This scripts performs a non linear transformation of the input images before combining them to generate the color image.
+Basically, the input images are stretched using the asinh function in order to modify and show the entire range of pixel values as outlined by Lupton et al. (2004, @url{https://arxiv.org/abs/astro-ph/0312483}).
+See @ref{RGB asinh image} of this manual and Infante-Sainz et al. (2023, @url{TBD}) for more information.
+
+This script offers multiple options that you need to fine tune with the goal of obtaining the best color image quality possible.
+We will review in what follow some of the most important ones.
+Recall that images should be provided from redder to bluer, so in our case Red-Green-Blue means i, r, and g .fits images.
+Let's run the script with the default options on the SDSS M51 aligned images by executing the following command:
 
 @example
-$ astscript-rgb-asinh i.fits r.fits g.fits --hdu 1 --minimum 0.0 \
-                      --grayback --contrast 3 --output m51-asinh.pdf
+$ astscript-rgb-asinh i.fits r.fits g.fits --hdu 1 \
+                      --output m51-default.pdf
 @end example
 
-In this example, zero has been set as the minimum value to be shown, we asked for a gray background, and we increased the contrast by 3.
-Have a look and check the differences with respect to the color image obtained above.
-Note that now it is possible to visualize the complete range of pixel values (from the brightest to the sky background).
-For more information about the @command{astscript-rgb-asinh} script and its options see @ref{RGB asinh image}.
+The script prints on the command-line some useful tips and the values that have been automatically estimated and used.
+We will follow and explain these tips in order to improve the output.
+Open the image and have a look, it is a color image with the background in black.
+Contrary on what happen by using simply @command{astconvertt}, now the images have been modified and you can be seen the M51 group.
+This output can be improved a lot!
 
+The first important parameter that we should properly set is the background value, or the minimum value to be displayed: @option{--minimum}.
+For each image it could be a diferent value, in that case you should provide comma-separated values with the option @option{--minimums}.
+In this particular case, a minimum value of zero for all images is good: @option{--minimums=0,0,0} or @option{--minimum=0}.
 
+@example
+$ astscript-rgb-asinh i.fits r.fits g.fits --hdu 1 \
+                      --minimum 0.0 --output m51-min0.pdf
+@end example
+
+The difference with respect to the default image is not too much since the input images are quiete homogeneus, i.e., the background are zero and the noise around this value is small and similar in all of them.
+The default image appears more gray in the background, since it is trying to show the entire range of values.
+On the other hand, in the image generated with the minimum value of zero, the background appears more darker (strong black), since it is avoiding negative pixels to be shown.
+
+The next parameters that we should look at are: @option{--qbright} and @option{--stretch}.
+They control the asinh transformation that changes the pixel value distributions.
+The values that have been estimated is shown at the end of the execution of the script.
+Let's decrease @option{--qbright} by an order of magnitude in order to better show the very bright regions of the image.
+
+@example
+$ astscript-rgb-asinh i.fits r.fits g.fits --hdu 1 \
+                      --minimum 0.0 \
+                      --qbright 1.481888e-02 \
+                      --output m51-min0-qbright.pdf
+@end example
+
+Open the image and check if the bright regions are properly shown.
+Now, decrease the paramter @option{--stretch} in order to show the regions around very bright pixels in linear scale.
+This allows you to show the fainter regions like the outer parts of the galaxies, spiral arms, stellar streams, and etc. as desired.
+
+@example
+$ astscript-rgb-asinh i.fits r.fits g.fits --hdu 1 \
+                      --minimum 0.0 \
+                      --qbright 1.481888e-02 \
+                      --stretch 1.481888e-04 \
+                      --output m51-min0-qbright-stretch.pdf
+@end example
+
+Have a look at the image and check that now the faint regions are clearly visible.
+As you may have noticed, the ratio between the estimated paramteters are such as qbright/stretch = 10.
+This ratio is an emphirical value we have found after many color images generated.
+In the last example we set this ratio to be larger: qbright/stretch = 100, and it seems that it shows better the faint regions.
+There are other options that will improve this image but we will see them later.
+Now, let's use the option @option{--grayback} to create gray background images.
+In order to have a shorter acommand-line examples, we will use the internally estimated values for @option{--qbright} and @option{--stretch} paramters.
+
+@example
+$ astscript-rgb-asinh i.fits r.fits g.fits --hdu 1 \
+                      --minimum 0.0 \
+                      --grayback \
+                      --output m51-min0-gray.pdf
+@end example
+
+Open the image and note that now the background is shown in gray!
+This color scheme is especially interesting for visualizing low surface brightness features.
+In this case, the very bright regions are shown in color, intermediate and faint regions are shown in black, and background or noisy pixels are shown in gray.
+Do you see the complex, diffuse and faint structures that are generated from the interaction of the galaxies?
+This was completely hidden in the linear or black background images, but now, just showing the background in gray with the option @option{--colorval} it is visible!
+The paramters that defines the separation between the color and black regions is @option{--grayval}.
+There is also another similar option that separates the black and gray regions, @option{--colorval}.
+
+First, try decreasing @option{--colorval} to 50.0 (by default it is 99.5) in order consider less area to be shown in color (only the very bright regions).
+
+@example
+$ astscript-rgb-asinh i.fits r.fits g.fits --hdu 1 \
+                      --minimum 0.0 \
+                      --grayback \
+                      --colorval 50.0 \
+                      --output m51-min0-gray-colorval.pdf
+@end example
+
+For this value of @option{--colorval}, the estimated @option{--grayval} value is 96.2.
+Now, decrease this parameter to 70.0 in order to decrease the area that is shown in gray, or alternatively, increase the regions that are shown in black.
+
+@example
+$ astscript-rgb-asinh i.fits r.fits g.fits --hdu 1 \
+                      --minimum 0.0 \
+                      --grayback \
+                      --colorval 50.0 \
+                      --grayval 70.0 \
+                      --output m51-min0-gray-colorval-grayval.pdf
+@end example
+
+By playing with this two parameters, it is possible to obtain the best result.
+The values used here are somehow extreme to ilustrate the logic of the procedure, but we encourage you to play with values close to the estimated by default.
+With the option @option{--checkparams} the script will show three histrograms on the command-line.
+They correspond to the different pixel value distribution that are used for estimating the parameters discussed until here.
+
+Instead of using a combination of the three input images for the gray background, it is possible to add a fourth image that will be used for generating the gray background.
+It is called the "K" channel and sometimes it is useful when a given filter is deeper or has some especial features.
+In this case the reasoning is the same as explained above.
+There are two other options that allow the smoothing of the different regions by convolving with a gaussian kernel.
+These two options are @option{--colorkernelfwhm} for smoothing the color regions, and @option{--graykernelfwhm} for convolving the gray regions.
+The value read by this options is the full width at half maximum of the gaussian kernel.
+
+Until now, we assumed that the three images have the same zero point magnitude.
+Said in other words, we considered that the pixel units were the same for the different channels.
+However, it may happen that the different channels have different zero point values.
+To account for this situations, the zero point values can be provided as comma-separated values with the option @option{--zeropoints}.
+In this case, the zero point magnitudes will be used for transform the different channels to the same units internally.
+
+In order to modify the color of the output image, it is possible to weight the three channels differently.
+This can be done with the option @option{--weights}.
+For example, with @option{--weights 1,1,4}, we are giving 4 times more weight to the blue channel than to the red and green channels.
+
+@example
+$ astscript-rgb-asinh i.fits r.fits g.fits --hdu 1 \
+                      --minimum 0.0 \
+                      --grayback \
+                      --weights 1,1,4 \
+                      --output m51-min0-gray-bluer.pdf
+@end example
+
+As a consequence, the output color image looks much bluer.
+This opens the possibility of alter the color of the images by a lot, and later analyses will be wrong.
+If the reduction, the photometric calibration, and the images represent what we consider are the red, green, and blue channels, then the output color image should be fine.
+In some situations it may happen that the combination of channels has not a traditional color interpretation.
+For example, the result of combining an x-ray channel with an optical filter and a far infrarred image has a complicate interpretation from the point of view of what humans understand by color.
+However, the physical interpretation is that the different channels (colors on the output) provides different physical phenomena of the astronomical sources.
+Overall, we recall that this option should be used with care.
+With great power there must also come great responsibility!
+
+There are two other transformations that allows to change the output color image appearance.
+A linear transformation that consists in a combination of adding brightness and increasing the contrast with the options @option{--brightness} and @option{--contrast}.
+Usually, only the contrast is enough to improve the quality of the color image.
+For example, generate the previous color image and compare it with the image using @option{--contrast 3}:
+
+@example
+$ astscript-rgb-asinh i.fits r.fits g.fits --hdu 1 \
+                      --minimum 0.0 \
+                      --grayback \
+                      --output m51-min0-gray-default.pdf
+
+$ astscript-rgb-asinh i.fits r.fits g.fits --hdu 1 \
+                      --minimum 0.0 \
+                      --grayback \
+                      --contrast 3 \
+                      --output m51-min0-gray-default.pdf
+@end example
+
+As it is clear, the contrast and clarity of the image with the higher contrast is much better.
+A gamma correction (non linear) is also available through the option @option{--gamma}.
+This is a different type of transformation that could be useful depending on the particular case.
+Try different values of gamma and check the results with respect the default values image.
+Low values of gamma will show fainter structures on the image, while higher values will show brighter regions.
+
+@example
+$ astscript-rgb-asinh i.fits r.fits g.fits --hdu 1 \
+                      --minimum 0.0 \
+                      --grayback \
+                      --gamma 0.25 \
+                      --output m51-min0-gray-gamalow.pdf
+
+$ astscript-rgb-asinh i.fits r.fits g.fits --hdu 1 \
+                      --minimum 0.0 \
+                      --grayback \
+                      --gamma 2.2 \
+                      --output m51-min0-gray-gamahigh.pdf
+@end example
+
+Through this tutorial, we have tried to reproduce the basic steps in order to construct a color image from three different images using the @command{astscript-rgb-asinh} script.
+We note that the parameters that generate the best color image will depend a lot on what you want to show, and the quality of the input images.
+We encourage you to follow the tutorial step by step with the SDSS images, and later with your own data.
+See @ref{RGB asinh image} for more information, and please cite Infante-Sainz et al. (2023, @url{TBD}) if you use this script.
 
 @node Zero point of an image, Pointing pattern design, Creating color images, Tutorials
 @section Zero point of an image

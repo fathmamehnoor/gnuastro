@@ -1052,22 +1052,19 @@ if [ ! x$quiet = x"--quiet" ]; then
   cat <<EOF
 
 TIPS:
-  # Use '--checkparams'to check the pixel value distributions.
-  # First use the default options to guess the parameters.
-  # Select a good sky background value of the images.
-      A minimum value of zero could be a good option: --minimum=0.0
-  # Focus on the bright regions and tweak '--stretch' and '-qbright'.
-      Try low values of '--qbright' to show the bright parts.
+  # First, use the default options to estimate the parameters.
+  # Select a good background value of the images:
+      A minimum value of zero could be a good option: '--minimum=0.0'
+  # Focus on the bright regions and tweak '--qbright' and '--stretch':
+      First, try low values of '--qbright' to show the bright parts.
       Then, adjust '--stretch' to show the fainter regions around bright parts.
       Overall, play with these two parameters to show the color regions appropriately.
-  # (next tips only for gray background image: --grayback)
-  # Change '--colorval' to select the value that separates the color and black regions.
-      --colorval->100 --> all becoming color.
-      --colorval->0   --> all becoming black.
-  # Change '--grayval' to select the value that separates the black and white regions
-      (from $grayval_guessed to 100.0)
-      --grayval->100 --> all becoming black.
-      --grayval->0   --> all becoming white.
+  # [next tips only for gray background image: --grayback]
+  # Change '--colorval' to separate the color and black regions:
+      Increase/decrease it to increase/decrease the color area (brightest pixels).
+  # Change '--grayval' to separate the black and gray regions:
+      Decrease it to increase the regions that are shown in black.
+  # Use '--checkparams'to check the pixel value distributions.
 
 PARAMETERS:
   Estimated: --qbright=$qbright_guessed --stretch=$stretch_guessed --colorval=$colorval_guessed --grayval=$grayval_guessed
