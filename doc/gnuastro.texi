@@ -272,7 +272,7 @@ Tutorials
 * Building the extended PSF::   How to extract an extended PSF from science data.
 * Sufi simulates a detection::  Simulating a detection.
 * Detecting lines and extracting spectra in 3D data::  Extracting spectra and emission line properties.
-* Color channels in same pixel grid::  Aligning images to same grid to build color image.
+* Creating color images::
 * Zero point of an image::      Estimate the zero point of an image.
 * Pointing pattern design::     Optimizing the pointings of your observations.
 * Moire pattern in stacking and its correction::  How to avoid this grid-based artifact.
@@ -333,7 +333,17 @@ Detecting lines and extracting spectra in 3D data
 * Extracting a single spectrum and plotting it::  Extracting a single vector row.
 * Pseudo narrow-band images::   Collapsing the third dimension into a 2D image.
 
+Creating color images
+
+* Color channels in same pixel grid::
+* Color image using linear transformation::
+* Color image using asinh transformation::
+
 Color channels in same pixel grid
+
+* Color image using linear transformation::
+
+Color image using linear transformation
 
 * Color image using asinh transformation::
 
@@ -2057,7 +2067,7 @@ For an explanation of the conventions we use in the example codes through the bo
 * Building the extended PSF::   How to extract an extended PSF from science data.
 * Sufi simulates a detection::  Simulating a detection.
 * Detecting lines and extracting spectra in 3D data::  Extracting spectra and emission line properties.
-* Color channels in same pixel grid::  Aligning images to same grid to build color image.
+* Creating color images::
 * Zero point of an image::      Estimate the zero point of an image.
 * Pointing pattern design::     Optimizing the pointings of your observations.
 * Moire pattern in stacking and its correction::  How to avoid this grid-based artifact.
@@ -7848,7 +7858,7 @@ It was nearly sunset and they had to begin preparing for the night's measurement
 
 
 
-@node Detecting lines and extracting spectra in 3D data, Color channels in same pixel grid, Sufi simulates a detection, Tutorials
+@node Detecting lines and extracting spectra in 3D data, Creating color images, Sufi simulates a detection, Tutorials
 @section Detecting lines and extracting spectra in 3D data
 
 @cindex IFU
@@ -8729,8 +8739,32 @@ Click on the scroll-down menu in front of ``Table'' and select @file{2: collapse
 Afterwards, you will see the optimized pseudo-narrow-band image radial profile as blue points.
 @end enumerate
 
-@node Color channels in same pixel grid, Zero point of an image, Detecting lines and extracting spectra in 3D data, Tutorials
-@section Color channels in same pixel grid
+@node Creating color images, Zero point of an image, Detecting lines and extracting spectra in 3D data, Tutorials
+@section Creating color images
+Color images are fundamental tools to visualize astronomical datasets and extract valuable physical information from them.
+Because of the intrinsic nature of the sources, images use to have much more faint or noisy than bright pixels.
+It is because the regions covered by the sky background or empty regions where there are no detectable sources are much more than those regions corresponding to the center of stars or galaxies.
+This non homogeneus distribution of pixel values makes the creation and visualization of color images a difficult task.
+
+A color image is a combination of different channels, each one corresponding to a given filter or wavelength.
+In general, the most common is the Red-Green-Blue or RGB.
+In this section two different methods for creating color images are exposed.
+The first method is to consider the program @command{astconvertt}, for more info see @ref{ConvertType}.
+In this case three images will be the inputs for generating the color image without any previous treatment.
+The second method is to consider the script @command{astscript-rgb-asinh}.
+In this case, some previous treatment is performed.
+It consists in the stretching of the pixel value distributions in order to show them in a better way.
+More information about color images in astronomy and the @command{astscript-rgb-asinh} script can be found in Infante-Sainz et al. (2023, @url{TBD}).
+
+
+@menu
+* Color channels in same pixel grid::
+* Color image using linear transformation::
+* Color image using asinh transformation::
+@end menu
+
+@node Color channels in same pixel grid, Color image using linear transformation, Creating color images, Creating color images
+@subsection Color channels in same pixel grid
 
 In order to use different images as color channels, it is important that the images be properly aligned and on the same pixel grid.
 When your inputs are high-level products of the same survey, this is usually the case.
@@ -8753,21 +8787,29 @@ $ for f in g r i; do \
 @end example
 
 With the commands below, first we'll check the size of all three images to confirm that they have exactly the same number of pixels.
-Then we'll use them as three color channels to construct a PDF image:
+Then we'll open them using @command{astscript-fits-view} to check if they are aligned.
 
 @example
 ## Check the number of pixels along each axis of all images.
 $ astfits inputs/*.fits --keyvalue=NAXIS1,NAXIS2
 
-## Create a color image from the non-yet-aligned inputs.
-$ astconvertt inputs/i.fits inputs/r.fits inputs/g.fits -g1 \
-              --fluxhigh=1 -om51-not-aligned.pdf
+## Open the images locked by image coordinates
+$ astscript-fits-view inputs/*.fits
 @end example
 
-Open @file{m51-not-aligned.pdf} with your PDF viewer, and zoom-in to some part of the image with fewer sources.
-You will clearly see that for each object, there are three copies, one in red (from the reddest filter; i), one in green (from the middle filter; r), and one in blue (the bluest filter; g).
-Did you see the Warning message that was printed after your latest command?
-We have implemented a check in Warp to inform you when the images are not aligned and can produce bad (in most cases!) outputs like this.
+Consider a faint and point-like source, for example the one that is located at RA=202.55718 and DEC=47.40583.
+This source is at the same position on the sky, i.e., same RA and DEC on the different images, but at different pixel positions of the images.
+The pixel position on each images are approximately the following:
+
+@example
+image    x (pix)   y (pix)
+g.fits   1767      1125
+r.fits   1765      1113
+i.fits   1767      1115
+@end example
+
+In other words, the images are not aligned in the same pixel grid because the same source does not have the same image coordinates.
+As a consequence, it is necessary to align the images before making the color image, otherwise this miss-alignment will generate artificial color gradients.
 
 To solve this problem, you need to align the three color channels into the same pixel grid.
 To do that, we will use the @ref{Warp} program and in particular, its @ref{Align pixels with WCS considering distortions}.
@@ -8775,7 +8817,7 @@ To do that, we will use the @ref{Warp} program and in particular, its @ref{Align
 Let's take the middle (r band) filter as the reference to define our grid.
 With the first command below, let's align the r band filter to the celestial coordinates (so the M51 group's position angle doesn't depend on the orientation of the telescope when it took this image).
 With the next two commands, let's use the @option{--gridfile} to ensure that the pixel grid and WCS comes from the r band image, but the pixel values come from the other two filters.
-Finally, in the last command, we'll produce the color PDF from the three aligned images (that aren't in the @file{inputs/} directory any more):
+Finally, in the last command, we'll visualize the three re-gridded images (that aren't in the @file{inputs/} directory any more).
 
 @example
 ## Put all three channels in the same pixel grid.
@@ -8783,24 +8825,116 @@ $ astwarp inputs/r.fits                   --output=r.fits
 $ astwarp inputs/g.fits --gridfile=r.fits --output=g.fits
 $ astwarp inputs/i.fits --gridfile=r.fits --output=i.fits
 
-## Create a color image from the aligned inputs.
-$ astconvertt i.fits r.fits g.fits -g1 --fluxhigh=1 -om51.pdf
+## Open the images locked by image coordinates
+$ astscript-fits-view *.fits
 @end example
 
-Open the new @file{m51.pdf} and compare it with the old @file{m51-not-aligned.pdf}.
-The difference is obvious!
-When you zoom-in, the stars are very clear and the different color channels of the same object in the sky don't fall on different pixels.
-If you look closely on the two longer edges of the image, you will see that one edge has a thin green shadow and the other has a thin red shadow.
-This shows how green and red channels have been slightly shifted to put your astronomical sources on the same grid.
+Note that now the images are pixel-by-pixel aligned.
+As an example, consider the same source you looked at before (RA=202.55718 and DEC=47.40583).
+Now, it is at the same x and y positions accross the three images.
+In other words, now the three images are aliged in the same pixel grid.
 
-If you don't want to have those, or if you want the outer parts of the final image (where there was no data) to be white, some more complex commands are necessary.
-We'll leave those as an exercise for you to try your self using @ref{Warp} and/or @ref{Crop} to pre-process the inputs before converting it to a color image.
+We have the necessary data to continue with the generation of the color images.
+
+@menu
+* Color image using linear transformation::
+@end menu
+
+@node Color image using linear transformation, Color image using asinh transformation, Color channels in same pixel grid, Creating color images
+@subsection Color image using linear transformation
+In this section we will generate color images using the input images by themselves.
+This means that the pixel value distributions will not be modified, only a linear transformation will be done by @command{astconvertt} to change the pixel values from its original range to the range 0 - 255 see @ref{Colormaps for single-channel pixels} for more information.
+Let's create a color image using the aligned SDSS images from the section above with the follwing command:
+
+@example
+$ astconvertt i.fits r.fits g.fits -g1 \
+              --output m51-default.pdf
+@end example
+
+Note that order matters: images have to be provided from redder to bluer.
+Open the image with your PDF viewer and have a look at it.
+Do you see something?
+It seems that everything is black, but if you pay attention, there are a few regions where something is visible in color.
+They correspond to the center of the brightest sources on the images.
+This is the difficulty commented above @ref{Creating color images}.
+Because there are only a few very bright pixels but many more close to the sky background level, it is hard to visualize the entire dynamical range at once.
+At this point, we have some options to mitigate this problem.
+
+First we can select the pixel values to be showed in the color image.
+To do this we have the options @option{--fluxlow} and @option{--fluxhigh}.
+Pixel values below @option{--fluxlow} will be mapped to the minimum value (shown as black), while pixel values abvoe @option{--fluxhigh} will be mapped to the maximum value shown.
+The selection of these values is something that will depend on the pixel value distribution of the images, so, let's have a look at them with the help of @command{aststatistics}.
+
+@example
+$ aststatistics i.fits
+$ aststatistics r.fits
+$ aststatistics g.fits
+@end example
+
+Take your time to analyze the pixel value distributions and the statistical values, in particular median and the standard deviation.
+They are telling you that the vast majority of the pixels are very close to zero.
+As a consequence, we can decide that the minimum flux to be considered is zero and create a color image.
+
+@example
+$ astconvertt i.fits r.fits g.fits -g1 \
+              --fluxlow 0.0 \
+              --output m51-flow.pdf
+@end example
+
+If you open the image, it has not been improved at all.
+The reason is that with this option only a few pixels have been rejected.
+However, the asymetry in the distrubtion is toward the bright side!
+Remember that there are a lot of pixels close to zero and only a few that are very bright.
+As a consequence, let's consider cutting brighter pixels.
+In general, a multiple of the standard deviation can be used for estimating this parameters.
+But we note the reader that this is very sensitive to each dataset, so be careful with the selection.
+Here, we will use @command{--fluxhigh 3.0} because it is roughly 3 times the standard deviation value of the i-band image.
+
+@example
+$ astconvertt i.fits r.fits g.fits -g1 \
+              --fluxlow 0.0 --fluxhigh 3.0 \
+              --output m51-flow-fhigh.pdf
+@end example
+
+Open the color image and see that now the image shows some regions of the M51 group.
+The most central part of the bright objects are visible.
+But still the vast majority of the image is in black.
+Play with different values of @command{--fluxhigh} to improve the image and obtain a better result.
+For example, with @command{--fluxlow 0.0} and @option{--fluxhigh 0.1} it is possible to obtain a color image in which the faint regions (pixels between 0.0 - 0.1) are visible, but consequently, the bright parts are "saturated".
+
+In some situations, depending on the scientific goal, this kind of images could be good enough.
+However, it may happen that other cases require even better color images in which the entire dynamical range is properly seeing, for example to visualize low surface brightness structures.
+Is it possible to do it?
+Of course it is!
+For those cases it is necessary to consider advanced techniques consisting in the manipulation of the pixel value distribution of the images.
+
+As an example, you could use take the logarithmic or the square root of the images before creating the color image.
+That functions are non linear and will transform the pixel values in a way that they will be mapped to a new range of values.
+After that, the transformed images can be used as inputs to @command{astconvertt} to generate color images as explained above.
+We let this as an interesting exercise for the reader.
+
+A convinient function for transforming the images is the inverse hyperbolic sinus (asinh) function.
+The creation of color images using this transformation is implemented by the @command{astscript-rgb-asinh} script explained in the next section @ref{Color image using asinh transformation}
+
+If curiosity is killing you, create the color image with the above parameters but using the original non-aligned images with the command below to check the effect of the image alignment.
+
+@example
+$ astconvertt inputs/i.fits inputs/r.fits inputs/g.fits -g1 \
+              --fluxlow 0.0 --fluxhigh 3.0 \
+              --output m51-not-aligned.pdf
+@end example
+
+Open the image and and zoom-in to some part of the image with fewer sources.
+You will clearly see that for each object, there are three copies, one in red (from the reddest filter; i), one in green (from the middle filter; r), and one in blue (the bluest filter; g).
+This does not happen any more when using the aligned images.
+Did you see the Warning message that was printed after running the command?
+We have implemented a check in Warp to inform you when the images are not aligned and can produce bad (in most cases!) outputs like this.
 
 @menu
 * Color image using asinh transformation::
 @end menu
 
-@node Color image using asinh transformation,  , Color channels in same pixel grid, Color channels in same pixel grid
+@node Color image using asinh transformation,  , Color image using linear transformation, Creating color images
 @subsection Color image using asinh transformation
 Once the three channel images are at the same pixel grid, it is also possible to create a color image with the Gnuastro's @command{astscript-rgb-asinh}.
 The difference with respect to @command{astconvertt} is the transformations of the input images that is done in advance.
@@ -8819,7 +8953,7 @@ For more information about the @command{astscript-rgb-asinh} script and its opti
 
 
 
-@node Zero point of an image, Pointing pattern design, Color channels in same pixel grid, Tutorials
+@node Zero point of an image, Pointing pattern design, Creating color images, Tutorials
 @section Zero point of an image
 
 The ``zero point'' of an image is astronomical jargon for the calibration factor of its pixel values; allowing us to convert the raw pixel values to physical units.
