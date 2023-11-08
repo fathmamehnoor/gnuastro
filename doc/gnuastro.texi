@@ -28128,7 +28128,7 @@ For a given profile and dataset, the magnitude where the completeness drops belo
 @cindex Purity
 @cindex False detections
 @cindex Detections false
-Another important parameter in measuring completeness is purity: the fraction of true detections to all true detections.
+Another important parameter in measuring completeness is purity: the fraction of true detections to all detections.
 In effect purity is the measure of contamination by false detections: the higher the purity, the lower the contamination.
 Completeness and purity are anti-correlated: if we can allow a large number of false detections (that we might be able to remove by other means), we can significantly increase the completeness limit.
 
