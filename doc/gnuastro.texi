@@ -24553,7 +24553,7 @@ This process is sometimes known as transformation, however following the discuss
 Here we specifically mean the pixel grid transformation which is better conveyed with `warp'.
 
 @cindex Gravitational lensing
-Image wrapping is a very important step in astronomy, both in observational data analysis and in simulating modeled images.
+Image warping is a very important step in astronomy, both in observational data analysis and in simulating modeled images.
 In modeling, warping an image is necessary when we want to apply grid transformations to the initial models, for example, in simulating gravitational lensing.
 Observational reasons for warping an image are listed below:
 
