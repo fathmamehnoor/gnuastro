@@ -80,9 +80,9 @@ quiet=""
 tmpdir=""
 keeptmp=0
 checkparams=0
-output="rgb-asinh.jpg"
+output="rgb-faint-gray.jpg"
 
-grayback=0
+black=0
 
 version=@VERSION@
 scriptname=@SCRIPT_NAME@
@@ -148,7 +148,7 @@ $scriptname options:
                           this overrides --brightness or --contrast)
 
  Color and gray parameters
-      --grayback            Generate the gray-background color image.
+      --black               Generate the black-background color image.
       --grayval=FLT         Value that defines the black and white (for gray regions).
       --colorval=FLT        Value that defines the separation between color and black.
       --graykernelfwhm=FLT  Kernel FWHM for convolving the background image.
@@ -285,7 +285,7 @@ do
         -b=*|--brightness=*) brightness="${1#*=}";                       check_v "$1" "$brightness";  shift;;
         -b*)                 brightness=$(echo "$1"  | sed -e's/-b//');  check_v "$1" "$brightness";  shift;;
 
-        --grayback)         grayback=1; shift;;
+        --black)            black=1; shift;;
         --grayval)          grayval="$2";                              check_v "$1" "$grayval";  shift;shift;;
         --grayval=*)        grayval="${1#*=}";                         check_v "$1" "$grayval";  shift;;
         --colorval)         colorval="$2";                             check_v "$1" "$colorval";  shift;shift;;
@@ -494,7 +494,7 @@ fi
 # set the directory, then make it. This directory will be deleted at
 # the end of the script if the user does not want to keep it (with the
 # `--keeptmp' option).
-defaulttmpdir="rgb-asinh-tmp"
+defaulttmpdir="rgb-faint-gray-tmp"
 if [ x$tmpdir = x ]; then tmpdir=$defaulttmpdir; fi
 if [ -d $tmpdir ]; then junk=1; else mkdir $tmpdir; fi
 
@@ -775,8 +775,35 @@ fi
 
 
 
-# If the user wants the gray background image
-if [ x$grayback = x1 ]; then
+# If the user wants the black background image
+if [ x$black = x1 ]; then
+
+    # Make the color figure
+    # ---------------------
+    #
+    # Once all the previous treatment has been done for each image, then combine
+    # all with Convert program to obtain the colored image. Limit fluxes used
+    # here correspond to the gray-computed ones in order to obtain exactly the
+    # same color as the gray-background image (for those pixels that are not
+    # background).
+    astconvertt $I_R_transformed -h1 \
+                $I_G_transformed -h1 \
+                $I_B_transformed -h1 \
+                --output=$output $quiet
+
+
+
+
+
+    # Remove images
+    if [ $keeptmp = 0 ]; then
+      rm $rscaled $gscaled $bscaled \
+         $rclipped $gclipped $bclipped
+    fi
+
+
+# If user wants the gray background image
+else
 
     # Until now, all necessary threshold and parameters have been computed (if
     # the user did not specify any value) from the R,G,B images. The following
@@ -989,32 +1016,6 @@ if [ x$grayback = x1 ]; then
 
 
 
-# If user does not want the gray background image
-else
-
-    # Make the color figure
-    # ---------------------
-    #
-    # Once all the previous treatment has been done for each image, then combine
-    # all with Convert program to obtain the colored image. Limit fluxes used
-    # here correspond to the gray-computed ones in order to obtain exactly the
-    # same color as the gray-background image (for those pixels that are not
-    # background).
-    astconvertt $I_R_transformed -h1 \
-                $I_G_transformed -h1 \
-                $I_B_transformed -h1 \
-                --output=$output $quiet
-
-
-
-
-
-    # Remove images
-    if [ $keeptmp = 0 ]; then
-      rm $rscaled $gscaled $bscaled \
-         $rclipped $gclipped $bclipped
-    fi
-
 fi
 
 
@@ -1059,7 +1060,6 @@ TIPS:
       First, try low values of '--qbright' to show the bright parts.
       Then, adjust '--stretch' to show the fainter regions around bright parts.
       Overall, play with these two parameters to show the color regions appropriately.
-  # [next tips only for gray background image: --grayback]
   # Change '--colorval' to separate the color and black regions:
       Increase/decrease it to increase/decrease the color area (brightest pixels).
   # Change '--grayval' to separate the black and gray regions:
