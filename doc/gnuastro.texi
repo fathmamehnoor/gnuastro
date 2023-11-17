@@ -8947,9 +8947,9 @@ To enhance the output, let's go through and explain these tips step by step.
 By opening the image, you will notice that it is a color image with a black background, and unlike when using @command{astconvertt}, the images have undergone modifications, making the M51 group visible.
 However, there is significant room for improvement!
 
-The first important parameter to set is the background value, or the minimum value to be displayed: @option{--minimum}.
-For each image it could be a diferent value, in that case you should provide comma-separated values with the option @option{--minimums}.
-In this particular case, a minimum value of zero for all images is suitable: @option{--minimums=0,0,0} or @option{--minimum=0}.
+The first important parameter to set is the background value, or the minimum value to be displayed: @option{--minimum} or @option{-m}.
+If you want to consider different minimum values for the inputs, use as many @option{-m} as input images.
+In this particular case, a minimum value of zero for all images is suitable, as a consequence, we will use a simple @option{--minimum=0.0}.
 
 @example
 $ astscript-rgb-faint-gray i.fits r.fits g.fits -g1 \
@@ -9038,17 +9038,17 @@ The value specified for these options represents the full width at half maximum 
 
 Up to this point, we assumed that the three images have the same zero point magnitude.
 In other words, we considered that the pixel units were the same for the different channels.
-However, it is possible that the different channels have different zero point values.
-To account for such situations, the zero point values can be provided as comma-separated values using the @option{--zeropoints} option.
+However, it is possible that the different channels have different zero point magnitudes.
+To account for such situations, the zero point magnitudes can be provided as using the @option{--zeropoint} or @option{-z} option, each channel with its own value.
 In this case, the zero point magnitudes will be employed to transform the different channels to the same units internally.
 
-To modify the color balance of the output image, you can weigh the three channels differently with the @option{--weights} option.
-For example, by using @option{--weights 1,1,4}, you give four times more weight to the blue channel than to the red and green channels:
+To modify the color balance of the output image, you can weigh the three channels differently with the @option{--weight} or @option{-w} option.
+For example, by using @option{-w1 -w1 -w4}, you give four times more weight to the blue channel than to the red and green channels:
 
 @example
 $ astscript-rgb-faint-gray i.fits r.fits g.fits -g1 \
                       --minimum 0.0 \
-                      --weights 1,1,4 \
+                      -w1 -w1 -w4 \
                       --output m51-min0-gray-bluer.pdf
 @end example
 

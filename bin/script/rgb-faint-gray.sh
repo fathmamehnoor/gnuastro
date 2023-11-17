@@ -46,12 +46,10 @@ export LANG=C
 hdu=""
 globalhdu=""
 
-# Minimum, zeropoint, and weight values
+# Minimum, weights, and zeropoint values
+weight=""
 minimum=""
-minimums=""
 zeropoint=""
-zeropoints=""
-weights="1.0,1.0,1.0"
 
 # To control the asinh transformation
 stretch=""
@@ -128,13 +126,9 @@ $scriptname options:
   -h, --hdu=STR           HDU/extension for the inputs (R,G,B,K) channels.
   -g, --globalhdu=STR/INT Use this HDU for all inputs, ignore '--hdu'.
 
-  -m, --minimums=FLT      Minimum values (comma separated) to be mapped to black (zero).
-  -M, --minimum=FLT       Common minimum value to be mapped to black (zero).
-                          (this overrides -m or --minimums)
-  -z, --zeropoints=FLT    Zeropoints for the images (comma separated values).
-  -Z, --zeropoint=FLT     Common zeropoint value for all (R,G,B) images.
-                          (this overrides -z or --zeropoints argument)
-  -w, --weights=FLT       Relative weights for the images (comma separated values).
+  -w, --weight=FLT        Relative weight for each input channel.
+  -m, --minimum=FLT       Minimum value for each input channel.
+  -z, --zeropoint=FLT     Zero point magnitude of each input channel.
 
  Asinh scaling parameters
   -s, --stretch=FLT       Linear stretching parameter for faint features.
@@ -244,46 +238,38 @@ while [ $# -gt 0 ]
 do
     case "$1" in
         # Input parameters.
-        -h|--hdu)     aux="$2";                             check_v "$1" "$aux"; hdu="$hdu $aux"; shift;shift;;
-        -h=*|--hdu=*) aux="${1#*=}";                        check_v "$1" "$aux"; hdu="$hdu $aux"; shift;;
-        -h*)          aux="$(echo "$1"  | sed -e's/-h//')"; check_v "$1" "$aux"; hdu="$hdu $aux"; shift;;
+        -g|--globalhdu)      globalhdu="$2";                            check_v "$1" "$globalhdu";  shift;shift;;
+        -g=*|--globalhdu=*)  globalhdu="${1#*=}";                       check_v "$1" "$globalhdu";  shift;;
+        -g*)                 globalhdu=$(echo "$1" | sed -e's/-g//');   check_v "$1" "$globalhdu";  shift;;
+        -h|--hdu)            aux="$2";                                  check_v "$1" "$aux"; hdu="$hdu $aux"; shift;shift;;
+        -h=*|--hdu=*)        aux="${1#*=}";                             check_v "$1" "$aux"; hdu="$hdu $aux"; shift;;
+        -h*)                 aux="$(echo "$1"  | sed -e's/-h//')";      check_v "$1" "$aux"; hdu="$hdu $aux"; shift;;
+        -w|--weight)         aux="$2";                                  check_v "$1" "$aux"; weight="$weight $aux"; shift;shift;;
+        -w=*|--weight=*)     aux="${1#*=}";                             check_v "$1" "$aux"; weight="$weight $aux"; shift;;
+        -w*)                 aux="$(echo "$1"  | sed -e's/-w//')";      check_v "$1" "$aux"; weight="$weight $aux"; shift;;
+        -m|--minimum)        aux="$2";                                  check_v "$1" "$aux"; minimum="$minimum $aux"; shift;shift;;
+        -m=*|--minmum=*)     aux="${1#*=}";                             check_v "$1" "$aux"; minimum="$minimum $aux"; shift;;
+        -m*)                 aux="$(echo "$1"  | sed -e's/-m//')";      check_v "$1" "$aux"; minimum="$minimum $aux"; shift;;
+        -z|--zeropoint)      aux="$2";                                  check_v "$1" "$aux"; zeropoint="$zeropoint $aux"; shift;shift;;
+        -z=*|--zeropoint=*)  aux="${1#*=}";                             check_v "$1" "$aux"; zeropoint="$zeropoint $aux"; shift;;
+        -z*)                 aux="$(echo "$1"  | sed -e's/-z//')";      check_v "$1" "$aux"; zeropoint="$zeropoint $aux"; shift;;
 
-        -g|--globalhdu)      globalhdu="$2";                                 check_v "$1" "$globalhdu";  shift;shift;;
-        -g=*|--globalhdu=*)  globalhdu="${1#*=}";                            check_v "$1" "$globalhdu";  shift;;
-        -g*)                 globalhdu=$(echo "$1"  | sed -e's/-g//');       check_v "$1" "$globalhdu";  shift;;
+        -s|--stretch)       stretch="$2";                               check_v "$1" "$stretch";  shift;shift;;
+        -s=*|--stretch=*)   stretch="${1#*=}";                          check_v "$1" "$stretch";  shift;;
+        -s*)                stretch=$(echo "$1"  | sed -e's/-s//');     check_v "$1" "$stretch";  shift;;
+        -Q|--qbright)       qbright="$2";                               check_v "$1" "$qbright";  shift;shift;;
+        -Q=*|--qbright=*)   qbright="${1#*=}";                          check_v "$1" "$qbright";  shift;;
+        -Q*)                qbright=$(echo "$1"  | sed -e's/-Q//');     check_v "$1" "$qbright";  shift;;
 
-        -m|--minimums)      minimums="$2";                             check_v "$1" "$minimums";  shift;shift;;
-        -m=*|--minimums=*)  minimums="${1#*=}";                        check_v "$1" "$minimums";  shift;;
-        -m*)                minimums=$(echo "$1"  | sed -e's/-m//');   check_v "$1" "$minimums";  shift;;
-        -M|--minimum)       minimum="$2";                              check_v "$1" "$minimum";  shift;shift;;
-        -M=*|--minimum=*)   minimum="${1#*=}";                         check_v "$1" "$minimum";  shift;;
-        -M*)                minimum=$(echo "$1"  | sed -e's/-M//');    check_v "$1" "$minimum";  shift;;
-        -Z|--zeropoint)      zeropoint="$2";                            check_v "$1" "$zeropoint";  shift;shift;;
-        -Z=*|--zeropoint=*)  zeropoint="${1#*=}";                       check_v "$1" "$zeropoint";  shift;;
-        -Z*)                 zeropoint=$(echo "$1"  | sed -e's/-Z//');  check_v "$1" "$zeropoint";  shift;;
-        -z|--zeropoints)     zeropoints="$2";                           check_v "$1" "$zeropoints";  shift;shift;;
-        -z=*|--zeropoints=*) zeropoints="${1#*=}";                      check_v "$1" "$zeropoints";  shift;;
-        -z*)                 zeropoints=$(echo "$1"  | sed -e's/-z//'); check_v "$1" "$zeropoints";  shift;;
-        -w|--weights)       weights="$2";                              check_v "$1" "$weights";  shift;shift;;
-        -w=*|--weights=*)   weights="${1#*=}";                         check_v "$1" "$weights";  shift;;
-        -w*)                weights=$(echo "$1"  | sed -e's/-w//');    check_v "$1" "$weights";  shift;;
-
-        -s|--stretch)       stretch="$2";                              check_v "$1" "$stretch";  shift;shift;;
-        -s=*|--stretch=*)   stretch="${1#*=}";                         check_v "$1" "$stretch";  shift;;
-        -s*)                stretch=$(echo "$1"  | sed -e's/-s//');    check_v "$1" "$stretch";  shift;;
-        -Q|--qbright)       qbright="$2";                              check_v "$1" "$qbright";  shift;shift;;
-        -Q=*|--qbright=*)   qbright="${1#*=}";                         check_v "$1" "$qbright";  shift;;
-        -Q*)                qbright=$(echo "$1"  | sed -e's/-Q//');    check_v "$1" "$qbright";  shift;;
-
-        -G|--gamma)          gamma="$2";                                 check_v "$1" "$gamma";  shift;shift;;
-        -G=*|--gamma=*)      gamma="${1#*=}";                            check_v "$1" "$gamma";  shift;;
-        -G*)                 gamma=$(echo "$1"  | sed -e's/-G//');       check_v "$1" "$gamma";  shift;;
-        -c|--contrast)       contrast="$2";                              check_v "$1" "$contrast";  shift;shift;;
-        -c=*|--contrast=*)   contrast="${1#*=}";                         check_v "$1" "$contrast";  shift;;
-        -c*)                 contrast=$(echo "$1"  | sed -e's/-c//');    check_v "$1" "$contrast";  shift;;
-        -b|--brightness)     brightness="$2";                            check_v "$1" "$brightness";  shift;shift;;
-        -b=*|--brightness=*) brightness="${1#*=}";                       check_v "$1" "$brightness";  shift;;
-        -b*)                 brightness=$(echo "$1"  | sed -e's/-b//');  check_v "$1" "$brightness";  shift;;
+        -G|--gamma)          gamma="$2";                                check_v "$1" "$gamma";  shift;shift;;
+        -G=*|--gamma=*)      gamma="${1#*=}";                           check_v "$1" "$gamma";  shift;;
+        -G*)                 gamma=$(echo "$1"  | sed -e's/-G//');      check_v "$1" "$gamma";  shift;;
+        -c|--contrast)       contrast="$2";                             check_v "$1" "$contrast";  shift;shift;;
+        -c=*|--contrast=*)   contrast="${1#*=}";                        check_v "$1" "$contrast";  shift;;
+        -c*)                 contrast=$(echo "$1"  | sed -e's/-c//');   check_v "$1" "$contrast";  shift;;
+        -b|--brightness)     brightness="$2";                           check_v "$1" "$brightness";  shift;shift;;
+        -b=*|--brightness=*) brightness="${1#*=}";                      check_v "$1" "$brightness";  shift;;
+        -b*)                 brightness=$(echo "$1"  | sed -e's/-b//'); check_v "$1" "$brightness";  shift;;
 
         --black)            black=1; shift;;
         --grayval)          grayval="$2";                              check_v "$1" "$grayval";  shift;shift;;
@@ -366,7 +352,7 @@ else
     nhdu=$(echo "$hdu" | awk '{print NF}')
     if [ x"$nhdu" != x"$ninputs" ]; then
         cat <<EOF
-$scriptname: not enough HDUs. Every input FITS image needs a HDU (identified by name or number, counting from zero). You can use multiple calls to the '--hdu' ('-h') option for each input FITS image (in the same order as the input FITS files), or use '--globalhdu' ('-g') once when the same HDU should be used for all of them. Run with '--help' for more information on how to run.
+$scriptname: number of inputs and HDUs does not match. Every input FITS image needs a HDU (identified by name or number, counting from zero). You can use multiple calls to the '--hdu' ('-h') option for each input FITS image (in the same order as the input FITS files), or use '--globalhdu' ('-g') once when the same HDU should be used for all of them. Run with '--help' for more information on how to run.
 EOF
         exit 1
     fi
@@ -377,72 +363,78 @@ EOF
 fi
 
 
-# Make sure different minimums have been provided properly
-if [ x$minimums != x ]; then
-    nminimums=$(echo "$minimums" | awk 'BEGIN{FS=","}{print NF}')
-    if [ $nminimums != $ninputs ]; then
-        echo "$scriptname: $ninputs minimums '-m' or '--minimums' shoud be given (comma separated)."
-        exit 1
-    fi
-    # Set the different zeropoints in case they are three
-    rmin=$(echo "$minimums" | awk 'BEGIN{FS=","}{print $1}')
-    gmin=$(echo "$minimums" | awk 'BEGIN{FS=","}{print $2}')
-    bmin=$(echo "$minimums" | awk 'BEGIN{FS=","}{print $3}')
-    kmin=$(echo "$minimums" | awk 'BEGIN{FS=","}{print $4}')
-fi
-
-# Use a common minimum value if it is provided
-if [ x$minimum != x ]; then
-    nminimum=$(echo "$minimum" | awk 'BEGIN{FS=","}{print NF}')
-    if [ $nminimum != 1 ]; then
-        echo "$scriptname: a single value for '-M' or '--minimum' should be given."
-        exit 1
-    fi
+# Minimum. If the user provides a single value for --minimum, use it for
+# all channels. Otherwise, check that the number of minimums matches with
+# the number of inputs.
+nminimum=$(echo "$minimum" | awk '{print NF}')
+if [ x$nminimum = x1 ]; then
     rmin=$minimum
     gmin=$minimum
     bmin=$minimum
     kmin=$minimum
+elif [ $nminimum -gt 1 ] && [ x"$nminimum" != x"$ninputs" ]; then
+        cat <<EOF
+$scriptname: number of inputs ($ninputs) and minimum values ($nminimum) does not match. Every input FITS image needs a minimum value. You can use multiple calls to the '--minimum' ('-m') option for each input FITS image (in the same order as the input FITS files). If a single value is provided, it will be used for all channels. Run with '--help' for more information on how to run.
+EOF
+        exit 1
+else
+    rmin=$(echo "$minimum" | awk '{print $1}')
+    gmin=$(echo "$minimum" | awk '{print $2}')
+    bmin=$(echo "$minimum" | awk '{print $3}')
+    kmin=$(echo "$minimum" | awk '{print $4}')
+
 fi
 
 
-# Make sure different zeropoints have been provided properly
-if [ x$zeropoints != x ]; then
-    nzeropoints=$(echo "$zeropoints" | awk 'BEGIN{FS=","}{print NF}')
-    if [ $nzeropoints != $ninputs ]; then
-        echo "$scriptname: $ninputs zeropoints '-z' or '--zeropoints' should be given (comma separated)."
-        exit 1
-    fi
-    # Set the different zeropoints in case they are three
-    rzero=$(echo "$zeropoints" | awk 'BEGIN{FS=","}{print $1}')
-    gzero=$(echo "$zeropoints" | awk 'BEGIN{FS=","}{print $2}')
-    bzero=$(echo "$zeropoints" | awk 'BEGIN{FS=","}{print $3}')
-    kzero=$(echo "$zeropoints" | awk 'BEGIN{FS=","}{print $4}')
-fi
-
-# Use a common zeropoint value if it is provided
-if [ x$zeropoint != x ]; then
-    nzeropoint=$(echo "$zeropoint" | awk 'BEGIN{FS=","}{print NF}')
-    if [ $nzeropoint != 1 ]; then
-        echo "$scriptname: a single value for '-Z' or '--zeropoint' should be given."
-        exit 1
-    fi
+# Zeropoint. If the user provides a single value for --zeropoint, use it
+# for all channels. Otherwise, check that the number of zeropoints matches
+# with the number of inputs.
+nzeropoint=$(echo "$zeropoint" | awk '{print NF}')
+if [ x$nzeropoint = x1 ]; then
     rzero=$zeropoint
     gzero=$zeropoint
     bzero=$zeropoint
     kzero=$zeropoint
+elif [ $nzeropoint -gt 1 ] && [ x"$nzeropoint" != x"$ninputs" ]; then
+        cat <<EOF
+$scriptname: number of inputs ($ninputs) and zeropoint values ($nzeropoint) does not match. Every input FITS image needs a zeropoint value. You can use multiple calls to the '--zeropoint' ('-z') option for each input FITS image (in the same order as the input FITS files). If a single value is provided, it will be used for all channels. Run with '--help' for more information on how to run.
+EOF
+        exit 1
+else
+    rzero=$(echo "$zeropoint" | awk '{print $1}')
+    gzero=$(echo "$zeropoint" | awk '{print $2}')
+    bzero=$(echo "$zeropoint" | awk '{print $3}')
+    kzero=$(echo "$zeropoint" | awk '{print $4}')
 fi
 
 
-# Make sure three weights have been given.
-nweights=$(echo "$weights" | awk 'BEGIN{FS=","}{print NF}')
-if [ $nweights != 3 ]; then
-    echo "$scriptname: 3 weights '-w' or '--weights' shoud be given (comma separated)."
-    exit 1
+# Weight. If the does not provide a value for weight, set it to 1.0. If
+# user provides a single value for --weight, use it for all channels.
+# Otherwise, check that the number of weights matches
+# with the number of inputs.
+nweight=$(echo "$weight" | awk '{print NF}')
+if [ x$nweight = x0 ]; then
+    rweight=1.0
+    gweight=1.0
+    bweight=1.0
+elif [ x$nweight = x1 ]; then
+    rweight=$weight
+    gweight=$weight
+    bweight=$weight
+elif [ $nweight -gt 1 ] && [ x"$nweight" != x"$ninputs" ]; then
+        cat <<EOF
+$scriptname: number of inputs ($ninputs) and weight values ($nweight) does not match. Every input FITS image needs a weight value. You can use multiple calls to the '--weight' ('-w') option for each input FITS image (in the same order as the input FITS files). If a single value is provided, it will be used for all channels. Run with '--help' for more information on how to run.
+EOF
+        exit 1
+else
+    rweight=$(echo "$weight" | awk '{print $1}')
+    gweight=$(echo "$weight" | awk '{print $2}')
+    bweight=$(echo "$weight" | awk '{print $3}')
 fi
 
 
-# If the user provides --stretch, make sure it is not equalt o zero (with 8
-# decimals), that would crash the asinh transformation.
+# Stretch. If the user provides --stretch, make sure it is not equalt o
+# zero (with 8 decimals), that would crash the asinh transformation.
 if [ x$stretch != x ]; then
     stretch_check=$(echo "$stretch" | awk 'BEGIN{FS=","} {printf "%.8f", $1}')
     if [ x$stretch_check = x0.00000000 ]; then
@@ -452,8 +444,8 @@ if [ x$stretch != x ]; then
 fi
 
 
-# If the user provides --qbright, make sure it is not equalt o zero (with 8
-# decimals), that would crash the asinh transformation.
+# Bright. If the user provides --qbright, make sure it is not equal to zero
+# (with 8 decimals), that would crash the asinh transformation.
 if [ x$qbright != x ]; then
     qbright_check=$(echo "$qbright" | awk 'BEGIN{FS=","} {printf "%.8f", $1}')
     if [ x$qbright_check = x0.00000000 ]; then
@@ -544,36 +536,33 @@ rscaled="$tmpdir/r_scaled.fits"
 gscaled="$tmpdir/g_scaled.fits"
 bscaled="$tmpdir/b_scaled.fits"
 
-# Initialize all weights to be used to 1.0.
-rweight_norm=1.0; gweight_norm=1.0; bweight_norm=1.0; kweight_norm=1.0
+# Compute normalized weights
+weight_sum=$(astarithmetic $rweight $gweight $bweight 3 sum --type=f32 -q)
+rweight_sum=$(astarithmetic $rweight $weight_sum / -q | awk '{printf "%.4f", $1}')
+gweight_sum=$(astarithmetic $gweight $weight_sum / -q | awk '{printf "%.4f", $1}')
+bweight_sum=$(astarithmetic $bweight $weight_sum / -q | awk '{printf "%.4f", $1}')
 
-# If the user specified different values, then compute them appropiately
-if [ x$weights != x"1.0,1.0,1.0" ]; then
-    rweight=$(echo "$weights" | awk 'BEGIN{FS=","} {printf "%.8f", $1}')
-    gweight=$(echo "$weights" | awk 'BEGIN{FS=","} {printf "%.8f", $2}')
-    bweight=$(echo "$weights" | awk 'BEGIN{FS=","} {printf "%.8f", $3}')
+wmax=$(astarithmetic $rweight_sum $gweight_sum $bweight_sum 3 max --type=f32 -q)
 
-    weight_sum=$(astarithmetic $rweight $gweight $bweight 3 sum --type=f32 -q)
-    rweight_sum=$(astarithmetic $rweight $weight_sum / -q | awk '{printf "%.8f", $1}')
-    gweight_sum=$(astarithmetic $gweight $weight_sum / -q | awk '{printf "%.8f", $1}')
-    bweight_sum=$(astarithmetic $bweight $weight_sum / -q | awk '{printf "%.8f", $1}')
-
-    wmax=$(astarithmetic $rweight_sum $gweight_sum $bweight_sum 3 max --type=f32 -q)
-
-    rweight_norm=$(astarithmetic $rweight_sum $wmax / -q | awk '{printf "%.8f", $1}')
-    gweight_norm=$(astarithmetic $gweight_sum $wmax / -q | awk '{printf "%.8f", $1}')
-    bweight_norm=$(astarithmetic $bweight_sum $wmax / -q | awk '{printf "%.8f", $1}')
-fi
+rweight_norm=$(astarithmetic $rweight_sum $wmax / -q | awk '{printf "%.4f", $1}')
+gweight_norm=$(astarithmetic $gweight_sum $wmax / -q | awk '{printf "%.4f", $1}')
+bweight_norm=$(astarithmetic $bweight_sum $wmax / -q | awk '{printf "%.4f", $1}')
 
 
-# If all weights are 1.0 and no zeropoints are provided, then symbolic link.
-if [ x$weights = x"1.0,1.0,1.0" ] && [ x"$rzero" = x ]; then
+# If all weights are 1.0000 and no zeropoints are provided, then symbolic link.
+if [ x$rweight = x"1.0000" ] &&
+   [ x$gweight = x"1.0000" ] &&
+   [ x$bweight = x"1.0000" ] &&
+   [ x"$rzero" = x ]; then
     ln -sf $(realpath $rclipped) $rscaled
     ln -sf $(realpath $gclipped) $gscaled
     ln -sf $(realpath $bclipped) $bscaled
 
 # If diferent weights but same zeropoints, then scale the images.
-elif [ x$weights != x"1.0,1.0,1.0" ] && [ x"$rzero" = x ]; then
+elif [ x$rweight != x"1.0000" ] ||
+     [ x$gweight != x"1.0000" ] ||
+     [ x$bweight != x"1.0000" ] ||
+     [ x"$rzero" = x ]; then
     # Just weight the images appropiately
     astarithmetic $rclipped -h$rhdu $rweight_norm x -o$rscaled $quiet
     astarithmetic $gclipped -h$ghdu $gweight_norm x -o$gscaled $quiet
