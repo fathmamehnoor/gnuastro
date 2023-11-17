@@ -42,12 +42,12 @@ astscript-fits-view.desktop: $(srcdir)/fits-view.desktop.desktop Makefile
 bin_SCRIPTS = astscript-fits-view \
               astscript-psf-unite \
               astscript-psf-stamp \
-              astscript-rgb-faint-gray \
               astscript-zeropoint \
               astscript-ds9-region \
               astscript-psf-subtract \
               astscript-sort-by-night \
               astscript-radial-profile \
+              astscript-rgb-faint-gray \
               astscript-psf-scale-factor \
               astscript-psf-select-stars \
               astscript-pointing-simulate
@@ -55,13 +55,13 @@ bin_SCRIPTS = astscript-fits-view \
 EXTRA_DIST = fits-view.sh \
              psf-unite.sh \
              psf-stamp.sh \
-             rgb-faint-gray.sh \
              zeropoint.sh \
              zeropoint.mk \
              ds9-region.sh \
              psf-subtract.sh \
              sort-by-night.sh \
              radial-profile.sh \
+             rgb-faint-gray.sh \
              psf-select-stars.sh \
              psf-scale-factor.sh \
              pointing-simulate.sh \

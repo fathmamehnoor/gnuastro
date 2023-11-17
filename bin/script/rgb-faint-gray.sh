@@ -44,7 +44,7 @@ export LANG=C
 
 # Default option values (can be changed with options on the command-line).
 hdu=""
-hdus=""
+globalhdu=""
 
 # Minimum, zeropoint, and weight values
 minimum=""
@@ -125,9 +125,8 @@ experienced Gnuastro users and developers. For more information, please run:
 
 $scriptname options:
  Input:
-  -h, --hdus=STR          HDU/extensions (comma separated) for the R,G,B,K FITS images.
-  -H, --hdu=STR           Common HDU/extension for the (R,G,B,K) channel FITS images
-                          (this overrides -h or --hdus).
+  -h, --hdu=STR           HDU/extension for the inputs (R,G,B,K) channels.
+  -g, --globalhdu=STR/INT Use this HDU for all inputs, ignore '--hdu'.
 
   -m, --minimums=FLT      Minimum values (comma separated) to be mapped to black (zero).
   -M, --minimum=FLT       Common minimum value to be mapped to black (zero).
@@ -144,7 +143,7 @@ $scriptname options:
  Contrast and brightness
   -b, --brightness        Change the brightness of the final image (linear).
   -c, --contrast          Change the contrast of the final image (linear).
-  -g, --gamma             Gamma parameter for gamma transformation (non linear,
+  -G, --gamma             Gamma parameter for gamma transformation (non linear,
                           this overrides --brightness or --contrast)
 
  Color and gray parameters
@@ -245,12 +244,13 @@ while [ $# -gt 0 ]
 do
     case "$1" in
         # Input parameters.
-        -h|--hdus)          hdus="$2";                             check_v "$1" "$hdus";  shift;shift;;
-        -h=*|--hdus=*)      hdus="${1#*=}";                        check_v "$1" "$hdus";  shift;;
-        -h*)                hdus=$(echo "$1"  | sed -e's/-h//');   check_v "$1" "$hdus";  shift;;
-        -H|--hdu)           hdu="$2";                              check_v "$1" "$hdu";  shift;shift;;
-        -H=*|--hdu=*)       hdu="${1#*=}";                         check_v "$1" "$hdu";  shift;;
-        -H*)                hdu=$(echo "$1"  | sed -e's/-H//');    check_v "$1" "$hdu";  shift;;
+        -h|--hdu)     aux="$2";                             check_v "$1" "$aux"; hdu="$hdu $aux"; shift;shift;;
+        -h=*|--hdu=*) aux="${1#*=}";                        check_v "$1" "$aux"; hdu="$hdu $aux"; shift;;
+        -h*)          aux="$(echo "$1"  | sed -e's/-h//')"; check_v "$1" "$aux"; hdu="$hdu $aux"; shift;;
+
+        -g|--globalhdu)      globalhdu="$2";                                 check_v "$1" "$globalhdu";  shift;shift;;
+        -g=*|--globalhdu=*)  globalhdu="${1#*=}";                            check_v "$1" "$globalhdu";  shift;;
+        -g*)                 globalhdu=$(echo "$1"  | sed -e's/-g//');       check_v "$1" "$globalhdu";  shift;;
 
         -m|--minimums)      minimums="$2";                             check_v "$1" "$minimums";  shift;shift;;
         -m=*|--minimums=*)  minimums="${1#*=}";                        check_v "$1" "$minimums";  shift;;
@@ -275,9 +275,9 @@ do
         -Q=*|--qbright=*)   qbright="${1#*=}";                         check_v "$1" "$qbright";  shift;;
         -Q*)                qbright=$(echo "$1"  | sed -e's/-Q//');    check_v "$1" "$qbright";  shift;;
 
-        -g|--gamma)          gamma="$2";                                 check_v "$1" "$gamma";  shift;shift;;
-        -g=*|--gamma=*)      gamma="${1#*=}";                            check_v "$1" "$gamma";  shift;;
-        -g*)                 gamma=$(echo "$1"  | sed -e's/-g//');       check_v "$1" "$gamma";  shift;;
+        -G|--gamma)          gamma="$2";                                 check_v "$1" "$gamma";  shift;shift;;
+        -G=*|--gamma=*)      gamma="${1#*=}";                            check_v "$1" "$gamma";  shift;;
+        -G*)                 gamma=$(echo "$1"  | sed -e's/-G//');       check_v "$1" "$gamma";  shift;;
         -c|--contrast)       contrast="$2";                              check_v "$1" "$contrast";  shift;shift;;
         -c=*|--contrast=*)   contrast="${1#*=}";                         check_v "$1" "$contrast";  shift;;
         -c*)                 contrast=$(echo "$1"  | sed -e's/-c//');    check_v "$1" "$contrast";  shift;;
@@ -340,60 +340,40 @@ if [ x"$inputs" = x ]; then
 fi
 
 
-# Make sure three or four (for the gray background) inputs have been given.
+# Inputs. Make sure three or four inputs have been given.
 ninputs=$(echo "$inputs" | awk '{print NF}')
 if [ $ninputs != 3 ] && [ $ninputs != 4 ]; then
-    echo "$scriptname: $ninputs inputs given, but 3 (or 4) inputs are necessary: one for each of the R,G,B,(K) channels respectively."
+    cat <<EOF
+$scriptname: $ninputs inputs given, but 3 (or 4) inputs are necessary: one for each of the R,G,B,(K) channels, respectively. Run with '--help' for more information on how to run.
+EOF
     exit 1
+else
+    rimage=$(echo $inputs | awk '{print $1}')
+    gimage=$(echo $inputs | awk '{print $2}')
+    bimage=$(echo $inputs | awk '{print $3}')
+    kimage=$(echo $inputs | awk '{print $4}')
 fi
 
 
-# If no HDU extension is given, let the user know.
-if [ x"$hdu" = x ] && [ x"$hdus" = x ]; then
-    echo "$scriptname: no input HDU extension(s) given."
-    echo "Run with '--help' for more information on how to run."
-    exit 1
-fi
-
-
-
-
-
-# Asign basic input variables
-# ---------------------------
-#
-# Images from the inputs from redder to bluer: R,G,B,K.
-rimage=$(echo $inputs | awk '{print $1}')
-gimage=$(echo $inputs | awk '{print $2}')
-bimage=$(echo $inputs | awk '{print $3}')
-kimage=$(echo $inputs | awk '{print $4}')
-
-
-# Make sure different HDUs have been provided properly
-if [ x$hdus != x ]; then
-    nhdus=$(echo "$hdus" | awk 'BEGIN{FS=","}{print NF}')
-    if [ $nhdus != $ninputs ]; then
-        echo "$scriptname: $ninputs HDUs '-h' or '--hdus' should be given (comma separated)."
+# HDU. If the user provides a globalhdu use it, otherwise check that HDU
+# number matches with input images
+if [ x"$globalhdu" != x ]; then
+    rhdu=$globalhdu
+    ghdu=$globalhdu
+    bhdu=$globalhdu
+    khdu=$globalhdu
+else
+    nhdu=$(echo "$hdu" | awk '{print NF}')
+    if [ x"$nhdu" != x"$ninputs" ]; then
+        cat <<EOF
+$scriptname: not enough HDUs. Every input FITS image needs a HDU (identified by name or number, counting from zero). You can use multiple calls to the '--hdu' ('-h') option for each input FITS image (in the same order as the input FITS files), or use '--globalhdu' ('-g') once when the same HDU should be used for all of them. Run with '--help' for more information on how to run.
+EOF
         exit 1
     fi
-    # Set the different zeropoints in case they are three
-    rhdu=$(echo "$hdus" | awk 'BEGIN{FS=","}{print $1}')
-    ghdu=$(echo "$hdus" | awk 'BEGIN{FS=","}{print $2}')
-    bhdu=$(echo "$hdus" | awk 'BEGIN{FS=","}{print $3}')
-    khdu=$(echo "$hdus" | awk 'BEGIN{FS=","}{print $4}')
-fi
-
-# Use a common HDU if it is provided
-if [ x$hdu != x ]; then
-    nhdu=$(echo "$hdu" | awk 'BEGIN{FS=","}{print NF}')
-    if [ $nhdu != 1 ]; then
-        echo "$scriptname: a single value for '-H' or '--hdu' should be given."
-        exit 1
-    fi
-    rhdu=$hdu
-    ghdu=$hdu
-    bhdu=$hdu
-    khdu=$hdu
+    rhdu=$(echo "$hdu" | awk '{print $1}')
+    ghdu=$(echo "$hdu" | awk '{print $2}')
+    bhdu=$(echo "$hdu" | awk '{print $3}')
+    khdu=$(echo "$hdu" | awk '{print $4}')
 fi
 
 
@@ -777,6 +757,9 @@ fi
 
 # If the user wants the black background image
 if [ x$black = x1 ]; then
+
+    # Change the output name to include the "black" word.
+    output=$(echo $output | sed -e's/gray/black/')
 
     # Make the color figure
     # ---------------------

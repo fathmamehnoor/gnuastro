@@ -8938,7 +8938,7 @@ To start, it is important to provide the input images in the order of decreasing
 Let's run the script with its default options on the aligned SDSS M51 images:
 
 @example
-$ astscript-rgb-faint-gray i.fits r.fits g.fits --hdu 1 \
+$ astscript-rgb-faint-gray i.fits r.fits g.fits -g1 \
                       --output m51-default.pdf
 @end example
 
@@ -8952,7 +8952,7 @@ For each image it could be a diferent value, in that case you should provide com
 In this particular case, a minimum value of zero for all images is suitable: @option{--minimums=0,0,0} or @option{--minimum=0}.
 
 @example
-$ astscript-rgb-faint-gray i.fits r.fits g.fits --hdu 1 \
+$ astscript-rgb-faint-gray i.fits r.fits g.fits -g1 \
                       --minimum 0.0 --output m51-min0.pdf
 @end example
 The difference with respect to the default image is not too much given the homogeneity of the input images.
@@ -8964,7 +8964,7 @@ The estimated values are displayed at the end of the script's execution.
 Let's decrease @option{--qbright} by an order of magnitude in order to improve the display of the very bright regions.
 
 @example
-$ astscript-rgb-faint-gray i.fits r.fits g.fits --hdu 1 \
+$ astscript-rgb-faint-gray i.fits r.fits g.fits -g1 \
                       --minimum 0.0 \
                       --qbright 1.481888e-02 \
                       --output m51-min0-qbright.pdf
@@ -8975,7 +8975,7 @@ Now, decrease the parameter @option{--stretch} to present the areas around very 
 This allows you to reveal fainter regions, such as outer parts of galaxies, spiral arms, stellar streams, and similar structures.
 
 @example
-$ astscript-rgb-faint-gray i.fits r.fits g.fits --hdu 1 \
+$ astscript-rgb-faint-gray i.fits r.fits g.fits -g1 \
                       --minimum 0.0 \
                       --qbright 1.481888e-02 \
                       --stretch 1.481888e-04 \
@@ -8991,7 +8991,7 @@ In order to have a shorter acommand-line examples, in what follow we will use th
 Let's use the @option{--black} option to create a black background images.
 
 @example
-$ astscript-rgb-faint-gray i.fits r.fits g.fits --hdu 1 \
+$ astscript-rgb-faint-gray i.fits r.fits g.fits -g1 \
                       --minimum 0.0 \
                       --black \
                       --output m51-min0-gray.pdf
@@ -9009,7 +9009,7 @@ There is also another similar option that separates the black and gray regions, 
 Start by reducing @option{--colorval} to 50.0 (the default is 99.5) to display fewer regions in color (only the very bright regions):
 
 @example
-$ astscript-rgb-faint-gray i.fits r.fits g.fits --hdu 1 \
+$ astscript-rgb-faint-gray i.fits r.fits g.fits -g1 \
                       --minimum 0.0 \
                       --colorval 50.0 \
                       --output m51-min0-gray-colorval.pdf
@@ -9046,7 +9046,7 @@ To modify the color balance of the output image, you can weigh the three channel
 For example, by using @option{--weights 1,1,4}, you give four times more weight to the blue channel than to the red and green channels:
 
 @example
-$ astscript-rgb-faint-gray i.fits r.fits g.fits --hdu 1 \
+$ astscript-rgb-faint-gray i.fits r.fits g.fits -g1 \
                       --minimum 0.0 \
                       --weights 1,1,4 \
                       --output m51-min0-gray-bluer.pdf
@@ -9068,12 +9068,12 @@ To illustrate the impact of adjusting image contrast, we will generate an image 
 
 @example
 ## Default contrast
-$ astscript-rgb-faint-gray i.fits r.fits g.fits --hdu 1 \
+$ astscript-rgb-faint-gray i.fits r.fits g.fits -g1 \
                       --minimum 0.0 \
                       --output m51-min0-gray-default.pdf
 
 ## Increased contrast
-$ astscript-rgb-faint-gray i.fits r.fits g.fits --hdu 1 \
+$ astscript-rgb-faint-gray i.fits r.fits g.fits -g1 \
                       --minimum 0.0 \
                       --contrast 3 \
                       --output m51-min0-gray-contrast.pdf
@@ -9087,13 +9087,13 @@ Lower gamma values will enhance faint structures, while higher values will empha
 
 @example
 ## Using gamma 0.3
-$ astscript-rgb-faint-gray i.fits r.fits g.fits --hdu 1 \
+$ astscript-rgb-faint-gray i.fits r.fits g.fits -g1 \
                       --minimum 0.0 \
                       --gamma 0.3 \
                       --output m51-min0-gray-gamalow.pdf
 
 ## Using gamma 2.0
-$ astscript-rgb-faint-gray i.fits r.fits g.fits --hdu 1 \
+$ astscript-rgb-faint-gray i.fits r.fits g.fits -g1 \
                       --minimum 0.0 \
                       --gamma 2.0 \
                       --output m51-min0-gray-gamahigh.pdf
@@ -34252,12 +34252,14 @@ A full description of each option is given below:
 
 @table @code
 @item -h
-@itemx --hdus=STR,STR,STR,[STR]
-HDU/extensions (comma separated) for each R, G, B, and K FITS images.
+@itemx --hdu=STR/INT
+Input HDU name or counter (counting from 0) for each input FITS file.
+If the same HDU should be used from all the FITS files, you can use the @option{--globalhdu} option described below.
 
-@item -H
-@itemx --hdu=STR
-Common HDU/extension for the (R, G, B, K) channel FITS images (this overrides -h or --hdus).
+@item -g
+@itemx --globalhdu=STR/INT
+Use the value given to this option (a HDU name or a counter, starting from 0) for the HDU identifier of all the input FITS files.
+This is useful when all the inputs are distributed in different files, but have the same HDU in those files.
 
 @item -m
 @itemx --minimums=FLT,FLT,FLT,[FLT]
@@ -34344,7 +34346,7 @@ Change the contrast of the final image.
 This is applied at the same time as @option{--brightness}, see above.
 The transformation is: @mymath{\rm{output}=\rm{contrast}\times{image}+brightness}.
 
-@item -g
+@item -G
 @itemx --gamma=FLT
 Gamma exponent value for a gamma transformation.
 This transformation is not linear: @mymath{\rm{output}=\rm{image}^{gamma}}.
