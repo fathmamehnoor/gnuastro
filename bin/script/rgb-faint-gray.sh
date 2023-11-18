@@ -123,9 +123,8 @@ experienced Gnuastro users and developers. For more information, please run:
 
 $scriptname options:
  Input:
-  -h, --hdu=STR           HDU/extension for the inputs (R,G,B,K) channels.
+  -h, --hdu=STR           HDU/extension for the input channels.
   -g, --globalhdu=STR/INT Use this HDU for all inputs, ignore '--hdu'.
-
   -w, --weight=FLT        Relative weight for each input channel.
   -m, --minimum=FLT       Minimum value for each input channel.
   -z, --zeropoint=FLT     Zero point magnitude of each input channel.
@@ -137,18 +136,17 @@ $scriptname options:
  Contrast and brightness
   -b, --brightness        Change the brightness of the final image (linear).
   -c, --contrast          Change the contrast of the final image (linear).
-  -G, --gamma             Gamma parameter for gamma transformation (non linear,
-                          this overrides --brightness or --contrast)
+  -G, --gamma             Gamma parameter (overrides --brightness/--contrast).
 
  Color and gray parameters
-      --black               Generate the black-background color image.
-      --grayval=FLT         Value that defines the black and white (for gray regions).
-      --colorval=FLT        Value that defines the separation between color and black.
-      --graykernelfwhm=FLT  Kernel FWHM for convolving the background image.
-      --colorkernelfwhm=FLT Kernel FWHM for convolving the reference image that is used
-                            for defining the separation between the color and black parts.
+      --black             Generate the black-background color image.
+      --grayval=FLT       White threshold (fainter values will be white).
+      --colorval=FLT      Color threshold (larger values will have color)
+      --graykernelfwhm=FLT Kernel FWHM for convolving the background image.
+      --colorkernelfwhm=FLT Kernel FWHM for color separation ref. image.
+
  Output:
-      --checkparams       Print the distribution of values for obtaining the parameters.
+      --checkparams       Print distribution of values used to find params.
   -k, --keeptmp           Keep temporal/auxiliar files.
   -o, --output            Output color image name.
 
@@ -1066,5 +1064,3 @@ fi
 # The script has finished, reset the original language to the system's
 # default language.
 export LANG=$system_lang
-
-
