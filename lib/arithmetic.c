@@ -2427,14 +2427,88 @@ arithmetic_multioperand_prepare(struct multioperandparams *p, int flags,
 
 
 
+struct arithmetic_multioperand_clip_fill_params
+{
+  gal_data_t *list;
+  gal_data_t *upper;
+  gal_data_t *lower;
+} arithmetic_multioperand_clip_fill_params;
+
+
+
+
+
+static void *
+arithmetic_multioperand_clip_fill_worker(void *in_prm)
+{
+  /* Low-level definitions to be done first. */
+  struct gal_threads_params *tprm=(struct gal_threads_params *)in_prm;
+  struct arithmetic_multioperand_clip_fill_params *p =
+    (struct arithmetic_multioperand_clip_fill_params *)tprm->params;
+
+  /* Subsequent definitions. */
+  gal_data_t *use, *tmp;
+  size_t i, index, counter, ndim=p->list->ndim;
+  int aflags=GAL_ARITHMETIC_FLAG_NUMOK; /* Don't free the inputs. */
+
+  /* Go over all the actions (pixels in this case) that were assigned to
+     this thread. */
+  for(i=0; tprm->indexs[i] != GAL_BLANK_SIZE_T; ++i)
+    {
+      /* For easy reading. */
+      index = tprm->indexs[i];
+
+      /* Find the dataset that we should work on. */
+      counter=0;
+      for(use=p->list;use!=NULL;use=use->next)
+        { if(counter==index) break; ++counter; }
+
+      /* Flag all the pixels that are higher/lower than the limits. */
+      tmp=gal_arithmetic(GAL_ARITHMETIC_OP_OR, 1, aflags,
+                         gal_arithmetic(GAL_ARITHMETIC_OP_GT, 1, aflags,
+                                        use, p->upper),
+                         gal_arithmetic(GAL_ARITHMETIC_OP_LE, 1, aflags,
+                                        use, p->lower));
+
+      /* For a 1D array, start with erosion because a two single elements
+         outside the range can mask a very large portion of the input
+         (after "filling" holes). */
+      tmp = ( ndim==1
+              ? gal_binary_erode(tmp, 1, 1, 1)
+              : gal_binary_dilate(tmp, 1, 1, 1) );
+      gal_binary_holes_fill(tmp, ndim, tmp->size/50);
+      tmp=gal_binary_erode(tmp, 2, ndim, 1);
+      tmp=gal_binary_dilate(tmp, 2, ndim, 1);
+
+      /* Set all the 1-vaued pixels in the binary image to NaN in the
+         input. */
+      gal_blank_flag_apply(use, tmp);
+      gal_data_free(tmp);
+
+      /* For a check.
+      char testname[20];
+      sprintf(&testname, "test-%zu.fits", index);
+      gal_fits_img_write(input, testname, NULL, NULL); */
+    }
+
+  /* Wait for all the other threads to finish, then return. */
+  if(tprm->b) pthread_barrier_wait(tprm->b);
+  return NULL;
+}
+
+
+
+
+
 static void
 arithmetic_multioperand_clip_fill(struct multioperandparams *p,
                                   int operator, gal_data_t *list,
                                   size_t numthreads)
 {
   size_t one=1;
+  gal_data_t *tmp, *multip;
+  struct arithmetic_multioperand_clip_fill_params fp;
   int aflags=GAL_ARITHMETIC_FLAG_NUMOK; /* Don't free the inputs. */
-  gal_data_t *tmp, *input, *upper, *lower, *multip;
 
   /* Find the upper and lower thresholds based on the user's desired
      multiple. */
@@ -2443,10 +2517,10 @@ arithmetic_multioperand_clip_fill(struct multioperandparams *p,
   ((float *)(multip->array))[0]=p->p1;
   tmp=gal_arithmetic(GAL_ARITHMETIC_OP_MULTIPLY, 1, aflags,
                      p->spread, multip);
-  upper=gal_arithmetic(GAL_ARITHMETIC_OP_PLUS, 1, aflags,
-                       p->center, tmp);
-  lower=gal_arithmetic(GAL_ARITHMETIC_OP_MINUS, 1, aflags,
-                       p->center, tmp);
+  fp.upper=gal_arithmetic(GAL_ARITHMETIC_OP_PLUS, 1, aflags,
+                          p->center, tmp);
+  fp.lower=gal_arithmetic(GAL_ARITHMETIC_OP_MINUS, 1, aflags,
+                          p->center, tmp);
   gal_data_free(tmp);
 
   /* For a check.
@@ -2455,36 +2529,13 @@ arithmetic_multioperand_clip_fill(struct multioperandparams *p,
   printf("%s: GOOD\n", __func__); exit(0);
   */
 
-  /* Dilate all the sigma-clipped pixels. */
-  for(input=list;input!=NULL;input=input->next)
-    {
-      /* Flag all the pixels that are higher/lower than the limits. */
-      tmp=gal_arithmetic(GAL_ARITHMETIC_OP_OR, 1, aflags,
-                         gal_arithmetic(GAL_ARITHMETIC_OP_GT, 1, aflags,
-                                        input, upper),
-                         gal_arithmetic(GAL_ARITHMETIC_OP_LE, 1, aflags,
-                                        input, lower));
-
-      /* For a 1D array, start with erosion because a two single elements
-         outside the range can mask a very large portion of the input
-         (after "filling" holes). */
-      tmp = ( list->ndim==1
-              ? gal_binary_erode(tmp, 1, 1, 1)
-              : gal_binary_dilate(tmp, 1, 1, 1) );
-      gal_binary_holes_fill(tmp, list->ndim, -1);
-      tmp=gal_binary_erode(tmp, 2, list->ndim, 1);
-      tmp=gal_binary_dilate(tmp, 2, list->ndim, 1);
-
-      /* Set all the 1-vaued pixels in the binary image to NaN in the
-         input. */
-      gal_blank_flag_apply(input, tmp);
-      gal_data_free(tmp);
-
-      /* For a check.
-      gal_fits_img_write(input, "test.fits", NULL, NULL); */
-    }
-  gal_data_free(upper);    /* We are freeing these here to avoid*/
-  gal_data_free(lower);    /* keeping extra RAM. */
+  /* Fill the structure for the threads and do the job. */
+  fp.list=list;
+  gal_threads_spin_off(arithmetic_multioperand_clip_fill_worker,
+                       &fp, gal_list_data_number(list), numthreads,
+                       list->minmapsize, list->quietmmap);
+  gal_data_free(fp.upper);    /* We are freeing these here to avoid*/
+  gal_data_free(fp.lower);    /* keeping extra RAM. */
 
   /* Re-run sigma-clipping on threads. */
   gal_threads_spin_off(multioperand_on_thread, p, p->out->size,
