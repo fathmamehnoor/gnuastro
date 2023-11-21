@@ -138,6 +138,8 @@ See the end of the file for license conditions.
   - bug #64852: astscript-zeropoint: crash when input is in 0-th HDU;
     reported by 'danc' in https://savannah.gnu.org/support/?110952; fixed
     by Sepideh Eskandarlou.
+  - bug #64915: Segment's SKY_STD output HDU does not have WCS; reported by
+    Sepideh Eskandarlou.
 
 
 

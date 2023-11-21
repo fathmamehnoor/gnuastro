@@ -1441,7 +1441,11 @@ segment_output(struct segmentparams *p)
       /* Write the STD dataset into the output file. */
       p->std->name="SKY_STD";
       if(p->std->size == p->input->size)
-        gal_fits_img_write(p->std, p->cp.output, keys, PROGRAM_NAME);
+        {
+          p->std->wcs=p->input->wcs;
+          gal_fits_img_write(p->std, p->cp.output, keys, PROGRAM_NAME);
+          p->std->wcs=NULL;
+        }
       else
         gal_tile_full_values_write(p->std, &p->cp.tl, 1, p->cp.output, keys,
                                    PROGRAM_NAME);
