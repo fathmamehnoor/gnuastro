@@ -67,5 +67,7 @@ if [ ! -f $fits1name ]; then echo "$fits1name doesn't exist."; exit 77; fi
 # Since we want the script to recognize the programs that it will use from
 # this same build of Gnuastro, we'll add the current directory to PATH.
 export PATH="$progbdir:$PATH"
-$check_with_program $execname $fits1name $fits1name $fits1name \
-                              --hdus=1,1,1 --output=$prog.jpg
+$check_with_program $execname $fits1name --hdu 1 \
+                              $fits1name --hdu 1 \
+                              $fits1name --hdu 1 \
+                              --output=$prog.jpg

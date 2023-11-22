@@ -482,37 +482,38 @@ rclipped="$tmpdir/r_clipped.fits"
 gclipped="$tmpdir/g_clipped.fits"
 bclipped="$tmpdir/b_clipped.fits"
 kclipped="$tmpdir/k_clipped.fits"
-if [ x$rmin = x ]; then
+
+if [ x"$rmin" = x ]; then
     ln -sf $(realpath $rimage) $rclipped
 else
     astarithmetic $rimage --hdu=$rhdu set-i $quiet \
                   i i $rmin lt 0 where --output=$rclipped
-    rhdu=1;
+    rhdu=1
 fi
 
-if [ x$gmin = x ]; then
+if [ x"$gmin" = x ]; then
     ln -sf $(realpath $gimage) $gclipped
 else
     astarithmetic $gimage --hdu=$ghdu set-i $quiet \
                   i i $gmin lt 0 where --output=$gclipped
-    ghdu=1;
+    ghdu=1
 fi
 
-if [ x$bmin = x ]; then
+if [ x"$bmin" = x ]; then
     ln -sf $(realpath $bimage) $bclipped
 else
     astarithmetic $bimage --hdu=$bhdu set-i $quiet \
                   i i $bmin lt 0 where --output=$bclipped
-    bhdu=1;
+    bhdu=1
 fi
 
 # kclipped is constructed only if a fourth image has been given.
-if [ x$kmin = x ] && [ x$kimage != x ]; then
+if [ x"$kmin" = x ] && [ x$kimage != x ]; then
     ln -sf $(realpath $kimage) $kclipped
 elif [ x$kimage != x ]; then
     astarithmetic $kimage --hdu=$khdu set-i $quiet \
                   i i $kmin lt 0 where --output=$kclipped
-    khdu=1;
+    khdu=1
 fi
 
 
@@ -1033,7 +1034,7 @@ TIPS:
   # Change '--colorval' to separate the color and black regions:
       Increase/decrease it to increase/decrease the color area (brightest pixels).
   # Change '--grayval' to separate the black and gray regions:
-      Decrease it to increase the regions that are shown in black.
+      Increase/decrease it to increase/decrease the regions that are shown in black.
   # Use '--checkparams'to check the pixel value distributions.
 
 PARAMETERS:
