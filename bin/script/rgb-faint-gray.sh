@@ -80,7 +80,7 @@ keeptmp=0
 checkparams=0
 output="rgb-faint-gray.jpg"
 
-black=0
+coloronly=0
 
 version=@VERSION@
 scriptname=@SCRIPT_NAME@
@@ -139,15 +139,15 @@ $scriptname options:
   -G, --gamma             Gamma parameter (overrides --brightness/--contrast).
 
  Color and gray parameters
-      --black             Generate the black-background color image.
-      --grayval=FLT       White threshold (fainter values will be white).
-      --colorval=FLT      Color threshold (larger values will have color)
+      --coloronly         No black and grayscale regions.
+      --grayval=FLT       Gray threshold (highest value to use grayscale).
+      --colorval=FLT      Color threshold (lowest value to have color).
       --graykernelfwhm=FLT Kernel FWHM for convolving the background image.
       --colorkernelfwhm=FLT Kernel FWHM for color separation ref. image.
 
  Output:
       --checkparams       Print distribution of values used to find params.
-  -k, --keeptmp           Keep temporal/auxiliar files.
+  -k, --keeptmp           Keep temporary/auxiliar files.
   -o, --output            Output color image name.
 
  Operating mode:
@@ -246,7 +246,7 @@ do
         -w=*|--weight=*)     aux="${1#*=}";                             check_v "$1" "$aux"; weight="$weight $aux"; shift;;
         -w*)                 aux="$(echo "$1"  | sed -e's/-w//')";      check_v "$1" "$aux"; weight="$weight $aux"; shift;;
         -m|--minimum)        aux="$2";                                  check_v "$1" "$aux"; minimum="$minimum $aux"; shift;shift;;
-        -m=*|--minmum=*)     aux="${1#*=}";                             check_v "$1" "$aux"; minimum="$minimum $aux"; shift;;
+        -m=*|--minimum=*)    aux="${1#*=}";                             check_v "$1" "$aux"; minimum="$minimum $aux"; shift;;
         -m*)                 aux="$(echo "$1"  | sed -e's/-m//')";      check_v "$1" "$aux"; minimum="$minimum $aux"; shift;;
         -z|--zeropoint)      aux="$2";                                  check_v "$1" "$aux"; zeropoint="$zeropoint $aux"; shift;shift;;
         -z=*|--zeropoint=*)  aux="${1#*=}";                             check_v "$1" "$aux"; zeropoint="$zeropoint $aux"; shift;;
@@ -269,7 +269,7 @@ do
         -b=*|--brightness=*) brightness="${1#*=}";                      check_v "$1" "$brightness";  shift;;
         -b*)                 brightness=$(echo "$1"  | sed -e's/-b//'); check_v "$1" "$brightness";  shift;;
 
-        --black)            black=1; shift;;
+        --coloronly)        coloronly=1; shift;;
         --grayval)          grayval="$2";                              check_v "$1" "$grayval";  shift;shift;;
         --grayval=*)        grayval="${1#*=}";                         check_v "$1" "$grayval";  shift;;
         --colorval)         colorval="$2";                             check_v "$1" "$colorval";  shift;shift;;
@@ -456,10 +456,10 @@ fi
 
 
 
-# Define the temporal directory
+# Define the temporary directory
 # -----------------------------
 #
-# Construct the temporal directory. If the user does not specify any
+# Construct the temporary directory. If the user does not specify any
 # directory, then a default one with will be constructed.  If the user
 # set the directory, then make it. This directory will be deleted at
 # the end of the script if the user does not want to keep it (with the
@@ -743,11 +743,8 @@ fi
 
 
 
-# If the user wants the black background image
-if [ x$black = x1 ]; then
-
-    # Change the output name to include the "black" word.
-    output=$(echo $output | sed -e's/gray/black/')
+# If the user only wants colored pixels.
+if [ x$coloronly = x1 ]; then
 
     # Make the color figure
     # ---------------------
@@ -761,10 +758,6 @@ if [ x$black = x1 ]; then
                 $I_G_transformed -h1 \
                 $I_B_transformed -h1 \
                 --output=$output $quiet
-
-
-
-
 
     # Remove images
     if [ $keeptmp = 0 ]; then
@@ -799,7 +792,8 @@ else
                     $maxvalrange set-newmax \
                     oldmax oldmin - set-oldrange \
                     newmax newmin - set-newrange \
-                    image oldmin - newrange x oldrange / newmin + set-transformed \
+                    image oldmin - newrange x oldrange / newmin + \
+                    set-transformed \
                     transformed --output=$I_COLORGRAY_threshold $quiet
     else
       I_COLORGRAY_kernel="$tmpdir/COLORGRAY_kernel.fits"
@@ -818,7 +812,8 @@ else
                     $maxvalrange set-newmax \
                     oldmax oldmin - set-oldrange \
                     newmax newmin - set-newrange \
-                    image oldmin - newrange x oldrange / newmin + set-transformed \
+                    image oldmin - newrange x oldrange / newmin + \
+                    set-transformed \
                     transformed --output=$I_COLORGRAY_threshold $quiet
     fi
 
@@ -921,7 +916,8 @@ else
                   $minvalrange set-newmax \
                   oldmax oldmin - set-oldrange \
                   newmax newmin - set-newrange \
-                  masked oldmin - newrange x oldrange / newmin + set-transformed \
+                  masked oldmin - newrange x oldrange / newmin + \
+                  set-transformed \
                   transformed --output=$I_GRAY_colormasked $quiet
 
 
@@ -982,11 +978,6 @@ else
                 $I_G_transformed_gray -h1 \
                 $I_B_transformed_gray -h1 \
                 --output=$output $quiet
-
-
-
-
-
 fi
 
 
@@ -1049,10 +1040,10 @@ fi
 
 
 
-# Remove temporal files
+# Remove temporary files
 # ---------------------
 #
-# If the user does not specify to keep the temporal files with the option
+# If the user does not specify to keep the temporary files with the option
 # `--keeptmp', then remove the whole directory.
 if [ $keeptmp = 0 ]; then
     rm -rf $tmpdir

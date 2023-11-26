@@ -272,7 +272,7 @@ Tutorials
 * Building the extended PSF::   How to extract an extended PSF from science data.
 * Sufi simulates a detection::  Simulating a detection.
 * Detecting lines and extracting spectra in 3D data::  Extracting spectra and emission line properties.
-* Creating color images::       Color images that show faint and bright parts of source nicely.
+* Color images with full dynamic range::  Bright pixels with color, faint pixels in grayscale.
 * Zero point of an image::      Estimate the zero point of an image.
 * Pointing pattern design::     Optimizing the pointings of your observations.
 * Moire pattern in stacking and its correction::  How to avoid this grid-based artifact.
@@ -333,11 +333,11 @@ Detecting lines and extracting spectra in 3D data
 * Extracting a single spectrum and plotting it::  Extracting a single vector row.
 * Pseudo narrow-band images::   Collapsing the third dimension into a 2D image.
 
-Creating color images
+Color images with full dynamic range
 
 * Color channels in same pixel grid::  Warping all inputs to the same pixel grid.
 * Color image using linear transformation::  A linear color mapping won't show much!
-* Color image using asinh transformation::  Optimizing the color range.
+* Color for bright regions and grayscale for faint::  Show the full dynamic range.
 
 Zero point of an image
 
@@ -773,7 +773,7 @@ Installed scripts
 * Viewing FITS file contents with DS9 or TOPCAT::  Open DS9 (images/cubes) or TOPCAT (tables).
 * Zero point estimation::       Zero point of an image from reference catalog or image(s).
 * Pointing pattern simulation::  Simulate a stack with a given series of pointings.
-* RGB faint gray image::
+* Color images with gray faint regions::  Color for bright pixels and grayscale for faint.
 * PSF construction and subtraction::  Set of scripts to create extended PSF of an image.
 
 Sort FITS files by night
@@ -805,9 +805,9 @@ Pointing pattern simulation
 
 * Invoking astscript-pointing-simulate::  Options and running mode.
 
-RGB faint gray image
+Color images with gray faint regions
 
-* Invoking astscript-rgb-faint-gray::
+* Invoking astscript-rgb-faint-gray::  Details of options and arguments.
 
 PSF construction and subtraction
 
@@ -1171,6 +1171,10 @@ This is very useful in testing the coverage of dither patterns when designing yo
 @item astscript-radial-profile
 (See @ref{Generate radial profile}) Calculate the radial profile of an object within an image.
 The object can be at any location in the image, using various measures (median, sigma-clipped mean, etc.), and the radial distance can also be measured on any general ellipse.
+
+@item astscript-rgb-faint-gray
+(see @ref{Color images with gray faint regions}) Given three images for the Red-Green-Blue (RGB) channels, this script will use the bright pixels for color and will show the faint/diffuse regions in grayscale.
+This greatly helps in visualizing the full dynamic range of astronical data.
 
 @item astscript-sort-by-night
 (See @ref{Sort FITS files by night}) Given a list of FITS files, and a HDU and keyword name (for a date), this script separates the files in the same night (possibly over two calendar days).
@@ -2059,7 +2063,7 @@ For an explanation of the conventions we use in the example codes through the bo
 * Building the extended PSF::   How to extract an extended PSF from science data.
 * Sufi simulates a detection::  Simulating a detection.
 * Detecting lines and extracting spectra in 3D data::  Extracting spectra and emission line properties.
-* Creating color images::       Color images that show faint and bright parts of source nicely.
+* Color images with full dynamic range::  Bright pixels with color, faint pixels in grayscale.
 * Zero point of an image::      Estimate the zero point of an image.
 * Pointing pattern design::     Optimizing the pointings of your observations.
 * Moire pattern in stacking and its correction::  How to avoid this grid-based artifact.
@@ -7850,7 +7854,7 @@ It was nearly sunset and they had to begin preparing for the night's measurement
 
 
 
-@node Detecting lines and extracting spectra in 3D data, Creating color images, Sufi simulates a detection, Tutorials
+@node Detecting lines and extracting spectra in 3D data, Color images with full dynamic range, Sufi simulates a detection, Tutorials
 @section Detecting lines and extracting spectra in 3D data
 
 @cindex IFU
@@ -8731,35 +8735,37 @@ Click on the scroll-down menu in front of ``Table'' and select @file{2: collapse
 Afterwards, you will see the optimized pseudo-narrow-band image radial profile as blue points.
 @end enumerate
 
-@node Creating color images, Zero point of an image, Detecting lines and extracting spectra in 3D data, Tutorials
-@section Creating color images
+@node Color images with full dynamic range, Zero point of an image, Detecting lines and extracting spectra in 3D data, Tutorials
+@section Color images with full dynamic range
 Color images are fundamental tools to visualize astronomical datasets, allowing to visualize valuable physical information within them.
-A color image is a composite representation derived from different channels, each corresponding to distinct filter or wavelength.
-In general, the most common combination is the Red-Green-Blue (RGB) channels.
-These three filters are hard-wired in your monitor and a most normal (for example smartphone) camera's pixels.
-For more on the concept and usage of colors, see @ref{Color}.
+A color image is a composite representation derived from different channels.
+Each channel usually corresponding to different filters (each showing wavelength intervals of the object's spectrum).
+In general, most common color image formats (like JPEG, PNG or PDF) are defined from a combination of Red-Green-Blue (RGB) channels (to cover the optical range with normal cameras).
+These three filters are hard-wired in your monitor and in most normal camera (for example smartphone or DSLR) pixels.
+For more on the concept and usage of colors, see @ref{Color} and @ref{Colormaps for single-channel pixels}.
 
 @cindex Dynamic range
 However, normal images (that you take with your smarphone during the day for example) have a very limited dynamic range (difference between brightest and fainest part of an image).
 For example in an image you take from a farm, the brightnest pixel (the sky) cannot be more than 255 times the faintest/darkest shadow in the image (because normal cameras produce unsigned 8 bit integers; containing @mymath{2^8=256} levels; see @ref{Numeric data types}).
 
-However, astronomical sources span a much wider dynamic range such that their central parts can be tens of millions of times brighter than their much larger outer regions.
-Therefore a simple linear scaling of astronomical data to the RGB 8-bit range will put most of the pixels on the darkest level and barely show anything!
-This present a major challenge in visualizing our astronomical images on a monitor, in print or for a projector when showing slides.
+However, astronomical sources span a much wider dynamic range such that their central parts can be tens of millions of times brighter than their larger outer regions.
+Our astronomcial images in the FITS format are therefore usually 32-bit floating points to preserve this information.
+Therefore a simple linear scaling of 32-bit astronomical data to the 8-bit range will put most of the pixels on the darkest level and barely show anything!
+This presents a major challenge in visualizing our astronomical images on a monitor, in print or for a projector when showing slides.
 
-In this tutorial, we present two methods for creating color images.
-The first method utilizes the basic and low-level @command{astconvertt} program which generates a color image using three input images.
-The second approach involves using the @command{astscript-rgb-faint-gray} script, which involves pre-processing steps to stretch the pixel value distributions and enhance their representation before calling @command{astconvertt}.
-The @command{astscript-rgb-faint-gray} script was first described in Infante-Sainz et al. (2023, @url{TBD}).
-But before either of these two, it is important to put the pixels of your input images in the same pixel grid; so in the sections below, we'll start with that.
+In this tutorial, we review how to prepare your images and create informative RGB images for your PDF reports.
+We start with aligning the images to the same pixel grid (which is usually necessary!) and using the low-level engine (Gnuastro's @ref{ConvertType} program) directly to create an RGB image.
+Afterwards, we will use a higher-level installed script (@ref{Color images with gray faint regions}).
+This is a high-level wrapper over ConvertType that does some pre-processing and stretches the pixel values to enhance their 8-bit representation before calling ConvertType.
+@c This installed script was first described in Infante-Sainz et al. (2023, @url{TBD}).
 
 @menu
 * Color channels in same pixel grid::  Warping all inputs to the same pixel grid.
 * Color image using linear transformation::  A linear color mapping won't show much!
-* Color image using asinh transformation::  Optimizing the color range.
+* Color for bright regions and grayscale for faint::  Show the full dynamic range.
 @end menu
 
-@node Color channels in same pixel grid, Color image using linear transformation, Creating color images, Creating color images
+@node Color channels in same pixel grid, Color image using linear transformation, Color images with full dynamic range, Color images with full dynamic range
 @subsection Color channels in same pixel grid
 
 In order to use different images as color channels, it is important that the images be properly aligned and on the same pixel grid.
@@ -8771,37 +8777,36 @@ For an example dataset, let's use the same SDSS field that we used in @ref{Detec
 With the commands below, we'll make an @file{inputs} directory and download and prepare the three g, r and i band images of SDSS over the same field there:
 
 @example
-$ mkdir inputs
+$ mkdir in
 $ sdssurl=https://dr12.sdss.org/sas/dr12/boss/photoObj/frames
 $ for f in g r i; do \
       wget $sdssurl/301/3716/6/frame-$f-003716-6-0117.fits.bz2 \
            -O$f.fits.bz2; \
       bunzip2 $f.fits.bz2; \
-      astfits $f.fits --copy=0 -oinputs/$f.fits; \
+      astfits $f.fits --copy=0 -oin/$f-sdss.fits; \
       rm $f.fits; \
   done
 @end example
 
-Let's have a look at thre three three images with the first command and get their number to ensure consistency, and then use @command{astscript-fits-view} to check if they are aligned:
+Let's have a look at the three three images with the first command, and get their number of pixels with the second:
 
 @example
-
 ## Open the images locked by image coordinates
-$ astscript-fits-view inputs/*.fits
+$ astscript-fits-view in/*-sdss.fits
 
 ## Check the number of pixels along each axis of all images.
-$ astfits inputs/*.fits --keyvalue=NAXIS1,NAXIS2
-inputs/g.fits    2048   1489
-inputs/i.fits    2048   1489
-inputs/r.fits    2048   1489
+$ astfits in/*-sdss.fits --keyvalue=NAXIS1,NAXIS2
+in/g-sdss.fits    2048   1489
+in/i-sdss.fits    2048   1489
+in/r-sdss.fits    2048   1489
 @end example
 
-From the first command, the images look like they cover the same astronomical object (M51), and with the second, we see that they have the same number of pixels.
-But this does not guarantee that the astronomical objects within the pixel grid cover the same positions on the sky!
+From the first command, the images look like they cover the same astronomical object (M51) in the same region of the sky, and with the second, we see that they have the same number of pixels.
+But this general visual inspection does not guarantee that the astronomical objects within the pixel grid cover exactly the same positions (within a pixel!) on the sky.
 Let's open the images again, but this time asking DS9 to only show one at a time, and to ``blink'' between them:
 
 @example
-$ astscript-fits-view inputs/*.fits \
+$ astscript-fits-view in/*-sdss.fits \
            --ds9extra="-single -zoom to fit -blink"
 @end example
 
@@ -8810,173 +8815,214 @@ If you don't immediately see it, try zooming in to any star within the image and
 You will see that the star jumps a few pixels between each blink.
 
 In essence, the images are not aligned on the same pixel grid because the same source does not share identical image coordinates across the channels.
-As a consequence, it is necessary to align the images before making the color image, otherwise this misalignment will generate multiply-peaked objects and artificial color gradients.
+As a consequence, it is necessary to align the images before making the color image, otherwise this misalignment will generate multiply-peaked point-sources (stars and centers of galaxies) and artificial color gradients in the more diffuse parts.
 To align the images to the same pixel grid, we will employ Gnuastro's @ref{Warp} program.
-In particular, focusing on the @ref{Align pixels with WCS considering distortions} feature.
+In particular, its features to @ref{Align pixels with WCS considering distortions}.
 
 Let's take the middle (r band) filter as the reference to define our grid.
-With the first command below, let's align the r band filter to the celestial coordinates (so the M51 group's position angle doesn't depend on the orientation of the telescope when it took this image).
-With the next two commands, let's use the @option{--gridfile} to ensure that the pixel grid and WCS comes from the r band image, but the pixel values come from the other two filters.
-Finally, in the last command, we'll visualize the three re-gridded images (that aren't in the @file{inputs/} directory any more).
+With the first command after building the @file{aligned/} directory, let's align the r filter to the celestial coordinates (so the M51 group's position angle doesn't depend on the orientation of the telescope when it took this image).
+With for the other two filters, we will use Warp's @option{--gridfile} option to ensure that ensure that their pixel grid and WCS exactly match the r band image, but the pixel values come from the other two filters.
+Finally, in the last command, we'll visualize the three aligned images.
 
 @example
 ## Put all three channels in the same pixel grid.
-$ astwarp inputs/r.fits                   --output=r.fits
-$ astwarp inputs/g.fits --gridfile=r.fits --output=g.fits
-$ astwarp inputs/i.fits --gridfile=r.fits --output=i.fits
+$ mkdir aligned
+$ astwarp in/r-sdss.fits --output=aligned/r-sdss.fits
+$ astwarp in/g-sdss.fits --output=aligned/g-sdss.fits \
+          --gridfile=aligned/r-sdss.fits
+$ astwarp in/i-sdss.fits --output=aligned/i-sdss.fits \
+          --gridfile=aligned/r-sdss.fits
 
 ## Open the images locked by image coordinates
-$ astscript-fits-view *.fits \
+$ astscript-fits-view aligned/*-sdss.fits \
            --ds9extra="-single -zoom to fit -blink"
 @end example
 
-As the images blink between each other, zoom in to some stars and you will see that they no longer jump from one blink to the next!
+As the images blink between each other, zoom in to some of the smaller stars and you will see that they no longer jump from one blink to the next.
 These images are now precisely pixel-aligned.
-We are now equipped with the essential data to proceed with the color image generation process.
+We are now equipped with the essential data to proceed with the color image generation in @ref{Color image using linear transformation}.
 
-@node Color image using linear transformation, Color image using asinh transformation, Color channels in same pixel grid, Creating color images
+@node Color image using linear transformation, Color for bright regions and grayscale for faint, Color channels in same pixel grid, Color images with full dynamic range
 @subsection Color image using linear transformation
 
-Pereviously (in @ref{Color channels in same pixel grid}), we downloaded three SDSS filters of M51 and described how you can put them all in the same pixel grid.
-In this section, we will explore the process of generating color images using the input images without modifying the pixel value distributions.
-Instead, we will apply a linear transformation using the @command{astconvertt} program to rescale pixel values from their original ranges to the range of 0 to 255, see @ref{Colormaps for single-channel pixels} for more on the linear mapping.
+Previously (in @ref{Color channels in same pixel grid}), we downloaded three SDSS filters of M51 and described how you can put them all in the same pixel grid.
+In this section, we will explore the raw and low-level process of generating color images using the input images (without modifying the pixel value distributions).
+We will use Gnuastro's ConvertType program (with executable name @command{astconvertt}).
 
 Let's create our first color image using the aligned SDSS images mentioned in the previous section.
-The order in which you provide the images matters, so ensure that you sort the filters from redder to bluer (iSDSS and gSDSS are respectively the reddest and bluest of these three filters):
+The order in which you provide the images matters, so ensure that you sort the filters from redder to bluer (iSDSS and gSDSS are respectively the reddest and bluest of the three filters used here).
 
 @example
-$ astconvertt i.fits r.fits g.fits -g1 \
-              --output m51-default.pdf
+$ astconvertt aligned/i-sdss.fits aligned/r-sdss.fits \
+              aligned/g-sdss.fits -g1 --output=m51.pdf
 @end example
 
-Open the image with your PDF viewer and have a look at it.
+@cartouche
+@noindent
+@strong{Other color formats:} In the example above, we are using PDF because this is usually the best format to later also insert marks that are commonly necessary in scientific publications (see @ref{Marking objects for publication}.
+But you can also generate JPEG and TIFF outputs simply by using a different suffix for your output file (for example @option{--output=m51.jpg} or @option{--output=m51.tiff}).
+@end cartouche
+
+Open the image with your PDF viewer and have a look.
 Do you see something?
-You will initially notice that it appears predominantly black.
+Initially, it appears predominantly black.
 However, upon closer inspection, you will discern very tiny points where some color is visible.
 These points correspond to the brightest part of the brightest sources in this field!
-This phenomenon exemplifies the challenge discussed in a previous section (@ref{Creating color images}).
+The reason you saw much more structure when looking at the image in DS9 previously in @ref{Color channels in same pixel grid} was that @code{astscript-fits-view} used DS9's @option{-zscale} option to scale the values in a non-linear way!
+Let's have another look at the images with the linear @code{minmax} scaling of DS9:
+
+@example
+$ astscript-fits-view aligned/*-sdss.fits \
+           --ds9extra="-scale minmax -lock scalelimits"
+@end example
+
+You see that it looks very similar to the PDF we generated above: almost fully black!
+This phenomenon exemplifies the challenge discussed at the start of this tutorial in @ref{Color images with full dynamic range}).
 Given the vast number of pixels close to the sky background level compared to the relatively few very bright pixels, visualizing the entire dynamic range simultaneously is tricky.
 
-To address this challenge, we have several options.
-First, you can selectively choose the pixel values range to be displayed in the color image.
+To address this challenge, the low-level ConvertType program allows you to selectively choose the pixel value ranges to be displayed in the color image.
 This can be accomplished using the @option{--fluxlow} and @option{--fluxhigh} options of ConvertType.
-Pixel values below @option{--fluxlow} are mapped to the minimum value (displayed as black), and pixel values above @option{--fluxhigh} are mapped to the maximum value.
-The choice of these values depends on the pixel value distribution of the images, which you can examine using @command{aststatistics}:
+Pixel values below @option{--fluxlow} are mapped to the minimum value (displayed as black in the default colormap), and pixel values above @option{--fluxhigh} are mapped to the maximum value (displayed as white))
+The choice of these values depends on the pixel value distribution of the images.
+
+But before that, we have to accont for an important differerences between the filters: the brightness of the background also has different values in different filters (the sky has colors!)
+So before making more progress, generally, first you have to subtract the sky from all three images you want to feed to the color channels.
+In a previous tutorial (@ref{Detecting large extended targets}) we used these same images as a basis to show how you can do perfect sky subtraction in the presence of large extended objects like M51.
+Here we are just doing a visualization and bringing pixels to 8-bit, so we don't need that level of precision reached there (we won't be doing photometry!).
+Therefore, let's just keep the @option{--tilesize=100,100} of NoiseChisel.
 
 @example
-$ aststatistics i.fits
-$ aststatistics r.fits
-$ aststatistics g.fits
+$ mkdir no-sky
+$ for f in i r g; do \
+    astnoisechisel aligned/$f-sdss.fits --tilesize=100,100 \
+                   --output=no-sky/$f-sdss.fits; \
+  done
 @end example
 
-Take your time to analyze the pixel value distributions and the statistical values
-In this case, the median and standard deviation indicate that the majority of pixels are very close to zero.
-Therefore, you can decide to set the minimum flux to zero and proceed with creating a color image:
+@cartouche
+@noindent
+@strong{Accounting for zeropoints:} An important step that we have not implemented in this section is to unify the zeropoints of the three filters.
+In the case of SDSS (and some other surveys), the images have already been brought to the same zero point, but that is not generally the case.
+So before subtracting sky (and estimating the standard deviation) you should also unify the zeropoints of your images (for example through Arithmetic's @code{counts-to-nanomaggy} or @code{counts-to-jy} described in @ref{Unit conversion operators}).
+If you don't already have the zero point of your images, see the dedicated tutorial: @ref{Zero point of an image}.
+@end cartouche
+
+Now that we know the noise fluctuates around zero in all three images, we can start to define the values for the @option{--fluxlow} and @option{--fluxhigh}.
+But the sky standard deviation comes from the sky brightness in different filters and is therefore different!
+Let's have a look by taking the median value of the @code{SKY_STD} extension of NoiseChisel's output:
 
 @example
-$ astconvertt i.fits r.fits g.fits -g1 \
-              --fluxlow 0.0 \
-              --output m51-flow.pdf
+$ aststatistics no-sky/i-sdss.fits -hSKY_STD --median
+2.748338e-02
+
+$ aststatistics no-sky/r-sdss.fits -hSKY_STD --median
+1.678463e-02
+
+$ aststatistics no-sky/g-sdss.fits -hSKY_STD --median
+9.687680e-03
 @end example
 
-While this adjustment eliminate a few pixels, the image remains largely unchanged.
-This is because the truncated pixels (that had a negative value) where already in the smallest layer of an 8-bit imiage.
-Also, the asymmetry in the distribution is toward the bright side, not negative!
-
-To improve the PDF visualization, we can try truncating brighter pixels, typically by using a multiple of the standard deviation.
-However, be careful as this parameter is highly sensitive to the dataset.
-In this example, let's use @option{--fluxhigh 3.0}, approximately three times the standard deviation of the i-band image:
+You see that the sky standard deviation of the reddest filter (i) is almost three times the bluest filter (g)!
+This is usually the case in any scenario (redder emission usually requires much less energy and gets absorbed less, so the background is usually brighter in the redest filters).
+So we should define our limits based on the noise of the reddest filter.
+Let's set the minimum flux to 0 and the maximum flux to ~50 times the noise of the i-band image (@mymath{0.027\times50=1.35}).
 
 @example
-$ astconvertt i.fits r.fits g.fits -g1 \
-              --fluxlow 0.0 --fluxhigh 3.0 \
-              --output m51-flow-fhigh.pdf
+$ astconvertt no-sky/i-sdss.fits no-sky/r-sdss.fits no-sky/g-sdss.fits \
+              -g1 --fluxlow=0.0 --fluxhigh=1.35 --output=m51.pdf
 @end example
 
-After opening the new color image, you will observe that some regions of the M51 group become visible, particularly the central areas.
+After opening the new color image, you will observe that the spiral arm of M51 and the center of  regions of the M51 group become visible, particularly the central areas.
 However, the majority of the image remains black.
-Feel free to experiment with different values for @option{--fluxhigh} to enhance the image and achieve your desired result.
-For instance, by using @option{--fluxlow 0.0} and @option{--fluxhigh 0.1}, you can create a color image in which faint regions (pixels between 0.0 - 0.1) become more visible.
-But you will notice that the bright areas now become "saturated": you don't see the central parts of the galaxy any more!
+Feel free to experiment with different values for @option{--fluxhigh} to set the maximum value closer to the noise-level and see the more diffuse structures.
+For instance, try with @option{--fluxhigh=0.27} the brightest pixels will have a signal-to-noise ratio of 10, or even @option{--fluxhigh=0.135} for a signal-to-noise ratio of 5.
+But you will notice that, the brighter areas of the galaxy become "saturated": you don't see the brighter parts of the galaxy any more.
+As you bring down the maximum threshold, the saturated areas also increase in size: loosing some useful information on the bright side!
 
-While these images may suffice for certain scientific goals, other cases may require even more refined color images that display the entire dynamic range accurately, particularly when visualizing low surface brightness structures.
-This can be achieved through advanced techniques that manipulate the pixel value distribution of the images.
+Let's go to the extreme and decrease the threshold to close the noise-level (for example @option{--fluxhigh=0.027} to have a signal-to-noise ratio of 1)!
+You will see that the noise now becomes colored!
+You generally don't want this because the difference in filter values of one pixel are only physically meaningful when they have a high signal-to-noise ratio.
+For lower signal-to-noise ratios, we should avoid color.
 
+Ideally, we want to see both the brighter parts of the central galaxy, as well as the fainter diffuse parts together!
+But with the simple linear transformation here, that is not possible!
+You need some pre-processing (before calling ConvertType) to scale the images.
 For example, you can experiment with taking the logarithm or the square root of the images (using @ref{Arithmetic}) before creating the color image.
+
 These non-linear functions transform pixel values, mapping them to a new range.
-After applying such transformations, you can use the transformed images as inputs to @command{astconvertt} to generate color images, as explained above.
+After applying such transformations, you can use the transformed images as inputs to @command{astconvertt} to generate color images (similar to how we subtracted the sky; which is a linear operation).
 In addition to that, it is possible to use a different color schema for showing the different brightness ranges as it is explained in the next section.
-You can consider this an interesting exercise for exploration.
+In the next section (@ref{Color for bright regions and grayscale for faint}), we'll review one high-level installed script which will simplify all these pre-processings and help you produce images with more information in them.
 
 
-@node Color image using asinh transformation,  , Color image using linear transformation, Creating color images
-@subsection Color image with faint regions in gray
+@node Color for bright regions and grayscale for faint,  , Color image using linear transformation, Color images with full dynamic range
+@subsection Color for bright regions and grayscale for faint
 
-In the previous sections  we have aligned three SDSS images of M51 group @ref{Color channels in same pixel grid}, and create color images using the raw @command{astconvertt} program in @ref{Color image using linear transformation}.
-But we saw that showing the brighter and fainter parts of the galaxy in the image is a major challenge!
-In this section, we will explore the usage of the @command{astscript-rgb-faint-gray} script to address this problem.
+In the previous sections we aligned three SDSS images of M51 group @ref{Color channels in same pixel grid}, and created a linearly-scaled color image (only using @command{astconvertt} program) in @ref{Color image using linear transformation}.
+But we saw that showing the brighter and fainter parts of the galaxy in a single image is impossible in the linear scale!
+In this section, we will use Gnuastro's @command{astscript-rgb-faint-gray} installed script to address this problem and create images which visualize a major fraction of the contents of our astronomical data.
 
-This script employs a non-linear transformation to modify the input images before combining them to produce the color image with a color palette that uses gray for the faint regions.
-The primary goal of this script is to perform the asinh transformation on the input images, which significantly reduces the dynamic range of the entire range of pixel values, as outlined by Lupton et al. (2004, @url{https://arxiv.org/abs/astro-ph/0312483}).
-See @ref{RGB faint gray image} of this manual and Infante-Sainz et al. (2023, @url{TBD}) for more information.
-In this paper, images from the @url{https://www.j-plus.es, J-PLUS survey} are used for generating the color image with gray background of M51 galaxy group.
-So, let's use this datasets in this tutorial and reproduce the images shown there.
+This script aims to solve the problems mentioned in the previous section.
+See Infante-Sainz et al. (2023, which first introduced this script) for examples of the final images we will be producing in this tutorial.
+This script uses a non-linear transformation to modify the bright input values before combining them to produce the color image.
+Furthermore, for the faint regions of the image, it will use grayscale and avoid color over all (as we saw, colored noised is not too nice to look at!).
+The faint regions are also inverted: so the brightest pixel in the faint (black-and-white or grayscale) region is black and the faintest pixels will be white.
+Black therefore creates a smooth transition from the colored bright pixels: the faintest colored pixel is also black.
+Since the background is white and the diffuse parts are black, the final product will also show nice in print or on a projector (the background is not black, but white!).
 
-We need the i, r, and g SDSS filter images of J-PLUS.
-As a consequence, the R, G, and B channes are: R=iSDSS, G=rSDSS, B=gSDSS.
-The J-PLUS identification numbers for the image containing the M51 galaxy group are: 92797, 92801, 92803.
-The zero point of that images are: 23.43, 23.74, 23.74 mag.
-The field of view of the T80 Camera is really large and we only need a small region to see the M51 galaxy group, as a consequence we will crop the images to have a size of 0.35 degree wide (21 arcmin).
-With all the above information, let's download, crop, and have a look at the images to check that everything is fine:
+The SDSS image we used in the previous sections doesn't show the full glory of the M51 group!
+Therefore, in this section, we will use the wider images from the @url{https://www.j-plus.es, J-PLUS survey}.
+Fortuantely J-PLUS includes the SDSS filters, so we can use the same iSDSS, rSDSSS, and gSDSS filters of J-PLUS.
+As a consequence, similar to the previous section, the R, G, and B channes are respectively mapped to the iSDSS, rSDSS and gSDSS filters of J-PLUS.
+
+The J-PLUS identification numbers for the images containing the M51 galaxy group are in these three filters are respectively: 92797, 92801, 92803.
+The J-PLUS images are already sky subtracted and aligned into the same pixel grid (so we will not need the @command{astwarp} and @command{astnoisechisel} steps before).
+However, zero point magnitudes of the J-PLUS images are different: 23.43, 23.74, 23.74.
+Also, the field of view of the J-PLUS Camera is very large and we only need a small region to see the M51 galaxy group.
+Therefore, we will crop the regions around the M51 group with a width of 0.35 degree wide (or 21 arcmin) and put the crops in the same @file{aligned/} directory we made before (which contains the inputs to the colored images).
+With all the above information, let's download, crop, and have a look at the images to check that everything is fine.
+Finally, let's run @command{astscript-rgb-faint-gray} on the three cropped images.
 
 @example
 ## Download
-mkdir inputs
-url=https://archive.cefca.es/catalogues/vo/siap/jplus-dr3/get_fits?id=
-wget "$url"92797 -Oinputs/i.fz
-wget "$url"92801 -Oinputs/r.fz
-wget "$url"92803 -Oinputs/g.fz
+$ url=https://archive.cefca.es/catalogues/vo/siap/jplus-dr3/get_fits?id=
+$ wget "$url"92797 -Oin/i-jplus.fits.fz
+$ wget "$url"92801 -Oin/r-jplus.fits.fz
+$ wget "$url"92803 -Oin/g-jplus.fits.fz
 
 ## Crop
-size=0.35
-ra=202.4741207
-dec=47.2171879
-astcrop inputs/i.fz --center=$ra,$dec --width=$size -o i.fits
-astcrop inputs/r.fz --center=$ra,$dec --width=$size -o r.fits
-astcrop inputs/g.fz --center=$ra,$dec --width=$size -o g.fits
+$ widthdeg=0.35
+$ ra=202.4741207
+$ dec=47.2171879
+$ for f in i r g; do \
+    astcrop in/$f-jplus.fits.fz --center=$ra,$dec \
+            --width=$widthdeg --output=aligned/$f-jplus.fits; \
+  done
 
-## Visual inpsection
-astscript-fits-view i.fits r.fits g.fits
+## Visual inspection of the images used for the color image
+$ astscript-fits-view aligned/*-jplus.fits
+
+## Create colored image.
+$ R=aligned/i-jplus.fits
+$ G=aligned/r-jplus.fits
+$ B=aligned/g-jplus.fits
+$ astscript-rgb-faint-gray $R $G $B -g1 --output=m51.pdf
 @end example
 
-Note that the images are already at the same sky pixel grid, and consequently, we don't need to re-sample them.
-We just cropped them to have smaller images so we can see the M51 galaxy group better.
-
-The @command{astscript-rgb-faint-gray} script offers various options to fine-tune the process, allowing you to achieve the best possible color image quality.
-To start, it is important to provide the input images in the order of decreasing wavelengths, following the Red-Green-Blue sequence (in our case, this translates to i, r, and g filters).
-Let's run the script with its default options on the J-PLUS cropped images:
-
-@example
-$ astscript-rgb-faint-gray i.fits r.fits g.fits -g1 \
-                      --output m51-default.pdf
-@end example
-
-At the end, the script will provide you with helpful tips and automatically estimated parameter values.
-To enhance the output, let's go through and explain these tips step by step.
-
-By opening the image, you will notice that it is a color image with a gray background, and unlike when using @command{astconvertt}, the images have undergone modifications, making the M51 group and background galaxies visible.
+By opening the image, you will notice that it is a color image with a gray background, making the M51 group and background galaxies visible together.
 However, the images does not look nice and there is significant room for improvement!
+You will notice that at the end of its operation, the script printed some numerical values to show automatically estimated parameter values.
+To enhance the output, let's go through and explain these step by step.
 
 The first important point to take into account is the photometric calibration.
 If the images are photometrically calibrated, then it is necessary to use the calibration to put the images in the same physical units and create ``real'' colors.
-The script is able to do it through the zero point magnitudes with the option @option{--zeropoint} or @option{-z}.
+The script is able to do it through the zero point magnitudes with the option @option{--zeropoint} (or @option{-z}).
 With this option, the images are internally transformed to have the same pixel units and then create the color image.
-Since the magnitude zero points are 23.43, 23.74, 23.74 for the i, r, and g images, let's use them:
+Since the magnitude zero points are 23.43, 23.74, 23.74 for the i, r, and g images, let's use them in the definition
 
 @example
-$ astscript-rgb-faint-gray i.fits r.fits g.fits -g1 \
-                      -z 23.43 -z 23.74 -z 23.74 \
-                      --output m51-zp.pdf
+$ astscript-rgb-faint-gray $R $G $B -g1 --output=m51.pdf \
+                           -z23.43 -z23.74 -z23.74
 @end example
 
 Open the image and have a look.
@@ -8984,264 +9030,183 @@ This image does not differ too much from the one generated by default (not using
 This is because the zero point values used here are similar for the three images.
 But in other datasets the calibration could make a big difference!
 
-Now that we are using the calibration, let's consider another vital parameter: the background value or the minimum value to be displayed (@option{--minimum} or @option{-m}).
+Now that we are using the calibration, let's consider another vital parameter: the minimum value to be displayed (@option{--minimum} or @option{-m}).
 Pixel values below this number will not be shown on the color image.
-In general, this parameter uses to be the same for all the images and equal to zero if the sky background has been subtracted.
+In general, this parameter uses to be the same for all the images and you can set it to zero if the sky background has been subtracted (see @ref{Color image using linear transformation}).
 However, it is possible to consider different minimum values for the inputs (in this case use as many @option{-m} as input images).
-In this particular case, a minimum value of zero for all images is suitable, as a consequence, we will use a simple @option{--minimum 0.0}.
+In this particular case, a minimum value of zero for all images is suitable.
+To keep the command simple, we'll add the zeropoint, minimum and HDU of each image in the variable that also had its filename.
 
 @example
-$ astscript-rgb-faint-gray i.fits r.fits g.fits -g1 \
-                      -z 23.43 -z 23.74 -z 23.74 \
-                      --minimum 0.0 --output m51-zp-min.pdf
+$ R="aligned/i-jplus.fits -h1 --zeropoint=23.43 --minimum=0.0"
+$ G="aligned/r-jplus.fits -h1 --zeropoint=23.74 --minimum=0.0"
+$ B="aligned/g-jplus.fits -h1 --zeropoint=23.74 --minimum=0.0"
+$ astscript-rgb-faint-gray $R $G $B --output=m51.pdf
 @end example
 
 In contrast to the previous image, the new PDF (with a minimum value of zero) exhibits a better background visualization because it is avoiding negative pixels to be shown.
 Next, consider the parameters @option{--qbright} and @option{--stretch}, which control the asinh transformation to adjust pixel value distributions.
-Remember that the estimated values are displayed at the end of the script's execution.
+Remember that the estimated values are displayed at the end of the script's execution (the automatically calculated values are respectively @code{1.290644e+00} and @code{1.290644e-01}: the first is 10 times larger than the second).
 Let's decrease @option{--qbright} by an order of magnitude in order to display of the very bright regions (the core of the galaxies and stars).
+@c: we need a description of what 'qbright' represents! There is no description; it just mentioned as a black box!
 
 @example
-$ astscript-rgb-faint-gray i.fits r.fits g.fits -g1 \
-                      -z 23.43 -z 23.74 -z 23.74 \
-                      --minimum 0.0 \
-                      --qbright=1.290644e-1 \
-                      --output m51-zp-min0-qbright.pdf
+$ astscript-rgb-faint-gray $R $G $B --output=m51-qlow.pdf \
+                           --qbright=1.290644e-01
 @end example
 
-Open the image and verify that the bright regions are now better displayed.
-Now, decrease the parameter @option{--stretch} to present the areas around very bright pixels in linear scale.
+Comparing @file{m51.pdf} and @file{m51-qlow.pdf}, you will see that the gray regions have become darker and more colored pixels have become black.
+Now, let's decrease @option{--stretch} to show very bright pixels in linear scale.
 This allows you to reveal fainter regions, such as outer parts of galaxies, spiral arms, stellar streams, and similar structures.
 
 @example
-$ astscript-rgb-faint-gray i.fits r.fits g.fits -g1 \
-                      -z 23.43 -z 23.74 -z 23.74 \
-                      --minimum 0.0 \
-                      --qbright=1.290644e-1 \
-                      --stretch=1.290644e-3 \
-                      --output m51-zp-min-qbright-stretch.pdf
+$ astscript-rgb-faint-gray $R $G $B --output=m51-qlow-slow.pdf \
+                           --qbright=1.290644e-01 --stretch=1.290644e-03
 @end example
 
 Have a look at the image and check that now the faint regions are clearly visible.
 In this case we have set the qbright/stretch ratio to 100; but by default it is 10.
+Therefore the command above would have been equal to just decreasing stretch by 10 from the default value (and not changning @option{--qbright})!
 The value of 10 for this ratio is an empirical value determined through extensive testing on various types of data.
 Feel free to change it as you like by considering @option{--qthresh} and @option{--stretch} values that allow to show the entire dynamical range of pixel values.
-We will use the same value for both of them since in this case, this allows to obtain a good visualization: @option{--qthresh=0.5} and @option{--stretch=0.5}.
+Let's try using the same value for both (so their ratio is unity):
+@c: there is no explanation on why 0.5 was used.
 
 @example
-$ astscript-rgb-faint-gray i.fits r.fits g.fits -g1 \
-                      -z 23.43 -z 23.74 -z 23.74 \
-                      --minimum 0.0 \
-                      --qbright 0.5 \
-                      --stretch 0.5 \
-                      --output m51-zp-min-qbright-stretch.pdf
+$ astscript-rgb-faint-gray $R $G $B --output=m51-qs-equal.pdf \
+                           --qbright=0.5 --stretch=0.5
 @end example
 
-Let's demonstrate the @option{--black} option to create a black background images (not the gray ones we produced above).
-In order to have a shorter command-line examples, in what follows we will use the internally estimated values for @option{--qbright} and @option{--stretch} parameters.
+We see that this looks identical to @file{m51-qlow.fits} that we made above (because by decreasing qbright by 1/10th, it became equal to the default stretch value).
+To keep things simple, we'll just use the @option{--qbright=1.290644e-01}
+Having a separate color-map for the fainter parts is generally a good thing, but for some reason you may not want it!
+To disable this feature, you can use the @option{--coloronly} option:
 
 @example
-$ astscript-rgb-faint-gray i.fits r.fits g.fits -g1 \
-                      -z 23.43 -z 23.74 -z 23.74 \
-                      --minimum 0.0 \
-                      --qbright 0.5 \
-                      --stretch 0.5 \
-                      --black \
-                      --output m51-zp-min-qbright-stretch-black.pdf
+$ astscript-rgb-faint-gray $R $G $B --output=m51-coloronly.pdf \
+                           --qbright=1.290644e-01 --coloronly
 @end example
 
-Open the image and note that now the background is shown in black!
-In contrast with the gray background image, in this black background image the fainter/smaller stars/galaxies and the low surface brightness features are not visible!
-Consequently, the gray background color scheme is particularly useful for visualizing low surface brightness features and you will rarely need to use the @option{--black} option.
+Open the image and note that now the coloring has gone all the way into the noise (producing a black background).
+In contrast with the gray background images before, the fainter/smaller stars/galaxies and the low surface brightness features are not visible anymore!
+These regions show the interaction of two galaxies; as well as all the other background galaxies and foreground stars!
+These structures were entirely hidden in the linear or only-color images, but by simply showing the faint pixels in gray they become visible.
+Consequently, the gray background color scheme is particularly useful for visualizing low surface brightness features and you will rarely need to use the @option{--coloronly} option.
+We will therefore not use this option anymore in this tutorial.
 
-In the default gray background mode, the very bright regions are shown in color, intermediate and faint regions are shown in black, and background or noisy pixels are displayed in gray.
-Have another look at @file{m51-zp-min-qbright-stretch.pdf} and observe the complex, diffuse, and faint structures resulting from the interaction of galaxies; as well as all the other background galaxies and foreground stars that become more visible.
-These structures were entirely hidden in the linear or black background images, but now, by simply showing the background in gray they become visible.
-
-Now that we have the basic parameters already set, let's consider other parameters that allow to fine tune the color-black and black-gray regions.
-The parameter that defines the separation between the color and black regions is @option{--grayval}.
-In the same way, the option that separates the black and gray regions is @option{--colorval}.
-The value estimated by default for this option is 99.7 as you can read it from the command-line.
-Start by decreasing @option{--colorval} to 70.0 to display fewer regions in color (only the very bright regions):
+Now that we have the basic parameters already set, let's consider other parameters that allow to fine tune the three ranges of values: color for the brightest pixel values, black for intermediate pixel values, and gray for the faintest pixel values.
+The option that defines the separation between the color and black regions is @option{--colorval} (the lowest pixel value that is colored).
+The option that separates the black and gray regions is @option{--grayval} (the highest gray value).
+Looking at the last lines that the script prints, we see that the default value estimated for @option{--colorval} is 99.7.
+Let's by decrease it to 70.0 to display fewer regions in color (only the very bright regions):
 
 @example
-$ astscript-rgb-faint-gray i.fits r.fits g.fits -g1 \
-                      -z 23.43 -z 23.74 -z 23.74 \
-                      --minimum 0.0 \
-                      --qbright 0.5 \
-                      --stretch 0.5 \
-                      --colorval 70.0 \
-                      --output m51-zp-min-qbright-stretch-colorval.pdf
+$ astscript-rgb-faint-gray $R $G $B --output=m51-colorval.pdf \
+                           --qbright=1.290644e-01 --colorval=70
 @end example
 
-Open the image and check that the regions shown in color are smaller compared to the previous image.
-So, decreasing @option{--colorval} with respect to the estimated value will decrease the color regions.
+Open the image and check that the regions shown in color are smaller compared to the previous images with a gray background.
+So, decreasing @option{--colorval} with respect to the estimated value will increase the threshold of values used for colored pixels and thus decrease their area.
 In the same way, by increasing this value, more area will be shown in color.
 It is recomended to experiment with different values around the estimated one to have a feeling on how it changes the image.
-We will use a value of @option{--colorval=95} (close to the value estimated by default 99.7) in what follow.
+We will use a value of @option{--colorval=95} (close to the value estimated by default 99.7) in what follows
 
 @example
-$ astscript-rgb-faint-gray i.fits r.fits g.fits -g1 \
-                      -z 23.43 -z 23.74 -z 23.74 \
-                      --minimum 0.0 \
-                      --qbright 0.5 \
-                      --stretch 0.5 \
-                      --colorval 95.0 \
-                      --output m51-zp-min-qbright-stretch-colorval.pdf
+$ astscript-rgb-faint-gray $R $G $B --output=m51-colorval.pdf \
+                           --qbright=1.290644e-01 --colorval=95
 @end example
 
 Now let's go with the next parameter that separates the black and gray regions.
 This parameter is @option{--grayval} and its value depends on the previously discussed @option{--colorval} parameter.
-For the particular value of @option{--colorval=95}, the estimated @option{--grayval} value is 81.2.
+When you read the last printed lines of the previous command, we see that the estimated @option{--grayval} value is 81.2.
 By increasing this parameter, more area of the image will be displayed as black.
 So, let's increase this parameter to, for example, 85 to increase the faint black regions.
 
 @example
-$ astscript-rgb-faint-gray i.fits r.fits g.fits -g1 \
-                      -z 23.43 -z 23.74 -z 23.74 \
-                      --minimum 0.0 \
-                      --qbright 0.5 \
-                      --stretch 0.5 \
-                      --colorval 95.0 \
-                      --grayval  85.0 \
-                      --output m51-zp-min-qbright-stretch-colorval-grayval.pdf
+$ astscript-rgb-faint-gray $R $G $B --output=m51-grayval.pdf \
+                           --qbright=1.290644e-01 --colorval=95 \
+                           --grayval=85.0
 @end example
 
 By adjusting these two parameters, you can obtain an optimal result to show the bright and faint parts of your data within one printable image.
 The values used here are somewhat extreme to illustrate the logic of the procedure, but we encourage you to experiment with values close to the estimated by default.
 The script can provide additional information about the pixel value distributions used to estimate the parameters by using the @option{--checkparams} option.
 
-Instead of using a combination of the three input images for the gray background, you can introduce a fourth image that will be used for generating the gray background.
-This image is referred to as the "K" channel and may be useful when a particular filter is deeper or has unique characteristics.
-In this case, the rationale remains the same as explained earlier.
-Two additional options are available to smooth different regions by convolving with a Gaussian kernel: @option{--colorkernelfwhm} for smoothing color regions and @option{--graykernelfwhm} for convolving gray regions.
-The value specified for these options represents the full width at half maximum of the Gaussian kernel.
-
 To modify the color balance of the output image, you can weigh the three channels differently with the @option{--weight} or @option{-w} option.
-For example, by using @option{-w1 -w1 -w4}, you give four times more weight to the blue channel than to the red and green channels:
+For example, by using @option{-w1 -w1 -w2}, you give two times more weight to the blue channel than to the red and green channels:
 
 @example
-$ astscript-rgb-faint-gray i.fits r.fits g.fits -g1 \
-                      -z 23.43 -z 23.74 -z 23.74 \
-                      --minimum 0.0 \
-                      --qbright 0.5 \
-                      --stretch 0.5 \
-                      --colorval 95.0 \
-                      --grayval  85.0 \
-                      -w1 -w1 -w4 \
-                      --output m51-zp-min-qbright-stretch-colorval-grayval-bluer.pdf
+$ astscript-rgb-faint-gray $R $G $B --output=m51-weighted.pdf \
+                           --qbright=1.290644e-01 --colorval=95 \
+                           --grayval=85.0 -w1 -w1 -w2
 @end example
+@c the weight should only affect the colored pixels.
 
-This results in the output color image appearing much bluer, similar to the top-right panel of Figure 1 by Infante-Sainz et al. (2023, @url{TBD}).
-
-Keep in mind that altering the color of images can lead to incorrect subsequent analyses by the readers/viewers of this work (they will false think that the galaxy is blue, and not red).
+The colored pixels of the output are much bluer now and the distinction between the two merging galaxies is more clear.
+The output is more similar to the way SDSS displays the M51 group in its color images.
+However, keep in mind that altering the different filters can lead to incorrect subsequent analyses by the readers/viewers of this work (for example they will falsly think that the galaxy is blue, and not red!).
 If the reduction and photometric calibration are correct, and the images represent what you consider as the red, green, and blue channels, then the output color image should be suitable.
-However, in certain situations, the combination of channels may not have a traditional color interpretation.
+
+In certain situations, the combination of channels may not have a traditional color interpretation.
 For instance, combining an X-ray channel with an optical filter and a far-infrared image can complicate the interpretation in terms of human understanding of color.
 But the physical interpretation remains valid as the different channels (colors in the output) represent different physical phenomena of astronomical sources.
 Another easier example is the use of narrow-band filters such as the H-alpha of J-PLUS survey.
 This is shown in the Bottom-right panel of Figure 1 by Infante-Sainz et al. (2023, @url{TBD}), in this case the G channel has been substituted by the image corresponding to the H-alpha filter to show the star formation regions.
-Use this option with caution, as it can significantly affect the output and inform your readers/viewers.
+Therefore use the weights with caution, as it can significantly affect the output and misinform your readers/viewers.
+
+Therefore if you do apply weights be sure to report the weights in the caption of the image (besides the filters that were used for each channel).
 With great power there must also come great responsibility!
 
 Two additional transformations are available to modify the appearance of the output color image.
 The linear transformation combines brightness adjustment and contrast enhancement through the @option{--brightness} and @option{--contrast} options.
 In most cases, only the contrast adjustment is necessary to improve the quality of the color image.
-To illustrate the impact of adjusting image contrast, we will generate an image with higher contrast and compare with the previous one:
+To illustrate the impact of adjusting image contrast, we will generate an image with higher contrast and compare with the previous one.
+Since we have decided to keep the weights, to keep the following commands, simple, we have modified the definition of each channel (and used the short version of the options to keep them short):
 
 @example
-## Default contrast
-$ astscript-rgb-faint-gray i.fits r.fits g.fits -g1 \
-                      -z 23.43 -z 23.74 -z 23.74 \
-                      --minimum 0.0 \
-                      --qbright 0.5 \
-                      --stretch 0.5 \
-                      --colorval 95.0 \
-                      --grayval  85.0 \
-                      --output m51-default-contrast-default.pdf
-
-## Increased contrast
-$ astscript-rgb-faint-gray i.fits r.fits g.fits -g1 \
-                      -z 23.43 -z 23.74 -z 23.74 \
-                      --minimum 0.0 \
-                      --qbright 0.5 \
-                      --stretch 0.5 \
-                      --colorval 95.0 \
-                      --grayval  85.0 \
-                      --contrast 4 \
-                      --output m51-default-contrast-increased.pdf
+$ R="aligned/i-jplus.fits -h1 -z23.43 -m0.0 -w1"
+$ G="aligned/r-jplus.fits -h1 -z23.74 -m0.0 -w1"
+$ B="aligned/g-jplus.fits -h1 -z23.74 -m0.0 -w2"
+$ astscript-rgb-faint-gray $R $G $B --output=m51-contrast.pdf \
+                           --qbright=1.290644e-01 --colorval=95 \
+                           --grayval=85.0 --contrast=4
 @end example
+@c: a contrast of 2 seems to be less saturated.
 
-As you can see, the image with higher contrast is more appealing!
-
+When you compare this (@file{m51-contrast.pdf}) with the previous output (@file{m51-weighted.pdf}), you see that the colored parts are now much more clear!
 Congratulations!
-By following the tutorial up to this point, we have been able to reproduce three images of Infante-Sainz et al. (2023, @url{TBD}), they are:
-
-@example
-## R-G-B black
-$ astscript-rgb-faint-gray i.fits r.fits g.fits -g1 \
-                      -z 23.43 -z 23.74 -z 23.74 \
-                      --minimum 0.0 \
-                      --qbright 0.5 \
-                      --stretch 0.5 \
-                      --colorval 95.0 \
-                      --grayval  85.0 \
-                      --contrast 4 \
-                      --black \
-                      --output m51-rgb-black.pdf
-
-## R-G-B weighted
-$ astscript-rgb-faint-gray i.fits r.fits g.fits -g1 \
-                      -z 23.43 -z 23.74 -z 23.74 \
-                      --minimum 0.0 \
-                      --qbright 0.5 \
-                      --stretch 0.5 \
-                      --colorval 95.0 \
-                      --grayval  85.0 \
-                      --contrast 4 \
-                      -w1 -w1 -w4 \
-                      --output m51-default-contrast-increased.pdf
-
-## R-G-B gray
-$ astscript-rgb-faint-gray i.fits r.fits g.fits -g1 \
-                      -z 23.43 -z 23.74 -z 23.74 \
-                      --minimum 0.0 \
-                      --qbright 0.5 \
-                      --stretch 0.5 \
-                      --colorval 95.0 \
-                      --grayval  85.0 \
-                      --contrast 4 \
-                      --black \
-                      --output m51-rgb-black.pdf
-@end example
-
-We let the one corresponding to the use of the narrow band filter (H-alpha) as an exercise.
-Remember that this paper is reproducible throught Maneage (Akhlaghi et al. 2021, @url{https://doi.org/10.1109/MCSE.2021.3072860}), so you can explore and build the entire paper by yourself.
+By following the tutorial up to this point, we have been able to reproduce three images of Infante-Sainz et al. (2023, @url{TBD}).
+You can see the commands that were used to generate them within the reproducible source of that paper at @url{TBD}.
+Remember that this paper is reproducible throught Maneage, so you can explore and build the entire paper by yourself.
+For more on Maneage, see Akhlaghi et al. @url{https://doi.org/10.1109/MCSE.2021.3072860, 2021}.
 
 Another option available for transforming the image appearance is the gamma correction, a non-linear transformation that can be useful in specific cases.
 You can experiment with different gamma values to observe the impact on the resulting image.
-Lower gamma values will enhance faint structures, while higher values will emphasize brighter regions:
+Lower gamma values will enhance faint structures, while higher values will emphasize brighter regions.
+Let's have a look by giving two very different values to it with the simple loop below:
 
 @example
-## Using gamma 0.3
-$ astscript-rgb-faint-gray i.fits r.fits g.fits -g1 \
-                      --minimum 0.0 \
-                      --gamma 0.3 \
-                      --output m51-min0-gray-gamalow.pdf
-
-## Using gamma 2.0
-$ astscript-rgb-faint-gray i.fits r.fits g.fits -g1 \
-                      --minimum 0.0 \
-                      --gamma 2.0 \
-                      --output m51-min0-gray-gamahigh.pdf
+$ for g in 0.3 2.0; do \
+    astscript-rgb-faint-gray $R $G $B --output=m51-gamma-$g.pdf \
+                             --qbright=1.290644e-01 --colorval=95 \
+                             --grayval=85.0 --contrast=4 --gamma=$g; \
+  done
 @end example
 
-This tutorial provides a general overview of the various options to construct a color image from three different FITS images using the @command{astscript-rgb-faint-gray} script.
+Comparing the last three files (@file{m51-contrast.pdf}, @file{m51-gamma-2.pdf} and @file{m51-gamma-2.0.pdf}), you will clearly see the effect of the @option{--gamma}.
+
+Finally, instead of using a combination of the three input images for the gray background, you can introduce a fourth image that will be used for generating the gray background.
+This image is referred to as the "K" channel and may be useful when a particular filter is deeper or has unique characteristics.
+In this case, the rationale remains the same as explained earlier.
+Two additional options are available to smooth different regions by convolving with a Gaussian kernel: @option{--colorkernelfwhm} for smoothing color regions and @option{--graykernelfwhm} for convolving gray regions.
+The value specified for these options represents the full width at half maximum of the Gaussian kernel.
+
+This tutorial provided a general overview of the various options to construct a color image from three different FITS images using the @command{astscript-rgb-faint-gray} script.
 Keep in mind that the optimal parameters for generating the best color image depend on your specific goals and the quality of your input images.
 We encourage you to follow this tutorial with the provided J-PLUS images and later with your own dataset.
-See @ref{RGB faint gray image} for more information, and please consider citing Infante-Sainz et al. (2023, @url{TBD}) if you use this script in your work (the full Bib@TeX{} entry of this paper will be given to you with the @option{--cite} option).
+See @ref{Color images with gray faint regions} for more information, and please consider citing Infante-Sainz et al. (2023, @url{TBD}) if you use this script in your work (the full Bib@TeX{} entry of this paper will be given to you with the @option{--cite} option).
 
-@node Zero point of an image, Pointing pattern design, Creating color images, Tutorials
+@node Zero point of an image, Pointing pattern design, Color images with full dynamic range, Tutorials
 @section Zero point of an image
 
 The ``zero point'' of an image is astronomical jargon for the calibration factor of its pixel values; allowing us to convert the raw pixel values to physical units.
@@ -32935,7 +32900,7 @@ If you do confront such strange errors, please submit a bug report so we fix it 
 * Viewing FITS file contents with DS9 or TOPCAT::  Open DS9 (images/cubes) or TOPCAT (tables).
 * Zero point estimation::       Zero point of an image from reference catalog or image(s).
 * Pointing pattern simulation::  Simulate a stack with a given series of pointings.
-* RGB faint gray image::
+* Color images with gray faint regions::  Color for bright pixels and grayscale for faint.
 * PSF construction and subtraction::  Set of scripts to create extended PSF of an image.
 @end menu
 
@@ -34065,7 +34030,7 @@ When this option is given, the default installed Makefile will not be used: the 
 @end table
 
 
-@node Pointing pattern simulation, RGB faint gray image, Zero point estimation, Installed scripts
+@node Pointing pattern simulation, Color images with gray faint regions, Zero point estimation, Installed scripts
 @section Pointing pattern simulation
 
 @cindex Depth of data
@@ -34305,30 +34270,30 @@ For more, see @option{Operating mode options}.
 @end table
 
 
-@node RGB faint gray image, PSF construction and subtraction, Pointing pattern simulation, Installed scripts
-@section RGB faint gray image
-A RGB (Red, Green, Blue) image is a color image generated using images from three different filters or channels.
-More info at @url{https://en.wikipedia.org/wiki/RGB_color_model}.
+@node Color images with gray faint regions, PSF construction and subtraction, Pointing pattern simulation, Installed scripts
+@section Color images with gray faint regions
 Typical astronomical images have a very wide range of pixel values and generally, it is difficult to show the entire dynamical range in a color image.
-For example, by using @ref{ConvertType}, it is possible to obtain a color image.
-However, depending on the pixel distribution, it could be very difficult to see the different regions of the images appropriately (faint and bright objects at the same time).
-The reason is that images usually have a lot of faint pixels (near to the sky background or noise values), and few bright pixels (corresponding to the center of stars, galaxies, etc.).
-As a consequence, by considering the images without any modification, it is extremely hard to show the entire range of values in a color image.
-To solve this issue, it is possible to perform some transformations of the images and then obtain the color image.
-This is actually what the current script does: it makes some transformations and then uses Gnuastro's ConvertType to generate the color image.
+For example, by using @ref{ConvertType}, it is possible to obtain a color image with three FITS images as each of the Red-Green-Blue (or RGB) color channels.
+However, depending on the pixel distribution, it could be very difficult to see the different regions together (faint and bright objects at the same time).
+In something like DS9, you end up changing the color map parameters to see the regions you are most interested in.
 
-This script is inspired by Lupton et al. (2004, @url{http://doi.org/10.1086/382245}).
-In short: it performs an inverse hyperbolic sinus (asinh) transformation of the images to change the dynamical range and show the bright and faint regions at the same time.
-There are several parameters and options in order to change the final output, see below.
-A general overview of this script will be published in @url{REF}; please cite it if this script proves useful in your research.
+The reason is that images usually have a lot of faint pixels (near to the sky background or noise values), and few bright pixels (corresponding to the center of stars, galaxies, etc.) that can be millions of times brighter!
+As a consequence, by considering the images without any modification, it is extremely hard to visualize the entire range of values in a color image.
+This is because standard color formats like JPEG, TIFF or PDF are defined as 8-bit integer precision, while astronomical data are usually 32-bit floating point!
+To solve this issue, it is possible to perform some transformations of the images and then obtain the color image.
+
+This is actually what the current script does: it makes some non-linear transformations and then uses Gnuastro's ConvertType to generate the color image.
+There are several parameters and options in order to change the final output that are described in @ref{Invoking astscript-rgb-faint-gray}.
+A full tutorial describing this script with actual data is available in @ref{Color images with full dynamic range}.
+A general overview of this script will be published in Infante-Sainz et al. @url{TBD, 2023}; please cite it if this script proves useful in your research.
 
 @menu
-* Invoking astscript-rgb-faint-gray::
+* Invoking astscript-rgb-faint-gray::  Details of options and arguments.
 @end menu
 
-@node Invoking astscript-rgb-faint-gray,  , RGB faint gray image, RGB faint gray image
+@node Invoking astscript-rgb-faint-gray,  , Color images with gray faint regions, Color images with gray faint regions
 @subsection Invoking astscript-rgb-faint-gray
-This installed script will consider several images to combine them into a single color image.
+This installed script will consider several images to combine them into a single color image to visualize the full dynamic range.
 The executable name is @file{astscript-rgb-faint-gray}, with the following general template:
 
 @example
@@ -34336,38 +34301,41 @@ $ astscript-rgb-faint-gray [OPTION...] r.fits g.fits b.fits
 @end example
 
 @noindent
-Some examples (to obtain three appropriate images see @ref{Color channels in same pixel grid}):
+Examples (for a tutorial, see @ref{Color images with full dynamic range}):
 
 @example
 ## Generate a color image from three images with default options.
-$ astscript-rgb-faint-gray r.fits g.fits b.fits --output color.jpg
+$ astscript-rgb-faint-gray r.fits g.fits b.fits --output color.pdf
 
 ## Generate a color image, consider the minimum value to be zero.
-$ astscript-rgb-faint-gray r.fits g.fits b.fits --minimum 0.0 \
-                      --output color.jpg
+$ astscript-rgb-faint-gray r.fits g.fits b.fits --minimum=0.0 \
+                      --output=color.jpg
 
 ## Generate a color image considering different weights, minimum values,
 ## zero points, and contrast.
 $ astscript-rgb-faint-gray r.fits g.fits b.fits \
-                      --weights 0.9,1.0,1.1 \
-                      --minimum -0.1,0.0,0.1 \
-                      --zeropoints 22.4,25.5,24.6 \
-                      --contrast 3 --output color.jpg
+                      --weights=0.9,1.0,1.1 \
+                      --minimum=-0.1,0.0,0.1 \
+                      --zeropoints=22.4,25.5,24.6 \
+                      --contrast=3 --output=color.tiff
 
 @end example
 
-This script considers three images to generate a color image as the output.
-The order of the images matters, it should be provided from redder to bluer: R, G, B.
-These images are internally manipulated by a series of asinh transformations and normalization to homogenize and finally combine them into a color image.
+This script takes three inputs images to generate a RGB color image as the output.
+The order of the images matters, reddest (longest wavelength) filter (R), green (an intermediate wavelength) filter (G) and bluest (shortest wavelength).
+In astronomy, these can be any filter (for example from infra-red, radio, optical or x-ray); the ``RGB'' designation is from the general definition of colors (see @url{https://en.wikipedia.org/wiki/RGB_color_spaces})
+These images are internally manipulated by a series of non-linear transformations and normalized to homogenize and finally combine them into a color image.
 In general, for typical astronomical images, the default output is an image with bright pixels in color and noise pixels in black.
 
 The option @option{--minimum} sets the minimum value to be shown and it is a key parameter, it uses to be a value close to the sky background level.
-The two important parameters that control the asinh transformation are @option{--qthresh} and @option{--stretch}.
+The current non-linear transformation is from Lupton et al. @url{https://ui.adsabs.harvard.edu/abs/2004PASP..116..133L, 2004}, which we call the ``asinh'' transformation.
+The two important parameters that control this transformation are @option{--qthresh} and @option{--stretch}.
 With the option @option{--black}, it is possible to generate a color image with the background in black: bright pixels in color and the sky background (or noise) values in black.
 It is possible to provide a fourth image (K) that will be used for showing the gray region: R, G, B, K
 
 The generation of a good color image is something that requires several trials, so we encourage the user to play with the different parameters cleverly.
-After some testing, we find it useful to follow the steps:
+After some testing, we find it useful to follow the steps.
+For a more complete description of the logic of the process, see the dedicated tutorial in @ref{Color images with full dynamic range}.
 
 @enumerate
 @item
@@ -34385,51 +34353,57 @@ Overall, play with these two parameters to show the color regions appropriately.
 Use @option{--checkparams} to check the pixel value distributions.
 @end enumerate
 
+@noindent
 A full description of each option is given below:
 
 @table @code
 @item -h
 @itemx --hdu=STR/INT
 Input HDU name or counter (counting from 0) for each input FITS file.
-If the same HDU should be used from all the FITS files, you can use the @option{--globalhdu} option described below.
+If the same HDU should be used from all the FITS files, you can use the @option{--globalhdu} option described below to avoid repeating this option.
 
 @item -g
 @itemx --globalhdu=STR/INT
 Use the value given to this option (a HDU name or a counter, starting from 0) for the HDU identifier of all the input FITS files.
 This is useful when all the inputs are distributed in different files, but have the same HDU in those files.
 
-@item -m
-@itemx --minimums=FLT,FLT,FLT,[FLT]
+@item -o
+@itemx --output
+Output color image name.
+The output can be in any of the recognized output formats of ConvertType (including PDF, JPEG and TIFF).
+
+@item -m FLT,FLT,FLT[,FLT]
+@itemx --minimum=FLT,FLT,FLT[,FLT]
 Minimum values (comma separated) to be mapped for each R, G, B, and K FITS images.
-This parameter controls the black level.
+If a single value is given to this option it will be used for all the input images.
+
+This parameter controls the smallest visualized pixel value.
 In general, it is a good decision to set this value close to the sky background level.
-Changing this value even slightly can dramatically change the output color image.
-
-@item -M
-@itemx --minimum=FLT
-Common minimum value for the (R, G, B, K) channel FITS images (this overrides -m or --minimums).
-
-@item -z
-@itemx --zeropoints=FLT,FLT,FLT
-Zero point values (comma separated) of each R, G, B, and K FITS images.
-Internally, the zero point values are used to transform the pixel values in units of Janskies.
-The units are not important for a color image, but the fact that the images are photometrically calibrated is important for obtaining an output color image whose color distribution is realistic.
+This value can dramatically change the output color image (especially when there are large negative values in the image that you do not intend to visualize).
 
 @item -Z
 @itemx --zeropoint=FLT
-Common zero point value for the (R, G, B, K) channel FITS images (this overrides -z or --zeropoints).
+Zero point values (comma separated) of each R, G, B, and K FITS images.
+If a single value is given, it is used for all the input images.
+
+Internally, the zero point values are used to transform the pixel values in units of Janskies.
+The units are not important for a color image, but the fact that the images are photometrically calibrated is important for obtaining an output color image whose color distribution is realistic.
 
 @item -w
 @itemx --weights=FLT,FLT,FLT
 Relative weights for the images (comma-separated values).
 With this parameter, it is possible to change the importance of each channel to modify the color of the image.
+
 For example, @option{--weights=1,2,5} indicates that the B band will be 5 times more important than the R band, and that the G band is 2 times more important than the R channel.
 In this particular example, the combination will be done as @mymath{\rm{colored}=(1{\times}\rm{R}+2{\times}\rm{G}+5{\times}\rm{B})/(1 + 2 + 5)=0.125{\times}\rm{R} + 0.250{\times}\rm{G} + 0.625{\times}\rm{B}}.
-In principle, a color image should recreate real colors, but this is a very subjective matter and with this option is possible to change the color balance.
+
+In principle, a color image should recreate ``real'' colors, but ``real'' is a very subjective matter and with this option, it is possible to change the color balance and make it more aesthetically interesting.
+However, be careful to avoid confusing the viewers of your image and report the weights with the filters you used for each channel.
 It is up to the user to use this parameter carefully.
 
 @item -Q
 @itemx --qbright=FLT
+@c There is no description of what this parameter actually does! We should add a qualitative description of what it means to decrease/increase this from the default values.
 It is one of the parameters that control the asinh transformation.
 It should be used in combination with @option{--stretch}.
 In general, it has to be set to low values.
@@ -34438,38 +34412,35 @@ Finally, change @option{--qbright} to bring out the brighter features of the ima
 
 @item -s
 @itemx --stretch=FLT
+@c There is no description of what this parameter actually does! We should add a qualitative description of what it means to decrease/increase this from the default values.
 It is one of the parameters that control the asinh transformation.
 It should be used in combination with @option{--qbright}.
 It is used for bringing out the faint/intermediate bright structures of the image that are shown linearly.
 In general, this parameter is chosen after setting @option{--qbright} to a low value.
 
-@item --black
-By default, a gray-background image is generated.
-That is, the lowest pixel values are shown in gray.
-By using this option, a black background image will be generated.
-An averaged image from the three R, G, and B channels is computed for the black background image.
-If a fourth image (K) is provided, then it is considered for the black background.
-See below for more options that control the color and black regions.
+@item --coloronly
+Use the input color channels for the full pixel value range.
+By default, the fainter parts of the image are shown in grayscale not color (since colored noise is not too informative!).
 
 @item --colorval=FLT
-This parameter defines the value that separates the color and black regions.
+The value that separates the color and black regions.
 It ranges from 100 (all pixels becoming in color) to 0 (all pixels becoming black).
-Check the histogram 'FOR COLOR-THRESHOLD'  with the option @option{--checkparams} for selecting a good value.
+Check the histogram @code{FOR COLOR-THRESHOLD} with the option @option{--checkparams} for selecting a good value.
 
 @item --grayval=FLT
-This parameter defines the value that separates the black and white regions.
+This parameter defines the value that separates the black and gray regions.
 It ranges from 100 (all pixels becoming black) to 0 (all pixels becoming white).
-Check the histogram 'FOR GRAY-THRESHOLD'  with the option @option{--checkparams} to select the value.
+Check the histogram @code{FOR GRAY-THRESHOLD} with the option @option{--checkparams} to select the value.
 
 @item --colorkernelfwhm=FLT
 Gaussian kernel FWHM (in pixels) for convolving the color regions.
-Sometimes, a convolution of the color regions (bright pixels) is desired.
-With this option, the convolution will be done internally.
+Sometimes, a convolution of the color regions (bright pixels) is desired to further increase their signal-to-noise ratio (but make them look smoother).
+With this option, the kernel will be created internally and convolved with the colored regions.
 
 @item --graykernelfwhm=FLT
 Gaussian kernel FWHM (in pixels) for convolving the background image.
-Sometimes, a convolution of the background image is necessary to smooth the noisier regions.
-With this option, the convolution will be done internally.
+Sometimes, a convolution of the background image is necessary to smooth the noisier regions and increase their signal-to-noise ratios.
+With this option, the kernel will be created internally and convolved with the colored regions.
 
 @item -b
 @itemx --brightness=FLT
@@ -34489,18 +34460,13 @@ Gamma exponent value for a gamma transformation.
 This transformation is not linear: @mymath{\rm{output}=\rm{image}^{gamma}}.
 This option overrides @option{--brightness} or @option{--contrast}.
 
-
-@item --keeptmp
-Do not remove the temporary directory (see description of This option is
-useful for debugging and checking the outputs of internal steps.
-
 @item --checkparams
 Print the statistics of intermediate images that are used for estimating the parameters.
 This option is useful to decide the optimum set of parameters.
 
-@item -o
-@itemx --output
-Output color image name.
+@item --keeptmp
+Do not remove the temporary directory.
+This is useful for debugging and checking the outputs of internal steps.
 
 @item --cite
 Give BibTeX and acknowledgment information for citing this script within your paper.
@@ -34518,7 +34484,7 @@ For more, see @option{Operating mode options}.
 @end table
 
 
-@node PSF construction and subtraction,  , RGB faint gray image, Installed scripts
+@node PSF construction and subtraction,  , Color images with gray faint regions, Installed scripts
 @section PSF construction and subtraction
 
 The point spread function (PSF) describes how the light of a point-like source is affected by several optical scattering effects (atmosphere, telescope, instrument, etc.).

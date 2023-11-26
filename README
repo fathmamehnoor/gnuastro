@@ -129,6 +129,11 @@ very similarly (with minor differences, as explained in the book).
     various measures (median, sigma-clipped mean and etc), and the radial
     distance can also be measured on any general ellipse.
 
+  - astscript-rgb-faint-gray: Given three images for the Red-Green-Blue
+    (RGB) channels, this script will use the bright pixels for color and
+    will show the faint/diffuse regions in grayscale. This greatly helps
+    in visualizing the full dynamic range of astronical data.
+
   - astscript-sort-by-night: Given a list of FITS files, and a HDU and
     keyword name for a date, this script separates the files in the same
     night (possibly over two calendar days).
