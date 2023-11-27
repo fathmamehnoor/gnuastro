@@ -377,7 +377,7 @@ gal_label_watershed(gal_data_t *values, gal_data_t *indexs,
             else
               {
                 rlab = curlab++;
-                if( topinds )              /* This is a local maximum of "?". */
+                if( topinds )              /* This is a local maximum of */
                   topinds[rlab]=*a;        /* this region, save its index. */
               }
 
@@ -961,7 +961,7 @@ gal_label_grow_indexs(gal_data_t *labels, gal_data_t *indexs, int withrivers,
                     {
                       if(n1)       /* A prev. ngb label has been found. */
                         {
-                          if( n1 != nlab )    /* Different label from "?". */
+                          if( n1 != nlab )    /* Different label from */
                             {    /* prevously found ngb for this pixel. */
                               n1=GAL_LABEL_RIVER;
                               searchngb=0;

@@ -445,7 +445,7 @@ gal_tableintern_read_blank(gal_data_t *col, char *blank)
   /* Read the blank value as the given type. If successful, then
      'gal_data_string_to_type' will return 0. In that case, we need to
      initialize the necessary parameters to read this data structure
-     correctly. If it isn't successful, then "?" */
+     correctly. */
   if( gal_type_from_string((void **)(&col->array), blank, col->type) )
     {
       col->flag |= GAL_TABLEINTERN_FLAG_ARRAY_IS_BLANK_STRING;

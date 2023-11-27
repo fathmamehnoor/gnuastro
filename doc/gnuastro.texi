@@ -4501,16 +4501,16 @@ To summarize, and to keep the image for the next section in a separate directory
 @example
 $ zeropoint=25.94
 $ mkdir report-image
+$ cd report-image
 $ sblimit=$(astfits cat/xdf-f160w.fits --keyvalue=SBLMAG -q)
 $ astwarp nc/xdf-f160w.fits --scale=1/4 --centeroncorner \
-          --output=report-image/warped.fits
-$ pixarcsec2=$(astfits report-image/warped.fits --pixelareaarcsec2)
-$ astarithmetic report-image/warped.fits $zeropoint $pixarcsec2 \
+          --output=warped.fits
+$ pixarcsec2=$(astfits warped.fits --pixelareaarcsec2)
+$ astarithmetic warped.fits $zeropoint $pixarcsec2 \
                 counts-to-sb set-sb \
                 sb sb $sblimit gt sb isblank or $sblimit where \
-                --output=report-image/sb.fits
-$ astconvertt report-image/sb.fits --output=report-image/sb.pdf \
-              --fluxlow=20
+                --output=sb.fits
+$ astconvertt sb.fits --output=sb.pdf --fluxlow=20
 @end example
 
 @noindent
@@ -4532,19 +4532,12 @@ To add coordinates on the edges of the figure in your paper, see @ref{Annotation
 To start with, let's put a red plus sign over the sub-sample of reddest clumps similar to @ref{Reddest clumps cutouts and parallelization}.
 First, we will need to make the table of marks.
 We will choose those with a color stronger than 1.5 magnitudes and a signal-to-noise ratio (in F160W) larger than 5.
-We also only need the RA, Dec, color and magnitude (in F160W) columns.
+We also only need the RA, Dec, color and magnitude (in F160W) columns (recall that at the end of the previous section we were already in the @file{report-image/} directory):
 
 @example
 $ asttable cat/mags-with-color.fits --range=F105W-F160W,1.5:inf \
            --range=sn-f160w,5:inf -cRA,DEC,MAG-F160w,F105W-F160W \
-           -oreport-image/reddest-cat.fits
-@end example
-
-@noindent
-To keep the rest of the code easier to read, let's move to the @file{report-image} directory:
-
-@example
-$ cd report-image
+           --output=reddest-cat.fits
 @end example
 
 Gnuastro's ConvertType program also has features to add marks over the finally produced PDF.

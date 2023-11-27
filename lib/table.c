@@ -627,7 +627,7 @@ gal_table_write_log(gal_data_t *logll, char *program_string,
 {
   char *msg;
 
-  /* Write all the comments into "?". */
+  /* Write the program name and time first. */
   gal_table_comments_add_intro(&comments, program_string, rawtime);
 
   /* Write the log file to disk. */
