@@ -24,7 +24,7 @@
 # Set the variables (the executable is in the build tree). Do the
 # basic checks to see if the executable is made or if the defaults
 # file exists (basicchecks.sh is in the source tree).
-prog=rgb-faint-gray
+prog=color-faint-gray
 execname=../bin/script/astscript-$prog
 
 fits1name=0_mkprofcat2.fits

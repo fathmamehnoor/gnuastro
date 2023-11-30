@@ -69,16 +69,16 @@ colorkernelfwhm=0
 minvalrange=0.000
 maxvalrange=100.0
 
-# Transformation parameters to improve the contrast and brightness
+# Transformation parameters to improve the contrast and bias
+bias=0.0
 gamma=1.0
 contrast=1.0
-brightness=0.0
 
 quiet=""
 tmpdir=""
 keeptmp=0
 checkparams=0
-output="rgb-faint-gray.jpg"
+output="color-faint-gray.jpg"
 
 coloronly=0
 
@@ -133,10 +133,10 @@ $scriptname options:
   -s, --stretch=FLT       Linear stretching parameter for faint features.
   -Q, --qbright=FLT       Parameter for bringing out brighter features.
 
- Contrast and brightness
-  -b, --brightness        Change the brightness of the final image (linear).
+ Contrast and bias
+  -b, --bias              Constant (bias) to add to all the pixels (linear).
   -c, --contrast          Change the contrast of the final image (linear).
-  -G, --gamma             Gamma parameter (overrides --brightness/--contrast).
+  -G, --gamma             Gamma parameter (nonlinear, overrides bias/contrast).
 
  Color and gray parameters
       --coloronly         No black and grayscale regions.
@@ -265,9 +265,9 @@ do
         -c|--contrast)       contrast="$2";                             check_v "$1" "$contrast";  shift;shift;;
         -c=*|--contrast=*)   contrast="${1#*=}";                        check_v "$1" "$contrast";  shift;;
         -c*)                 contrast=$(echo "$1"  | sed -e's/-c//');   check_v "$1" "$contrast";  shift;;
-        -b|--brightness)     brightness="$2";                           check_v "$1" "$brightness";  shift;shift;;
-        -b=*|--brightness=*) brightness="${1#*=}";                      check_v "$1" "$brightness";  shift;;
-        -b*)                 brightness=$(echo "$1"  | sed -e's/-b//'); check_v "$1" "$brightness";  shift;;
+        -b|--bias)     bias="$2";                                       check_v "$1" "$bias";  shift;shift;;
+        -b=*|--bias=*) bias="${1#*=}";                                  check_v "$1" "$bias";  shift;;
+        -b*)                 bias=$(echo "$1"  | sed -e's/-b//');       check_v "$1" "$bias";  shift;;
 
         --coloronly)        coloronly=1; shift;;
         --grayval)          grayval="$2";                              check_v "$1" "$grayval";  shift;shift;;
@@ -464,7 +464,7 @@ fi
 # set the directory, then make it. This directory will be deleted at
 # the end of the script if the user does not want to keep it (with the
 # `--keeptmp' option).
-defaulttmpdir="rgb-faint-gray-tmp"
+defaulttmpdir="color-faint-gray-tmp"
 if [ x$tmpdir = x ]; then tmpdir=$defaulttmpdir; fi
 if [ -d $tmpdir ]; then junk=1; else mkdir $tmpdir; fi
 
@@ -696,15 +696,15 @@ astarithmetic $I_B $maxRGB / $maxvalrange x --output=$I_B_norm $quiet
 
 
 
-# Transformation to change the contrast and brightness
-# ----------------------------------------------------
+# Transformation to change the contrast and bias
+# ----------------------------------------------
 #
 # Modify the images that are going to be used for obtaining the COLOR
 # image. There are two possible options: linear and NON-linear
 # transformation. For the linear transformation, two parameters are used,
-# contrast and brightness:
+# contrast and bias:
 #
-#  OUTPUT = contrast * INPUT + brightness
+#  OUTPUT = contrast * INPUT + bias
 #
 # In the NON-linear transformation only one parameter is used, gamma:
 #
@@ -725,12 +725,12 @@ if [ x"$gamma" != x"1.0" ]; then
   astarithmetic $I_B_norm $maxvalrange / $gamma pow $maxvalrange x set-t \
                 t t $maxvalrange gt $maxvalrange where --output=$I_B_transformed $quiet
 
-elif [ x"$contrast" != x"1.0" ] || [ x$brightness != x"0.0" ]; then
-  astarithmetic $I_R_norm $contrast x $brightness + set-t \
+elif [ x"$contrast" != x"1.0" ] || [ x$bias != x"0.0" ]; then
+  astarithmetic $I_R_norm $contrast x $bias + set-t \
                 t t $maxvalrange gt $maxvalrange where --output=$I_R_transformed $quiet
-  astarithmetic $I_G_norm $contrast x $brightness + set-t \
+  astarithmetic $I_G_norm $contrast x $bias + set-t \
                 t t $maxvalrange gt $maxvalrange where --output=$I_G_transformed $quiet
-  astarithmetic $I_B_norm $contrast x $brightness + set-t \
+  astarithmetic $I_B_norm $contrast x $bias + set-t \
                 t t $maxvalrange gt $maxvalrange where --output=$I_B_transformed $quiet
 
 else
@@ -769,19 +769,19 @@ if [ x$coloronly = x1 ]; then
 # If user wants the gray background image
 else
 
-    # Until now, all necessary threshold and parameters have been computed (if
-    # the user did not specify any value) from the R,G,B images. The following
-    # steps are necessary for constructing the gray background color image. So,
-    # low brightness will be showed in gray while high brightness wil be showed
-    # in color.
+    # Until now, all necessary threshold and parameters have been computed
+    # (if the user did not specify any value) from the R,G,B images. The
+    # following steps are necessary for constructing the gray background
+    # color image. So, low bias will be showed in gray while high bias wil
+    # be showed in color.
 
     # Convolve the gray threshold image and set it to 0-100 range values
     # ------------------------------------------------------------------
     #
-    # Convolve the image that is going to be used for defining the threshold
-    # for splitting the COLOR and GRAY parts. By doing this, instead of having
-    # a noised frontier, the border would be more clear. If the user don't want
-    # to convolve, just make a symbolic link.
+    # Convolve the image that is going to be used for defining the
+    # threshold for splitting the COLOR and GRAY parts. By doing this,
+    # instead of having a noised frontier, the border would be more
+    # clear. If the user don't want to convolve, just make a symbolic link.
     I_COLORGRAY_threshold="$tmpdir/COLORGRAY_threshold.fits"
     if [ $colorkernelfwhm = 0 ]; then
       # Change pixel values to the wanted range
@@ -927,9 +927,9 @@ else
     # Find the GRAY thresholds
     # ------------------------
     #
-    # Once the COLOR and GRAY parts have been separated, the gray part can be
-    # also separated into BLACK and WHITE. To separate these two parts, here a
-    # threshold is estimated as the median of the GRAY values.
+    # Once the COLOR and GRAY parts have been separated, the gray part can
+    # be also separated into BLACK and WHITE. To separate these two parts,
+    # here a threshold is estimated as the median of the GRAY values.
     I_GRAY_colormasked_clipped="$tmpdir/GRAY_colormasked_clipped.fits"
     grayval_guessed=$(aststatistics $I_GRAY_colormasked --median -q)
 

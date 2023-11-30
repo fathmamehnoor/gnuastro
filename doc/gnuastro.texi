@@ -807,7 +807,7 @@ Pointing pattern simulation
 
 Color images with gray faint regions
 
-* Invoking astscript-rgb-faint-gray::  Details of options and arguments.
+* Invoking astscript-color-faint-gray::  Details of options and arguments.
 
 PSF construction and subtraction
 
@@ -1172,7 +1172,7 @@ This is very useful in testing the coverage of dither patterns when designing yo
 (See @ref{Generate radial profile}) Calculate the radial profile of an object within an image.
 The object can be at any location in the image, using various measures (median, sigma-clipped mean, etc.), and the radial distance can also be measured on any general ellipse.
 
-@item astscript-rgb-faint-gray
+@item astscript-color-faint-gray
 (see @ref{Color images with gray faint regions}) Given three images for the Red-Green-Blue (RGB) channels, this script will use the bright pixels for color and will show the faint/diffuse regions in grayscale.
 This greatly helps in visualizing the full dynamic range of astronical data.
 
@@ -8960,7 +8960,7 @@ In the next section (@ref{Color for bright regions and grayscale for faint}), we
 
 In the previous sections we aligned three SDSS images of M51 group @ref{Color channels in same pixel grid}, and created a linearly-scaled color image (only using @command{astconvertt} program) in @ref{Color image using linear transformation}.
 But we saw that showing the brighter and fainter parts of the galaxy in a single image is impossible in the linear scale!
-In this section, we will use Gnuastro's @command{astscript-rgb-faint-gray} installed script to address this problem and create images which visualize a major fraction of the contents of our astronomical data.
+In this section, we will use Gnuastro's @command{astscript-color-faint-gray} installed script to address this problem and create images which visualize a major fraction of the contents of our astronomical data.
 
 This script aims to solve the problems mentioned in the previous section.
 See Infante-Sainz et al. (2023, which first introduced this script) for examples of the final images we will be producing in this tutorial.
@@ -8981,7 +8981,7 @@ However, zero point magnitudes of the J-PLUS images are different: 23.43, 23.74,
 Also, the field of view of the J-PLUS Camera is very large and we only need a small region to see the M51 galaxy group.
 Therefore, we will crop the regions around the M51 group with a width of 0.35 degree wide (or 21 arcmin) and put the crops in the same @file{aligned/} directory we made before (which contains the inputs to the colored images).
 With all the above information, let's download, crop, and have a look at the images to check that everything is fine.
-Finally, let's run @command{astscript-rgb-faint-gray} on the three cropped images.
+Finally, let's run @command{astscript-color-faint-gray} on the three cropped images.
 
 @example
 ## Download
@@ -9006,7 +9006,7 @@ $ astscript-fits-view aligned/*-jplus.fits
 $ R=aligned/i-jplus.fits
 $ G=aligned/r-jplus.fits
 $ B=aligned/g-jplus.fits
-$ astscript-rgb-faint-gray $R $G $B -g1 --output=m51.pdf
+$ astscript-color-faint-gray $R $G $B -g1 --output=m51.pdf
 @end example
 
 By opening the image, you will notice that it is a color image with a gray background, making the M51 group and background galaxies visible together.
@@ -9021,7 +9021,7 @@ With this option, the images are internally transformed to have the same pixel u
 Since the magnitude zero points are 23.43, 23.74, 23.74 for the i, r, and g images, let's use them in the definition
 
 @example
-$ astscript-rgb-faint-gray $R $G $B -g1 --output=m51.pdf \
+$ astscript-color-faint-gray $R $G $B -g1 --output=m51.pdf \
                            -z23.43 -z23.74 -z23.74
 @end example
 
@@ -9041,7 +9041,7 @@ To keep the command simple, we'll add the zeropoint, minimum and HDU of each ima
 $ R="aligned/i-jplus.fits -h1 --zeropoint=23.43 --minimum=0.0"
 $ G="aligned/r-jplus.fits -h1 --zeropoint=23.74 --minimum=0.0"
 $ B="aligned/g-jplus.fits -h1 --zeropoint=23.74 --minimum=0.0"
-$ astscript-rgb-faint-gray $R $G $B --output=m51.pdf
+$ astscript-color-faint-gray $R $G $B --output=m51.pdf
 @end example
 
 In contrast to the previous image, the new PDF (with a minimum value of zero) exhibits a better background visualization because it is avoiding negative pixels to be shown.
@@ -9051,7 +9051,7 @@ Let's decrease @option{--qbright} by an order of magnitude in order to display o
 @c: we need a description of what 'qbright' represents! There is no description; it just mentioned as a black box!
 
 @example
-$ astscript-rgb-faint-gray $R $G $B --output=m51-qlow.pdf \
+$ astscript-color-faint-gray $R $G $B --output=m51-qlow.pdf \
                            --qbright=1.290644e-01
 @end example
 
@@ -9060,7 +9060,7 @@ Now, let's decrease @option{--stretch} to show very bright pixels in linear scal
 This allows you to reveal fainter regions, such as outer parts of galaxies, spiral arms, stellar streams, and similar structures.
 
 @example
-$ astscript-rgb-faint-gray $R $G $B --output=m51-qlow-slow.pdf \
+$ astscript-color-faint-gray $R $G $B --output=m51-qlow-slow.pdf \
                            --qbright=1.290644e-01 --stretch=1.290644e-03
 @end example
 
@@ -9073,7 +9073,7 @@ Let's try using the same value for both (so their ratio is unity):
 @c: there is no explanation on why 0.5 was used.
 
 @example
-$ astscript-rgb-faint-gray $R $G $B --output=m51-qs-equal.pdf \
+$ astscript-color-faint-gray $R $G $B --output=m51-qs-equal.pdf \
                            --qbright=0.5 --stretch=0.5
 @end example
 
@@ -9083,7 +9083,7 @@ Having a separate color-map for the fainter parts is generally a good thing, but
 To disable this feature, you can use the @option{--coloronly} option:
 
 @example
-$ astscript-rgb-faint-gray $R $G $B --output=m51-coloronly.pdf \
+$ astscript-color-faint-gray $R $G $B --output=m51-coloronly.pdf \
                            --qbright=1.290644e-01 --coloronly
 @end example
 
@@ -9101,7 +9101,7 @@ Looking at the last lines that the script prints, we see that the default value 
 Let's by decrease it to 70.0 to display fewer regions in color (only the very bright regions):
 
 @example
-$ astscript-rgb-faint-gray $R $G $B --output=m51-colorval.pdf \
+$ astscript-color-faint-gray $R $G $B --output=m51-colorval.pdf \
                            --qbright=1.290644e-01 --colorval=70
 @end example
 
@@ -9112,7 +9112,7 @@ It is recomended to experiment with different values around the estimated one to
 We will use a value of @option{--colorval=95} (close to the value estimated by default 99.7) in what follows
 
 @example
-$ astscript-rgb-faint-gray $R $G $B --output=m51-colorval.pdf \
+$ astscript-color-faint-gray $R $G $B --output=m51-colorval.pdf \
                            --qbright=1.290644e-01 --colorval=95
 @end example
 
@@ -9123,7 +9123,7 @@ By increasing this parameter, more area of the image will be displayed as black.
 So, let's increase this parameter to, for example, 85 to increase the faint black regions.
 
 @example
-$ astscript-rgb-faint-gray $R $G $B --output=m51-grayval.pdf \
+$ astscript-color-faint-gray $R $G $B --output=m51-grayval.pdf \
                            --qbright=1.290644e-01 --colorval=95 \
                            --grayval=85.0
 @end example
@@ -9136,7 +9136,7 @@ To modify the color balance of the output image, you can weigh the three channel
 For example, by using @option{-w1 -w1 -w2}, you give two times more weight to the blue channel than to the red and green channels:
 
 @example
-$ astscript-rgb-faint-gray $R $G $B --output=m51-weighted.pdf \
+$ astscript-color-faint-gray $R $G $B --output=m51-weighted.pdf \
                            --qbright=1.290644e-01 --colorval=95 \
                            --grayval=85.0 -w1 -w1 -w2
 @end example
@@ -9167,7 +9167,7 @@ Since we have decided to keep the weights, to keep the following commands, simpl
 $ R="aligned/i-jplus.fits -h1 -z23.43 -m0.0 -w1"
 $ G="aligned/r-jplus.fits -h1 -z23.74 -m0.0 -w1"
 $ B="aligned/g-jplus.fits -h1 -z23.74 -m0.0 -w2"
-$ astscript-rgb-faint-gray $R $G $B --output=m51-contrast.pdf \
+$ astscript-color-faint-gray $R $G $B --output=m51-contrast.pdf \
                            --qbright=1.290644e-01 --colorval=95 \
                            --grayval=85.0 --contrast=4
 @end example
@@ -9187,7 +9187,7 @@ Let's have a look by giving two very different values to it with the simple loop
 
 @example
 $ for g in 0.3 2.0; do \
-    astscript-rgb-faint-gray $R $G $B --output=m51-gamma-$g.pdf \
+    astscript-color-faint-gray $R $G $B --output=m51-gamma-$g.pdf \
                              --qbright=1.290644e-01 --colorval=95 \
                              --grayval=85.0 --contrast=4 --gamma=$g; \
   done
@@ -9201,7 +9201,7 @@ In this case, the rationale remains the same as explained earlier.
 Two additional options are available to smooth different regions by convolving with a Gaussian kernel: @option{--colorkernelfwhm} for smoothing color regions and @option{--graykernelfwhm} for convolving gray regions.
 The value specified for these options represents the full width at half maximum of the Gaussian kernel.
 
-This tutorial provided a general overview of the various options to construct a color image from three different FITS images using the @command{astscript-rgb-faint-gray} script.
+This tutorial provided a general overview of the various options to construct a color image from three different FITS images using the @command{astscript-color-faint-gray} script.
 Keep in mind that the optimal parameters for generating the best color image depend on your specific goals and the quality of your input images.
 We encourage you to follow this tutorial with the provided J-PLUS images and later with your own dataset.
 See @ref{Color images with gray faint regions} for more information, and please consider citing Infante-Sainz et al. (2023, @url{TBD}) if you use this script in your work (the full Bib@TeX{} entry of this paper will be given to you with the @option{--cite} option).
@@ -34283,21 +34283,21 @@ This is because standard color formats like JPEG, TIFF or PDF are defined as 8-b
 To solve this issue, it is possible to perform some transformations of the images and then obtain the color image.
 
 This is actually what the current script does: it makes some non-linear transformations and then uses Gnuastro's ConvertType to generate the color image.
-There are several parameters and options in order to change the final output that are described in @ref{Invoking astscript-rgb-faint-gray}.
+There are several parameters and options in order to change the final output that are described in @ref{Invoking astscript-color-faint-gray}.
 A full tutorial describing this script with actual data is available in @ref{Color images with full dynamic range}.
 A general overview of this script will be published in Infante-Sainz et al. @url{TBD, 2023}; please cite it if this script proves useful in your research.
 
 @menu
-* Invoking astscript-rgb-faint-gray::  Details of options and arguments.
+* Invoking astscript-color-faint-gray::  Details of options and arguments.
 @end menu
 
-@node Invoking astscript-rgb-faint-gray,  , Color images with gray faint regions, Color images with gray faint regions
-@subsection Invoking astscript-rgb-faint-gray
+@node Invoking astscript-color-faint-gray,  , Color images with gray faint regions, Color images with gray faint regions
+@subsection Invoking astscript-color-faint-gray
 This installed script will consider several images to combine them into a single color image to visualize the full dynamic range.
-The executable name is @file{astscript-rgb-faint-gray}, with the following general template:
+The executable name is @file{astscript-color-faint-gray}, with the following general template:
 
 @example
-$ astscript-rgb-faint-gray [OPTION...] r.fits g.fits b.fits
+$ astscript-color-faint-gray [OPTION...] r.fits g.fits b.fits
 @end example
 
 @noindent
@@ -34305,15 +34305,15 @@ Examples (for a tutorial, see @ref{Color images with full dynamic range}):
 
 @example
 ## Generate a color image from three images with default options.
-$ astscript-rgb-faint-gray r.fits g.fits b.fits --output color.pdf
+$ astscript-color-faint-gray r.fits g.fits b.fits --output color.pdf
 
 ## Generate a color image, consider the minimum value to be zero.
-$ astscript-rgb-faint-gray r.fits g.fits b.fits --minimum=0.0 \
+$ astscript-color-faint-gray r.fits g.fits b.fits --minimum=0.0 \
                       --output=color.jpg
 
 ## Generate a color image considering different weights, minimum values,
 ## zero points, and contrast.
-$ astscript-rgb-faint-gray r.fits g.fits b.fits \
+$ astscript-color-faint-gray r.fits g.fits b.fits \
                       --weights=0.9,1.0,1.1 \
                       --minimum=-0.1,0.0,0.1 \
                       --zeropoints=22.4,25.5,24.6 \

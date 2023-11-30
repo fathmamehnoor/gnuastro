@@ -47,7 +47,7 @@ bin_SCRIPTS = astscript-fits-view \
               astscript-psf-subtract \
               astscript-sort-by-night \
               astscript-radial-profile \
-              astscript-rgb-faint-gray \
+              astscript-color-faint-gray \
               astscript-psf-scale-factor \
               astscript-psf-select-stars \
               astscript-pointing-simulate
@@ -61,7 +61,7 @@ EXTRA_DIST = fits-view.sh \
              psf-subtract.sh \
              sort-by-night.sh \
              radial-profile.sh \
-             rgb-faint-gray.sh \
+             color-faint-gray.sh \
              psf-select-stars.sh \
              psf-scale-factor.sh \
              pointing-simulate.sh \
@@ -86,8 +86,8 @@ do_subst = sed -e 's,[@]PREFIX[@],$(exec_prefix),g' \
 
 
 ## Rules to install the scripts.
-astscript-pointing-simulate: pointing-simulate.sh Makefile
-	$(do_subst) < $(srcdir)/pointing-simulate.sh > $@
+astscript-color-faint-gray: color-faint-gray.sh Makefile
+	$(do_subst) < $(srcdir)/color-faint-gray.sh > $@
 	chmod +x $@
 
 astscript-ds9-region: ds9-region.sh Makefile
@@ -96,6 +96,10 @@ astscript-ds9-region: ds9-region.sh Makefile
 
 astscript-fits-view: fits-view.sh Makefile
 	$(do_subst) < $(srcdir)/fits-view.sh > $@
+	chmod +x $@
+
+astscript-pointing-simulate: pointing-simulate.sh Makefile
+	$(do_subst) < $(srcdir)/pointing-simulate.sh > $@
 	chmod +x $@
 
 astscript-psf-unite: psf-unite.sh Makefile
@@ -128,8 +132,4 @@ astscript-sort-by-night: sort-by-night.sh Makefile
 
 astscript-zeropoint: zeropoint.sh Makefile
 	$(do_subst) < $(srcdir)/zeropoint.sh > $@
-	chmod +x $@
-
-astscript-rgb-faint-gray: rgb-faint-gray.sh Makefile
-	$(do_subst) < $(srcdir)/rgb-faint-gray.sh > $@
 	chmod +x $@

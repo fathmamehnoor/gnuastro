@@ -245,7 +245,7 @@ SCRIPT_TESTS = script/psf-unite.sh \
                script/psf-subtract.sh \
                script/sort-by-night.sh \
                script/radial-profile.sh \
-               script/rgb-faint-gray.sh \
+               script/color-faint-gray.sh \
                script/psf-scale-factor.sh \
                script/psf-select-stars.sh
 
