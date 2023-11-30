@@ -73,7 +73,7 @@ gal_tableintern_error_col_selection(char *filename, char *hdu,
         "To define a better column selection criteria, you can see "
         "the list of column meta-data in this table, with the following "
         "command:\n\n"
-        "    $ asttable %s --info\n", name, errorstring, command);
+        "    $ asttable %s --information\n", name, errorstring, command);
 }
 
 
