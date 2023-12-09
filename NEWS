@@ -142,6 +142,9 @@ See the end of the file for license conditions.
     Sepideh Eskandarlou.
   - bug #64952: Table error message for incorrect column name was not
     complete; reported by Sepideh Eskandarlou.
+  - bug #65005: astscript-psf-unit not accounting for --innerhdu; reported
+    by Ignacio Ruiz Cejudo.
+
 
 
 

@@ -472,7 +472,7 @@ xdiff=$(astarithmetic $xcenter float32 $xpsfcenter float32 - --quiet)
 ydiff=$(astarithmetic $ycenter float32 $ypsfcenter float32 - --quiet)
 
 innertranslated=$tmpdir/"$bname_inner"_translated.fits
-astwarp $inner --translate=$xdiff,$ydiff \
+astwarp $inner --hdu=$innerhdu --translate=$xdiff,$ydiff \
         --output=$innertranslated $quiet
 
 
