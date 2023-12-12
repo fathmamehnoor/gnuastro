@@ -649,7 +649,7 @@ fi
 # pixel values is linear transformed to [minvalrange - maxvalrange].
 I_RGB_asinh_norm="$tmpdir/RGB-mean-asinh-norm.fits"
 astarithmetic $I_RGB_stack -h1 set-I_RGB \
-              I_RGB $qbright_value x $stretch_value / set-i \
+              I_RGB $qbright_value x $stretch_value x set-i \
               i asinh \
               $qbright_value / \
               I_RGB / set-asinhed \

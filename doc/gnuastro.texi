@@ -8985,17 +8985,19 @@ Finally, let's run @command{astscript-color-faint-gray} on the three cropped ima
 
 @example
 ## Download
+$ mkdir inputs
 $ url=https://archive.cefca.es/catalogues/vo/siap/jplus-dr3/get_fits?id=
-$ wget "$url"92797 -Oin/i-jplus.fits.fz
-$ wget "$url"92801 -Oin/r-jplus.fits.fz
-$ wget "$url"92803 -Oin/g-jplus.fits.fz
+$ wget "$url"92797 -Oinputs/i-jplus.fits.fz
+$ wget "$url"92801 -Oinputs/r-jplus.fits.fz
+$ wget "$url"92803 -Oinputs/g-jplus.fits.fz
 
 ## Crop
+$ mkdir aligned
 $ widthdeg=0.35
 $ ra=202.4741207
 $ dec=47.2171879
 $ for f in i r g; do \
-    astcrop in/$f-jplus.fits.fz --center=$ra,$dec \
+    astcrop inputs/$f-jplus.fits.fz --center=$ra,$dec \
             --width=$widthdeg --output=aligned/$f-jplus.fits; \
   done
 
