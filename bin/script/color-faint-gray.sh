@@ -996,8 +996,8 @@ TIPS:
       A minimum value of zero could be a good option: '--minimum=0.0'
   # Focus on the bright regions and tweak '--qbright' and '--stretch':
       First, try low values of '--qbright' to show the bright parts.
-      Second, adjust '--stretch' to show the fainter regions around bright parts linearly.
-      Then, play with these two parameters to show the color regions appropriately.
+      Then, adjust '--stretch' to show the fainter regions around bright parts.
+      Overall, play with these two parameters to show the color regions appropriately.
   # Change '--colorval' to separate the color and black regions:
       This is the lowest value of the threshold image that is shown in color.
   # Change '--grayval' to separate the black and gray regions:
