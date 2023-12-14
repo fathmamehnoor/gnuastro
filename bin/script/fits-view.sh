@@ -8,6 +8,7 @@
 #     Mohammad Akhlaghi <mohammad@akhlaghi.org>
 # All author(s):
 #     Mohammad Akhlaghi <mohammad@akhlaghi.org>
+#     Raul Infante-Sainz <infantesainz@gmail.com>
 #     Sepideh Eskandarlou <sepideh.eskandarlou@gmail.com>
 # Copyright (C) 2020-2023 Free Software Foundation, Inc.
 #
@@ -191,9 +192,9 @@ do
     case "$1" in
 
         # Input options
-        -h|--hdu)             hdu="$2";                            check_v "$1" "$hdu"; shift;shift;;
-        -h=*|--hdu=*)         hdu="${1#*=}";                       check_v "$1" "$hdu"; shift;;
-        -h*)                  hdu=$(echo "$1"  | sed -e's/-h//');  check_v "$1" "$hdu"; shift;;
+        -h|--hdu)            aux="$2";                             check_v "$1" "$aux"; hdu="$hdu $aux"; shift;shift;;
+        -h=*|--hdu=*)        aux="${1#*=}";                        check_v "$1" "$aux"; hdu="$hdu $aux"; shift;;
+        -h*)                 aux="$(echo "$1"  | sed -e's/-h//')"; check_v "$1" "$aux"; hdu="$hdu $aux"; shift;;
 
         # Output options
         -g|--ds9geometry)     ds9geometry="$2";                    check_v "$1" "$ds9geometry"; shift;shift;;
@@ -381,8 +382,13 @@ else
                 if [ x"$hdu" = x ]; then
                     inwithhdu="$inputs"
                 else
+                    c=1
                     inwithhdu=""
-                    for i in $inputs; do inwithhdu="$inwithhdu $i[$hdu]"; done
+                    for i in $inputs; do
+                        h=$(echo $hdu | awk -vc=$c '{print $c}')
+                        inwithhdu="$inwithhdu $i[$h]"
+                        c=$((c+1))
+                    done
                 fi
 
                 # Read the number of dimensions.
@@ -464,8 +470,13 @@ else
                 if [ x"$hdu" = x ]; then
                 inwithhdu="$inputs"
                 else
+                    c=1
                     inwithhdu=""
-                    for i in $inputs; do inwithhdu="$inwithhdu $i#$hdu"; done
+                    for i in $inputs; do
+                        h=$(echo $hdu | awk -vc=$c '{print $c}')
+                        inwithhdu="$inwithhdu $i#$h"
+                        c=$((c+1))
+                    done
                 fi
 
                 # TOPCAT command.
