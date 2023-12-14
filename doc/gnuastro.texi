@@ -9135,7 +9135,7 @@ $ astscript-color-faint-gray $params --output=m51-cval.pdf \
                            --colorval=25
 @end example
 
-Open @file{m51-colorval.pdf} and check that it is true!
+Open @file{m51-cval.pdf} and check that it is true!
 Only the central part of the objects (very bright pixels, those between 100 and 25 on the threshold image) are shown in color.
 Fainter pixels (below 25 on the threshold image) are shown in gray.
 However, in many situations it is good to be able to show the outskirts of galaxies and low surface brightness features in pure black, while showing the background in gray.
@@ -9152,14 +9152,14 @@ $ astscript-color-faint-gray $params --output=m51-cval-gval.pdf \
 Open the image and check that the regions shown in color are smaller (as before), and that now there is a region around those color pixels that are in pure black.
 After the black pixels toward the fainter ones, they are shown in gray.
 It is recomended to experiment with different values around the estimated one to have a feeling on how it changes the image.
-To have even better idea of those regions, please run the following example to keep temporary files and check the segmentation image @file{./aux/total-mask-2color-1black-0gray.fits}
+To have even better idea of those regions, please run the following example to keep temporary files and check the segmentation image @file{./aux/TOTAL-mask-2color-1black-0gray.fits}
 
 @example
 $ astscript-color-faint-gray $params --output=m51-cval-gval.pdf \
                            --colorval=25 --grayval=5 \
                            --tmpdir=./aux --keeptmp
 
-$ astscript-fits-view aux/total-mask-2color-1black-0gray.fits
+$ astscript-fits-view aux/TOTAL-mask-2color-1black-0gray.fits
 @end example
 
 In this segmentation image, pixels equal to 2 will be shown in color, pixels equal to 1 will be shown as pure black, and pixels equal to zero are shown in gray.
@@ -9204,7 +9204,6 @@ Two additional transformations are available to modify the appearance of the out
 The linear transformation combines bias adjustment and contrast enhancement through the @option{--bias} and @option{--contrast} options.
 In most cases, only the contrast adjustment is necessary to improve the quality of the color image.
 To illustrate the impact of adjusting image contrast, we will generate an image with higher contrast and compare with the previous one.
-Since we have decided to keep the weights, to keep the following commands, simple, we have modified the definition of each channel (and used the short version of the options to keep them short):
 
 @example
 $ astscript-color-faint-gray $params --output=m51-contrast.pdf \
@@ -9212,6 +9211,8 @@ $ astscript-color-faint-gray $params --output=m51-contrast.pdf \
 @end example
 
 When you compare this (@file{m51-contrast.pdf}) with the previous output (@file{m51-params.pdf}), you see that the colored parts are now much more clear!
+Use this option also with caution because it may happen that the bright parts become saturated.
+
 Congratulations!
 By following the tutorial up to this point, we have been able to reproduce three images of Infante-Sainz et al. (2023, @url{TBD}).
 You can see the commands that were used to generate them within the reproducible source of that paper at @url{TBD}.

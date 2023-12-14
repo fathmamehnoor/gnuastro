@@ -139,22 +139,22 @@ $scriptname options:
   -G, --gamma             Gamma parameter (nonlinear, overrides bias/contrast).
 
  Color and gray parameters
-      --coloronly         No black and grayscale regions.
+      --coloronly         No grayscale regions, background in black.
       --grayval=FLT       Gray threshold (highest value to use grayscale).
       --colorval=FLT      Color threshold (lowest value to have color).
-      --graykernelfwhm=FLT Kernel FWHM for convolving the background image.
+      --graykernelfwhm=FLT  Kernel FWHM for convolving the background image.
       --colorkernelfwhm=FLT Kernel FWHM for color separation ref. image.
 
  Output:
-      --checkparams       Print distribution of values used to find params.
   -k, --keeptmp           Keep temporary/auxiliar files.
   -o, --output            Output color image name.
+      --checkparams       Print distribution of values used to find params.
 
  Operating mode:
   -h, --help              Print this help list.
-      --cite              BibTeX citation for this program.
   -q, --quiet             Don't print the list.
   -V, --version           Print program version.
+      --cite              BibTeX citation for this program.
 
 Mandatory or optional arguments to long options are also mandatory or optional
 for any corresponding short options.
@@ -252,12 +252,12 @@ do
         -z=*|--zeropoint=*)  aux="${1#*=}";                             check_v "$1" "$aux"; zeropoint="$zeropoint $aux"; shift;;
         -z*)                 aux="$(echo "$1"  | sed -e's/-z//')";      check_v "$1" "$aux"; zeropoint="$zeropoint $aux"; shift;;
 
-        -s|--stretch)       stretch="$2";                               check_v "$1" "$stretch";  shift;shift;;
-        -s=*|--stretch=*)   stretch="${1#*=}";                          check_v "$1" "$stretch";  shift;;
-        -s*)                stretch=$(echo "$1"  | sed -e's/-s//');     check_v "$1" "$stretch";  shift;;
-        -Q|--qbright)       qbright="$2";                               check_v "$1" "$qbright";  shift;shift;;
-        -Q=*|--qbright=*)   qbright="${1#*=}";                          check_v "$1" "$qbright";  shift;;
-        -Q*)                qbright=$(echo "$1"  | sed -e's/-Q//');     check_v "$1" "$qbright";  shift;;
+        -s|--stretch)        stretch="$2";                              check_v "$1" "$stretch";  shift;shift;;
+        -s=*|--stretch=*)    stretch="${1#*=}";                         check_v "$1" "$stretch";  shift;;
+        -s*)                 stretch=$(echo "$1"  | sed -e's/-s//');    check_v "$1" "$stretch";  shift;;
+        -Q|--qbright)        qbright="$2";                              check_v "$1" "$qbright";  shift;shift;;
+        -Q=*|--qbright=*)    qbright="${1#*=}";                         check_v "$1" "$qbright";  shift;;
+        -Q*)                 qbright=$(echo "$1"  | sed -e's/-Q//');    check_v "$1" "$qbright";  shift;;
 
         -G|--gamma)          gamma="$2";                                check_v "$1" "$gamma";  shift;shift;;
         -G=*|--gamma=*)      gamma="${1#*=}";                           check_v "$1" "$gamma";  shift;;
@@ -478,10 +478,10 @@ if [ -d $tmpdir ]; then junk=1; else mkdir $tmpdir; fi
 # If the user specify a given value below which the pixel values are
 # wanted to be zero, then put all of those pixels to zero. By default,
 # no clipping will be done (a symbolic link will be put to the input).
-rclipped="$tmpdir/r_clipped.fits"
-gclipped="$tmpdir/g_clipped.fits"
-bclipped="$tmpdir/b_clipped.fits"
-kclipped="$tmpdir/k_clipped.fits"
+rclipped="$tmpdir/R_clipped.fits"
+gclipped="$tmpdir/G_clipped.fits"
+bclipped="$tmpdir/B_clipped.fits"
+kclipped="$tmpdir/K_clipped.fits"
 
 if [ x"$rmin" = x ]; then
     ln -sf $(realpath $rimage) $rclipped
@@ -531,9 +531,9 @@ fi
 # appropiately. In addition to this, if zero points are provided, the
 # images will be transformed to have micro Jansky values, this helps makes
 # a more physically meaningful comparison between the filters.
-rscaled="$tmpdir/r_scaled.fits"
-gscaled="$tmpdir/g_scaled.fits"
-bscaled="$tmpdir/b_scaled.fits"
+rscaled="$tmpdir/R_scaled.fits"
+gscaled="$tmpdir/G_scaled.fits"
+bscaled="$tmpdir/B_scaled.fits"
 
 # Compute normalized weights
 weight_sum=$(astarithmetic $rweight $gweight $bweight 3 sum --type=f32 -q)
@@ -595,7 +595,7 @@ fi
 # The asinh transformation is done on the mean of RGB images. Here, this
 # image is obtained by stacking them using the 'mean' operator. If the
 # stacked image has exact zero pixel values, change them to nan values.
-I_RGB_stack="$tmpdir/RGB-mean.fits"
+I_RGB_stack="$tmpdir/RGB_mean.fits"
 astarithmetic $rscaled --hdu=$rhdu \
               $gscaled --hdu=$ghdu \
               $bscaled --hdu=$bhdu 3 mean \
@@ -612,12 +612,12 @@ astarithmetic $rscaled --hdu=$rhdu \
 # transformation is done over the mean of RGB images. After the
 # transformation is done, it is normalized by I_RGB. Finally, the range of
 # pixel values is linear transformed to [minvalrange - maxvalrange].
-I_RGB_asinh="$tmpdir/RGB-mean-asinh.fits"
+I_RGB_asinh="$tmpdir/RGB_mean-asinh.fits"
 astarithmetic $I_RGB_stack -h1 set-I_RGB \
               I_RGB $qbright x $stretch x set-i \
               i asinh $qbright / --output=$I_RGB_asinh $quiet
 
-I_RGB_asinh_norm="$tmpdir/RGB-mean-asinh-norm.fits"
+I_RGB_asinh_norm="$tmpdir/RGB_mean-asinh-norm.fits"
 astarithmetic $I_RGB_stack -h1 set-stack \
               $I_RGB_asinh -h1 set-asinh \
               asinh stack / --output=$I_RGB_asinh_norm $quiet
@@ -655,16 +655,16 @@ maxG=$(aststatistics $I_G --maximum -q)
 maxB=$(aststatistics $I_B --maximum -q)
 maxRGB=$(astarithmetic $maxR float64 $maxG float64 $maxB float64 3 max -q)
 
-astarithmetic $I_R $maxRGB / $maxvalrange x --output=$I_R_norm $quiet
-astarithmetic $I_G $maxRGB / $maxvalrange x --output=$I_G_norm $quiet
-astarithmetic $I_B $maxRGB / $maxvalrange x --output=$I_B_norm $quiet
+astarithmetic $I_R $maxRGB / $maxvalrange x float32 --output=$I_R_norm $quiet
+astarithmetic $I_G $maxRGB / $maxvalrange x float32 --output=$I_G_norm $quiet
+astarithmetic $I_B $maxRGB / $maxvalrange x float32 --output=$I_B_norm $quiet
 
 
 
 
 
-# Transformation to change the contrast and bias
-# ----------------------------------------------
+# Transformations to enhance the image
+# ------------------------------------
 #
 # Modify the images that are going to be used for obtaining the COLOR
 # image. There are two possible options: linear and NON-linear
@@ -681,29 +681,29 @@ astarithmetic $I_B $maxRGB / $maxvalrange x --output=$I_B_norm $quiet
 # maxvalrange value. So, all pixels above maxrangevalue become equal to
 # maxrangevalue.
 
-I_R_transformed="$tmpdir/R_transformed.fits"
-I_G_transformed="$tmpdir/G_transformed.fits"
-I_B_transformed="$tmpdir/B_transformed.fits"
+I_R_enhanced="$tmpdir/R_enhanced.fits"
+I_G_enhanced="$tmpdir/G_enhanced.fits"
+I_B_enhanced="$tmpdir/B_enhanced.fits"
 if [ x"$gamma" != x"1.0" ]; then
   astarithmetic $I_R_norm $maxvalrange / $gamma pow $maxvalrange x set-t \
-                t t $maxvalrange gt $maxvalrange where --output=$I_R_transformed $quiet
+                t t $maxvalrange gt $maxvalrange where --output=$I_R_enhanced $quiet
   astarithmetic $I_G_norm $maxvalrange / $gamma pow $maxvalrange x set-t \
-                t t $maxvalrange gt $maxvalrange where --output=$I_G_transformed $quiet
+                t t $maxvalrange gt $maxvalrange where --output=$I_G_enhanced $quiet
   astarithmetic $I_B_norm $maxvalrange / $gamma pow $maxvalrange x set-t \
-                t t $maxvalrange gt $maxvalrange where --output=$I_B_transformed $quiet
+                t t $maxvalrange gt $maxvalrange where --output=$I_B_enhanced $quiet
 
 elif [ x"$contrast" != x"1.0" ] || [ x$bias != x"0.0" ]; then
   astarithmetic $I_R_norm $contrast x $bias + set-t \
-                t t $maxvalrange gt $maxvalrange where --output=$I_R_transformed $quiet
+                t t $maxvalrange gt $maxvalrange where --output=$I_R_enhanced $quiet
   astarithmetic $I_G_norm $contrast x $bias + set-t \
-                t t $maxvalrange gt $maxvalrange where --output=$I_G_transformed $quiet
+                t t $maxvalrange gt $maxvalrange where --output=$I_G_enhanced $quiet
   astarithmetic $I_B_norm $contrast x $bias + set-t \
-                t t $maxvalrange gt $maxvalrange where --output=$I_B_transformed $quiet
+                t t $maxvalrange gt $maxvalrange where --output=$I_B_enhanced $quiet
 
 else
-    ln -sf $(realpath $I_R_norm) $I_R_transformed
-    ln -sf $(realpath $I_G_norm) $I_G_transformed
-    ln -sf $(realpath $I_B_norm) $I_B_transformed
+    ln -sf $(realpath $I_R_norm) $I_R_enhanced
+    ln -sf $(realpath $I_G_norm) $I_G_enhanced
+    ln -sf $(realpath $I_B_norm) $I_B_enhanced
 fi
 
 
@@ -721,9 +721,9 @@ if [ x$coloronly = x1 ]; then
     # here correspond to the gray-computed ones in order to obtain exactly the
     # same color as the gray-background image (for those pixels that are not
     # background).
-    astconvertt $I_R_transformed -h1 \
-                $I_G_transformed -h1 \
-                $I_B_transformed -h1 \
+    astconvertt $I_R_enhanced -h1 \
+                $I_G_enhanced -h1 \
+                $I_B_enhanced -h1 \
                 --output=$output $quiet
 
     # Remove images
@@ -812,7 +812,7 @@ else
                       oldmax oldmin - set-oldrange \
                       newmax newmin - set-newrange \
                       image oldmin - newrange x oldrange / newmin + \
-                      --output=$I_COLORGRAY_threshold $quiet
+                      float32 --output=$I_COLORGRAY_threshold $quiet
 
     else
         I_BACK_convolved=$kclipped
@@ -842,6 +842,10 @@ else
       grayval=$colorval
     fi
 
+
+
+
+
     # Mask images
     # -----------
     #
@@ -849,16 +853,17 @@ else
     # correspond to the regions that are represented in those colormaps.
     # At the end, for debugging and finding the best paramters pourpouses,
     # a total mask is computed.
-    GRAY_MASK="$tmpdir/gray-mask.fits"
-    COLOR_MASK="$tmpdir/color-mask.fits"
-    BLACK_MASK="$tmpdir/black-mask.fits"
-    TOTAL_MASK="$tmpdir/total-mask-2color-1black-0gray.fits"
-    astarithmetic $I_COLORGRAY_threshold set-i \
-                  i $colorval lt --output $GRAY_MASK
+    GRAY_MASK="$tmpdir/GRAY_mask.fits"
+    COLOR_MASK="$tmpdir/COLOR_mask.fits"
+    BLACK_MASK="$tmpdir/BLACK_mask.fits"
+    TOTAL_MASK="$tmpdir/TOTAL_mask-2color-1black-0gray.fits"
     astarithmetic $I_COLORGRAY_threshold set-i \
                   i $colorval gt --output $COLOR_MASK
     astarithmetic $I_COLORGRAY_threshold set-i \
-                  i $colorval lt i $grayval gt and --output $BLACK_MASK
+                  i $colorval lt i $grayval gt and \
+                  --output $BLACK_MASK
+    astarithmetic $I_COLORGRAY_threshold set-i \
+                  i $colorval lt --output $GRAY_MASK
     astarithmetic $COLOR_MASK -h1 f32 2 x set-c \
                   $BLACK_MASK -h1 f32 1 x set-b \
                   $GRAY_MASK  -h1 f32 0 x set-g \
@@ -902,7 +907,7 @@ else
                   newmax newmin - set-newrange \
                   masked oldmin - newrange x oldrange / newmin + \
                   set-transformed \
-                  transformed --output=$I_GRAY_colormasked $quiet
+                  transformed float32 --output=$I_GRAY_colormasked $quiet
 
 
 
@@ -913,11 +918,11 @@ else
     #
     # Put the black pixels equal to zero. By doing this, those pixels will
     # be set to pure black color in the final image.
-    I_GRAY_colormasked_clipped="$tmpdir/GRAY_colormasked_clipped.fits"
+    I_GRAY_colormasked_zeroblack="$tmpdir/GRAY_colormasked_zeroblack.fits"
     astarithmetic $I_GRAY_colormasked -h1 set-i \
                   $BLACK_MASK         -h1 set-b \
-                  i b 0.0 where \
-                  --output=$I_GRAY_colormasked_clipped
+                  i b 0.0 where float32 \
+                  --output=$I_GRAY_colormasked_zeroblack
 
 
 
@@ -930,14 +935,14 @@ else
     # than the gray-threshold with the pixels of the reference image. This is
     # done for each input image (band).  Output images end with -gray.fits,
     # generated into the for loop.
-    I_R_transformed_gray="$tmpdir/R_transformed_gray.fits"
-    I_G_transformed_gray="$tmpdir/G_transformed_gray.fits"
-    I_B_transformed_gray="$tmpdir/B_transformed_gray.fits"
-    for f in $I_R_transformed $I_G_transformed $I_B_transformed; do
-      outputname=$(echo "$f" | sed -e's/.fits/_gray.fits/')
+    I_R_black_gray="$tmpdir/R_black_gray.fits"
+    I_G_black_gray="$tmpdir/G_black_gray.fits"
+    I_B_black_gray="$tmpdir/B_black_gray.fits"
+    for f in $I_R_enhanced $I_G_enhanced $I_B_enhanced; do
+      outputname=$(echo "$f" | sed -e's/_enhanced.fits/_black_gray.fits/')
       astarithmetic $f \
-                    $I_GRAY_colormasked_clipped isblank not \
-                    $I_GRAY_colormasked_clipped \
+                    $I_GRAY_colormasked_zeroblack isblank not \
+                    $I_GRAY_colormasked_zeroblack \
                     where -g1 --output=$outputname $quiet;
     done
 
@@ -951,9 +956,9 @@ else
     # Once all the previous treatment has been done for each image, then
     # combine all with Convert program to obtain the colored image (with the
     # low S/N regions in gray).
-    astconvertt $I_R_transformed_gray -h1 \
-                $I_G_transformed_gray -h1 \
-                $I_B_transformed_gray -h1 \
+    astconvertt $I_R_black_gray -h1 \
+                $I_G_black_gray -h1 \
+                $I_B_black_gray -h1 \
                 --output=$output $quiet
 fi
 
