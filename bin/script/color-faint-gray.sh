@@ -44,6 +44,7 @@ export LANG=C
 
 # Default option values (can be changed with options on the command-line).
 hdu=""
+shdu=1
 globalhdu=""
 
 # Minimum, weights, and zeropoint values
@@ -51,13 +52,15 @@ weight=""
 minimum=""
 zeropoint=""
 
-# To control the asinh transformation
-qbright=1.0
-stretch=1.0
+# To control the asinh transformation, set both to 1 (scientific notation)
+qbright_default=$(astarithmetic 1.0 1.0 x --quiet)
+stretch_default=$(astarithmetic 1.0 1.0 x --quiet)
 
-# For color and gray background
+# For color, black, and gray regions
+segment=""
 grayval=""
 colorval=""
+coloronly=0
 graykernelfwhm=0
 colorkernelfwhm=0
 
@@ -69,7 +72,7 @@ colorkernelfwhm=0
 minvalrange=0.000
 maxvalrange=100.0
 
-# Transformation parameters to improve the contrast and bias
+# To enhance the image
 bias=0.0
 gamma=1.0
 contrast=1.0
@@ -78,9 +81,7 @@ quiet=""
 tmpdir=""
 keeptmp=0
 checkparams=0
-output="color-faint-gray.jpg"
-
-coloronly=0
+output="color-faint-gray.pdf"
 
 version=@VERSION@
 scriptname=@SCRIPT_NAME@
@@ -124,6 +125,7 @@ experienced Gnuastro users and developers. For more information, please run:
 $scriptname options:
  Input:
   -h, --hdu=STR           HDU/extension for the input channels.
+  -t, --shdu=STR          HDU/extension for the segment image.
   -g, --globalhdu=STR/INT Use this HDU for all inputs, ignore '--hdu'.
   -w, --weight=FLT        Relative weight for each input channel.
   -m, --minimum=FLT       Minimum value for each input channel.
@@ -139,7 +141,8 @@ $scriptname options:
   -G, --gamma             Gamma parameter (nonlinear, overrides bias/contrast).
 
  Color and gray parameters
-      --coloronly         No grayscale regions, background in black.
+      --coloronly         No grayscale regions, background in color (black).
+      --segment=STR       Segmentation image (color=2, black=1, gray=0).
       --grayval=FLT       Gray threshold (highest value to use grayscale).
       --colorval=FLT      Color threshold (lowest value to have color).
       --graykernelfwhm=FLT  Kernel FWHM for convolving the background image.
@@ -242,6 +245,9 @@ do
         -h|--hdu)            aux="$2";                                  check_v "$1" "$aux"; hdu="$hdu $aux"; shift;shift;;
         -h=*|--hdu=*)        aux="${1#*=}";                             check_v "$1" "$aux"; hdu="$hdu $aux"; shift;;
         -h*)                 aux="$(echo "$1"  | sed -e's/-h//')";      check_v "$1" "$aux"; hdu="$hdu $aux"; shift;;
+        -t|--shdu)           shdu="$2";                                 check_v "$1" "$shdu";  shift;shift;;
+        -t=*|--shdu=*)       shdu="${1#*=}";                            check_v "$1" "$shdu";  shift;;
+        -t*)                 shdu=$(echo "$1" | sed -e's/-t//');        check_v "$1" "$shdu";  shift;;
         -w|--weight)         aux="$2";                                  check_v "$1" "$aux"; weight="$weight $aux"; shift;shift;;
         -w=*|--weight=*)     aux="${1#*=}";                             check_v "$1" "$aux"; weight="$weight $aux"; shift;;
         -w*)                 aux="$(echo "$1"  | sed -e's/-w//')";      check_v "$1" "$aux"; weight="$weight $aux"; shift;;
@@ -270,6 +276,8 @@ do
         -b*)                 bias=$(echo "$1"  | sed -e's/-b//');       check_v "$1" "$bias";  shift;;
 
         --coloronly)        coloronly=1; shift;;
+        --segment)          segment="$2";                              check_v "$1" "$segment";  shift;shift;;
+        --segment=*)        segment="${1#*=}";                         check_v "$1" "$segment";  shift;;
         --grayval)          grayval="$2";                              check_v "$1" "$grayval";  shift;shift;;
         --grayval=*)        grayval="${1#*=}";                         check_v "$1" "$grayval";  shift;;
         --colorval)         colorval="$2";                             check_v "$1" "$colorval";  shift;shift;;
@@ -431,17 +439,6 @@ else
 fi
 
 
-# Stretch. If the user provides --stretch, make sure it is not equal to
-# zero (with 8 decimals), that would crash the asinh transformation.
-if [ x$stretch != x ]; then
-    stretch_check=$(echo "$stretch" | awk 'BEGIN{FS=","} {printf "%.8f", $1}')
-    if [ x$stretch_check = x0.00000000 ]; then
-        echo "$scriptname: --stretch value ($stretch) cannot be zero (8 decimals)."
-        exit 1
-    fi
-fi
-
-
 # Bright. If the user provides --qbright, make sure it is not equal to zero
 # (with 8 decimals), that would crash the asinh transformation.
 if [ x$qbright != x ]; then
@@ -450,7 +447,23 @@ if [ x$qbright != x ]; then
         echo "$scriptname: --qbright value ($qbright) cannot be zero (8 decimals)."
         exit 1
     fi
+else
+    qbright=$qbright_default
 fi
+
+
+# Stretch. If the user provides --stretch, make sure it is not equal to
+# zero (with 8 decimals), that would crash the asinh transformation.
+if [ x$stretch != x ]; then
+    stretch_check=$(echo "$stretch" | awk 'BEGIN{FS=","} {printf "%.8f", $1}')
+    if [ x$stretch_check = x0.00000000 ]; then
+        echo "$scriptname: --stretch value ($stretch) cannot be zero (8 decimals)."
+        exit 1
+    fi
+else
+    stretch=$stretch_default
+fi
+
 
 
 
@@ -773,9 +786,6 @@ else
     # channels.
 
 
-
-
-
     # Background image
     # ----------------
     #
@@ -832,42 +842,43 @@ else
     # asinh-transformed image. If the user does not provide a value then use
     # ghe computed one (guessed). If the user provide a value, then use it
     # directly. Note that the guessed value is computed in any case.
-    colorval_guessed=$(aststatistics $I_COLORGRAY_threshold --median --quiet)
-    grayval_guessed=$colorval_guessed
+    colorval_estimated=$(aststatistics $I_COLORGRAY_threshold --median --quiet)
     if [ x$colorval = x"" ]; then
-      colorval=$colorval_guessed
+      colorval=$colorval_estimated
     fi
 
+    grayval_estimated=$(aststatistics $I_COLORGRAY_threshold --median --quiet)
     if [ x$grayval = x"" ]; then
-      grayval=$colorval
+      grayval=$grayval_estimated
     fi
 
 
 
 
 
-    # Mask images
-    # -----------
+    # Segmentation image
+    # ------------------
     #
-    # Different mask are computed here: color, black, and gray images. They
-    # correspond to the regions that are represented in those colormaps.
-    # At the end, for debugging and finding the best paramters pourpouses,
-    # a total mask is computed.
-    GRAY_MASK="$tmpdir/GRAY_mask.fits"
-    COLOR_MASK="$tmpdir/COLOR_mask.fits"
-    BLACK_MASK="$tmpdir/BLACK_mask.fits"
-    TOTAL_MASK="$tmpdir/TOTAL_mask-2color-1black-0gray.fits"
-    astarithmetic $I_COLORGRAY_threshold set-i \
-                  i $colorval gt --output $COLOR_MASK
-    astarithmetic $I_COLORGRAY_threshold set-i \
-                  i $colorval lt i $grayval gt and \
-                  --output $BLACK_MASK
-    astarithmetic $I_COLORGRAY_threshold set-i \
-                  i $colorval lt --output $GRAY_MASK
-    astarithmetic $COLOR_MASK -h1 f32 2 x set-c \
-                  $BLACK_MASK -h1 f32 1 x set-b \
-                  $GRAY_MASK  -h1 f32 0 x set-g \
-                  c b g 3 sum uint8 --output $TOTAL_MASK
+    # The TOTAL_MASK consists in a segmentation image whose pixel values
+    # correspond to the three regions. Here it is defined as follow:
+    #   pixels=2 will be shown in color
+    #   pixels=1 will be shown in pure black
+    #   pixels=0 will be shown in gray
+    # This image is computed by default from the colorval and grayval
+    # parameters. Alternatively, it can be provided by the user.
+    if [ x$segment = x ]; then
+        TOTAL_MASK="$tmpdir/TOTAL_mask-2color-1black-0gray.fits"
+        astarithmetic $I_COLORGRAY_threshold                     set-i \
+                      i $colorval gt                   2 uint8 x set-c \
+                      i $colorval lt i $grayval gt and 1 uint8 x set-b \
+                      i $colorval lt                   0 uint8 x set-g \
+                      c b g 3 sum uint8 --output $TOTAL_MASK
+        shdu=1
+   else
+       grayval="$segment"
+       colorval="$segment"
+       TOTAL_MASK=$segment
+   fi
 
 
 
@@ -878,7 +889,8 @@ else
     #
     # We use the specified gray background image after some modifications to
     # obtain the GRAY part. For futher highlight the interesting diffuse flux,
-    # we need to invert it the brigher pixels are darker.
+    # we need to invert it the brigher pixels are darker. Here, the color
+    # region is masked (pixels=2 in TOTAL_MASK)
     #
     # Here is the logic of the steps we take:
     #   1. We call the convolved image 'values'.
@@ -896,8 +908,8 @@ else
     #   function is specified. E.g., log, sqrt, asinh, etc.)
     grayscale=""
     I_GRAY_colormasked="$tmpdir/GRAY_colormasked.fits"
-    astarithmetic $I_BACK_convolved -h1 set-values \
-                  $COLOR_MASK       -h1 set-mask \
+    astarithmetic $I_BACK_convolved -h1      set-values \
+                  $TOTAL_MASK -h$shdu 2 uint8 eq set-mask \
                   values mask nan where $grayscale set-masked \
                   masked minvalue set-oldmin \
                   masked maxvalue set-oldmax \
@@ -913,14 +925,14 @@ else
 
 
 
-    # Set the black region to zero pixel values
-    # -----------------------------------------
+    # Set the pure black region to zero pixel values
+    # ----------------------------------------------
     #
-    # Put the black pixels equal to zero. By doing this, those pixels will
-    # be set to pure black color in the final image.
+    # Put black pixels (pixels=1 in TOTAL_MASK) equal to zero. By doing
+    # this, those pixels will be set to pure black color.
     I_GRAY_colormasked_zeroblack="$tmpdir/GRAY_colormasked_zeroblack.fits"
     astarithmetic $I_GRAY_colormasked -h1 set-i \
-                  $BLACK_MASK         -h1 set-b \
+                  $TOTAL_MASK -h$shdu 1 uint8 eq -h1 set-b \
                   i b 0.0 where float32 \
                   --output=$I_GRAY_colormasked_zeroblack
 
@@ -1012,8 +1024,8 @@ TIPS:
       '$I_COLORGRAY_threshold'
 
 PARAMETERS:
-  Estimated:  --colorval=$colorval_guessed --grayval=$grayval_guessed
-  Used     :  --colorval=$colorval --grayval=$grayval --qbright=$qbright --stretch=$stretch
+  Default:  --qbright=$qbright_default --stretch=$stretch_default --colorval=$colorval_estimated --grayval=$grayval_estimated
+  Used   :  --qbright=$qbright --stretch=$stretch --colorval=$colorval --grayval=$grayval
 
 Output written to '$output'.
 EOF

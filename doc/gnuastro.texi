@@ -9165,11 +9165,106 @@ $ astscript-fits-view aux/TOTAL-mask-2color-1black-0gray.fits
 In this segmentation image, pixels equal to 2 will be shown in color, pixels equal to 1 will be shown as pure black, and pixels equal to zero are shown in gray.
 By default, the script sets the same value for both thresholds.
 That means that there is not pure black pixels unless they are equal to zero in the three channels.
-
 By adjusting these two parameters, you can obtain an optimal result to show the bright and faint parts of your data within one printable image.
 The values used here are somewhat extreme to illustrate the logic of the procedure, but we encourage you to experiment with values close to the estimated by default in order to have a smooth transition between the three regions (color, black, and gray).
 The script can provide additional information about the pixel value distributions used to estimate the parameters by using the @option{--checkparams} option.
-We will use @option{--colorval=5} and @option{--grayval=1} in what follows.
+
+A very interesting characteristic is the possibility of providing the segmentation image as an input.
+This feature expand the possibilities of generating color images in a more quantitative way.
+For example, let's use this for showing the different surface brightness intervals in the color image.
+First, let's generate a surface brightness image from the R channel.
+That is, the value of each pixel will be in the units of surface brightness (mag/arcsec@mymath{^2}).
+To to that, we need obtain the pixel area in arcsec and use the zeropoint value of the image.
+Then, the @option{counts-to-sb} operator of @command{astarithmetic} is used.
+
+@example
+$ Rzpoint=23.43
+$ Rchannel=aligned/i-jplus.fits
+$ pixarea=$(astfits $Rchannel --pixelareaarcsec2 --quiet)
+
+# Compute the SB image
+$ astarithmetic $Rchannel $Rzpoint $pixarea counts-to-sb \
+                --output=R-sb.fits
+
+# Have a look at the image
+$ astscript-fits-view R-sb.fits
+@end example
+
+Remember that because @file{R-sb.fits} is a surface brightness image, lower pixel values mean brighter regions, and higher pixel values mean fainter regions.
+Note also that there are some NaN pixels, they correspond to negative values on the original image, we will take care of them later.
+
+Now let's define the segmentation image (@file{R-sb-seg.fits}) step-by-step with the following criteria:
+
+- Bright parts, SB < 21, in color: @file{R-sb-seg.fits}@mymath{=2}
+- Faint parts, 21 < SB < 25, in black: @file{R-sb-seg.fits}@mymath{=1}
+- Background parts, 25 < SB, in gray: @file{R-sb-seg.fits}@mymath{=0}
+
+@example
+# SB thresholds (low and high)
+$ sbh=21
+$ sbl=25
+
+# Bright parts in color
+$ astarithmetic R-sb.fits set-i \
+                i $sbh lt 2 uint8 x set-c \
+                c --output=color.fits
+
+# Faint parts in black
+$ astarithmetic R-sb.fits set-i \
+                i $sbh gt \
+                i $sbl lt \
+                and 1 uint8 x set-b \
+                b --output=black.fits
+
+# Background in gray
+$ astarithmetic R-sb.fits set-i \
+                i $sbl gt 0 uint8 x set-g \
+                g --output=gray.fits
+
+# Check the images
+$ astscript-fits-view color.fits black.fits gray.fits
+@end example
+
+Have a look at the three images and note check that they define the three regions according to the surface brightness levels from the @file{R-sb.fits} image.
+This is great!
+Now we can sum these images to obtain the segmentation image and use it as an input so the color image will consider it to generate the different colormap parts.
+But before this, we need to account for the NaN pixels.
+Essentially, we need to consider those NaN pixels to be shown in gray because they are noise or background (negative values on the original image that become NaN in the SB image).
+Let's summarize the above commands, the sum of the images, and the NaN conversion, in a single command.
+
+@example
+$ astarithmetic sb.fits set-i \
+                i isblank set-n \
+                i $sbh lt 2 uint8 x set-c \
+                i $sbl gt 0 uint8 x set-g \
+                i $sbh gt i $sbl lt and 1 uint8 x set-b \
+                c b g 3 sum uint8 set-seg \
+                seg n 0 where set-segnzero \
+                segnzero --output=R-sb-seg.fits
+
+# Check the image
+$ astscript-fits-view R-sb-seg.fits
+@end example
+
+Let's say in words what this mean.
+Pixels on this image equal to 2 will be shown in color, pixels equal to 1 will be shown in pure black, pixels equal to 0 will be shown in gray.
+Now, let's use this segmentation image with the @option{--segment} option for obtaining the color image.
+
+@example
+$ astscript-color-faint-gray $params --output=m51-sb.pdf \
+                             --qbright=0.01 --stretch=100 \
+                             --segment=R-sb-seg.fits
+@end example
+
+Open @file{R-sb.pdf} and have a look.
+Do you see how the different regions (SB intervals) have been coloured differently?
+They come from the SB levels we defined, and because of that, this is actually a quantitative image that tells you brightness information and not only a nice color image!
+The separation between the color and black regions is not smooth because we wanted to show these diferent regions, but playing and modifying the parameters it is possible to obtain better results.
+This is really interesting because now it is possible to use color images for detecting low surface brightness features at the same time they provide quantitative measurements.
+Of course, here we have defined this segmentation image just using two SB values, but it is possible to define any other segmentation image that you may need for your particular science.
+
+In what follow we will not use the segmentation image.
+To make things simple, let's use @option{--colorval=5} and @option{--grayval=1} on the internally computed image for the thresholds.
 
 @example
 params="$R $G $B \
