@@ -1483,9 +1483,9 @@ arithmetic_stitch(int flags, gal_data_t *list, gal_data_t *fdim)
                        gal_type_sizeof(type)*tmp->dsize[1]);
 
               /* Copying has finished, increment the start for the next
-                 image. Note that in this scenario, the starting pixel for the
-                 next image is on the first row, but tmp->dsize[1] pixels
-                 away. */
+                 image. Note that in this scenario, the starting pixel for
+                 the next image is on the first row, but tmp->dsize[1]
+                 pixels away. */
               oarr += gal_type_sizeof(type)*tmp->dsize[1];
               break;
 
@@ -3276,6 +3276,127 @@ arithmetic_box(gal_data_t *d1, gal_data_t *d2, gal_data_t *d3,
 
 
 static gal_data_t *
+arithmetic_rotate(int operator, int flags, gal_data_t *d1, gal_data_t *d2,
+                  gal_data_t *d3, gal_data_t *d4, gal_data_t *d5)
+{
+  size_t i;
+  gal_data_t *out=NULL;
+  double x, y, rx, ry, rot, onerot;
+  double     *d1a=NULL, *d2a=NULL, *d3a=NULL, *d4a=NULL, *d5a=NULL;
+  gal_data_t *d1d=NULL, *d2d=NULL, *d3d=NULL, *d4d=NULL, *d5d=NULL;
+
+  /* Basic sanity check. */
+  if(d1->size != d2->size)
+    error(EXIT_FAILURE, 0, "%s: the input coordinate operands (5th and "
+          "4th popped operands) to this function don't have the same "
+          "number of elements", __func__);
+  if(d3->size != d4->size)
+    error(EXIT_FAILURE, 0, "%s: the reference coordinate operands (3rd "
+          "and 2nd popped operands) to this function don't have the same "
+          "number of elements", __func__);
+  if(d3->size>1
+     && (d3->size != d1->size || d4->size!= d1->size) )
+    error(EXIT_FAILURE, 0, "%s: the reference coordinate operands (3rd "
+          "and 2th popped operands) have %zu elements, while the input "
+          "coordinate operands (5th and 4th operands) have %zu elements! "
+          "The reference coordinates should either have a single element "
+          "(to be used for all inputs) or have the same number of "
+          "elements as input elements", __func__, d3->size, d1->size);
+  if(d5->size>1 && d5->size!=d1->size)
+    error(EXIT_FAILURE, 0, "%s: the rotation angle operand (1st popped "
+          "operand) has %zu elements, while the input coordinate operands "
+          "(5th and 4th operands) have %zu elements! The rotation angle "
+          "should either have a single element (to be used for all inputs) "
+          "or have the same number of elements as input elements",
+          __func__, d5->size, d1->size);
+
+
+  /* The datasets may be empty. In this case the output should also be
+     empty (we can have tables and images with 0 rows or pixels!). */
+  if(    d1->size==0 || d1->array==NULL
+      || d2->size==0 || d2->array==NULL
+      || d3->size==0 || d3->array==NULL
+      || d4->size==0 || d4->array==NULL
+      || d5->size==0 || d5->array==NULL )
+    {
+      if(flags & GAL_ARITHMETIC_FLAG_FREE)
+        {
+          gal_data_free(d2); gal_data_free(d3);
+          gal_data_free(d4); gal_data_free(d5);
+        }
+      if(d1->array) {free(d1->array); d1->array=NULL;}
+      if(d1->dsize) for(i=0;i<d1->ndim;++i) d1->dsize[i]=0;
+      d1->size=0; return d1;
+    }
+
+ /* Convert the inputs into double. Note that if the user doesn't want to
+    free the inputs, we should make a copy of 'a_data' and 'b_data' because
+    the output will also be written in them. */
+  d1d=( d1->type==GAL_TYPE_FLOAT64
+        ? d1
+        : gal_data_copy_to_new_type(d1, GAL_TYPE_FLOAT64) );
+  d2d=( d2->type==GAL_TYPE_FLOAT64
+        ? d2
+        : gal_data_copy_to_new_type(d2, GAL_TYPE_FLOAT64) );
+  d3d=( d3->type==GAL_TYPE_FLOAT64
+        ? d3
+        : gal_data_copy_to_new_type(d3, GAL_TYPE_FLOAT64) );
+  d4d=( d4->type==GAL_TYPE_FLOAT64
+        ? d4
+        : gal_data_copy_to_new_type(d4, GAL_TYPE_FLOAT64) );
+  d5d=( d5->type==GAL_TYPE_FLOAT64
+        ? d5
+        : gal_data_copy_to_new_type(d5, GAL_TYPE_FLOAT64) );
+  d1a=d1d->array;
+  d2a=d2d->array;
+  d3a=d3d->array;
+  d4a=d4d->array;
+  d5a=d5d->array;
+
+  /* Do the operation. We will do it in the same space  */
+  onerot = d5d->size==1 ? (d5a[0] * M_PI/180.0f) : NAN;
+  for(i=0; i<d1d->size; ++i)
+    {
+      /* To simplify the readability. */
+      x   =                           d1a[i];
+      y   =                           d2a[i];
+      rx  = d3d->size==1 ? d3a[0] :   d3a[i];
+      ry  = d4d->size==1 ? d4a[0] :   d4a[i];
+      rot = d5d->size==1 ? onerot : ( d5a[i] * M_PI/180.0f );
+
+      /* Write the outputs in the inputs (note that above, we copied the
+         inputs in the short variables). But first, subtract the reference
+         X and Y so we rotate around that (we will add the reference
+         afterwards). */
+      x = x-rx;
+      y = y-ry;
+      d1a[i] = x*cos(rot) - y*sin(rot) + rx;
+      d2a[i] = x*sin(rot) + y*cos(rot) + ry;
+    }
+
+  /* Set the output. */
+  out=d2d;
+  out->next=d1d;
+
+  /* Clean up. */
+  if(flags & GAL_ARITHMETIC_FLAG_FREE)
+    {
+      if(d1d!=d1)                         gal_data_free(d1);
+      if(d2d!=d2)                         gal_data_free(d2);
+      if(d3d!=d3) { gal_data_free(d3d); } gal_data_free(d3);
+      if(d4d!=d4) { gal_data_free(d4d); } gal_data_free(d4);
+      if(d5d!=d5) { gal_data_free(d5d); } gal_data_free(d5);
+    }
+
+  /* Return the output. */
+  return out;
+}
+
+
+
+
+
+static gal_data_t *
 arithmetic_constants_standard(int operator)
 {
   size_t one=1;
@@ -4052,6 +4173,8 @@ gal_arithmetic_set_operator(char *string, size_t *num_operands)
     { op=GAL_ARITHMETIC_OP_FINESTRUCTURE;     *num_operands=0;  }
 
   /* Surrounding box. */
+  else if (!strcmp(string, "rotate-coord"))
+    { op=GAL_ARITHMETIC_OP_ROTATE_COORD;      *num_operands=5;  }
   else if (!strcmp(string, "box-around-ellipse"))
     { op=GAL_ARITHMETIC_OP_BOX_AROUND_ELLIPSE;*num_operands=3;  }
   else if (!strcmp(string, "box-vertices-on-sphere"))
@@ -4254,6 +4377,7 @@ gal_arithmetic_operator_string(int operator)
     case GAL_ARITHMETIC_OP_AVOGADRO:        return "avogadro";
     case GAL_ARITHMETIC_OP_FINESTRUCTURE:   return "fine-structure";
 
+    case GAL_ARITHMETIC_OP_ROTATE_COORD:    return "rotate-coord";
     case GAL_ARITHMETIC_OP_BOX_AROUND_ELLIPSE: return "box-around-ellipse";
     case GAL_ARITHMETIC_OP_BOX_VERTICES_ON_SPHERE: return "vertices-on-sphere";
 
@@ -4347,7 +4471,7 @@ gal_data_t *
 gal_arithmetic(int operator, size_t numthreads, int flags, ...)
 {
   va_list va;
-  gal_data_t *d1, *d2, *d3, *d4, *out=NULL;
+  gal_data_t *d1, *d2, *d3, *d4, *d5, *out=NULL;
 
   /* Prepare the variable arguments (starting after the flags argument). */
   va_start(va, flags);
@@ -4640,6 +4764,16 @@ gal_arithmetic(int operator, size_t numthreads, int flags, ...)
           d4=va_arg(va, gal_data_t *);
           out=arithmetic_box(d1, d2, d3, d4, operator, flags);
         }
+      break;
+
+    /* Rotate coordinates about a reference. */
+    case GAL_ARITHMETIC_OP_ROTATE_COORD:
+      d1 = va_arg(va, gal_data_t *);
+      d2 = va_arg(va, gal_data_t *);
+      d3 = va_arg(va, gal_data_t *);
+      d4 = va_arg(va, gal_data_t *);
+      d5 = va_arg(va, gal_data_t *);
+      out=arithmetic_rotate(operator, flags, d1, d2, d3, d4, d5);
       break;
 
     /* Size and position operators. */

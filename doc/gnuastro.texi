@@ -572,7 +572,7 @@ Arithmetic operators
 * Bitwise operators::           Work on bits within one pixel.
 * Numerical type conversion operators::  Convert the numeric datatype of a dataset.
 * Random number generators::    Random numbers can be used to add noise for example.
-* Box shape operators::         Return edges of 2D boxes.
+* Coordinate and border operators::         Return edges of 2D boxes.
 * Loading external columns::    Read a column from a table into the stack.
 * Size and position operators::  Extracting image size and pixel positions.
 * Building new dataset and stack management::  How to construct an empty dataset from scratch.
@@ -20602,7 +20602,7 @@ Reading NaN as a floating point number in Gnuastro is not case-sensitive.
 * Bitwise operators::           Work on bits within one pixel.
 * Numerical type conversion operators::  Convert the numeric datatype of a dataset.
 * Random number generators::    Random numbers can be used to add noise for example.
-* Box shape operators::         Return edges of 2D boxes.
+* Coordinate and border operators::         Return edges of 2D boxes.
 * Loading external columns::    Read a column from a table into the stack.
 * Size and position operators::  Extracting image size and pixel positions.
 * Building new dataset and stack management::  How to construct an empty dataset from scratch.
@@ -22380,7 +22380,7 @@ Convert the type of the popped operand to 64-bit (double precision) floating poi
 The internal conversion of C will be used.
 @end table
 
-@node Random number generators, Box shape operators, Numerical type conversion operators, Arithmetic operators
+@node Random number generators, Coordinate and border operators, Numerical type conversion operators, Arithmetic operators
 @subsubsection Random number generators
 
 When you simulate data (for example, see @ref{Sufi simulates a detection}), everything is ideal and there is no noise!
@@ -22789,12 +22789,50 @@ $ echo 1000 \
 These columns can easily be placed in the format for @ref{MakeProfiles} to be inserted into an image automatically.
 @end table
 
-@node Box shape operators, Loading external columns, Random number generators, Arithmetic operators
-@subsubsection Box shape operators
+@node Coordinate and border operators, Loading external columns, Random number generators, Arithmetic operators
+@subsubsection Coordinate and border operators
 
-The operators here help you in defining or using coordinates that form a ``box'' (a rectangular region).
+The operators here help you in defining or manipulating coordinates.
+For examples to define the ``box'' (a rectangular region) that surrounds an ellipse or to rotate a point around a reference point.
 
 @table @command
+@item rotate-coord
+Rotate the given point (horizontal and vertical coordinates given in 5th and 4th popped operands) around a center/reference point (coordinates given in the 3rd and 2nd popped operands) by a given angle (first popped operand).
+
+For example, if you want to trace the outer edge of a circle centered on (1.23,45.6) with a radius of 0.78, you can use this operator like below.
+The logic is that we assume a single point that is located on 0.78 units after the center on the horizontal axis (the point's vertical axis position is the same as the center).
+We then rotate this point in each row by one degree to build the circle's circumference.
+
+@verbatim
+$ cx=1.23
+$ cy=45.6
+$ rad=0.78
+$ seq 0 360 \
+      | awk '{print '$rad'+'$cx', '$cy', $1}' \
+      | asttable -c'arith $1 $2 '$cx' '$cy' $3 rotate-coord' \
+                 --output=circle.fits
+
+##  Within TOPCAT, after opening "Plane Plot", within "Axes" select
+## "Aspect lock" so the steps in both axis is the same.
+$ astscript-fits-view circle.fits
+@end verbatim
+
+If you want the points to create a circle on the celestial sphere, you can use the @code{eq-j2000-from-flat} operator after this one (see @ref{Column arithmetic}):
+
+@verbatim
+$ seq 0 360 \
+      | awk '{print '$rad'+'$cx', '$cy', $1}' \
+      | asttable -c'arith $1 $2 '$cx' '$cy' $3 rotate-coord \
+                          '$cx' '$cy' TAN eq-j2000-from-flat' \
+                          --output=circle-on-sky.fits
+@end verbatim
+
+When you open TOPCAT, if you open the ``Plane Plot'', you will see an ellipse.
+However, if you open ``Sky Plot'' (from the ``Graphics'' menu), and select the first and second columns respectively, you will see a circle.
+
+The center coordinates and angle can be fixed for all the rows (as in the example above) or be different for every row.
+Recall that if you want these to change on every row, you should give the column name (or number followed by @code{$}) for these operands instead of the constant number above.
+
 @item box-around-ellipse
 Return the width (along horizontal) and height (along vertical) of a box that encompasses an ellipse with the same center point.
 The top-popped operand is assumed to be the position angle (angle from the horizontal axis) in @emph{degrees}.
@@ -22911,7 +22949,7 @@ It is smaller by a factor of @mymath{\cos({\delta})}.
 Therefore, an angular change (let's call it @mymath{\Delta_{lon}}) along the small circle defined by the fixed declination of @mymath{\delta} corresponds to @mymath{\Delta_{lon}/\cos(\delta)} on the equator.
 @end table
 
-@node Loading external columns, Size and position operators, Box shape operators, Arithmetic operators
+@node Loading external columns, Size and position operators, Coordinate and border operators, Arithmetic operators
 @subsubsection Loading external columns
 
 In the Arithmetic program, you can always load new dataset by simply giving their name.
@@ -39541,7 +39579,7 @@ For the declination, a simple addition/subtraction is enough.
 Also, on the equator (where the RA is defined), a simple addition/subtraction along the RA is fine.
 However, at other declinations, the new RA after a shift needs special treatment, such that close to the poles, a shift of 1 degree can correspond to a new RA that is much more distant than the original RA.
 Assuming a point at Right Ascension (RA) and Declination of @mymath{\alpha} and @mymath{\delta}, a shift of @mymath{R} degrees along the positive RA direction corresponds to a right ascension of @mymath{\alpha+\frac{R}{\cos(\delta)}}.
-For more, see the description of @code{box-vertices-on-sphere} in @ref{Box shape operators}.
+For more, see the description of @code{box-vertices-on-sphere} in @ref{Coordinate and border operators}.
 
 The 8 coordinates of the 4 vertices of the box are written in the order below.
 Where ``bottom'' corresponds to a lower declination and ``top'' to higher declination, ``left'' corresponds to a larger RA and ``right'' corresponds to lower RA.

@@ -7,6 +7,9 @@ See the end of the file for license conditions.
 ** New features
 *** Arithmetic
   - New operators:
+    - rotate-coord: given a 2D point's coordinates, return the coordinates
+      after it has been rotated by your requested angle around your
+      requested center (see documentation for example).
     - mad: Median Absolute Deviation (MAD) stacking.
     - madclip-mad: MAD after MAD-clipping stacking.
     - madclip-std: Standard deviation after MAD-clipping stacking.

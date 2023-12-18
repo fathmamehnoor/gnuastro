@@ -1052,7 +1052,7 @@ arithmetic_operator_run(struct tableparams *p,
                         gal_data_t **stack)
 {
   int flags=GAL_ARITHMETIC_FLAGS_BASIC;
-  gal_data_t *d1=NULL, *d2=NULL, *d3=NULL, *d4=NULL;
+  gal_data_t *d1=NULL, *d2=NULL, *d3=NULL, *d4=NULL, *d5=NULL;
 
   /* Set the operating-mode flags if necessary. */
   if(p->cp.quiet) flags |= GAL_ARITHMETIC_FLAG_QUIET;
@@ -1093,6 +1093,14 @@ arithmetic_operator_run(struct tableparams *p,
           d1=arithmetic_stack_pop(stack, token->operator, NULL);
           break;
 
+        case 5:
+          d5=arithmetic_stack_pop(stack, token->operator, NULL);
+          d4=arithmetic_stack_pop(stack, token->operator, NULL);
+          d3=arithmetic_stack_pop(stack, token->operator, NULL);
+          d2=arithmetic_stack_pop(stack, token->operator, NULL);
+          d1=arithmetic_stack_pop(stack, token->operator, NULL);
+          break;
+
         case -1:
           error(EXIT_FAILURE, 0, "operators with a variable number of "
                 "operands are not yet implemented. Please contact us at "
@@ -1114,7 +1122,7 @@ arithmetic_operator_run(struct tableparams *p,
          ignored. */
       gal_list_data_add(stack, gal_arithmetic(token->operator,
                                               p->cp.numthreads,
-                                              flags, d1, d2, d3, d4) );
+                                              flags, d1, d2, d3, d4, d5) );
 
       /* Reset the meta-data for the element that was just put on the
          stack. */
