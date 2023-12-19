@@ -3840,6 +3840,11 @@ gal_fits_tab_read(char *filename, char *hdu, size_t numrows,
           out->dsize[0]=0;
           free(out->array);
         }
+
+      /* Reverse the output (because 'gal_list_data_add_alloc' adds each
+         column in a first-in-first-out order which is the reverse order of
+         the input). */
+      gal_list_data_reverse(&out);
     }
 
   /* Return the output. */
