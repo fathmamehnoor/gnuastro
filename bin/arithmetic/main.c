@@ -45,12 +45,12 @@ main (int argc, char *argv[])
   /* Read the input parameters. */
   ui_read_check_inputs_setup(argc, argv, &p);
 
-  /* Run MakeProfiles. */
+  /* Run Arithmetic. */
   arithmetic(&p);
 
   /* Free any allocated space. */
   freeandreport(&p, &t1);
 
-  /* Return successfully.*/
+  /* Return successfully. */
   return 0;
 }

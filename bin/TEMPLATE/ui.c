@@ -143,7 +143,7 @@ parse_opt(int key, char *arg, struct argp_state *state)
 {
   struct TEMPLATEparams *p = state->input;
 
-  /* Pass 'gal_options_common_params' into the child parser.  */
+  /* Pass 'gal_options_common_params' into the child parser. */
   state->child_inputs[0] = &p->cp;
 
   /* In case the user incorrectly uses the equal sign (for example
@@ -301,7 +301,7 @@ ui_read_check_inputs_setup(int argc, char *argv[], struct TEMPLATEparams *p)
 #include "args.h"
 
 
-  /* Initialize the options and necessary information.  */
+  /* Initialize the options and necessary information. */
   ui_initialize_options(p, program_options, gal_commonopts_options);
 
 
@@ -361,7 +361,7 @@ ui_read_check_inputs_setup(int argc, char *argv[], struct TEMPLATEparams *p)
 void
 ui_free_report(struct TEMPLATEparams *p, struct timeval *t1)
 {
-  /* Free the allocated arrays: */
+  /* Free the allocated arrays. */
   free(p->cp.hdu);
   free(p->cp.output);
 

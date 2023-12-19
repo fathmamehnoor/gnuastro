@@ -11112,7 +11112,7 @@ For more, see @ref{Dependencies from package managers}.
 If the @command{./configure} script cannot find any of these optional dependencies, it will notify you of the operation(s) you cannot do due to not having them.
 If you continue the build and request an operation that uses a missing library, Gnuastro's programs will warn that the optional library was missing at build-time and abort.
 Since Gnuastro was built without that library, installing the library afterwards will not help.
-The only way is to re-build Gnuastro from scratch (after the library has been installed).
+The only way is to rebuild Gnuastro from scratch (after the library has been installed).
 However, for program dependencies (like cURL or Ghostscript) things are easier: you can install them after building Gnuastro also.
 This is because libraries are used to build the internal structure of Gnuastro's executables.
 However, a program dependency is called by Gnuastro's programs at run-time and has no effect on their internal structure.
@@ -11907,7 +11907,7 @@ After the pull, we must re-configure Gnuastro with @command{autoreconf -f} (part
 It will update the @file{./configure} script and all the @file{Makefile.in}@footnote{In the GNU build system, @command{./configure} will use the @file{Makefile.in} files to create the necessary @file{Makefile} files that are later read by @command{make} to build the package.} files based on the hand-written configurations (in @file{configure.ac} and the @file{Makefile.am} files).
 After running @command{autoreconf -f}, a warning about @code{TEXI2DVI} might show up, you can ignore that.
 
-The most important reason for re-building Gnuastro's build system is to generate/update the version number for your updated Gnuastro snapshot.
+The most important reason for rebuilding Gnuastro's build system is to generate/update the version number for your updated Gnuastro snapshot.
 This generated version number will include the commit information (see @ref{Version numbering}).
 The version number is included in nearly all outputs of Gnuastro's programs, therefore it is vital for reproducing an old result.
 
@@ -13008,7 +13008,7 @@ Just note that checking about 5 characters at the end of a name string is much m
 
 @end itemize
 
-Through out this book and in the command-line outputs, whenever we want to generalize all such astronomical data formats in a text place-holder, we will use @file{ASTRdata}, we will assume that the extension is also part of this name.
+Throughout this book and in the command-line outputs, whenever we want to generalize all such astronomical data formats in a text place-holder, we will use @file{ASTRdata} and assume that the extension is also part of this name.
 Any file ending with these names is directly passed on to CFITSIO to read.
 Therefore you do not necessarily have to have these files on your computer, they can also be located on an FTP or HTTP server too, see the CFITSIO manual for more information.
 
@@ -13030,7 +13030,7 @@ You can see some examples in the list of options in @ref{Common options} or thos
 Both formats are shown for those which support both.
 First the short is shown then the long.
 
-Usually, the short options are for when you are writing on the command-line and want to save keystrokes and time.
+Usually, the short options are handy when you are writing on the command-line and want to save keystrokes and time.
 The long options are good for shell scripts, where you are not usually rushing.
 Long options provide a level of documentation, since they are more descriptive and less cryptic.
 Usually after a few months of not running a program, the short options will be forgotten and reading your previously written script will not be easy.
@@ -13603,7 +13603,7 @@ For progress on this task, please see Task 15799@footnote{@url{https://savannah.
 @cindex Completion in the shell
 @cindex Bash programmable completion
 @cindex Autocomplete (in the shell/Bash)
-Bash provides a built-in feature called @emph{programmable completion}@footnote{@url{https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion.html}} to help increase interactive workflow efficiency and minimize the number of key-strokes @emph{and} the need to memorize things.
+Bash provides a built-in feature called @emph{programmable completion}@footnote{@url{https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion.html}} to help increase interactive workflow efficiency and minimize the number of keystrokes @emph{and} the need to memorize things.
 It is also known as TAB completion, bash completion, auto-completion, or word completion.
 Completion is activated by pressing @key{[TAB]} while you are typing a command.
 For file arguments this is the default behavior already and you have probably used it a lot with any command-line program.
@@ -13851,7 +13851,7 @@ All the values must either be stored in one of the configuration files or explic
 In case the necessary parameters are not given through any of these methods, the program will print a missing option error and abort.
 The only exception to this is @option{--numthreads}, whose default value is determined at run-time using the number of threads available to your system, see @ref{Multi-threaded operations}.
 Of course, you can still provide a default value for the number of threads at any of the levels below, but if you do not, the program will not abort.
-Also note that through automatic output name generation, the value to the @option{--output} option is also not mandatory on the command-line or in the configuration files for all programs which do not rely on that value as an input@footnote{One example of a program which uses the value given to @option{--output} as an input is ConvertType, this value specifies the type of the output through the value to @option{--output}, see @ref{Invoking astconvertt}.}, see @ref{Automatic output}.
+Also note that through automatic output name generation, the value to the @option{--output} option is also not mandatory on the command-line or in the configuration files for all programs which do not rely on that value as an input@footnote{One example of a program that uses the value given to @option{--output} as an input is ConvertType, this value specifies the type of the output through the value to @option{--output}, see @ref{Invoking astconvertt}.}, see @ref{Automatic output}.
 
 
 
@@ -14395,7 +14395,7 @@ $ make -j8
 @end example
 
 With this command, Make will process your @file{Makefile} and create all the targets (can be thousands of FITS images for example) simultaneously on 8 threads, while fully respecting their dependencies (only building a file/target when its prerequisites are successfully built).
-Make is thus strongly recommended for managing scientific research where robustness, archiving, reproducibility and speed@footnote{Besides its multi-threaded capabilities, Make will only re-build those targets that depend on a change you have made, not the whole work.
+Make is thus strongly recommended for managing scientific research where robustness, archiving, reproducibility and speed@footnote{Besides its multi-threaded capabilities, Make will only rebuild those targets that depend on a change you have made, not the whole work.
 For example, if you have set the prerequisites properly, you can easily test the changing of a parameter on your paper's results without having to re-do everything (which is much faster).
 This allows you to be much more productive in easily checking various ideas/assumptions of the different stages of your research and thus produce a more robust result for your exciting science.} are important.
 
@@ -35094,7 +35094,7 @@ Updates that result in such behaviors are generally heavily emphasized in the re
 Reproducibility: Even though your high-level tool has the same version as before, with the updated library, you might not get the same results.
 @item
 Broken links: if some functions have been changed or removed in the updated library, then the linker will abort with an error at run-time.
-Therefore you need to re-build your higher-level program or library.
+Therefore you need to rebuild your higher-level program or library.
 @end itemize
 
 @cindex GNU C library
@@ -44569,7 +44569,7 @@ The functions to do both these jobs must be defined in other source files.
 All the major parameters which will be used in the program must be stored in a structure which is defined in @file{main.h}.
 The name of this structure is usually @code{prognameparams}, for example, @code{cropparams} or @code{noisechiselparams}.
 So @code{#include "main.h"} will be a staple in all the source codes of the program.
-It is also regularly the first (and only) argument most of the program's functions which greatly helps in readability.
+It is also regularly the first (and only) argument of many of the program's functions which greatly helps in readability.
 
 Keeping all the major parameters of a program in this structure has the major benefit that most functions will only need one argument: a pointer to this structure.
 This will significantly facilitate the job of the programmer, the inquirer and the computer.
@@ -44584,9 +44584,9 @@ For example, you know that @code{p->cp->output} is in the common parameters whil
 
 @cindex Structure de-reference operator
 @cindex Operator, structure de-reference
-With this basic root structure, source code of functions can potentially become full of structure de-reference operators (@command{->}) which can make the code very unreadable.
+With this basic root structure, the source code of functions can potentially become full of structure de-reference operators (@command{->}) which can make the code very unreadable.
 In order to avoid this, whenever a structure element is used more than a couple of times in a function, a variable of the same type and with the same name (so it can be searched) as the desired structure element should be defined with the value of the root structure inside of it in definition time.
-Here is an example.
+Here is an example:
 
 @example
 char *hdu=p->cp.hdu;
@@ -44632,7 +44632,7 @@ It also makes all the errors related to input appear before the processing begin
 @item progname.c, progname.h
 @cindex Top processing source file
 The high-level processing functions in each program are in a file named @file{progname.c}, for example, @file{crop.c} or @file{noisechisel.c}.
-The function within these files which @code{main} calls is also named after the program, for example
+The function within these files which @code{main} calls is also named after the program, for example:
 
 @example
 void
@@ -44648,7 +44648,7 @@ noisechisel(struct noisechiselparams *p)
 @end example
 
 @noindent
-In this manner, if an inquirer is interested the processing steps, they can immediately come and check this file for the first processing step without having to go through @file{main.c} and @file{ui.c} first.
+In this manner, if an inquirer is interested in the processing steps, they can immediately come and check this file for the first processing step without having to go through @file{main.c} and @file{ui.c} first.
 In most situations, any failure in any step of the programs will result in an informative error message and an immediate abort in the program.
 So there is usually no need for return values.
 Under more complicated situations where a return value might be necessary, @code{void} will be replaced with an @code{int} in the examples above.
@@ -44679,9 +44679,9 @@ During Gnuastro's build, all these Bash completion files are merged into one fil
 The extra creativity offered by libraries comes at a cost: you have to actually write your @code{main} function and get your hands dirty in managing user inputs: are all the necessary parameters given a value? is the input in the correct format? do the options and the inputs correspond?  and many other similar checks.
 So when an operation has well-defined inputs and outputs and is commonly needed, it is much more worthwhile to simply do use all the great features that Gnuastro has already defined for such operations.
 
-To make it easier to learn/apply the internal program infra-structure discussed in @ref{Mandatory source code files}, in the @ref{Version controlled source}, Gnuastro ships with a template program.
+To make it easier to learn/apply the internal program infrastructure discussed in @ref{Mandatory source code files}, in the @ref{Version controlled source}, Gnuastro ships with a template program.
 This template program is not available in the Gnuastro tarball so it does not confuse people using the tarball.
-The @file{bin/TEMPLATE} directory in Gnuastro's Git repository contains the bare-minimum files necessary to define a new program and all the basic/necessary files/functions are pre-defined there.
+The @file{bin/TEMPLATE} directory in Gnuastro's Git repository contains the bare minimum files necessary to define a new program and all the basic/necessary files/functions are pre-defined there.
 
 Below you can see a list of initial steps to take for customizing this template.
 We just assume that after cloning Gnuastro's history, you have already bootstrapped Gnuastro, if not, please see @ref{Bootstrapping}.
@@ -44719,9 +44719,9 @@ Similar to the previous step, add your new program similar to all the other prog
 Here there are only two places: 1) at the top where we define the conditionals (three lines per program), and 2) immediately under it as part of the value for @code{SUBDIRS}.
 
 @item
-Open @file{doc/Makefile.am} and similar to @file{Makefile.am} (above), add the proper entries for the man-page of your program to be created (here, the variable that keeps all the man-pages to be created is @code{dist_man_MANS}).
-Then scroll down and add a rule to build the man-page similar to the other existing rules (in alphabetical order).
-Do Not forget to add a short one-line description here, it will be displayed on top of the man-page.
+Open @file{doc/Makefile.am} and similar to @file{Makefile.am} (above), add the proper entries for the man page of your program to be created (here, the variable that keeps all the man pages to be created is @code{dist_man_MANS}).
+Then scroll down and add a rule to build the man page similar to the other existing rules (in alphabetical order).
+Do Not forget to add a short one-line description here, it will be displayed on top of the man page.
 
 @item
 Change @code{TEMPLATE.c} and @code{TEMPLATE.h} to @code{myprog.c} and
@@ -44745,7 +44745,7 @@ $ grep --color -nHi -e template *
 @end example
 
 @item
-Run the following commands to re-build the configuration and build system,
+Run the following commands to rebuild the configuration and build system,
 and then to configure and build Gnuastro (which now includes your exciting
 new program).
 @example
@@ -44813,9 +44813,9 @@ So correct them as you are actually coding, but do not worry too much about miss
 
 @item
 After your work has been fully implemented, read the section documentation
-from the start and see if you did not miss any change in the coding and to
-see if the context is fairly continuous for a first time reader (who has not
-seen the book or had known Gnuastro before you made your change).
+from the start and check if you did not miss any change in the coding. Also,
+ensure that the context is fairly continuous for a first-time reader (who
+has not seen the book or has known Gnuastro before you made your change).
 
 @item
 If the change is notable, also update the @file{NEWS} file.
@@ -45274,7 +45274,7 @@ $ autoreconf -f
 
 @cindex Making a distribution package
 @item
-Finally, to make sure everything will be built, installed and checked correctly run the following command (after re-configuring, and re-building).
+Finally, to make sure everything will be built, installed and checked correctly run the following command (after re-configuring, and rebuilding).
 To greatly speed up the process, use multiple threads (8 in the example below, change it appropriately)
 
 @example

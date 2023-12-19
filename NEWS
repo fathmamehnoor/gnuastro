@@ -147,6 +147,8 @@ See the end of the file for license conditions.
     complete; reported by Sepideh Eskandarlou.
   - bug #65005: astscript-psf-unit not accounting for --innerhdu; reported
     by Ignacio Ruiz Cejudo.
+  - bug #65050: Use --libtool option in the TEMPLATE usage; found and fixed
+    by Faezeh Bidjarchian.
 
 
 

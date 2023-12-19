@@ -45,12 +45,12 @@ main (int argc, char *argv[])
   /* Read the input parameters. */
   ui_read_check_inputs_setup(argc, argv, &p);
 
-  /* Run MakeCatalog */
+  /* Run MakeCatalog. */
   mkcatalog(&p);
 
   /* Free all non-freed allocations. */
   ui_free_report(&p, &t1);
 
-  /* Return successfully.*/
+  /* Return successfully. */
   return EXIT_SUCCESS;
 }

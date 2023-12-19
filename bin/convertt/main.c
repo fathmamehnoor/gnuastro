@@ -49,6 +49,6 @@ main(int argc, char *argv[])
   /* Free all non-freed allocations. */
   ui_free_report(&p);
 
-  /* Return successfully.*/
+  /* Return successfully. */
   return EXIT_SUCCESS;
 }

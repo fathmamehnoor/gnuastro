@@ -253,7 +253,7 @@ man/asttable.1: $(top_srcdir)/bin/table/args.h  $(ALLMANSDEP)
 
 #man/astTEMPLATE.1: $(top_srcdir)/bin/TEMPLATE/args.h  $(ALLMANSDEP)
 #	$(MAYBE_HELP2MAN) -n "put a short description here"  \
-	                  $(toputildir)/TEMPLATE/astTEMPLATE
+	                  --libtool $(toputildir)/TEMPLATE/astTEMPLATE
 
 man/astwarp.1: $(top_srcdir)/bin/warp/args.h  $(ALLMANSDEP)
 	$(MAYBE_HELP2MAN) -n "warp (transform) input dataset" \
