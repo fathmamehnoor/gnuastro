@@ -385,10 +385,10 @@ ui_read_quantile_range(struct argp_option *option, char *arg,
 /**************************************************************/
 /***************       Sanity Check         *******************/
 /**************************************************************/
-/* Read and check ONLY the options. When arguments are involved, do the
-   check in 'ui_check_options_and_arguments'. */
+/* Check ONLY the options. When arguments are involved, do the check
+   in 'ui_check_options_and_arguments'. */
 static void
-ui_read_check_only_options(struct statisticsparams *p)
+ui_check_only_options(struct statisticsparams *p)
 {
   gal_list_i32_t *tmp;
   struct gal_tile_two_layer_params *tl=&p->cp.tl;
@@ -1031,7 +1031,7 @@ ui_preparations_fitestimate(struct statisticsparams *p)
         }
 
       /* Make sure a HDU is specified. We need to do this here (not
-         in 'ui_read_check_only_options') because only here we know
+         in 'ui_check_only_options') because only here we know
          that the user specified a file not a value. */
       if( gal_fits_name_is_fits(p->fitestimate) && p->fitestimatehdu==NULL )
         error(EXIT_FAILURE, 0, "no HDU specified for '%s' (given to "
@@ -1039,7 +1039,7 @@ ui_preparations_fitestimate(struct statisticsparams *p)
               "option to specify the HDU", p->fitestimate);
 
       /* Make sure a column is specified. We need to do this here (not
-         in 'ui_read_check_only_options') because only here we know
+         in 'ui_check_only_options') because only here we know
          that the user specified a file not a value. */
       if( p->fitestimatecol==NULL )
         error(EXIT_FAILURE, 0, "no column specified for '%s' (given to "
@@ -1315,9 +1315,8 @@ ui_read_check_inputs_setup(int argc, char *argv[],
   gal_options_read_config_set(&p->cp);
 
 
-  /* Read the options into the program's structure, and check them and
-     their relations prior to printing. */
-  ui_read_check_only_options(p);
+  /* Sanity check only on options. */
+  ui_check_only_options(p);
 
 
   /* Print the option values if asked. Note that this needs to be done

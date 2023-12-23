@@ -207,8 +207,10 @@ parse_opt(int key, char *arg, struct argp_state *state)
 /**************************************************************/
 /***************       Sanity Check         *******************/
 /**************************************************************/
+/* Check ONLY the options. When arguments are involved, do the check
+   in 'ui_check_options_and_arguments'. */
 static void
-ui_read_check_only_options(struct convolveparams *p)
+ui_check_only_options(struct convolveparams *p)
 {
   struct gal_options_common_params *cp=&p->cp;
 
@@ -744,8 +746,8 @@ ui_read_check_inputs_setup(int argc, char *argv[], struct convolveparams *p)
   gal_options_read_config_set(&p->cp);
 
 
-  /* Do a sanity check only on options. */
-  ui_read_check_only_options(p);
+  /* Sanity check only on options. */
+  ui_check_only_options(p);
 
 
   /* Print the option values if asked. Note that this needs to be done

@@ -229,8 +229,10 @@ parse_opt(int key, char *arg, struct argp_state *state)
 /**************************************************************/
 /***************       Sanity Check         *******************/
 /**************************************************************/
+/* Check ONLY the options. When arguments are involved, do the check
+   in 'ui_check_options_and_arguments'. */
 static void
-ui_read_check_only_options(struct arithmeticparams *p)
+ui_check_only_options(struct arithmeticparams *p)
 {
   if(p->wcsfile && strcmp(p->wcsfile,"none"))
     {
@@ -250,7 +252,7 @@ ui_read_check_only_options(struct arithmeticparams *p)
 
 
 /* Sanity check on options AND arguments. If only option values are to be
-   checked, use 'ui_read_check_only_options'. */
+   checked, use 'ui_check_only_options'. */
 static void
 ui_check_options_and_arguments(struct arithmeticparams *p)
 {
@@ -483,7 +485,7 @@ ui_read_check_inputs_setup(int argc, char *argv[], struct arithmeticparams *p)
 
 
   /* Sanity check only on options. */
-  ui_read_check_only_options(p);
+  ui_check_only_options(p);
 
 
   /* Check that the options and arguments fit well with each other. Note

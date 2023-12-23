@@ -359,10 +359,10 @@ ui_check_upperlimit(struct argp_option *option, char *arg,
 /**************************************************************/
 /***************       Sanity Check         *******************/
 /**************************************************************/
-/* Read and check ONLY the options. When arguments are involved, do the
-   check in 'ui_check_options_and_arguments'. */
+/* Check ONLY the options. When arguments are involved, do the check
+   in 'ui_check_options_and_arguments'. */
 static void
-ui_read_check_only_options(struct mkcatalogparams *p)
+ui_check_only_options(struct mkcatalogparams *p)
 {
   float tmp;
   double *darr;
@@ -1925,9 +1925,8 @@ ui_read_check_inputs_setup(int argc, char *argv[],
   gal_options_read_config_set(&p->cp);
 
 
-  /* Read the options into the program's structure, and check them and
-     their relations prior to printing. */
-  ui_read_check_only_options(p);
+  /* Sanity check only on options. */
+  ui_check_only_options(p);
 
 
   /* Print the option values if asked. Note that this needs to be done
