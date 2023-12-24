@@ -9248,12 +9248,12 @@ $ astscript-fits-view R-sb-seg.fits
 
 Let's say in words what this mean.
 Pixels on this image equal to 2 will be shown in color, pixels equal to 1 will be shown in pure black, pixels equal to 0 will be shown in gray.
-Now, let's use this segmentation image with the @option{--segment} option for obtaining the color image.
+Now, let's use this labeled image with the @option{--regions} option for obtaining the color image.
 
 @example
 $ astscript-color-faint-gray $params --output=m51-sb.pdf \
                              --qbright=0.01 --stretch=100 \
-                             --segment=R-sb-seg.fits
+                             --regions=R-sb-seg.fits
 @end example
 
 Open @file{R-sb.pdf} and have a look.

@@ -44,7 +44,7 @@ export LANG=C
 
 # Default option values (can be changed with options on the command-line).
 hdu=""
-shdu=1
+rhdu=1
 globalhdu=""
 
 # Minimum, weights, and zeropoint values
@@ -53,11 +53,11 @@ minimum=""
 zeropoint=""
 
 # To control the asinh transformation, set both to 1 (scientific notation)
-qbright_default=$(astarithmetic 1.0 1.0 x --quiet)
-stretch_default=$(astarithmetic 1.0 1.0 x --quiet)
+qbright_default=1.000000e+00
+stretch_default=1.000000e+00
 
 # For color, black, and gray regions
-segment=""
+regions=""
 grayval=""
 colorval=""
 coloronly=0
@@ -125,7 +125,7 @@ experienced Gnuastro users and developers. For more information, please run:
 $scriptname options:
  Input:
   -h, --hdu=STR           HDU/extension for the input channels.
-  -t, --shdu=STR          HDU/extension for the segment image.
+  -t, --rhdu=STR          HDU/extension for the regions image.
   -g, --globalhdu=STR/INT Use this HDU for all inputs, ignore '--hdu'.
   -w, --weight=FLT        Relative weight for each input channel.
   -m, --minimum=FLT       Minimum value for each input channel.
@@ -142,7 +142,7 @@ $scriptname options:
 
  Color and gray parameters
       --coloronly         No grayscale regions, background in color (black).
-      --segment=STR       Segmentation image (color=2, black=1, gray=0).
+      --regions=STR       Regions labeled image (color=2, black=1, gray=0).
       --grayval=FLT       Gray threshold (highest value to use grayscale).
       --colorval=FLT      Color threshold (lowest value to have color).
       --graykernelfwhm=FLT  Kernel FWHM for convolving the background image.
@@ -245,9 +245,9 @@ do
         -h|--hdu)            aux="$2";                                  check_v "$1" "$aux"; hdu="$hdu $aux"; shift;shift;;
         -h=*|--hdu=*)        aux="${1#*=}";                             check_v "$1" "$aux"; hdu="$hdu $aux"; shift;;
         -h*)                 aux="$(echo "$1"  | sed -e's/-h//')";      check_v "$1" "$aux"; hdu="$hdu $aux"; shift;;
-        -t|--shdu)           shdu="$2";                                 check_v "$1" "$shdu";  shift;shift;;
-        -t=*|--shdu=*)       shdu="${1#*=}";                            check_v "$1" "$shdu";  shift;;
-        -t*)                 shdu=$(echo "$1" | sed -e's/-t//');        check_v "$1" "$shdu";  shift;;
+        -t|--rhdu)           rhdu="$2";                                 check_v "$1" "$rhdu";  shift;shift;;
+        -t=*|--rhdu=*)       rhdu="${1#*=}";                            check_v "$1" "$rhdu";  shift;;
+        -t*)                 rhdu=$(echo "$1" | sed -e's/-t//');        check_v "$1" "$rhdu";  shift;;
         -w|--weight)         aux="$2";                                  check_v "$1" "$aux"; weight="$weight $aux"; shift;shift;;
         -w=*|--weight=*)     aux="${1#*=}";                             check_v "$1" "$aux"; weight="$weight $aux"; shift;;
         -w*)                 aux="$(echo "$1"  | sed -e's/-w//')";      check_v "$1" "$aux"; weight="$weight $aux"; shift;;
@@ -276,8 +276,8 @@ do
         -b*)                 bias=$(echo "$1"  | sed -e's/-b//');       check_v "$1" "$bias";  shift;;
 
         --coloronly)        coloronly=1; shift;;
-        --segment)          segment="$2";                              check_v "$1" "$segment";  shift;shift;;
-        --segment=*)        segment="${1#*=}";                         check_v "$1" "$segment";  shift;;
+        --regions)          regions="$2";                              check_v "$1" "$regions";  shift;shift;;
+        --regions=*)        regions="${1#*=}";                         check_v "$1" "$regions";  shift;;
         --grayval)          grayval="$2";                              check_v "$1" "$grayval";  shift;shift;;
         --grayval=*)        grayval="${1#*=}";                         check_v "$1" "$grayval";  shift;;
         --colorval)         colorval="$2";                             check_v "$1" "$colorval";  shift;shift;;
@@ -856,28 +856,28 @@ else
 
 
 
-    # Segmentation image
-    # ------------------
+    # Regions labeled image
+    # ---------------------
     #
-    # The TOTAL_MASK consists in a segmentation image whose pixel values
-    # correspond to the three regions. Here it is defined as follow:
-    #   pixels=2 will be shown in color
-    #   pixels=1 will be shown in pure black
-    #   pixels=0 will be shown in gray
+    # The TOTAL_MASK consists of a labeled image whose pixel values
+    # correspond to the three regions. Labels are defined as follows:
+    #   2 will be shown in color
+    #   1 will be shown in pure black
+    #   0 will be shown in gray
     # This image is computed by default from the colorval and grayval
     # parameters. Alternatively, it can be provided by the user.
-    if [ x$segment = x ]; then
+    if [ x$regions = x ]; then
         TOTAL_MASK="$tmpdir/TOTAL_mask-2color-1black-0gray.fits"
         astarithmetic $I_COLORGRAY_threshold                     set-i \
                       i $colorval gt                   2 uint8 x set-c \
                       i $colorval lt i $grayval gt and 1 uint8 x set-b \
                       i $colorval lt                   0 uint8 x set-g \
                       c b g 3 sum uint8 --output $TOTAL_MASK
-        shdu=1
+        rhdu=1
    else
-       grayval="$segment"
-       colorval="$segment"
-       TOTAL_MASK=$segment
+       grayval="$regions"
+       colorval="$regions"
+       TOTAL_MASK=$regions
    fi
 
 
@@ -909,7 +909,7 @@ else
     grayscale=""
     I_GRAY_colormasked="$tmpdir/GRAY_colormasked.fits"
     astarithmetic $I_BACK_convolved -h1      set-values \
-                  $TOTAL_MASK -h$shdu 2 uint8 eq set-mask \
+                  $TOTAL_MASK -h$rhdu 2 uint8 eq set-mask \
                   values mask nan where $grayscale set-masked \
                   masked minvalue set-oldmin \
                   masked maxvalue set-oldmax \
@@ -932,7 +932,7 @@ else
     # this, those pixels will be set to pure black color.
     I_GRAY_colormasked_zeroblack="$tmpdir/GRAY_colormasked_zeroblack.fits"
     astarithmetic $I_GRAY_colormasked -h1 set-i \
-                  $TOTAL_MASK -h$shdu 1 uint8 eq -h1 set-b \
+                  $TOTAL_MASK -h$rhdu 1 uint8 eq -h1 set-b \
                   i b 0.0 where float32 \
                   --output=$I_GRAY_colormasked_zeroblack
 
