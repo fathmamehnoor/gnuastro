@@ -1022,13 +1022,16 @@ TIPS:
   # Use '--checkparams' to check the pixel value distributions.
   # Use '--keeptmp' to not remove the threshold image and check it:
       '$I_COLORGRAY_threshold'
-
-PARAMETERS:
-  Default:  --qbright=$qbright_default --stretch=$stretch_default --colorval=$colorval_estimated --grayval=$grayval_estimated
-  Used   :  --qbright=$qbright --stretch=$stretch --colorval=$colorval --grayval=$grayval
-
-Output written to '$output'.
 EOF
+  echo
+  printf "%-17s %-15s %-15s\n"   Option       Default           Used
+  printf "  %-15s %-15g %-15g\n" "--qbright"  $qbright_default  $qbright
+  printf "  %-15s %-15g %-15g\n" "--stretch"  $stretch_default  $stretch
+  if [ x$regions = x ]; then
+      printf "  %-15s %-15g %-15g\n" "--colorval" $colorval_default $colorval
+      printf "  %-15s %-15g %-15g\n" "--grayval"  $grayval_default  $grayval
+  fi
+  echo; echo "Output written to '$output'."
 fi
 
 

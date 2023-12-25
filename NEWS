@@ -5,6 +5,12 @@ See the end of the file for license conditions.
 
 * Noteworthy changes in release X.XX (library XX.0.0) (YYYY-MM-DD)
 ** New features
+*** New program
+  - 'astscript-color-faint-gray': a new installed script to maximize the
+    visualization of the contents within your astronomical images. It does
+    this by showing the brighter parts of the image as color, intermediate
+    regions as black and the noisy/faint regions as gray/white.
+
 *** Arithmetic
   - New operators:
     - rotate-coord: given a 2D point's coordinates, return the coordinates

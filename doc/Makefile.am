@@ -264,11 +264,10 @@ man/astwarp.1: $(top_srcdir)/bin/warp/args.h  $(ALLMANSDEP)
 
 
 # The Scripts:
-man/astscript-pointing-simulate.1: $(top_srcdir)/bin/script/pointing-simulate.sh \
-                                 $(ALLMANSDEP)
-	$(MAYBE_HELP2MAN) -n "Simulate the exposure map of a pointing pattern" \
-	                  --libtool \
-	                  $(toputildir)/script/astscript-pointing-simulate
+man/astscript-color-faint-gray.1: $(top_srcdir)/bin/script/color-faint-gray.sh \
+                            $(ALLMANSDEP)
+	$(MAYBE_HELP2MAN) -n "RGB image from FITS images showing bright and faint features" \
+	                  --libtool $(toputildir)/script/astscript-color-faint-gray
 
 man/astscript-ds9-region.1: $(top_srcdir)/bin/script/ds9-region.sh \
                             $(ALLMANSDEP)
@@ -279,6 +278,12 @@ man/astscript-fits-view.1: $(top_srcdir)/bin/script/fits-view.sh \
                             $(ALLMANSDEP)
 	$(MAYBE_HELP2MAN) -n "View FITS images in DS9 and tables in TOPCAT" \
 	                  --libtool $(toputildir)/script/astscript-fits-view
+
+man/astscript-pointing-simulate.1: $(top_srcdir)/bin/script/pointing-simulate.sh \
+                                 $(ALLMANSDEP)
+	$(MAYBE_HELP2MAN) -n "Simulate the exposure map of a pointing pattern" \
+	                  --libtool \
+	                  $(toputildir)/script/astscript-pointing-simulate
 
 man/astscript-psf-scale-factor.1: $(top_srcdir)/bin/script/psf-scale-factor.sh \
                                   $(ALLMANSDEP)

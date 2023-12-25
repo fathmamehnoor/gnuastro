@@ -255,6 +255,7 @@ script/psf-stamp.sh: mkprof/mosaic2.sh.log
 script/psf-subtract.sh: mkprof/mosaic1.sh.log
 script/radial-profile.sh: mkprof/mosaic2.sh.log
 script/psf-scale-factor.sh: mkprof/mosaic1.sh.log
+script/color-faint-gray.sh: mkprof/mosaic2.sh.log
 script/psf-select-stars.sh: segment/segment.sh.log
 script/zeropoint.sh: table/arith-img-to-wcs.sh.log
 script/sort-by-night.sh: mkcatalog/aperturephot.sh.log
