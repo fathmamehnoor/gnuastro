@@ -60,8 +60,8 @@ all the commits needed for this release have been completed.
        $ git log --oneline --graph --decorate --all   # For a visual check.
 
 
- - Activate the Conda-forge build to see if the distribution builds on all
-   the architectures there.
+ - [STABLE] Activate the Conda-forge build to see if the distribution
+   builds on all the architectures there.
 
    - Build and upload the Gnuastro tarball with tar.xz since Conda does not
      recognize 'tar.lz'! Then upload it to a URL that Conda can download
