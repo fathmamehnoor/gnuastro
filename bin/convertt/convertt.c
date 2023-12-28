@@ -332,19 +332,20 @@ convertt(struct converttparams *p)
       if(p->numch==3 && p->rgbtohsv)
         color_rgb_to_hsv(p);
       for(channel=p->chll; channel!=NULL; channel=channel->next)
-        gal_fits_img_write(channel, p->cp.output, NULL, PROGRAM_NAME);
+        gal_fits_img_write(channel, p->cp.output, NULL, 0);
       break;
 
     /* Plain text: only one channel is acceptable. */
     case OUT_FORMAT_TXT:
       gal_checkset_writable_remove(p->cp.output, p->inputnames->v, 0,
                                    p->cp.dontdelete);
-      gal_txt_write(p->chll, NULL, NULL, p->cp.output, 0, 1);
+      gal_txt_write(p->chll, NULL, NULL, p->cp.output, 0, 1, 0);
       break;
 
     /* JPEG: */
     case OUT_FORMAT_JPEG:
-      if(p->colormap) color_map_prepare(p); else convertt_scale_to_uchar(p);
+      if(p->colormap) color_map_prepare(p);
+      else convertt_scale_to_uchar(p);
       gal_jpeg_write(p->chll, p->cp.output, p->quality, p->widthincm);
       break;
 

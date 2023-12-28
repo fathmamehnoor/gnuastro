@@ -1257,9 +1257,8 @@ arithmetic_tofile(struct arithmeticparams *p, char *token, int freeflag)
   popped->wcs=p->refdata.wcs;
   if(popped->ndim==1 && p->onedasimage==0)
     gal_table_write(popped, NULL, NULL, p->cp.tableformat, filename,
-                    "ARITHMETIC", 0);
-  else
-    gal_fits_img_write(popped, filename, NULL, PROGRAM_NAME);
+                    "ARITHMETIC", 0, 0);
+  else gal_fits_img_write(popped, filename, NULL, 0);
   if(!p->cp.quiet)
     printf(" - Write: %s\n", filename);
 
@@ -1922,7 +1921,7 @@ arithmetic_final_data(struct arithmeticparams *p)
 void
 reversepolish(struct arithmeticparams *p)
 {
-  char *printnum;
+  char *printnum=NULL;
   struct operand *otmp;
   size_t num_operands=0;
   gal_list_str_t *token;
@@ -1979,8 +1978,10 @@ reversepolish(struct arithmeticparams *p)
          isn't an operator. */
       else
         {
-          operator=arithmetic_set_operator(token->v, &num_operands, &inlib);
-          arithmetic_operator_run(p, operator, token->v, num_operands, inlib);
+          operator=arithmetic_set_operator(token->v, &num_operands,
+                                           &inlib);
+          arithmetic_operator_run(p, operator, token->v, num_operands,
+                                  inlib);
         }
 
       /* Increment the token counter. */
@@ -2022,7 +2023,8 @@ reversepolish(struct arithmeticparams *p)
       printnum=gal_type_to_string(data->array, data->type, 0);
       printf("%s\n", printnum);
 
-      /* Clean up. */
+      /* Clean up (don't set it to 'NULL', this is used to specify if a
+         file was created in the end or not). */
       free(printnum);
     }
   else
@@ -2039,15 +2041,17 @@ reversepolish(struct arithmeticparams *p)
         { if(data->comment) free(data->comment);
           gal_checkset_allocate_copy(p->metacomment, &data->comment); }
 
-      /* Put a copy of the WCS structure from the reference image, it
-         will be freed while freeing 'data'. */
+      /* Put a copy of the WCS structure from the reference image, it will
+         be freed while freeing 'data'. But start the file with the 0-th
+         HDU keywords.*/
+      gal_fits_key_write(p->cp.ckeys, p->cp.output, "0", "NONE", 1, 1);
       if(data->ndim==1 && p->onedasimage==0)
         gal_table_write(data, NULL, NULL, p->cp.tableformat,
                         p->onedonstdout ? NULL : p->cp.output,
-                        "ARITHMETIC", 0);
+                        "ARITHMETIC", 0, 0);
       else
         for(tmp=data; tmp!=NULL; tmp=tmp->next)
-          gal_fits_img_write(tmp, p->cp.output, NULL, PROGRAM_NAME);
+          gal_fits_img_write(tmp, p->cp.output, NULL, 0);
 
       /* Let the user know that the job is done. */
       if(!p->cp.quiet)

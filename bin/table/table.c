@@ -1603,8 +1603,8 @@ table(struct tableparams *p)
   if(p->table)
     {
       table_txt_formats(p);
-      gal_table_write(p->table, NULL, NULL, p->cp.tableformat, p->cp.output,
-                      "TABLE", p->colinfoinstdout);
+      gal_table_write(p->table, NULL, NULL, p->cp.tableformat,
+                      p->cp.output, "TABLE", p->colinfoinstdout, 0);
     }
   else
     error(EXIT_FAILURE, 0, "no output columns");

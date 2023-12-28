@@ -13822,6 +13822,18 @@ A FITS ASCII table (see @ref{Recognized table formats}).
 A FITS binary table (see @ref{Recognized table formats}).
 @end table
 
+@item --outfitsnoconfig
+Do not write any of the program's metadata (option values or versions and dates) into the 0-th HDU of the output FITS file, see @ref{Output FITS files}.
+
+@item --outfitsnodate
+Do not write the @code{DATE} or @code{DATEUTC} keywords into the 0-th HDU of the output FITS file, see @ref{Output FITS files}.
+
+@item --outfitsnocommit
+Do not write the @code{COMMIT} keyword into the 0-th HDU of the output FITS file, see @ref{Output FITS files}.
+
+@item --outfitsnoversions
+Do not write the versions of any dependency software into the 0-th HDU of the output FITS file, see @ref{Output FITS files}.
+
 @end vtable
 
 
@@ -15608,8 +15620,9 @@ For more on this standard, please see @ref{Fits}.
 
 As a community convention described in @ref{Fits}, the first extension of all FITS files produced by Gnuastro's programs only contains the meta-data that is intended for the file's extension(s).
 For a Gnuastro program, this generic meta-data (that is stored as FITS keyword records) is its configuration when it produced this dataset: file name(s) of input(s) and option names, values and comments.
-Note that when the configuration is too trivial (only input filename, for example, the program @ref{Table}) no meta-data is written in this extension.
+You can use the @option{--outfitsnoconfig} option to stop the programs from writing these keywords into the first extension of their output.
 
+When the configuration is too trivial (only input filename, for example, the program @ref{Table}) no meta-data is written in this extension.
 FITS keywords have the following limitations in regards to generic option names and values which are described below:
 
 @itemize
@@ -15630,13 +15643,21 @@ $ astfits image_detected.fits -h0 | grep -i snquant
 @end itemize
 
 The keywords above are classified (separated by an empty line and title) as a group titled ``ProgramName configuration''.
-This meta-data extension, as well as all the other extensions (which contain data), also contain have final group of keywords to keep the basic date and version information of Gnuastro, its dependencies and the pipeline that is using Gnuastro (if it is under version control).
+This meta-data extension also contains a final group of keywords to keep the basic date and version information of Gnuastro, its dependencies and the pipeline that is using Gnuastro (if it is under version control); they are listed below.
 
 @table @command
 
 @item DATE
 The creation time of the FITS file.
 This date is written directly by CFITSIO and is in UT format.
+
+While the date can be a good metadata in most scenarios, it does have a caveat: when everything else in your output is the same between multiple runs, the date will be different!
+If exact reproducibility is important for you, this can be annoying!
+To stop any Gnuastro program from writing the @code{DATE} keyword, you can use the @option{--outfitsnodate} (see @ref{Input output options}).
+
+@item DATEUTC
+If the date in the @code{DATE} keyword is in @url{https://en.wikipedia.org/wiki/Coordinated_Universal_Time, UTC}, this keyword will have a value of 1; otherwise, it will have a value of 0.
+If @code{DATE} is not written, this is also ignored.
 
 @item COMMIT
 Git's commit description from the running directory of Gnuastro's programs.
@@ -15667,33 +15688,26 @@ One important feature of version control is that the research result (FITS image
 This information will enable you to exactly reproduce that same result later, even if you have made changes/progress.
 For one example of a research paper's reproduction pipeline, please see the @url{https://gitlab.com/makhlaghi/NoiseChisel-paper, reproduction pipeline} of the @url{https://arxiv.org/abs/1505.01664, paper} describing @ref{NoiseChisel}.
 
+In case you don't want the @code{COMMIT} keyword in the first extension of your output FITS file, you can use the @option{--outfitsnocommit} option (see @ref{Input output options}).
+
 @item CFITSIO
 The version of CFITSIO used (see @ref{CFITSIO}).
+This can be disabled with @option{--outfitsnoversions} (see @ref{Input output options}).
 
 @item WCSLIB
 The version of WCSLIB used (see @ref{WCSLIB}).
 Note that older versions of WCSLIB do not report the version internally.
 So this is only available if you are using more recent WCSLIB versions.
+This can be disabled with @option{--outfitsnoversions} (see @ref{Input output options}).
 
 @item GSL
 The version of GNU Scientific Library that was used, see @ref{GNU Scientific Library}.
+This can be disabled with @option{--outfitsnoversions} (see @ref{Input output options}).
 
 @item GNUASTRO
 The version of Gnuastro used (see @ref{Version numbering}).
+This can be disabled with @option{--outfitsnoversions} (see @ref{Input output options}).
 @end table
-
-Here is one example of the last few lines of an example output.
-
-@example
-              / Versions and date
-DATE    = '...'                / file creation date
-COMMIT  = 'v0-8-g547f6eb'      / Commit description in running dir.
-CFITSIO = '3.45    '           / CFITSIO version.
-WCSLIB  = '5.19    '           / WCSLIB version.
-GSL     = '2.5     '           / GNU Scientific Library version.
-GNUASTRO= '0.7     '           / GNU Astronomy Utilities version.
-END
-@end example
 
 @node Numeric locale,  , Output FITS files, Common program behavior
 @section Numeric locale
@@ -38983,7 +38997,7 @@ If it is @code{NULL}, this line is ignored.
 @end itemize
 @end deftypefun
 
-@deftypefun void gal_table_write (gal_data_t @code{*cols}, struct gal_fits_list_key_t @code{**keywords}, gal_list_str_t @code{*comments}, int @code{tableformat}, char @code{*filename}, char @code{*extname}, uint8_t @code{colinfoinstdout})
+@deftypefun void gal_table_write (gal_data_t @code{*cols}, struct gal_fits_list_key_t @code{**keylist}, gal_list_str_t @code{*comments}, int @code{tableformat}, char @code{*filename}, char @code{*extname}, uint8_t @code{colinfoinstdout}, int @code{freekeys})
 
 Write @code{cols} (a list of datasets, see @ref{List of gal_data_t}) into a table stored in @code{filename}.
 The format of the table can be determined with @code{tableformat} that accepts the macros defined above.
@@ -39404,14 +39418,34 @@ If @code{cfree} is non-zero, the space allocated for @code{comment} will be free
 Similar to @code{gal_fits_key_list_title_add}, but put the comments at the end of the list.
 @end deftypefun
 
-@deftypefun void gal_fits_key_list_comment_add (gal_fits_list_key_t @code{**list}, char @code{*comment}, int @code{fcfree})
+@deftypefun void gal_fits_key_list_fullcomment_add (gal_fits_list_key_t @code{**list}, char @code{*comment}, int @code{fcfree})
 Add a @code{COMMENT} keyword to the top of the keywords list.
 If the comment is longer than 70 characters, CFITSIO will automatically break it into multiple @code{COMMENT} keywords.
 If @code{fcfree} is non-zero, the space allocated for @code{comment} will be freed immediately after writing the keyword (in another function).
 @end deftypefun
 
-@deftypefun void gal_fits_key_list_comment_add_end (gal_fits_list_key_t @code{**list}, char @code{*comment}, int @code{fcfree})
+@deftypefun void gal_fits_key_list_fullcomment_add_end (gal_fits_list_key_t @code{**list}, char @code{*comment}, int @code{fcfree})
 Similar to @code{gal_fits_key_list_comment_add}, but put the comments at the end of the list.
+@end deftypefun
+
+@deftypefun void gal_fits_key_list_add_date (gal_fits_list_key_t @code{**keylist}, char @code{*comment})
+Add a @code{DATE} keyword to the input list of keywords containing the date this function was activated in the format of @code{YYYY-MM-DDThh:mm:ss}.
+This function will also add a @code{DATEUTC} keyword that specifies if the date is in UTC or local time (this depends on CFITSIO being able to detect UTC in the running operating system or not).
+
+The comment of the keyword should also be specified as the second argument.
+The comment is useful to inform users what this date refers to; for example the program starting time, its ending time, or etc.
+For more, see the description under @code{DATE} in @ref{Output FITS files}.
+@end deftypefun
+
+@deftypefun void gal_fits_key_list_add_software_versions (gal_fits_list_key_t @code{**keylist})
+Add the version of Gnuastro @ref{Mandatory dependencies} to the list of keywords.
+Each software's keyword has the same name as the software itself (for example @code{GNUASTRO} or @code{GSL}.
+For the full list of software, see @ref{Output FITS files}.
+@end deftypefun
+
+@deftypefun void gal_fits_key_list_add_git_commit (gal_fits_list_key_t @code{**keylist})
+If the optional libgit2 dependency is installed and your program is being run in a directory that is under version control, a @code{COMMIT} keyword will be added on the top of the list of keywords.
+For more, see the description of @code{COMMIT} in @ref{Output FITS files}.
 @end deftypefun
 
 @deftypefun void gal_fits_key_list_reverse (gal_fits_list_key_t @code{**list})
@@ -39447,8 +39481,14 @@ Write the WCS header string (produced with WCSLIB's @code{wcshdo} function) into
 This function will put a few blank keyword lines along with a comment @code{WCS information} before writing each keyword record.
 @end deftypefun
 
-@deftypefun void gal_fits_key_write (gal_fits_list_key_t @code{**keylist}, char @code{*title}, char @code{*filename}, char @code{*hdu})
-Write the list of keywords in @code{keylist} into the @code{hdu} extension of the file called @code{filename} (the file must already exist) and free the list.
+@deftypefun void gal_fits_key_write (gal_fits_list_key_t @code{**keylist}, char @code{*filename}, char @code{*hdu}, char @code{*hdu_option_name}, int @code{freekeys}, int @code{create_fits_not_exists})
+Write the list of keywords in @code{keylist} into the @code{hdu} extension of the file called @code{filename}.
+If the file may not exist before this function is activated, set @code{create_fits_not_exists} to non-zero and set the HDU to @code{"0"}.
+If the keywords should be freed after they are written, set the @code{freekeys} value to non-zero.
+
+The @code{hdu_option_name} will be used in error messages if the HDU in the file cannot be opened for writing.
+This is useful for the users of your programs to inform them what option they should give a HDU to.
+If you don't have an option that is configured by the users of your program, you can set this to @code{NONE}.
 
 The list nodes are meant to be dynamically allocated (because they will be freed after being written).
 We thus recommend using the @code{gal_fits_key_list_add} or @code{gal_fits_key_list_add_end} to create and fill the list.
@@ -39470,41 +39510,16 @@ int main()
   char *comment="A good description of the key";
   gal_fits_key_list_add_end(&keylist, GAL_TYPE_FLOAT32, keyname, 0,
                             &value, 0, comment, 0, unit, 0);
-  gal_fits_key_write(&keylist, "Matching metadata", filename, "1");
+  gal_fits_key_list_title_add(&keylist, "Matching metadata", 0);
+  gal_fits_key_write(&keylist, filename, "1", "NONE", 1, 0);
   return EXIT_SUCCESS;
 @}
 @end example
 @end deftypefun
 
-@deftypefun void gal_fits_key_write_in_ptr (gal_fits_list_key_t @code{**keylist}, fitsfile @code{*fptr})
+@deftypefun void gal_fits_key_write_in_ptr (gal_fits_list_key_t @code{**keylist}, fitsfile @code{*fptr}, int @code{freekeys})
 Write the list of keywords in @code{keylist} into the given CFITSIO @code{fitsfile} pointer and free keylist.
 For more on the input @code{keylist}, see the description and example for @code{gal_fits_key_write}, above.
-@end deftypefun
-
-@deftypefun void gal_fits_key_write_version (gal_fits_list_key_t @code{**keylist}, char @code{*title}, char @code{*filename}, char @code{*hdu})
-Write the (optional, when @code{keylist!=NULL}) given list of keywords under the optional FITS keyword @code{title}, then print all the important version and date information.
-This is basically, just a wrapper over @code{gal_fits_key_write_version_in_ptr}.
-@end deftypefun
-
-@deftypefun void gal_fits_key_write_version_in_ptr (gal_fits_list_key_t @code{**keylist}, char @code{*title}, fitsfile @code{*fptr})
-Write or update (all the) keyword(s) in @code{headers} into the FITS
-pointer, but also the date, name of your program (@code{program_name}),
-along with the versions of CFITSIO, WCSLIB (when available), GSL, Gnuastro,
-and (the possible) commit information into the header as described in
-@ref{Output FITS files}.
-
-Since the data processing depends on the versions of the libraries you have used, it is strongly recommended to include this information in every FITS output.
-@code{gal_fits_img_write} and @code{gal_fits_tab_write} will automatically use this function.
-@end deftypefun
-
-@deftypefun void gal_fits_key_write_config (gal_fits_list_key_t @code{**keylist}, char @code{*title}, char @code{*extname}, char @code{*filename}, char @code{*hdu}, char @code{*hdu_option_name})
-Write the given keyword list (@code{keylist}) into the @code{hdu} extension of @code{filename}, ending it with version information.
-This function will write @code{extname} as the name of the extension (value to the standard @code{EXTNAME} FITS keyword).
-The list of keywords will then be printed under a title called @code{title}.
-
-This function is used by many Gnuastro programs and is primarily intended for writing configuration settings of a program into the zero-th extension of their FITS outputs (which is empty when the FITS file is created by Gnuastro's program and this library).
-
-For more on @code{hdu_option_name} see the description of @code{gal_fits_hdu_open} in @ref{FITS HDUs}.
 @end deftypefun
 
 @deftypefun {gal_list_str_t *} gal_fits_with_keyvalue (gal_list_str_t *files, char *hdu, char *name, gal_list_str_t *values)
@@ -39574,29 +39589,36 @@ The finally returned dataset will have a @code{float32} type.
 For more on @code{hdu_option_name} see the description of @code{gal_fits_hdu_open} in @ref{FITS HDUs}.
 @end deftypefun
 
-@deftypefun {fitsfile *} gal_fits_img_write_to_ptr (gal_data_t @code{*input}, char @code{*filename})
+@deftypefun {fitsfile *} gal_fits_img_write_to_ptr (gal_data_t @code{*input}, char @code{*filename}, gal_fits_list_key_t @code{*keylist}, int @code{freekeys})
 Write the @code{input} dataset into a FITS file named @file{filename} and return the corresponding CFITSIO @code{fitsfile} pointer.
 This function will not close @code{fitsfile}, so you can still add other extensions to it after this function or make other modifications.
+
+In case you want to add keywords into the HDU that containst he data, you can use the second two arguments (see the description of @code{gal_fits_key_write}).
+These keywords will be written into the HDU before writing the data: when there are more than roughly 5 keywords (assuming your dataset has WCS) and your dataset is large, this can result in significant optimization of the running time (because adding a keyword beyond the 36 key slots will cause the whole data to shift for another block of 36 keywords).
 @end deftypefun
 
-@deftypefun void gal_fits_img_write (gal_data_t @code{*data}, char @code{*filename}, gal_fits_list_key_t @code{*headers}, char @code{*program_string})
+@deftypefun void gal_fits_img_write (gal_data_t @code{*data}, char @code{*filename}, gal_fits_list_key_t @code{*keylist}, int @code{freekeys})
 Write the @code{input} dataset into the FITS file named @file{filename}.
-Also add the @code{headers} keywords to the newly created HDU/extension
-along with your program's name (@code{program_string}).
+Also add the list of header keywords (@code{keylist}) to the newly created HDU/extension
+The list of keywords will be freed after writing into the HDU, if you need them later, keep a separate copy of the list before calling this function.
+
+For the importance of why it is better to add your keywords in this function (before writing the data) or after it, see the description of @code{gal_fits_img_write_to_ptr}.
 @end deftypefun
 
-@deftypefun void gal_fits_img_write_to_type (gal_data_t @code{*data}, char @code{*filename}, gal_fits_list_key_t @code{*headers}, char @code{*program_string}, int @code{type})
+@deftypefun void gal_fits_img_write_to_type (gal_data_t @code{*data}, char @code{*filename}, gal_fits_list_key_t @code{*keylist}, int @code{type}, int @code{freekeys})
 Convert the @code{input} dataset into @code{type}, then write it into the FITS file named @file{filename}.
-Also add the @code{headers} keywords to the newly created HDU/extension along with your program's name (@code{program_string}).
+Also add the @code{keylist} keywords to the newly created HDU/extension along with your program's name (@code{program_string}).
 After the FITS file is written, this function will free the copied dataset (with type @code{type}) from memory.
 
+For the importance of why it is better to add your keywords in this function (before writing the data) or after it, see the description of @code{gal_fits_img_write_to_ptr}.
 This is just a wrapper for the @code{gal_data_copy_to_new_type} and @code{gal_fits_img_write} functions.
 @end deftypefun
 
-@deftypefun void gal_fits_img_write_corr_wcs_str (gal_data_t @code{*data}, char @code{*filename}, char @code{*wcsstr}, int @code{nkeyrec}, double @code{*crpix}, gal_fits_list_key_t @code{*headers}, char @code{*program_string})
+@deftypefun void gal_fits_img_write_corr_wcs_str (gal_data_t @code{*data}, char @code{*filename}, char @code{*wcsstr}, int @code{nkeyrec}, double @code{*crpix}, gal_fits_list_key_t @code{*keylist}, int @code{freekeys})
 Write the @code{input} dataset into @file{filename} using the @code{wcsstr} while correcting the @code{CRPIX} values.
+For the importance of why it is better to add your keywords in this function (before writing the data) or after it, see the description of @code{gal_fits_img_write_to_ptr}.
 
-This function is mainly useful when you want to make FITS files in parallel (from one main WCS structure, with just differing CRPIX).
+This function is mainly useful when you want to make FITS files in parallel (from one main WCS structure, with just a differing CRPIX), for more on the arguments, see the description of @code{gal_fits_img_write}.
 This can happen in the following cases for example:
 
 @itemize
@@ -39659,11 +39681,14 @@ Note that this is a low-level function, so the output data linked list is the in
 It is recommended to use @code{gal_table_read} for generic reading of tables, see @ref{Table input output}.
 @end deftypefun
 
-@deftypefun void gal_fits_tab_write (gal_data_t @code{*cols}, gal_list_str_t @code{*comments}, int @code{tableformat}, char @code{*filename}, char @code{*extname})
+@deftypefun void gal_fits_tab_write (gal_data_t @code{*cols}, gal_list_str_t @code{*comments}, int @code{tableformat}, char @code{*filename}, char @code{*extname}, gal_fits_list_key_t @code{*keywords}, int @code{freekeys})
 Write the list of datasets in @code{cols} (see @ref{List of gal_data_t}) as separate columns in a FITS table in @code{filename}.
 If @code{filename} already exists then this function will write the table as a new extension called @code{extname}, after all existing ones.
 The format of the table (ASCII or binary) may be specified with the @code{tableformat} (see @ref{Table input output}).
 If @code{comments!=NULL}, each node of the list of strings will be written as a @code{COMMENT} keywords in the output FITS file (see @ref{List of strings}.
+
+In case your table needs metadata keywords, you can use the @code{listkeys} and @code{freekeys}.
+For more on these, see the description of @code{gal_fits_key_write_in_ptr}.
 
 This is a low-level function for tables.
 It is recommended to use @code{gal_table_write} for generic writing of tables in a variety of formats, see @ref{Table input output}.
@@ -39786,7 +39811,7 @@ We often need to read a text file several times: once to count how many columns 
 So it easier to keep it all in allocated memory and pass it on from the start for each round.
 @end deftypefun
 
-@deftypefun void gal_txt_write (gal_data_t @code{*cols}, struct gal_fits_list_key_t @code{**keylist}, gal_list_str_t @code{*comment}, char @code{*filename}, uint8_t @code{colinfoinstdout}, int @code{tab0_img1})
+@deftypefun void gal_txt_write (gal_data_t @code{*cols}, struct gal_fits_list_key_t @code{**keylist}, gal_list_str_t @code{*comment}, char @code{*filename}, uint8_t @code{colinfoinstdout}, int @code{tab0_img1}, int @code{freekeys})
 Write @code{cols} in a plain text file @code{filename} (table when @code{tab0_img1==0} and image when @code{tab0_img1==1}).
 @code{cols} may have one or two dimensions which determines the output:
 
@@ -40297,11 +40322,12 @@ Each FITS keyword is 80 characters wide (according to the FITS standard), and th
 The output of this function can later be written into an opened FITS file using @code{gal_fits_key_write_wcsstr} (see @ref{FITS header keywords}).
 @end deftypefun
 
-@deftypefun void gal_wcs_write (struct wcsprm @code{*wcs}, char @code{*filename}, char @code{*extname}, gal_fits_list_key_t @code{*headers}, char @code{*program_string})
+@deftypefun void gal_wcs_write (struct wcsprm @code{*wcs}, char @code{*filename}, char @code{*extname}, gal_fits_list_key_t @code{*keylist}, int @code{freekeys})
 Write the given WCS structure into the second extension of an empty FITS header.
 The first/primary extension will be empty like the default format of all Gnuastro outputs.
 When @code{extname!=NULL} it will be used as the FITS extension name.
-Any set of extra headers can also be written through the @code{headers} list and if @code{program_string!=NULL} it will be used in a commented keyword title just above the written version information.
+Any set of extra headers can also be written through the @code{keylist} list.
+If @code{freekeys!=0} then the list of keywords will be freed after they are written.
 @end deftypefun
 
 @deftypefun void gal_wcs_write_in_fitsptr (fitsfile @code{*fptr}, struct wcsprm @code{*wcs})
@@ -41462,7 +41488,7 @@ In other words, only permute along dimension 0.
 The @code{permutation} array should therefore only have @code{input->dsize[0]} elements.
 @end deftypefun
 
-@deftypefun void gal_tile_full_values_write (gal_data_t @code{*tilevalues}, struct gal_tile_two_layer_params @code{*tl}, int @code{withblank}, char @code{*filename}, gal_fits_list_key_t @code{*keys}, char @code{*program_string})
+@deftypefun void gal_tile_full_values_write (gal_data_t @code{*tilevalues}, struct gal_tile_two_layer_params @code{*tl}, int @code{withblank}, char @code{*filename}, gal_fits_list_key_t @code{*keys}, int @code{freekeys})
 Write one value for each tile into a file.
 It is important to note that the values in @code{tilevalues} must be ordered in the same manner as the tiles, so @code{tilevalues->array[i]} is the value that should be given to @code{tl->tiles[i]}.
 The @code{tl->permutation} array must have been initialized before calling this function with @code{gal_tile_full_permutation}.
@@ -41959,7 +41985,7 @@ main (void)
   gal_fits_key_list_add_end(&keylist, GAL_TYPE_SIZE_T, keyname, 0,
                             &root, 0, comment, 0, unit, 0);
   gal_table_write(kdtree, &keylist, NULL, GAL_TABLE_FORMAT_BFITS,
-                  kdtreefile, "kdtree", 0);
+                  kdtreefile, "kdtree", 0, 1);
 
   /* Clean up and return. */
   gal_list_data_free(input);
@@ -44747,7 +44773,7 @@ main(void)
   c1->name = "COUNTER";
   c2->name = "VALUE";
   gal_table_write(c1, NULL, NULL, GAL_TABLE_FORMAT_BFITS, outname,
-                  "MY-COLUMNS", 0);
+                  "MY-COLUMNS", 0, 0);
 
   /* The names were not allocated, so to avoid cleaning-up problems,
    * we will set them to NULL. */

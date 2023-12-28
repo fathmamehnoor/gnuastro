@@ -556,7 +556,7 @@ clumps_write_sn_table(struct segmentparams *p, gal_data_t *insn,
 
   /* write the table. */
   gal_table_write(cols, NULL, comments, p->cp.tableformat, filename,
-                  "SKY_CLUMP_SN", 0);
+                  "SKY_CLUMP_SN", 0, 0);
 
   /* Clean up (if necessary). */
   if(sn!=insn) gal_data_free(sn);
@@ -651,17 +651,17 @@ clumps_true_find_sn_thresh(struct segmentparams *p)
             case 1: p->clabel->name = "SKY_CLUMPS_ALL";    break;
             case 2: p->clabel->name = "SKY_CLUMPS_FOR_SN"; break;
             default:
-              error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s so "
-                    "we can address the issue. The value %d is not valid for "
-                    "clprm.step", __func__, PACKAGE_BUGREPORT, clprm.step);
+              error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s "
+                    "so we can address the issue. The value %d is not "
+                    "valid for clprm.step", __func__, PACKAGE_BUGREPORT,
+                    clprm.step);
             }
 
           /* Write the demonstration array into the check image. The
              default values are hard to view, so we'll make a copy of the
              demo, set all Sky regions to blank and all clump macro values
              to zero. */
-          gal_fits_img_write(p->clabel, p->segmentationname, NULL,
-                             PROGRAM_NAME);
+          gal_fits_img_write(p->clabel, p->segmentationname, NULL, 0);
 
           /* Increment the step counter. */
           ++clprm.step;

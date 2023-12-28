@@ -541,7 +541,6 @@ onecrop_make_array(struct onecropparams *crp, long *fpixel_i,
     for(i=0;i<ndim;++i)
       naxes[i] = crp->lpixel[i]-crp->fpixel[i]+1;
 
-
   /* Create the FITS file with a blank first extension, then close it, so
      with the next 'fits_open_file', we build the image in the second
      extension. But only if the user didn't want the append the crop to an
@@ -555,8 +554,9 @@ onecrop_make_array(struct onecropparams *crp, long *fpixel_i,
       if(p->primaryimghdu==0)
         {
           fits_create_img(ofp, SHORT_IMG, 0, naxes, &status);
-          fits_close_file(ofp, &status);
+          gal_fits_key_write(p->cp.ckeys, outname, "0", "NONE", 0, 0);
         }
+      fits_close_file(ofp, &status);
     }
 
 
@@ -750,8 +750,8 @@ onecrop(struct onecropparams *crp)
             gal_fits_io_error(status, NULL);
 
 
-          /* Write the selected region of this image as a string to include as
-             a FITS keyword. Then we want to delete the last coma ','.*/
+          /* Write the selected region of this image as a string to include
+             as a FITS keyword. Then we want to delete the last coma ','.*/
           j=0;
           for(i=0;i<ndim;++i)
             j += sprintf(&region[j], "%ld:%ld,", fpixel_i[i], lpixel_i[i]);
@@ -765,9 +765,9 @@ onecrop(struct onecropparams *crp)
                                       p->cp.quiet);
           sprintf(regionkey, "%sPIX", basekeyname);
           gal_fits_key_list_add_end(&headers, GAL_TYPE_STRING, regionkey,
-                                    0, region, 0, "Range of pixels used for "
-                                    "this output.", 0, NULL, 0);
-          gal_fits_key_write_in_ptr(&headers, ofp);
+                                    0, region, 0, "Range of pixels used "
+                                    "for this output.", 0, NULL, 0);
+          gal_fits_key_write_in_ptr(headers, ofp, 1);
         }
 
 

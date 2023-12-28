@@ -1199,14 +1199,13 @@ ui_preparations(struct statisticsparams *p)
                                                           "_tiled.fits");
           check=gal_tile_block_check_tiles(tl->tiles);
           if(p->inputformat==INPUT_FORMAT_IMAGE)
-            gal_fits_img_write(check, tl->tilecheckname, NULL,
-                               PROGRAM_NAME);
+            gal_fits_img_write(check, tl->tilecheckname, NULL, 0);
           else
             {
               gal_checkset_writable_remove(tl->tilecheckname, p->inputname,
                                            0, cp->dontdelete);
               gal_table_write(check, NULL, NULL, cp->tableformat,
-                              tl->tilecheckname, "TABLE", 0);
+                              tl->tilecheckname, "TABLE", 0, 0);
             }
           gal_data_free(check);
         }

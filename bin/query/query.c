@@ -282,7 +282,7 @@ query_output_data(struct queryparams *p)
                        "NONE");
   gal_table_write(table, NULL, NULL, p->cp.tableformat,
                   p->cp.output ? p->cp.output : p->cp.output,
-                  "QUERY", 0);
+                  "QUERY", 0, 0);
 
   /* Get basic information about the table and free it. */
   p->outtableinfo[0]=table->size;
@@ -354,13 +354,11 @@ query_output_finalize(struct queryparams *p)
      output was a FITS file). */
   if( p->information==0 && gal_fits_name_is_fits(p->cp.output) )
     {
-      gal_fits_key_list_title_add_end(&p->cp.okeys,
+      gal_fits_key_list_title_add_end(&p->cp.ckeys,
                                       "Constructed query command", 0);
-      gal_fits_key_list_fullcomment_add_end(&p->cp.okeys,
+      gal_fits_key_list_fullcomment_add_end(&p->cp.ckeys,
                                             p->finalcommand, 1);
-      gal_fits_key_write_config(&p->cp.okeys, "Query settings",
-                                "QUERY-CONFIG", p->cp.output, "0",
-                                "NONE");
+      gal_fits_key_write(p->cp.ckeys, p->cp.output, "0", "NONE", 1, 0);
     }
 }
 

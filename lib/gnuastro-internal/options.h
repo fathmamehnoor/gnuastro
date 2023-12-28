@@ -109,25 +109,29 @@ enum options_common_keys
   GAL_OPTIONS_KEY_REMAINDERFRAC = 'F',
 
   /* Only long option (integers for keywords). */
-  GAL_OPTIONS_KEY_STDINTIMEOUT = 500,
-  GAL_OPTIONS_KEY_MINMAPSIZE,
-  GAL_OPTIONS_KEY_QUIETMMAP,
-  GAL_OPTIONS_KEY_LOG,
+  GAL_OPTIONS_KEY_LOG           = 500,
   GAL_OPTIONS_KEY_CITE,
   GAL_OPTIONS_KEY_CONFIG,
   GAL_OPTIONS_KEY_SEARCHIN,
-  GAL_OPTIONS_KEY_LASTCONFIG,
-  GAL_OPTIONS_KEY_CHECKCONFIG,
-  GAL_OPTIONS_KEY_CONFIGPREFIX,
-  GAL_OPTIONS_KEY_TABLEFORMAT,
-  GAL_OPTIONS_KEY_ONLYVERSION,
+  GAL_OPTIONS_KEY_QUIETMMAP,
   GAL_OPTIONS_KEY_WORKOVERCH,
+  GAL_OPTIONS_KEY_MINMAPSIZE,
+  GAL_OPTIONS_KEY_LASTCONFIG,
   GAL_OPTIONS_KEY_CHECKTILES,
-  GAL_OPTIONS_KEY_ONEELEMPERTILE,
-  GAL_OPTIONS_KEY_INTERPONLYBLANK,
+  GAL_OPTIONS_KEY_TABLEFORMAT,
+  GAL_OPTIONS_KEY_CHECKCONFIG,
+  GAL_OPTIONS_KEY_ONLYVERSION,
+  GAL_OPTIONS_KEY_CONFIGPREFIX,
   GAL_OPTIONS_KEY_INTERPMETRIC,
+  GAL_OPTIONS_KEY_STDINTIMEOUT,
   GAL_OPTIONS_KEY_INTERPNUMNGB,
+  GAL_OPTIONS_KEY_OUTFITSNODATE,
+  GAL_OPTIONS_KEY_ONEELEMPERTILE,
+  GAL_OPTIONS_KEY_OUTFITSNOCONFIG,
+  GAL_OPTIONS_KEY_OUTFITSNOCOMMIT,
+  GAL_OPTIONS_KEY_INTERPONLYBLANK,
   GAL_OPTIONS_KEY_WCSLINEARMATRIX,
+  GAL_OPTIONS_KEY_OUTFITSNOVERSIONS,
 };
 
 
@@ -201,6 +205,11 @@ struct gal_options_common_params
   uint8_t      wcslinearmatrix; /* WCS matrix to use (PC or CD).          */
   uint8_t           dontdelete; /* ==1: Don't delete existing file.       */
   uint8_t         keepinputdir; /* Keep input directory for auto output.  */
+  uint8_t        outfitsnodate; /* No 'DATE' in 0th FITS HDU.             */
+  uint8_t      outfitsnocommit; /* No Git commit in 0th FITS HDU.         */
+  uint8_t    outfitsnoversions; /* No software versions in FITS.          */
+  uint8_t      outfitsnoconfig; /* No metadata in 0th FITS HDU.           */
+  gal_fits_list_key_t   *ckeys; /* Conf. as FITS keys in 0th output HDU.  */
 
   /* Operating modes. */
   uint8_t                quiet; /* Only print errors.                     */
@@ -218,9 +227,6 @@ struct gal_options_common_params
   uint8_t          checkconfig; /* Check config files and values.         */
   char           *configprefix; /* Custom prefix in --config files.       */
 
-  /* Output files. */
-  gal_fits_list_key_t  *okeys;  /* Configuration as FITS keys in output.  */
-
   /* For internal (to option processing) purposes. */
   uint8_t                 keep; /* Output file can exist.                 */
   void         *program_struct; /* Host program's main variable struct.   */
@@ -230,9 +236,9 @@ struct gal_options_common_params
   char        *program_authors; /* List of the program authors.           */
   struct argp_option *coptions; /* Common options to all programs.        */
   struct argp_option *poptions; /* Program specific options.              */
-  gal_list_i32_t  *mand_common; /* Common mandatory options.  */
-  gal_list_str_t  *novalue_doc; /* Mandatory opts, no value   */
-  gal_list_str_t *novalue_name; /* Mandatory opts, no value   */
+  gal_list_i32_t  *mand_common; /* Common mandatory options.              */
+  gal_list_str_t  *novalue_doc; /* Mandatory opts, no value               */
+  gal_list_str_t *novalue_name; /* Mandatory opts, no value               */
 };
 
 

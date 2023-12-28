@@ -207,7 +207,7 @@ sky_and_std(struct noisechiselparams *p, char *checkname)
   if(checkname && !tl->oneelempertile)
     {
       p->binary->name="DETECTED";
-      gal_fits_img_write(p->binary, checkname, NULL, PROGRAM_NAME);
+      gal_fits_img_write(p->binary, checkname, NULL, 0);
       p->binary->name=NULL;
     }
 
@@ -230,9 +230,9 @@ sky_and_std(struct noisechiselparams *p, char *checkname)
       p->sky->name="SKY";
       p->std->name="STD";
       gal_tile_full_values_write(p->sky, tl, !p->ignoreblankintiles,
-                                 checkname, NULL, PROGRAM_NAME);
+                                 checkname, NULL, 0);
       gal_tile_full_values_write(p->std, tl, !p->ignoreblankintiles,
-                                 checkname, NULL, PROGRAM_NAME);
+                                 checkname, NULL, 0);
       p->sky->name=p->std->name=NULL;
     }
 

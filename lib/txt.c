@@ -1918,13 +1918,14 @@ txt_write_metadata(FILE *fp, gal_data_t *datall, char **fmts,
 
 
 static void
-txt_write_keys(FILE *fp, struct gal_fits_list_key_t **keylist)
+txt_write_keys(FILE *fp, struct gal_fits_list_key_t *keylist,
+               int freekeys)
 {
   char *ending;
   char *valuestr;
   gal_fits_list_key_t *tmp, *ttmp;
 
-  tmp=*keylist;
+  tmp=keylist;
   while(tmp!=NULL)
     {
       /* If a title is requested, only put a title. */
@@ -1981,9 +1982,6 @@ txt_write_keys(FILE *fp, struct gal_fits_list_key_t **keylist)
       free(tmp);
       tmp=ttmp;
     }
-
-  /* Set it to NULL so it isn't mistakenly used later. */
-  *keylist=NULL;
 }
 
 
@@ -1991,9 +1989,9 @@ txt_write_keys(FILE *fp, struct gal_fits_list_key_t **keylist)
 
 
 void
-gal_txt_write(gal_data_t *input, struct gal_fits_list_key_t **keylist,
+gal_txt_write(gal_data_t *input, struct gal_fits_list_key_t *keylist,
               gal_list_str_t *comment, char *filename,
-              uint8_t colinfoinstdout, int tab0_img1)
+              uint8_t colinfoinstdout, int tab0_img1, int freekeys)
 {
   FILE *fp;
   char **fmts;
@@ -2070,7 +2068,7 @@ gal_txt_write(gal_data_t *input, struct gal_fits_list_key_t **keylist,
         fprintf(fp, "# %s\n", strt->v);
 
       /* Write the keywords. */
-      if(keylist) txt_write_keys(fp, keylist);
+      if(keylist) txt_write_keys(fp, keylist, freekeys);
     }
   else
     fp=stdout;

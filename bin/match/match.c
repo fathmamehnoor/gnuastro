@@ -409,7 +409,7 @@ match_catalog_read_write_all(struct matchparams *p, size_t *permutation,
     {
       /* Write the catalog to a file. */
       gal_table_write(cat, NULL, NULL, p->cp.tableformat, outname,
-                      extname, 0);
+                      extname, 0, 0);
 
       /* Clean up. */
       gal_list_data_free(cat);
@@ -485,7 +485,7 @@ match_catalog_write_one_row(struct matchparams *p, gal_data_t *a,
       /* Reverse the table and write it out. */
       gal_list_data_reverse(&cat);
       gal_table_write(cat, NULL, NULL, p->cp.tableformat,
-                      p->out1name, "MATCHED", 0);
+                      p->out1name, "MATCHED", 0, 0);
       gal_list_data_free(cat);
     }
 
@@ -493,7 +493,7 @@ match_catalog_write_one_row(struct matchparams *p, gal_data_t *a,
      it ('a' will be freed in the higher-level function). */
   else
     gal_table_write(a, NULL, NULL, p->cp.tableformat, p->out1name,
-                    "MATCHED", 0);
+                    "MATCHED", 0, 0);
 }
 
 
@@ -551,7 +551,7 @@ match_catalog_write_one_col(struct matchparams *p, gal_data_t *a,
   /* Reverse the table and write it out. */
   gal_list_data_reverse(&cat);
   gal_table_write(cat, NULL, NULL, p->cp.tableformat, p->out1name,
-                  "MATCHED", 0);
+                  "MATCHED", 0, 0);
   gal_list_data_free(cat);
 }
 
@@ -591,10 +591,10 @@ match_catalog_kdtree_build(struct matchparams *p)
   gal_fits_key_write_filename("KDTIN", p->input1name, &keylist, 0,
                               p->cp.quiet);
   gal_fits_key_list_add_end(&keylist, GAL_TYPE_SIZE_T,
-                            MATCH_KDTREE_ROOT_KEY, 0,
-                            &root, 0, comment, 0, unit, 0);
-  gal_table_write(kdtree, &keylist, NULL, GAL_TABLE_FORMAT_BFITS,
-                  p->out1name, "kdtree", 0);
+                            MATCH_KDTREE_ROOT_KEY, 0, &root, 0,
+                            comment, 0, unit, 0);
+  gal_table_write(kdtree, keylist, NULL, GAL_TABLE_FORMAT_BFITS,
+                  p->out1name, "kdtree", 0, 1);
 
   /* Let the user know that the k-d tree has been built. */
   if(!p->cp.quiet)
@@ -816,7 +816,7 @@ match_catalog(struct matchparams *p)
 
       /* Write them into the table. */
       gal_table_write(mcols, NULL, NULL, p->cp.tableformat, p->logname,
-                      "LOG_INFO", 0);
+                      "LOG_INFO", 0, 0);
 
       /* Set the comment pointer to NULL: they weren't allocated. */
       mcols->comment=NULL;
@@ -885,12 +885,10 @@ match(struct matchparams *p)
       gal_fits_key_write_filename("input1", ( p->input1name
                                               ? p->input1name
                                               : "Standard input" ),
-                                  &p->cp.okeys, 1, p->cp.quiet);
+                                  &p->cp.ckeys, 1, p->cp.quiet);
       gal_fits_key_write_filename("input2",
                                   p->input2name?p->input2name:"--coord",
-                                  &p->cp.okeys, 1, p->cp.quiet);
-      gal_fits_key_write_config(&p->cp.okeys, "Match configuration",
-                                "MATCH-CONFIG", p->out1name, "0",
-                                "NONE");
+                                  &p->cp.ckeys, 1, p->cp.quiet);
+      gal_fits_key_write(p->cp.ckeys, p->out1name, "0", "NONE", 1, 0);
     }
 }

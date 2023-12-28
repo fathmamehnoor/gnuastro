@@ -3450,10 +3450,46 @@ options_as_fits_keywords_write(gal_fits_list_key_t **keys,
 void
 gal_options_as_fits_keywords(struct gal_options_common_params *cp)
 {
+  char *pname_upper, *extname;
+
+  /* If the user doesn't want any configuration, return (so the pointer
+     remains NULL and nothing is written). */
+  if( cp->outfitsnoconfig ) return;
+
+  /* Add the extension name (to be all-caps). Note that 'toupper' will make
+     it upper-case inplace (which is not intended here). */
+  gal_checkset_allocate_copy(cp->program_name, &pname_upper);
+  gal_checkset_string_case_change(pname_upper, 1);
+  extname=gal_checkset_malloc_cat(pname_upper, "-CONFIG");
+  gal_fits_key_list_add(&cp->ckeys, GAL_TYPE_STRING, "EXTNAME", 0,
+                        extname, 1, "HDU name", 0, NULL, 0);
+  free(pname_upper);
+
+  /* Title for general configuration keywords. */
+  gal_fits_key_list_title_add(&cp->ckeys, "Option values", 0);
+
   /* Write all the command and program-specific options. */
-  options_as_fits_keywords_write(&cp->okeys, cp->coptions, cp);
-  options_as_fits_keywords_write(&cp->okeys, cp->poptions, cp);
+  options_as_fits_keywords_write(&cp->ckeys, cp->coptions, cp);
+  options_as_fits_keywords_write(&cp->ckeys, cp->poptions, cp);
+
+  /* Write the library version information into the configuration
+     keywords. */
+  if(    cp->outfitsnodate==0
+      || cp->outfitsnoversions==0
+      || cp->outfitsnocommit==0 )
+    {
+      if(cp->outfitsnodate==0)
+        gal_fits_key_list_title_add(&cp->ckeys, "Versions and date", 0);
+      else
+        gal_fits_key_list_title_add(&cp->ckeys, "Versions", 0);
+      if(cp->outfitsnodate==0)
+        gal_fits_key_list_add_date(&cp->ckeys, "Date processing started.");
+      if(cp->outfitsnoversions==0)
+        gal_fits_key_list_add_software_versions(&cp->ckeys);
+      if(cp->outfitsnocommit==0)
+        gal_fits_key_list_add_git_commit(&cp->ckeys);
+    }
 
   /* Reverse the list (its a first-in-first-out list). */
-  gal_fits_key_list_reverse(&cp->okeys);
+  gal_fits_key_list_reverse(&cp->ckeys);
 }

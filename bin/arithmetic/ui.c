@@ -484,6 +484,10 @@ ui_read_check_inputs_setup(int argc, char *argv[], struct arithmeticparams *p)
   gal_options_print_state(cp);
 
 
+  /* Prepare all the options as FITS keywords to write in output later. */
+  gal_options_as_fits_keywords(&p->cp);
+
+
   /* Sanity check only on options. */
   ui_check_only_options(p);
 

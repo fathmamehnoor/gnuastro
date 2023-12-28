@@ -106,9 +106,9 @@ gal_list_str_t *
 gal_txt_stdin_read(long timeout_microsec);
 
 void
-gal_txt_write(gal_data_t *input, struct gal_fits_list_key_t **keylist,
+gal_txt_write(gal_data_t *input, struct gal_fits_list_key_t *keylist,
               gal_list_str_t *comment, char *filename,
-              uint8_t colinfoinstdout, int tab0_img1);
+              uint8_t colinfoinstdout, int tab0_img1, int freekeys);
 
 
 

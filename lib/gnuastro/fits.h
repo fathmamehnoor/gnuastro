@@ -74,6 +74,8 @@ __BEGIN_C_DECLS  /* From C++ preparations */
 
 
 
+
+
 /* To create a linked list of headers. */
 typedef struct gal_fits_list_key_t
 {
@@ -95,7 +97,10 @@ typedef struct gal_fits_list_key_t
 
 
 
-/* table.h needs 'gal_fits_list_key_t'. */
+
+
+/* table.h needs 'gal_fits_list_key_t', so it should be included here, not
+   with the other headers above. */
 #include <gnuastro/table.h>
 
 
@@ -236,6 +241,16 @@ gal_fits_key_list_fullcomment_add_end(gal_fits_list_key_t **list,
                                       char *fullcomment, int fcfree);
 
 void
+gal_fits_key_list_add_date(gal_fits_list_key_t **keylist,
+                           char *comment);
+
+void
+gal_fits_key_list_add_software_versions(gal_fits_list_key_t **keylist);
+
+void
+gal_fits_key_list_add_git_commit(gal_fits_list_key_t **keylist);
+
+void
 gal_fits_key_list_reverse(gal_fits_list_key_t **list);
 
 void
@@ -251,25 +266,13 @@ gal_fits_key_write_wcsstr(fitsfile *fptr, struct wcsprm *wcs,
                           char *wcsstr, int nkeyrec);
 
 void
-gal_fits_key_write(gal_fits_list_key_t **keylist, char *title,
-                   char *filename, char *hdu, char *hdu_option_name);
+gal_fits_key_write(gal_fits_list_key_t *keylist, char *filename,
+                   char *hdu, char *hdu_option_name, int freekeys,
+                   int create_fits_not_exists);
 
 void
-gal_fits_key_write_in_ptr(gal_fits_list_key_t **keylist, fitsfile *fptr);
-
-void
-gal_fits_key_write_version(gal_fits_list_key_t **keylist, char *title,
-                           char *filename, char *hdu,
-                           char *hdu_option_name);
-
-void
-gal_fits_key_write_version_in_ptr(gal_fits_list_key_t **keylist, char *title,
-                                  fitsfile *fptr);
-
-void
-gal_fits_key_write_config(gal_fits_list_key_t **keylist, char *title,
-                          char *extname, char *filename, char *hdu,
-                          char *hdu_option_name);
+gal_fits_key_write_in_ptr(gal_fits_list_key_t *keylist,
+                          fitsfile *fptr, int freekeys);
 
 gal_list_str_t *
 gal_fits_with_keyvalue(gal_list_str_t *files, char *hdu, char *name,
@@ -308,22 +311,22 @@ gal_fits_img_read_kernel(char *filename, char *hdu, size_t minmapsize,
                          int quietmmap, char *hdu_option_name);
 
 fitsfile *
-gal_fits_img_write_to_ptr(gal_data_t *data, char *filename);
+gal_fits_img_write_to_ptr(gal_data_t *data, char *filename,
+                          gal_fits_list_key_t *keylist, int freekeys);
 
 void
 gal_fits_img_write(gal_data_t *data, char *filename,
-                   gal_fits_list_key_t *headers, char *program_string);
+                   gal_fits_list_key_t *keylist, int freekeys);
 
 void
 gal_fits_img_write_to_type(gal_data_t *data, char *filename,
-                           gal_fits_list_key_t *headers,
-                           char *program_string, int type);
+                           gal_fits_list_key_t *keylist, int type,
+                           int freekeys);
 
 void
 gal_fits_img_write_corr_wcs_str(gal_data_t *input, char *filename,
                                 char *wcsheader, int nkeyrec, double *crpix,
-                                gal_fits_list_key_t *headers,
-                                char *program_string);
+                                gal_fits_list_key_t *keylist, int freekeys);
 
 
 
@@ -352,7 +355,7 @@ gal_fits_tab_read(char *filename, char *hdu, size_t numrows,
 void
 gal_fits_tab_write(gal_data_t *cols, gal_list_str_t *comments,
                    int tableformat, char *filename, char *extname,
-                   struct gal_fits_list_key_t **keywords);
+                   struct gal_fits_list_key_t *keywords, int freekeys);
 
 
 

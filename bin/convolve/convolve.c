@@ -662,13 +662,13 @@ convolve_frequency(struct convolveparams *p)
       /* Save the padded input image. */
       complextoreal(p->pimg, p->ps0*p->ps1, COMPLEX_TO_REAL_REAL, &tmp);
       data->array=tmp; data->name="input padded";
-      gal_fits_img_write(data, p->freqstepsname, NULL, PROGRAM_NAME);
+      gal_fits_img_write(data, p->freqstepsname, NULL, 0);
       free(tmp); data->name=NULL;
 
       /* Save the padded kernel image. */
       complextoreal(p->pker, p->ps0*p->ps1, COMPLEX_TO_REAL_REAL, &tmp);
       data->array=tmp; data->name="kernel padded";
-      gal_fits_img_write(data, p->freqstepsname, NULL, PROGRAM_NAME);
+      gal_fits_img_write(data, p->freqstepsname, NULL, 0);
       free(tmp); data->name=NULL;
     }
 
@@ -686,12 +686,12 @@ convolve_frequency(struct convolveparams *p)
     {
       complextoreal(p->pimg, p->ps0*p->ps1, COMPLEX_TO_REAL_SPEC, &tmp);
       data->array=tmp; data->name="input transformed";
-      gal_fits_img_write(data, p->freqstepsname, NULL, PROGRAM_NAME);
+      gal_fits_img_write(data, p->freqstepsname, NULL, 0);
       free(tmp); data->name=NULL;
 
       complextoreal(p->pker, p->ps0*p->ps1, COMPLEX_TO_REAL_SPEC, &tmp);
       data->array=tmp; data->name="kernel transformed";
-      gal_fits_img_write(data, p->freqstepsname, NULL, PROGRAM_NAME);
+      gal_fits_img_write(data, p->freqstepsname, NULL, 0);
       free(tmp); data->name=NULL;
     }
 
@@ -713,7 +713,7 @@ convolve_frequency(struct convolveparams *p)
     {
       complextoreal(p->pimg, p->ps0*p->ps1, COMPLEX_TO_REAL_SPEC, &tmp);
       data->array=tmp; data->name=p->makekernel ? "Divided" : "Multiplied";
-      gal_fits_img_write(data, p->freqstepsname, NULL, PROGRAM_NAME);
+      gal_fits_img_write(data, p->freqstepsname, NULL, 0);
       free(tmp); data->name=NULL;
     }
 
@@ -729,7 +729,7 @@ convolve_frequency(struct convolveparams *p)
   if(p->checkfreqsteps)
     {
       data->array=p->rpad; data->name="padded output";
-      gal_fits_img_write(data, p->freqstepsname, NULL, PROGRAM_NAME);
+      gal_fits_img_write(data, p->freqstepsname, NULL, 0);
       data->name=NULL; data->array=NULL;
     }
 
@@ -789,7 +789,7 @@ convolve(struct convolveparams *p)
       if(multidim && cp->tl.tilecheckname)
         {
           check=gal_tile_block_check_tiles(cp->tl.tiles);
-          gal_fits_img_write(check, cp->tl.tilecheckname, NULL, PROGRAM_NAME);
+          gal_fits_img_write(check, cp->tl.tilecheckname, NULL, 0);
           gal_data_free(check);
         }
 
@@ -797,7 +797,8 @@ convolve(struct convolveparams *p)
          want to do spatial domain convolution with this Convolve program
          is edge correction. So by default we assume it and will only
          ignore it if the user asks.*/
-      out=gal_convolve_spatial(multidim ? cp->tl.tiles : p->input, p->kernel,
+      out=gal_convolve_spatial(multidim ? cp->tl.tiles : p->input,
+                               p->kernel,
                                cp->numthreads,
                                multidim ? !p->noedgecorrection : 1,
                                multidim ? cp->tl.workoverch : 1,
@@ -812,24 +813,21 @@ convolve(struct convolveparams *p)
   else
     convolve_frequency(p);
 
-  /* Save the output (which is in p->input) array. */
-  if(p->input->ndim==1)
-    gal_table_write(p->input, NULL, NULL, p->cp.tableformat, p->cp.output,
-                    "CONVOLVED", 0);
-  else
-    gal_fits_img_write_to_type(p->input, cp->output, NULL, PROGRAM_NAME,
-                               cp->type);
-
   /* Write Convolve's parameters as keywords into the first extension of
      the output. */
   if( gal_fits_name_is_fits(p->cp.output) )
     {
-      gal_fits_key_write_filename("input", p->filename, &cp->okeys, 1,
+      gal_fits_key_write_filename("input", p->filename, &cp->ckeys, 1,
                                   cp->quiet);
-      gal_fits_key_write_config(&cp->okeys, "Convolve configuration",
-                                "CONVOLVE-CONFIG", cp->output, "0",
-                                "NONE");
+      gal_fits_key_write(cp->ckeys, cp->output, "0", "NONE", 1, 1);
     }
+
+  /* Save the output (which is in p->input) array. */
+  if(p->input->ndim==1)
+    gal_table_write(p->input, NULL, NULL, p->cp.tableformat, p->cp.output,
+                    "CONVOLVED", 0, 0);
+  else
+    gal_fits_img_write_to_type(p->input, cp->output, NULL, cp->type, 0);
 
   /* Inform the user that the job is done. */
   if(!p->cp.quiet)

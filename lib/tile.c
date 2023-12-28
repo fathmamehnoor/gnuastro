@@ -1110,7 +1110,7 @@ void
 gal_tile_full_values_write(gal_data_t *tilevalues,
                            struct gal_tile_two_layer_params *tl,
                            int withblank, char *filename,
-                           gal_fits_list_key_t *keys, char *program_string)
+                           gal_fits_list_key_t *keys, int freekeys)
 {
   gal_data_t *disp;
 
@@ -1121,8 +1121,8 @@ gal_tile_full_values_write(gal_data_t *tilevalues,
         {
           /* A small sanity check. */
           if(tl->permutation==NULL)
-            error(EXIT_FAILURE, 0, "%s: no permutation defined for the input "
-                  "tessellation", __func__);
+            error(EXIT_FAILURE, 0, "%s: no permutation defined for the "
+                  "input tessellation", __func__);
 
           /* Writing tile values to disk is not done for checking, not for
              efficiency. So to be safe (allow the caller to work on
@@ -1138,7 +1138,7 @@ gal_tile_full_values_write(gal_data_t *tilevalues,
                                           withblank, 0);
 
   /* Write the array as a file and then clean up (if necessary). */
-  gal_fits_img_write(disp, filename, keys, program_string);
+  gal_fits_img_write(disp, filename, keys, freekeys);
   if(disp!=tilevalues) gal_data_free(disp);
 }
 

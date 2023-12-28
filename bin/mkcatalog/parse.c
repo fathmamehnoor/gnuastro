@@ -1127,7 +1127,7 @@ parse_clumps(struct mkcatalog_passparams *pp)
 
           /* For a check on the projected 2D areas. */
           if(xybin && pp->object==2)
-            gal_fits_img_write(&xybin[i], "xybin.fits", NULL, NULL);
+            gal_fits_img_write(&xybin[i], "xybin.fits", NULL, 0);
 
         }
     }

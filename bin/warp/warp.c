@@ -416,7 +416,8 @@ warp_write_to_file(struct warpparams *p, int hasmatrix)
         sprintf(&keyword[i*FLEN_KEYWORD], "WMTX%zu_%zu", i/3+1, i%3+1);
         gal_fits_key_list_add_end(&headers, GAL_TYPE_FLOAT64,
                                   &keyword[i*FLEN_KEYWORD], 0, &m[i], 0,
-                                  "Warp matrix element value", 0, NULL, 0);
+                                  "Warp matrix element value",
+                                  0, NULL, 0);
       }
 
   /* Convert the output image if needed. */
@@ -425,16 +426,15 @@ warp_write_to_file(struct warpparams *p, int hasmatrix)
 
   /* Save the output and 'MAX-FRAC' if available. */
   for(tmp=p->output;tmp!=NULL;tmp=tmp->next)
-    gal_fits_img_write(tmp, p->cp.output, NULL, PROGRAM_NAME);
+    gal_fits_img_write(tmp, p->cp.output, NULL, 0);
 
   /* Write the configuration keywords on HDU/extension '0'. */
-  gal_fits_key_write_filename("input", p->inputname, &p->cp.okeys,
+  gal_fits_key_write_filename("input", p->inputname, &p->cp.ckeys,
                               1, p->cp.quiet);
-  gal_fits_key_write_config(&p->cp.okeys, "Warp configuration",
-                            "WARP-CONFIG", p->cp.output, "0", "NONE");
+  gal_fits_key_write(p->cp.ckeys, p->cp.output, "0", "NONE", 1, 0);
 
   /* Write headers on HDU/extension '1'. */
-  gal_fits_key_write(&headers, NULL, p->cp.output, "1", "NONE");
+  gal_fits_key_write(headers, p->cp.output, "1", "NONE", 1, 0);
 }
 
 

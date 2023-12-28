@@ -184,7 +184,7 @@ gal_wcs_dimension_name(struct wcsprm *wcs, size_t dimension);
 void
 gal_wcs_write(struct wcsprm *wcs, char *filename,
               char *extname, gal_fits_list_key_t *headers,
-              char *program_string);
+              char *program_string, int freekeys);
 
 char *
 gal_wcs_write_wcsstr(struct wcsprm *wcs, int *nkeyrec);

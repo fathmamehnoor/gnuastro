@@ -151,7 +151,7 @@ saveindividual(struct mkonthread *mkp)
   /* Write the array to the file (a separately built PSF doesn't need WCS
      coordinates). */
   if(ibq->ispsf && p->psfinimg==0)
-    gal_fits_img_write(ibq->image, filename, NULL, PROGRAM_NAME);
+    gal_fits_img_write(ibq->image, filename, NULL, 0);
   else
     {
       /* Allocate space for the corrected crpix and fill it in. Both
@@ -159,17 +159,20 @@ saveindividual(struct mkonthread *mkp)
       crpix=gal_pointer_allocate(GAL_TYPE_FLOAT64, ndim, 0, __func__,
                                  "crpix");
       for(i=0;i<ndim;++i)
-        crpix[i] = ((double *)(p->crpix->array))[i] - os*(mkp->fpixel_i[i]-1);
+        crpix[i] = ( ((double *)(p->crpix->array))[i]
+                     - os*(mkp->fpixel_i[i]-1) );
 
       /* Write the image. */
       gal_fits_img_write_corr_wcs_str(ibq->image, filename, p->wcsstr,
-                                      p->wcsnkeyrec, crpix, NULL,
-                                      PROGRAM_NAME);
+                                      p->wcsnkeyrec, crpix, NULL, 0);
     }
   ibq->indivcreated=1;
 
 
-  /* Write profile settings into the FITS file. */
+  /* Write profile settings into a keyword list. */
+  gal_fits_key_list_title_add(&keys, "Profile configuration", 0);
+  gal_fits_key_list_add(&keys, GAL_TYPE_STRING, "EXTNAME", 0,
+                        "PROFILE-CONFIG", 0, "HDU name", 0, NULL, 0);
   gal_fits_key_list_add(&keys, GAL_TYPE_STRING, "PROFILE", 0,
                         ui_profile_name_write(mkp->func), 0,
                         "Radial function", 0, NULL, 0);
@@ -265,9 +268,10 @@ saveindividual(struct mkonthread *mkp)
                         &p->magatpeak, 0, "Magnitude is for peak pixel, "
                         "not full profile", 0, NULL, 0);
 
+
+  /* Write the keyword list into the output file. */
   gal_fits_key_list_reverse(&keys);
-  gal_fits_key_write_config(&keys, "Profile configuration",
-                            "PROFILE-CONFIG", filename, "0", "NONE");
+  gal_fits_key_write(keys, filename, "0", "NONE", 1, 0);
 
 
   /* Report if in verbose mode. */
@@ -708,23 +712,21 @@ mkprof_write(struct mkprofparams *p)
       /* Get the current time for verbose output. */
       if(!p->cp.quiet) gettimeofday(&t1, NULL);
 
+      /* Write the configuration keywords. */
+      gal_fits_key_write_filename("input", p->catname, &p->cp.ckeys, 1,
+                                  p->cp.quiet);
+      gal_fits_key_write(p->cp.ckeys, p->mergedimgname, "0", "NONE", 1, 1);
+
       /* Write the final image into a FITS file with the requested
          type. Until now, we were using 'p->wcs' for the WCS, but from now
          on, will put it in 'out' to also free it while freeing 'out'. */
       out->wcs=p->wcs;
       gal_fits_img_write_to_type(out, p->mergedimgname, NULL,
-                                 PROGRAM_NAME, p->cp.type);
+                                 p->cp.type, 0);
       p->wcs=NULL;
 
       /* Clean up */
       gal_data_free(out);
-
-      /* Write the configuration keywords. */
-      gal_fits_key_write_filename("input", p->catname, &p->cp.okeys, 1,
-                                  p->cp.quiet);
-      gal_fits_key_write_config(&p->cp.okeys, "MakeProfiles configuration",
-                                "MKPROF-CONFIG", p->mergedimgname, "0",
-                                "NONE");
 
       /* In verbose mode, print the information. */
       if(!p->cp.quiet)

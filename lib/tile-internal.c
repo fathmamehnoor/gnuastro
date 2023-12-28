@@ -252,9 +252,9 @@ gal_tileinternal_no_outlier(gal_data_t *first, gal_data_t *second,
 
   /* A small sanity check. */
   if(first->size!=tl->tottiles)
-    error(EXIT_FAILURE, 0, "%s: 'first->size' and 'tl->tottiles' must have "
-          "the same value, but they don't: %zu, %zu", __func__, first->size,
-          tl->tottiles);
+    error(EXIT_FAILURE, 0, "%s: 'first->size' and 'tl->tottiles' must "
+          "have the same value, but they don't: %zu, %zu", __func__,
+          first->size, tl->tottiles);
 
   /* Do the work. */
   for(i=0;i<tl->totchannels;++i)
@@ -266,13 +266,14 @@ gal_tileinternal_no_outlier(gal_data_t *first, gal_data_t *second,
     {
       first->name="VALUE1_NO_OUTLIER";
       second->name="VALUE2_NO_OUTLIER";
-      gal_tile_full_values_write(first, tl, 1, filename, NULL, NULL);
-      gal_tile_full_values_write(second, tl, 1, filename, NULL, NULL);
+      gal_tile_full_values_write(first, tl, 1, filename, NULL, 0);
+      gal_tile_full_values_write(second, tl, 1, filename, NULL, 0);
       first->name=second->name=NULL;
       if(third)
         {
           third->name="VALUE3_NO_OUTLIER";
-          gal_tile_full_values_write(third, tl, 1, filename, NULL, NULL);
+          gal_tile_full_values_write(third, tl, 1, filename,
+                                     NULL, 0);
           third->name=NULL;
         }
     }
@@ -706,18 +707,20 @@ gal_tileinternal_no_outlier_local(gal_data_t *input, gal_data_t *second,
   if(filename)
     {
       input->name="VALUE1_NO_OUTLIER";
-      gal_tile_full_values_write(input, tl, 1, filename, NULL, NULL);
+      gal_tile_full_values_write(input, tl, 1, filename, NULL, 0);
       input->name=NULL;
       if(second)
         {
           second->name="VALUE2_NO_OUTLIER";
-          gal_tile_full_values_write(second, tl, 1, filename, NULL, NULL);
+          gal_tile_full_values_write(second, tl, 1, filename,
+                                     NULL, 0);
           second->name=NULL;
         }
       if(third)
         {
           third->name="VALUE3_NO_OUTLIER";
-          gal_tile_full_values_write(third, tl, 1, filename, NULL, NULL);
+          gal_tile_full_values_write(third, tl, 1, filename,
+                                     NULL, 0);
           third->name=NULL;
         }
     }

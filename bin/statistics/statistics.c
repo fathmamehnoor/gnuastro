@@ -378,22 +378,21 @@ statistics_interpolate_and_write(struct statisticsparams *p,
       && !(p->cp.interponlyblank && gal_blank_present(values, 1)==0) )
     {
       interpd=gal_interpolate_neighbors(values, &cp->tl,
-                                        cp->interpmetric,
-                                        cp->interpnumngb,
-                                        cp->numthreads,
-                                        cp->interponlyblank, 0,
-                                        GAL_INTERPOLATE_NEIGHBORS_FUNC_MEDIAN);
+                              cp->interpmetric,
+                              cp->interpnumngb,
+                              cp->numthreads,
+                              cp->interponlyblank, 0,
+                              GAL_INTERPOLATE_NEIGHBORS_FUNC_MEDIAN);
       gal_data_free(values);
       values=interpd;
     }
 
   /* Write the values. */
   gal_tile_full_values_write(values, &cp->tl, !p->ignoreblankintiles,
-                             output, NULL, PROGRAM_NAME);
-  gal_fits_key_write_filename("input", p->inputname, &p->cp.okeys, 1,
+                             output, NULL, 0);
+  gal_fits_key_write_filename("input", p->inputname, &p->cp.ckeys, 1,
                               p->cp.quiet);
-  gal_fits_key_write_config(&p->cp.okeys, "Statistics configuration",
-                            "STATISTICS-CONFIG", output, "0", "NONE");
+  gal_fits_key_write(p->cp.ckeys, output, "0", "NONE", 1, 0);
 }
 
 
@@ -764,16 +763,15 @@ write_output_table(struct statisticsparams *p, gal_data_t *table,
   /* Write the table. */
   gal_checkset_writable_remove(output, p->inputname, 0, p->cp.dontdelete);
   gal_table_write(table, NULL, comments, p->cp.tableformat, output,
-                  "TABLE", 0);
+                  "TABLE", 0, 0);
 
 
   /* Write the configuration information if we have a FITS output. */
   if(isfits)
     {
-      gal_fits_key_write_filename("input", p->inputname, &p->cp.okeys, 1,
+      gal_fits_key_write_filename("input", p->inputname, &p->cp.ckeys, 1,
                                   p->cp.quiet);
-      gal_fits_key_write_config(&p->cp.okeys, "Statistics configuration",
-                                "STATISTICS-CONFIG", output, "0", "NONE");
+      gal_fits_key_write(p->cp.ckeys, output, "0", "NONE", 1, 0);
     }
 
 
@@ -944,11 +942,10 @@ histogram_2d(struct statisticsparams *p)
 
       /* Write the output. */
       output=statistics_output_name(p, suf, &isfits);
-      gal_fits_img_write(img, output, NULL, PROGRAM_STRING);
-      gal_fits_key_write_filename("input", p->inputname, &p->cp.okeys, 1,
+      gal_fits_img_write(img, output, NULL, 0);
+      gal_fits_key_write_filename("input", p->inputname, &p->cp.ckeys, 1,
                                   p->cp.quiet);
-      gal_fits_key_write_config(&p->cp.okeys, "Statistics configuration",
-                                "STATISTICS-CONFIG", output, "0", "NONE");
+      gal_fits_key_write(p->cp.ckeys, output, "0", "NONE", 1, 0);
 
       /* Clean up and let the user know that the histogram is built. */
       free(ctype[0]);
@@ -1303,17 +1300,20 @@ statistics_fit_params_to_keys(struct statisticsparams *p, gal_data_t *fit,
   gal_fits_key_list_title_add(&out, "Fit results", 0);
   gal_fits_key_list_add(&out, GAL_TYPE_STRING, "FITTYPE", 0,
                         gal_fit_name_from_id(p->fitid), 0,
-                        "Functional form of the fitting.", 0, NULL, 0);
+                        "Functional form of the fitting.",
+                        0, NULL, 0);
   if( p->fitid==GAL_FIT_POLYNOMIAL
       || p->fitid==GAL_FIT_POLYNOMIAL_ROBUST
       || p->fitid==GAL_FIT_POLYNOMIAL_WEIGHTED )
     gal_fits_key_list_add(&out, GAL_TYPE_SIZE_T, "FITMAXP", 0,
                           &p->fitmaxpower, 0,
-                          "Maximum power of polynomial.", 0, NULL, 0);
+                          "Maximum power of polynomial.",
+                          0, NULL, 0);
   if( p->fitid==GAL_FIT_POLYNOMIAL_ROBUST )
     gal_fits_key_list_add(&out, GAL_TYPE_STRING, "FITRTYP", 0,
                           p->fitrobustname, 0,
-                          "Function for removing outliers", 0, NULL, 0);
+                          "Function for removing outliers",
+                          0, NULL, 0);
   gal_fits_key_list_add(&out, GAL_TYPE_STRING, "FITIN", 0,
                         p->inputname, 0,"Name of file with input columns.",
                         0, NULL, 0);
@@ -1331,7 +1331,8 @@ statistics_fit_params_to_keys(struct statisticsparams *p, gal_data_t *fit,
     {
       gal_fits_key_list_add(&out, GAL_TYPE_STRING, "FITWCOL", 0,
                             p->columns->next->next->v, 0,
-                            "Name or Number of weight column.", 0, NULL, 0);
+                            "Name or Number of weight column.",
+                            0, NULL, 0);
       gal_fits_key_list_add(&out, GAL_TYPE_STRING, "FITWNAT", 0,
                             whtnat, 0, "Nature of weight column.",
                             0, NULL, 0);
@@ -1342,7 +1343,8 @@ statistics_fit_params_to_keys(struct statisticsparams *p, gal_data_t *fit,
                           "Robust fitting (rejecting outliers) function.",
                           0, NULL, 0);
   gal_fits_key_list_add(&out, GAL_TYPE_FLOAT64, "FRDCHISQ", 0,
-                        redchisq, 0, "Reduced chi^2 of fit.", 0, NULL, 0);
+                        redchisq, 0, "Reduced chi^2 of fit.",
+                        0, NULL, 0);
 
   /* Add the Fitting results. */
   switch(p->fitid)
@@ -1483,8 +1485,8 @@ statistics_fit_estimate(struct statisticsparams *p, gal_data_t *fit,
             printf("  Written to: %s\n", p->cp.output);
         }
       keys=statistics_fit_params_to_keys(p, fit, whtnat, redchisq);
-      gal_table_write(p->fitestval, &keys, NULL, p->cp.tableformat,
-                      p->cp.output, "FIT_ESTIMATE", 0);
+      gal_table_write(p->fitestval, keys, NULL, p->cp.tableformat,
+                      p->cp.output, "FIT_ESTIMATE", 0, 1);
     }
 
   /* Print estimated value on the commandline. */

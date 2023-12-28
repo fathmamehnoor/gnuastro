@@ -643,12 +643,12 @@ ui_prepare_tiles(struct segmentparams *p)
     {
       /* Large tiles. */
       check=gal_tile_block_check_tiles(ltl->tiles);
-      gal_fits_img_write(check, tl->tilecheckname, NULL, PROGRAM_NAME);
+      gal_fits_img_write(check, tl->tilecheckname, NULL, 0);
       gal_data_free(check);
 
       /* Small tiles. */
       check=gal_tile_block_check_tiles(tl->tiles);
-      gal_fits_img_write(check, tl->tilecheckname, NULL, PROGRAM_NAME);
+      gal_fits_img_write(check, tl->tilecheckname, NULL, 0);
       gal_data_free(check);
 
       /* If 'continueaftercheck' hasn't been called, abort NoiseChisel. */

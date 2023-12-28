@@ -97,9 +97,9 @@ noisechisel_convolve(struct noisechiselparams *p)
   /* Save the convolution step if necessary. */
   if(p->detectionname)
     {
-      gal_fits_img_write(p->input, p->detectionname, NULL, PROGRAM_NAME);
+      gal_fits_img_write(p->input, p->detectionname, NULL, 0);
       if(p->input!=p->conv)
-        gal_fits_img_write(p->conv, p->detectionname, NULL, PROGRAM_NAME);
+        gal_fits_img_write(p->conv, p->detectionname, NULL, 0);
     }
 
   /* Convolve with wider kernel (if requested). */
@@ -144,6 +144,12 @@ noisechisel_output(struct noisechiselparams *p)
 {
   gal_fits_list_key_t *keys=NULL;
 
+  /* Write the configuration keywords. */
+  gal_fits_key_list_title_add_end(&p->cp.ckeys, "Input file", 0);
+  gal_fits_key_write_filename("input", p->inputname, &p->cp.ckeys, 0,
+                              p->cp.quiet);
+  gal_fits_key_write(p->cp.ckeys, p->cp.output, "0", "NONE", 1, 1);
+
 
   /* Put a copy of the input into the output (when necessary). */
   if(p->rawoutput==0)
@@ -154,14 +160,15 @@ noisechisel_output(struct noisechiselparams *p)
       /* Correct the name of the input and write it out. */
       if(p->input->name) free(p->input->name);
       p->input->name="INPUT-NO-SKY";
-      gal_fits_img_write(p->input, p->cp.output, NULL, PROGRAM_NAME);
+      gal_fits_img_write(p->input, p->cp.output, NULL, 0);
       p->input->name=NULL;
     }
 
 
   /* Write the detected pixels and useful information into it's header. */
-  gal_fits_key_list_add(&keys, GAL_TYPE_FLOAT32, "DETSN", 0, &p->detsnthresh,
-                        0, "Minimum S/N of true pseudo-detections", 0,
+  gal_fits_key_list_add(&keys, GAL_TYPE_FLOAT32, "DETSN", 0,
+                        &p->detsnthresh, 0,
+                        "Minimum S/N of true pseudo-detections", 0,
                         "ratio", 0);
   if(p->label)
     gal_fits_key_list_add(&keys, GAL_TYPE_SIZE_T, "NUMLABS", 0,
@@ -171,13 +178,13 @@ noisechisel_output(struct noisechiselparams *p)
   if(p->label)
     {
       p->olabel->name = "DETECTIONS";
-      gal_fits_img_write(p->olabel, p->cp.output, keys, PROGRAM_NAME);
+      gal_fits_img_write(p->olabel, p->cp.output, keys, 1);
       p->olabel->name=NULL;
     }
   else
     {
       p->binary->name = "DETECTIONS";
-      gal_fits_img_write(p->binary, p->cp.output, keys, PROGRAM_NAME);
+      gal_fits_img_write(p->binary, p->cp.output, keys, 1);
       p->binary->name=NULL;
     }
   keys=NULL;
@@ -187,32 +194,24 @@ noisechisel_output(struct noisechiselparams *p)
   if(p->sky->name) free(p->sky->name);
   p->sky->name="SKY";
   gal_tile_full_values_write(p->sky, &p->cp.tl, !p->ignoreblankintiles,
-                             p->cp.output, NULL, PROGRAM_NAME);
+                             p->cp.output, NULL, 0);
   p->sky->name=NULL;
 
 
   /* Write the Sky standard deviation into the output. */
   p->std->name="SKY_STD";
-  gal_fits_key_list_add(&keys, GAL_TYPE_FLOAT32, "MAXSTD", 0, &p->maxstd, 0,
-                        "Maximum raw tile standard deviation", 0,
+  gal_fits_key_list_add(&keys, GAL_TYPE_FLOAT32, "MAXSTD", 0, &p->maxstd,
+                        0, "Maximum raw tile standard deviation", 0,
                         p->input->unit, 0);
-  gal_fits_key_list_add(&keys, GAL_TYPE_FLOAT32, "MINSTD", 0, &p->minstd, 0,
-                        "Minimum raw tile standard deviation", 0,
+  gal_fits_key_list_add(&keys, GAL_TYPE_FLOAT32, "MINSTD", 0, &p->minstd,
+                        0, "Minimum raw tile standard deviation", 0,
                         p->input->unit, 0);
-  gal_fits_key_list_add(&keys, GAL_TYPE_FLOAT32, "MEDSTD", 0, &p->medstd, 0,
-                        "Median raw tile standard deviation", 0,
+  gal_fits_key_list_add(&keys, GAL_TYPE_FLOAT32, "MEDSTD", 0, &p->medstd,
+                        0, "Median raw tile standard deviation", 0,
                         p->input->unit, 0);
   gal_tile_full_values_write(p->std, &p->cp.tl, !p->ignoreblankintiles,
-                             p->cp.output, keys, PROGRAM_NAME);
+                             p->cp.output, keys, 1);
   p->std->name=NULL;
-
-
-  /* Write the configuration keywords. */
-  gal_fits_key_write_filename("input", p->inputname, &p->cp.okeys, 1,
-                              p->cp.quiet);
-  gal_fits_key_write_config(&p->cp.okeys, "NoiseChisel configuration",
-                            "NOISECHISEL-CONFIG", p->cp.output, "0",
-                            "NONE");
 
 
   /* Let the user know that the output is written. */

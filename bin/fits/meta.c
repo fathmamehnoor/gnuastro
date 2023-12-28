@@ -108,12 +108,13 @@ meta_write_to_file(struct fitsparams *p, gal_warp_wcsalign_t *wa)
   gal_fits_list_key_t *headers=NULL;
 
   /* Add configuration headers. */
-  gal_fits_key_list_add_end(&headers, GAL_TYPE_STRING,
-                            "input", 0, p->input->v, 0,
-                            "File given to astfits", 0, NULL, 0);
+  gal_fits_key_list_add_end(&headers, GAL_TYPE_STRING, "input", 0,
+                            p->input->v, 0, "File given to astfits",
+                            0, NULL, 0);
   gal_fits_key_list_add_end(&headers, GAL_TYPE_SIZE_T,
                             "edgesampling", 0, &p->edgesampling, 0,
-                            "Extra sampling along pixel edges.", 0, NULL, 0);
+                            "Extra sampling along pixel edges.",
+                            0, NULL, 0);
   gal_fits_key_list_add_end(&headers, GAL_TYPE_FLOAT64,
                             "Coveredfrac", 0, &wa->coveredfrac, 0,
                             "Fraction of pixel that is covered by input",
@@ -122,7 +123,7 @@ meta_write_to_file(struct fitsparams *p, gal_warp_wcsalign_t *wa)
   /* Convert to type and write to file. */
   if(p->cp.type!=output->type)
     output=gal_data_copy_to_new_type_free(output, p->cp.type);
-  gal_fits_img_write(output, p->cp.output, headers, PROGRAM_NAME);
+  gal_fits_img_write(output, p->cp.output, headers, 1);
 
   /* Clean up. */
   wa->output=NULL; /* Must be here to prevent double freeing. */

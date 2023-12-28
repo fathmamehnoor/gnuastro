@@ -791,8 +791,8 @@ gal_wcs_write_in_fitsptr(fitsfile *fptr, struct wcsprm *wcs)
 
 void
 gal_wcs_write(struct wcsprm *wcs, char *filename,
-              char *extname, gal_fits_list_key_t *headers,
-              char *program_string)
+              char *extname, gal_fits_list_key_t *keylist,
+              char *program_string, int freekeys)
 {
   int status=0;
   size_t ndim=0;
@@ -828,8 +828,10 @@ gal_wcs_write(struct wcsprm *wcs, char *filename,
   /* Write the WCS structure. */
   gal_wcs_write_in_fitsptr(fptr, wcs);
 
-  /* Write all the headers and the version information. */
-  gal_fits_key_write_version_in_ptr(&headers, program_string, fptr);
+  /* Write all the headers and the version information (note that after
+     writing the keywords they are automatically freed). */
+  gal_fits_key_list_title_add(&keylist, program_string, 0);
+  gal_fits_key_write_in_ptr(keylist, fptr, freekeys);
 
   /* Close the FITS file. */
   fits_close_file(fptr, &status);

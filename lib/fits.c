@@ -607,14 +607,15 @@ fits_type_correct(int *type, double bscale, char *bzero_str)
           else
             if( bzero == 9223372036854775808LLU )
               {
-                fprintf(stderr, "\nWARNING in %s: the BZERO header keyword "
-                        "value ('%s') is very close (but not exactly equal) "
-                        "to '%s'. The latter value in the FITS standard is "
-                        "used to identify that the dataset should be read as "
-                        "unsigned 64-bit integers instead of signed 64-bit "
-                        "integers. Depending on your version of CFITSIO, "
-                        "it may be read as a signed or unsigned 64-bit "
-                        "integer array\n\n", __func__, bzero_str, bzero_u64);
+                fprintf(stderr, "\nWARNING in %s: the BZERO header "
+                        "keyword value ('%s') is very close (but not "
+                        "exactly equal) to '%s'. The latter value in the "
+                        "FITS standard is used to identify that the "
+                        "dataset should be read as unsigned 64-bit "
+                        "integers instead of signed 64-bit integers. "
+                        "Depending on your version of CFITSIO, it may be "
+                        "read as a signed or unsigned 64-bit integer "
+                        "array\n\n", __func__, bzero_str, bzero_u64);
                 tofloat=0;
               }
           break;
@@ -674,7 +675,7 @@ gal_fits_open_to_write(char *filename)
       if( fits_create_img(fptr, BYTE_IMG, 0, &naxes, &status) )
         gal_fits_io_error(status, NULL);
 
-      /* Close the blank extension. */
+      /* Close the empty extension. */
       if( fits_close_file(fptr, &status) )
         gal_fits_io_error(status, NULL);
     }
@@ -965,14 +966,14 @@ gal_fits_hdu_open_format(char *filename, char *hdu, int img0_tab1,
         {
           /* Let the user know. */
           if( gal_fits_hdu_is_healpix(fptr) )
-            error(EXIT_FAILURE, 0, "%s (hdu: %s): appears to be a HEALPix table "
-                  "(which is a 2D dataset on a spherical surface: stored as "
-                  "a 1D table). You can use the 'HPXcvt' command-line utility "
-                  "to convert it to a 2D image that can easily be used by "
-                  "other programs. 'HPXcvt' is built and installed as part of "
-                  "WCSLIB (which is a mandatory dependency of Gnuastro, so "
-                  "you should already have it), run 'man HPXcvt' for more",
-                  filename, hdu);
+            error(EXIT_FAILURE, 0, "%s (hdu: %s): appears to be a HEALPix "
+                  "table (which is a 2D dataset on a spherical surface: "
+                  "stored as a 1D table). You can use the 'HPXcvt' "
+                  "command-line utility to convert it to a 2D image that "
+                  "can easily be used by other programs. 'HPXcvt' is built "
+                  "and installed as part of WCSLIB (which is a mandatory "
+                  "dependency of Gnuastro, so you should already have it), "
+                  "run 'man HPXcvt' for more", filename, hdu);
           else
             error(EXIT_FAILURE, 0, "%s (hdu: %s): not an image",
                   filename, hdu);
@@ -1166,9 +1167,11 @@ gal_fits_key_date_to_struct_tm(char *fitsdate, struct tm *tp)
                 : strptime(nosubsec, hassq?"'%F'"   :"%F"   , tp))
             : ( hasT
                 ? ( hasZ
-                    ? strptime(nosubsec, hassq?"'%d/%m/%yT%TZ'":"%d/%m/%yT%TZ", tp)
-                    : strptime(nosubsec, hassq?"'%d/%m/%yT%T'":"%d/%m/%yT%T", tp))
-                : strptime(nosubsec, hassq?"'%d/%m/%y'"   :"%d/%m/%y"   , tp)
+                    ? strptime(nosubsec,
+                               hassq?"'%d/%m/%yT%TZ'":"%d/%m/%yT%TZ", tp)
+                    : strptime(nosubsec,
+                               hassq?"'%d/%m/%yT%T'":"%d/%m/%yT%T", tp))
+                : strptime(nosubsec, hassq?"'%d/%m/%y'"   :"%d/%m/%y", tp)
                 )
             )
         );
@@ -1246,9 +1249,9 @@ gal_fits_key_date_to_seconds(char *fitsdate, char **subsecstr,
         {
           if(subsec)
             if( gal_type_from_string(&subsecptr, tmp, GAL_TYPE_FLOAT64) )
-              error(EXIT_FAILURE, 0, "%s: the sub-second portion of '%s' (or "
-                    "'%s') couldn't be read as a number", __func__, fitsdate,
-                    tmp);
+              error(EXIT_FAILURE, 0, "%s: the sub-second portion of '%s' "
+                    "(or '%s') couldn't be read as a number", __func__,
+                    fitsdate, tmp);
         }
       else { if(subsec) *subsec=NAN; }
     }
@@ -1565,7 +1568,8 @@ gal_fits_key_list_add_end(gal_fits_list_key_t **list, uint8_t type,
 
 /* Only set this key to be a title. */
 void
-gal_fits_key_list_title_add(gal_fits_list_key_t **list, char *title, int tfree)
+gal_fits_key_list_title_add(gal_fits_list_key_t **list, char *title,
+                            int tfree)
 {
   gal_fits_list_key_t *newnode;
 
@@ -1690,6 +1694,129 @@ gal_fits_key_list_fullcomment_add_end(gal_fits_list_key_t **list,
 
 
 
+/* Add 'DATE' on top of the list of keywords. */
+void
+gal_fits_key_list_add_date(gal_fits_list_key_t **keylist,
+                           char *incomment)
+{
+  int status=0;
+  uint8_t *isutc;
+  int timeref=0; /* ==1: returned string is not UTC */
+  char *datestr, *kname, *comment, *unit;
+
+  /* The FITS date format has 19 characters: 'YYYY-MM-DDTHH:MM:SS'. As a
+     string, we also need a byte for '\0'. */
+  datestr=gal_pointer_allocate(GAL_TYPE_UINT8, 20, 0, __func__,
+                               "datestr");
+  fits_get_system_time(datestr, &timeref, &status);
+
+  /* Allocate the necessary components. */
+  gal_checkset_allocate_copy("DATE", &kname);
+  gal_checkset_allocate_copy(incomment, &comment);
+  gal_checkset_allocate_copy("YYYY-MM-DDThh:mm:ss", &unit);
+  gal_fits_key_list_add(keylist, GAL_TYPE_STRING, kname, 1, datestr, 1,
+                        comment, 1, unit, 1);
+
+  /* Add keyword to note if date is in UTC. */
+  isutc=gal_pointer_allocate(GAL_TYPE_UINT8, 1, 0, __func__, "isutc");
+  *isutc=!timeref;
+  gal_checkset_allocate_copy("DATEUTC", &kname);
+  gal_checkset_allocate_copy("If 'DATE' is in UTC, value is '1'.",
+                             &comment);
+  gal_checkset_allocate_copy("bool", &unit);
+  gal_fits_key_list_add(keylist, GAL_TYPE_UINT8, kname, 1, isutc, 1,
+                        comment, 1, unit, 1);
+}
+
+
+
+
+
+void
+gal_fits_key_list_add_software_versions(gal_fits_list_key_t **keylist)
+{
+  char *gnuastroversion;
+  char *kname, *comment, *gslversion, *cfitsioversion;
+
+  /* Variables that are only necessary for WCSLIB's version. */
+#if GAL_CONFIG_HAVE_WCSLIB_VERSION == 1
+  int wcslibvers[3];
+  char *wcslibversion;
+  const char *wcslibversion_const;
+#endif
+
+  /* Set the version of CFITSIO as a string: before version 4.0.0 of
+     CFITSIO, there were only two numbers in the version (for example
+     '3.49' and '3.48'), but from the 4th major release, there are three
+     numbers in the version string. The third number corresponds to a new
+     'CFITSIO_MICRO' macro. So if it doesn't exist, we'll just print two
+     numbers, otherwise, we'll print the three. */
+#ifdef CFITSIO_MICRO
+  if( asprintf(&cfitsioversion, "%d.%d.%d", CFITSIO_MAJOR,
+               CFITSIO_MINOR, CFITSIO_MICRO)<0 )
+    error(EXIT_FAILURE, 0, "%s: asprintf allocation", __func__);
+#else
+  if( asprintf(cfitsioversion, "%d.%d", CFITSIO_MAJOR,
+               CFITSIO_MINOR)<0 )
+    error(EXIT_FAILURE, 0, "%s: asprintf allocation", __func__);
+#endif
+  gal_checkset_allocate_copy("CFITSIO", &kname);
+  gal_checkset_allocate_copy("Version of used CFITSIO.", &comment);
+  gal_fits_key_list_add(keylist, GAL_TYPE_STRING, kname, 1,
+                        cfitsioversion, 1, comment, 1, NULL, 0);
+
+  /* Write the WCSLIB version. Before WCSLIB 5.0, the wcslib_version
+     function was not defined. Sometime in the future were everyone has
+     moved to more recent versions of WCSLIB, we can remove this macro and
+     its check in configure.ac.*/
+#if GAL_CONFIG_HAVE_WCSLIB_VERSION == 1
+  wcslibversion_const=wcslib_version(wcslibvers);
+  gal_checkset_allocate_copy(wcslibversion_const, &wcslibversion);
+  gal_checkset_allocate_copy("WCSLIB", &kname);
+  gal_checkset_allocate_copy("Version of used WCSLIB.", &comment);
+  gal_fits_key_list_add(keylist, GAL_TYPE_STRING, kname, 1,
+                        wcslibversion, 1, comment, 1, NULL, 0);
+#endif
+
+  /* Write the GSL version. */
+  gal_checkset_allocate_copy("GSL", &kname);
+  gal_checkset_allocate_copy(GSL_VERSION, &gslversion);
+  gal_checkset_allocate_copy("Version of used GNU Scientific Library.",
+                             &comment);
+  gal_fits_key_list_add(keylist, GAL_TYPE_STRING, kname, 1,
+                        gslversion, 1, comment, 1, NULL, 0);
+
+  /* Write the Gnuastro's version. */
+  gal_checkset_allocate_copy("GNUASTRO", &kname);
+  gal_checkset_allocate_copy(PACKAGE_VERSION, &gnuastroversion);
+  gal_checkset_allocate_copy("Version of used GNU Astronomy Utilities.",
+                             &comment);
+  gal_fits_key_list_add(keylist, GAL_TYPE_STRING, kname, 1,
+                        gnuastroversion, 1, comment, 1, NULL, 0);
+}
+
+
+
+
+
+void
+gal_fits_key_list_add_git_commit(gal_fits_list_key_t **keylist)
+{
+  char *kname, *comment, *gitdescribe=gal_git_describe();
+  if(gitdescribe)
+    {
+      gal_checkset_allocate_copy("COMMIT", &kname);
+      gal_checkset_allocate_copy("Git commit in running directory.",
+                                 &comment);
+      gal_fits_key_list_add(keylist, GAL_TYPE_STRING, kname, 1,
+                            gitdescribe, 1, comment, 1, NULL, 0);
+    }
+}
+
+
+
+
+
 void
 gal_fits_key_list_reverse(gal_fits_list_key_t **list)
 {
@@ -1730,9 +1857,9 @@ gal_fits_key_write_title_in_ptr(char *title, fitsfile *fptr)
     {
       /* A small sanity check. */
       if( strlen(title) + strlen(GAL_FITS_KEY_TITLE_START) > 78 )
-        fprintf(stderr, "%s: FITS keyword title '%s' is too long to be fully "
-                "included in the keyword record (80 characters, where the "
-                "title is prefixed with %zu space characters)",
+        fprintf(stderr, "%s: FITS keyword title '%s' is too long to be "
+                "fully included in the keyword record (80 characters, "
+                "where the title is prefixed with %zu space characters)",
                 __func__, title, strlen(GAL_FITS_KEY_TITLE_START));
 
       /* Set the last element of the blank array. */
@@ -1898,7 +2025,8 @@ gal_fits_key_write_filename(char *keynamebase, char *filename,
    attempt the check in 3D datasets. We'll read each written CDELT value
    with CFITSIO and if its zero, we'll correct it. */
 static void
-fits_bug_wrapper_cdelt_zero(fitsfile *fptr, struct wcsprm *wcs, char *keystr)
+fits_bug_wrapper_cdelt_zero(fitsfile *fptr, struct wcsprm *wcs,
+                            char *keystr)
 {
   char *keyname;
   double keyvalue;
@@ -2021,18 +2149,39 @@ gal_fits_key_write_wcsstr(fitsfile *fptr, struct wcsprm *wcs,
 /* Write the given list of header keywords into the specified HDU of the
    specified FITS file. */
 void
-gal_fits_key_write(gal_fits_list_key_t **keylist, char *title,
-                   char *filename, char *hdu, char *hdu_option_name)
+gal_fits_key_write(gal_fits_list_key_t *keylist, char *filename,
+                   char *hdu, char *hdu_option_name, int freekeys,
+                   int create_fits_not_exists)
 {
   int status=0;
-  fitsfile *fptr=gal_fits_hdu_open(filename, hdu, READWRITE, 1,
-                                   hdu_option_name);
+  fitsfile *fptr;
 
-  /* Write the title. */
-  gal_fits_key_write_title_in_ptr(title, fptr);
+  /* If the file already exist or the user didn't want to create it, then
+     just (try) open(ing) it. We are still trying to open the file when the
+     user doesn't want to create the file because of the good error
+     messages in 'gal_fits_hdu_open'. */
+  if( gal_checkset_check_file_return(filename)
+      || create_fits_not_exists==0)
+    fptr=gal_fits_hdu_open(filename, hdu, READWRITE, 1,
+                           hdu_option_name);
+  else
+    {
+      if( hdu[0]=='0' && hdu[1]=='\0' ) /* only valid for hdu=="0". */
+        {
+          fptr=gal_fits_open_to_write(filename);
+          if( fits_close_file(fptr, &status) )
+            gal_fits_io_error(status, NULL);
+          fptr=gal_fits_hdu_open(filename, hdu, READWRITE, 1,
+                                 hdu_option_name);
+        }
+      else
+        error(EXIT_FAILURE, 0, "%s: when 'create_if_not_exists!=0', "
+              "the 'hdu' argument should be '0', but it is '%s'",
+              __func__, hdu);
+    }
 
   /* Write the keywords into the FITS file pointer ('fptr'). */
-  gal_fits_key_write_in_ptr(keylist, fptr);
+  gal_fits_key_write_in_ptr(keylist, fptr, freekeys);
 
   /* Close the input FITS file. */
   fits_close_file(fptr, &status);
@@ -2090,221 +2239,74 @@ gal_fits_key_write_in_ptr_nan_check(gal_fits_list_key_t *tmp)
    file. Every keyword that is written is freed, that is why we need the
    pointer to the linked list (to correct it after we finish). */
 void
-gal_fits_key_write_in_ptr(gal_fits_list_key_t **keylist, fitsfile *fptr)
+gal_fits_key_write_in_ptr(gal_fits_list_key_t *keylist,
+                          fitsfile *fptr, int freekeys)
 {
   int status=0;
   void *ifnan=NULL;
-  gal_fits_list_key_t *tmp, *ttmp;
+  gal_fits_list_key_t *key, *tmp;
 
-  tmp=*keylist;
-  while(tmp!=NULL)
+  /* Go over the list (in case it is not NULL). */
+  key=keylist;
+  while(key!=NULL)
     {
       /* If a title is requested, only put a title. */
-      if(tmp->title)
+      if(key->title)
         {
-          gal_fits_key_write_title_in_ptr(tmp->title, fptr);
-          if(tmp->tfree) free(tmp->title);
+          gal_fits_key_write_title_in_ptr(key->title, fptr);
+          if(freekeys && key->tfree) free(key->title);
         }
-      else if (tmp->fullcomment)
+      else if (key->fullcomment)
         {
-          if( fits_write_comment(fptr, tmp->fullcomment, &status) )
+          if( fits_write_comment(fptr, key->fullcomment, &status) )
             gal_fits_io_error(status, NULL);
-          if(tmp->fcfree) free(tmp->fullcomment);
+          if(freekeys && key->fcfree) free(key->fullcomment);
         }
       else
         {
           /* Write the basic key value and comments. */
-          if(tmp->value)
+          if(key->value)
             {
               /* Print a warning if the value is NaN. */
-              ifnan=gal_fits_key_write_in_ptr_nan_check(tmp);
+              ifnan=gal_fits_key_write_in_ptr_nan_check(key);
 
               /* Write/Update the keyword value. */
               if( fits_update_key(fptr,
-                                  gal_fits_type_to_datatype(tmp->type),
-                                  tmp->keyname, ifnan?ifnan:tmp->value,
-                                  tmp->comment, &status) )
+                                  gal_fits_type_to_datatype(key->type),
+                                  key->keyname, ifnan?ifnan:key->value,
+                                  key->comment, &status) )
                 gal_fits_io_error(status, NULL);
               if(ifnan) free(ifnan);
             }
           else
             {
-              if(fits_update_key_null(fptr, tmp->keyname, tmp->comment,
+              if(fits_update_key_null(fptr, key->keyname, key->comment,
                                       &status))
                 gal_fits_io_error(status, NULL);
             }
 
           /* Write the units if it was given. */
-          if( tmp->unit
-              && fits_write_key_unit(fptr, tmp->keyname, tmp->unit,
+          if( key->unit
+              && fits_write_key_unit(fptr, key->keyname, key->unit,
                                      &status) )
             gal_fits_io_error(status, NULL);
 
           /* Free the value pointer if desired: */
-          if(tmp->ufree) free(tmp->unit);
-          if(tmp->vfree) free(tmp->value);
-          if(tmp->kfree) free(tmp->keyname);
-          if(tmp->cfree) free(tmp->comment);
+          if(freekeys)
+            {
+              if(key->ufree) free(key->unit);
+              if(key->vfree) free(key->value);
+              if(key->kfree) free(key->keyname);
+              if(key->cfree) free(key->comment);
+            }
         }
 
       /* Keep the pointer to the next keyword and free the allocated
          space for this keyword. */
-      ttmp=tmp->next;
-      free(tmp);
-      tmp=ttmp;
+      tmp=key->next;
+      if(freekeys) free(key);
+      key=tmp;
     }
-
-  /* Set it to NULL so it isn't mistakenly used later. */
-  *keylist=NULL;
-}
-
-
-
-
-
-/* Write the given list of header keywords and version info into the give
-   file. */
-void
-gal_fits_key_write_version(gal_fits_list_key_t **keylist, char *title,
-                           char *filename, char *hdu,
-                           char *hdu_option_name)
-{
-  int status=0;
-  fitsfile *fptr=gal_fits_hdu_open(filename, hdu, READWRITE, 1,
-                                   hdu_option_name);
-
-  /* Write the given keys followed by the versions. */
-  gal_fits_key_write_version_in_ptr(keylist, title, fptr);
-
-  /* Close the input FITS file. */
-  fits_close_file(fptr, &status);
-  gal_fits_io_error(status, NULL);
-}
-
-
-
-
-
-void
-gal_fits_key_write_version_in_ptr(gal_fits_list_key_t **keylist,
-                                  char *title, fitsfile *fptr)
-{
-  int status=0;
-  char *gitdescribe;
-  char cfitsioversion[20];
-
-  /* Before WCSLIB 5.0, the wcslib_version function was not
-     defined. Sometime in the future were everyone has moved to more
-     recent versions of WCSLIB, we can remove this macro and its check
-     in configure.ac. */
-#if GAL_CONFIG_HAVE_WCSLIB_VERSION == 1
-  int wcslibvers[3];
-  char wcslibversion[20];
-  const char *wcslibversion_const;
-#endif
-
-  /* Small sanity check. */
-  if(fptr==NULL)
-    error(EXIT_FAILURE, 0, "%s: input FITS pointer is NULL", __func__);
-
-  /* If any header keywords are specified, add them: */
-  if(keylist && *keylist)
-    {
-      gal_fits_key_write_title_in_ptr(title?title:"Specific keys", fptr);
-      gal_fits_key_write_in_ptr(keylist, fptr);
-    }
-
-  /* Print 'Versions and date' title. */
-  gal_fits_key_write_title_in_ptr("Versions and date", fptr);
-
-  /* Set the version of CFITSIO as a string: before version 4.0.0 of
-     CFITSIO, there were only two numbers in the version (for example
-     '3.49' and '3.48'), but from the 4th major release, there are three
-     numbers in the version string. The third number corresponds to a new
-     'CFITSIO_MICRO' macro. So if it doesn't exist, we'll just print two
-     numbers, otherwise, we'll print the three. */
-#ifdef CFITSIO_MICRO
-  sprintf(cfitsioversion, "%d.%d.%d", CFITSIO_MAJOR,
-          CFITSIO_MINOR, CFITSIO_MICRO);
-#else
-  sprintf(cfitsioversion, "%d.%d", CFITSIO_MAJOR,
-          CFITSIO_MINOR);
-#endif
-
-  /* Write all the information: */
-  fits_write_date(fptr, &status);
-
-  /* Write the version of CFITSIO. */
-  fits_update_key(fptr, TSTRING, "CFITSIO", cfitsioversion,
-                  "CFITSIO version.", &status);
-
-  /* Write the WCSLIB version. */
-#if GAL_CONFIG_HAVE_WCSLIB_VERSION == 1
-  wcslibversion_const=wcslib_version(wcslibvers);
-  strcpy(wcslibversion, wcslibversion_const);
-  fits_update_key(fptr, TSTRING, "WCSLIB", wcslibversion,
-                  "WCSLIB version.", &status);
-#endif
-
-  /* Write the GSL version. */
-  fits_update_key(fptr, TSTRING, "GSL", GSL_VERSION,
-                  "GNU Scientific Library version.", &status);
-
-  /* Write the Gnuastro version. */
-  fits_update_key(fptr, TSTRING, "GNUASTRO", PACKAGE_VERSION,
-                  "GNU Astronomy Utilities version.", &status);
-
-  /* If we are in a version controlled directory and have libgit2
-     installed, write the commit description into the FITS file. */
-  gitdescribe=gal_git_describe();
-  if(gitdescribe)
-    {
-      fits_update_key(fptr, TSTRING, "COMMIT", gitdescribe,
-                      "Git commit in running directory.", &status);
-      free(gitdescribe);
-    }
-
-  /* Report any error if a problem came up. */
-  gal_fits_io_error(status, NULL);
-}
-
-
-
-
-
-
-/* Write the given keywords into the given extension of the given file,
-   ending it with version information. This is primarily intended for
-   writing configuration settings of a program into the zero-th extension
-   of the FITS file (which is empty when the FITS file is created by
-   Gnuastro's program and this library). */
-void
-gal_fits_key_write_config(gal_fits_list_key_t **keylist, char *title,
-                          char *extname, char *filename, char *hdu,
-                          char *hdu_option_name)
-{
-  int status=0;
-  fitsfile *fptr=gal_fits_hdu_open(filename, hdu, READWRITE, 1,
-                                   hdu_option_name);
-
-  /* Delete the two extra comment lines describing the FITS standard that
-     CFITSIO puts in when it creates a new extension. We'll set status to 0
-     afterwards so even if they don't exist, the program continues
-     normally. */
-  fits_delete_key(fptr, "COMMENT", &status);
-  fits_delete_key(fptr, "COMMENT", &status);
-  status=0;
-
-  /* Put a name for the zero-th extension. */
-  if(fits_write_key(fptr, TSTRING, "EXTNAME", extname, "", &status))
-    gal_fits_io_error(status, NULL);
-
-  /* Write all the given keywords. */
-  gal_fits_key_write_version_in_ptr(keylist, title, fptr);
-
-  /* Close the FITS file. */
-  if( fits_close_file(fptr, &status) )
-    gal_fits_io_error(status, NULL);
 }
 
 
@@ -2720,112 +2722,17 @@ gal_fits_img_read_kernel(char *filename, char *hdu, size_t minmapsize,
 
 
 
-
-/* This function will write all the data array information (including its
-   WCS information) into a FITS file, but will not close it. Instead it
-   will pass along the FITS pointer for further modification. */
-fitsfile *
-gal_fits_img_write_to_ptr(gal_data_t *input, char *filename)
+/* Write the requested header keywords first (if we add them after writing
+   the image, and there is many keywords (more than 2880/80=36), the whole
+   image needs to be shifted to accommodate a new 2880 byte block for new
+   keywords (which wastes time). */
+static void
+gal_fits_img_write_to_ptr_keys(fitsfile *fptr, gal_data_t *towrite,
+                               int datatype, int hasblank,
+                               gal_fits_list_key_t *keylist, int freekeys)
 {
   void *blank;
-  int64_t *i64;
-  char *u64key;
-  fitsfile *fptr;
-  uint64_t *u64, *u64f;
-  long fpixel=1, *naxes;
-  size_t i, ndim=input->ndim;
-  int hasblank, status=0, datatype=0;
-  gal_data_t *i64data, *towrite, *block=gal_tile_block(input);
-
-  /* Small sanity check. */
-  if( gal_fits_name_is_fits(filename)==0 )
-    error(EXIT_FAILURE, 0, "%s: not a FITS suffix", filename);
-
-
-  /* If the input is a tile (isn't a contiguous region of memory), then
-     copy it into a contiguous region. */
-  towrite = input==block ? input : gal_data_copy(input);
-  hasblank=gal_blank_present(towrite, 0);
-
-
-  /* Allocate the naxis area. */
-  naxes=gal_pointer_allocate( ( sizeof(long)==8
-                                ? GAL_TYPE_INT64
-                                : GAL_TYPE_INT32 ), ndim, 0, __func__,
-                              "naxes");
-
-
-  /* Open the file for writing. */
-  fptr=gal_fits_open_to_write(filename);
-
-
-  /* Fill the 'naxes' array (in opposite order, and 'long' type): */
-  for(i=0;i<ndim;++i) naxes[ndim-1-i]=towrite->dsize[i];
-
-
-  /* Create the FITS file. Unfortunately CFITSIO doesn't have a macro for
-     UINT64, TLONGLONG is only for (signed) INT64. So if the dataset has
-     that type, we'll have to convert it to 'INT64' and in the mean-time
-     shift its zero, we will then have to write the BZERO and BSCALE
-     keywords accordingly. */
-  if(block->type==GAL_TYPE_UINT64)
-    {
-      /* Allocate the necessary space. */
-      i64data=gal_data_alloc(NULL, GAL_TYPE_INT64, ndim, towrite->dsize,
-                             NULL, 0, block->minmapsize, block->quietmmap,
-                             NULL, NULL, NULL);
-
-      /* Copy the values while making the conversion. */
-      i64=i64data->array;
-      u64f=(u64=towrite->array)+towrite->size;
-      if(hasblank)
-        {
-          do *i64++ = ( *u64==GAL_BLANK_UINT64
-                        ? GAL_BLANK_INT64
-                        : (*u64 + INT64_MIN) );
-          while(++u64<u64f);
-        }
-      else
-        do *i64++ = (*u64 + INT64_MIN); while(++u64<u64f);
-
-      /* We can now use CFITSIO's signed-int64 type macros. */
-      datatype=TLONGLONG;
-      fits_create_img(fptr, LONGLONG_IMG, ndim, naxes, &status);
-      gal_fits_io_error(status, NULL);
-
-      /* Write the image into the file. */
-      fits_write_img(fptr, datatype, fpixel, i64data->size, i64data->array,
-                     &status);
-      gal_fits_io_error(status, NULL);
-
-
-      /* We need to write the BZERO and BSCALE keywords manually. VERY
-         IMPORTANT: this has to be done after writing the array. We cannot
-         write this huge integer as a variable, so we'll simply write the
-         full record/card. It is just important that the string be larger
-         than 80 characters, CFITSIO will trim the rest of the string. */
-      u64key="BZERO   =  9223372036854775808 / Offset of data                                         ";
-      fits_write_record(fptr, u64key, &status);
-      u64key="BSCALE  =                    1 / Default scaling factor                                 ";
-      fits_write_record(fptr, u64key, &status);
-      gal_fits_io_error(status, NULL);
-    }
-  else
-    {
-      /* Set the datatype. */
-      datatype=gal_fits_type_to_datatype(block->type);
-
-      /* Create the FITS file. */
-      fits_create_img(fptr, gal_fits_type_to_bitpix(towrite->type),
-                      ndim, naxes, &status);
-      gal_fits_io_error(status, NULL);
-
-      /* Write the image into the file. */
-      fits_write_img(fptr, datatype, fpixel, towrite->size, towrite->array,
-                     &status);
-      gal_fits_io_error(status, NULL);
-    }
-
+  int status=0;
 
   /* Remove the two comment lines put by CFITSIO. Note that in some cases,
      it might not exist. When this happens, the status value will be
@@ -2834,7 +2741,6 @@ gal_fits_img_write_to_ptr(gal_data_t *input, char *filename)
   fits_delete_key(fptr, "COMMENT", &status);
   fits_delete_key(fptr, "COMMENT", &status);
   status=0;
-
 
   /* If we have blank pixels, we need to define a BLANK keyword when we are
      dealing with integer types. */
@@ -2855,27 +2761,173 @@ gal_fits_img_write_to_ptr(gal_data_t *input, char *filename)
         free(blank);
       }
 
-
   /* Write the extension name to the header. */
   if(towrite->name)
     fits_write_key(fptr, TSTRING, "EXTNAME", towrite->name, "", &status);
-
 
   /* Write the units to the header. */
   if(towrite->unit)
     fits_write_key(fptr, TSTRING, "BUNIT", towrite->unit, "", &status);
 
-
   /* Write comments if they exist. */
   if(towrite->comment)
     fits_write_comment(fptr, towrite->comment, &status);
-
 
   /* If a WCS structure is present, write it in the FITS file pointer
      ('fptr'). */
   if(towrite->wcs)
     gal_wcs_write_in_fitsptr(fptr, towrite->wcs);
 
+  /* Write any requested keywords. */
+  gal_fits_key_write_in_ptr(keylist, fptr, freekeys);
+}
+
+
+
+
+
+/* This function will write all the data array information (including its
+   WCS information) into a FITS file, but will not close it. Instead it
+   will pass along the FITS pointer for further modification. */
+fitsfile *
+gal_fits_img_write_to_ptr(gal_data_t *input, char *filename,
+                          gal_fits_list_key_t *keylist, int freekeys)
+{
+  int64_t *i64;
+  char *u64key;
+  fitsfile *fptr;
+  uint64_t *u64, *u64f;
+  size_t i, ndim=input->ndim;
+  long fpixel=1, *naxes, *naxesone=NULL;
+  int bitpix, hasblank, status=0, datatype=0;
+  gal_data_t *i64data, *towrite, *block=gal_tile_block(input);
+
+  /* Small sanity check. */
+  if( gal_fits_name_is_fits(filename)==0 )
+    error(EXIT_FAILURE, 0, "%s: not a FITS suffix", filename);
+
+
+  /* If the input is a tile (isn't a contiguous region of memory), then
+     copy it into a contiguous region. */
+  towrite = input==block ? input : gal_data_copy(input);
+  hasblank=gal_blank_present(towrite, 0);
+
+
+  /* Allocate the naxes space(s): we need 'naxesone' only when there are
+     keywords to be written. */
+  naxes=gal_pointer_allocate( ( sizeof(long)==8
+                                ? GAL_TYPE_INT64
+                                : GAL_TYPE_INT32 ), ndim, 0, __func__,
+                              "naxes");
+  naxesone = ( keylist
+               ? gal_pointer_allocate( ( sizeof(long)==8
+                                         ? GAL_TYPE_INT64
+                                         : GAL_TYPE_INT32 ), ndim, 0, __func__,
+                                       "naxes")
+               : NULL );
+
+
+  /* Open the file for writing. */
+  fptr=gal_fits_open_to_write(filename);
+
+
+  /* Fill the 'naxes' array (in opposite order, and 'long' type): */
+  for(i=0;i<ndim;++i)
+    {
+      naxes[ndim-1-i]=towrite->dsize[i];
+      if(naxesone) naxesone[ndim-1-i]=0;
+    }
+
+
+  /* Create the FITS file. Unfortunately CFITSIO doesn't have a macro for
+     UINT64, TLONGLONG is only for (signed) INT64. So if the dataset has
+     that type, we'll have to convert it to 'INT64' and in the mean-time
+     shift its zero, we will then have to write the BZERO and BSCALE
+     keywords accordingly. */
+  if(block->type==GAL_TYPE_UINT64)
+    {
+      /* Print a warning to let the user know that some extra operation is
+         necessary. */
+      error(EXIT_SUCCESS, 0, "%s: WARNING: Unfortunately CFITSIO does "
+            "not support unsigned 64-bit integers (TLONGLONG is only "
+            "for signed INT64). Therefore some manual operation is "
+            "necessary to create the output and this can slow down your "
+            "program. If unsigned 64-bit integers are not absolutely "
+            "vital for your output's format, it helps to choose another "
+            "type", __func__);
+
+      /* Allocate the necessary space. */
+      i64data=gal_data_alloc(NULL, GAL_TYPE_INT64, ndim, towrite->dsize,
+                             NULL, 0, block->minmapsize, block->quietmmap,
+                             NULL, NULL, NULL);
+
+      /* Copy the values while making the conversion. */
+      i64=i64data->array;
+      u64f=(u64=towrite->array)+towrite->size;
+      if(hasblank)
+        {
+          do *i64++ = ( *u64==GAL_BLANK_UINT64
+                        ? GAL_BLANK_INT64
+                        : (*u64 + INT64_MIN) );
+          while(++u64<u64f);
+        }
+      else
+        do *i64++ = (*u64 + INT64_MIN); while(++u64<u64f);
+
+      /* We can now use CFITSIO's signed-int64 type macros and create the
+         image HDU. However, if we have keywords, first, we will create a 1
+         element image of the same dimensions (this is easy to move in case
+         there are many keywords). */
+      datatype=TLONGLONG;
+      bitpix=LONGLONG_IMG;
+      fits_create_img(fptr, bitpix, ndim, keylist?naxesone:naxes,
+                      &status);
+      gal_fits_io_error(status, NULL);
+
+      /* Write the keywords first (to avoid having to shift the image if
+         there are many keywords). */
+      gal_fits_img_write_to_ptr_keys(fptr, towrite, datatype, hasblank,
+                                     keylist, freekeys);
+
+      /* If we had keywords, we should resize the output array and write
+         the image. */
+      if(keylist) fits_resize_img(fptr, bitpix, ndim, naxes, &status);
+      fits_write_img(fptr, datatype, fpixel, i64data->size, i64data->array,
+                     &status);
+      gal_fits_io_error(status, NULL);
+
+      /* We need to write the BZERO and BSCALE keywords manually. VERY
+         IMPORTANT: this has to be done after writing the array. We cannot
+         write this huge integer as a variable, so we'll simply write the
+         full record/card. It is just important that the string be larger
+         than 80 characters, CFITSIO will trim the rest of the string. */
+      u64key="BZERO   =  9223372036854775808 / Offset of data                                         ";
+      fits_write_record(fptr, u64key, &status);
+      u64key="BSCALE  =                    1 / Default scaling factor                                 ";
+      fits_write_record(fptr, u64key, &status);
+      gal_fits_io_error(status, NULL);
+    }
+  else
+    {
+      /* Set the datatype. */
+      datatype=gal_fits_type_to_datatype(block->type);
+
+      /* Create the FITS file. */
+      bitpix=gal_fits_type_to_bitpix(towrite->type);
+      fits_create_img(fptr, bitpix, ndim, keylist?naxesone:naxes, &status);
+      gal_fits_io_error(status, NULL);
+
+      /* Write the keywords first (to avoid having to shift the image if
+         there are many keywords). */
+      gal_fits_img_write_to_ptr_keys(fptr, towrite, datatype, hasblank,
+                                     keylist, freekeys);
+
+      /* Write the image into the file. */
+      if(keylist) fits_resize_img(fptr, bitpix, ndim, naxes, &status);
+      fits_write_img(fptr, datatype, fpixel, towrite->size, towrite->array,
+                     &status);
+      gal_fits_io_error(status, NULL);
+    }
 
   /* If there were any errors, report them and return.*/
   free(naxes);
@@ -2890,16 +2942,13 @@ gal_fits_img_write_to_ptr(gal_data_t *input, char *filename)
 
 void
 gal_fits_img_write(gal_data_t *data, char *filename,
-                   gal_fits_list_key_t *headers, char *program_string)
+                   gal_fits_list_key_t *keylist, int freekeys)
 {
   int status=0;
-  fitsfile *fptr;
+  fitsfile *fptr=NULL;
 
   /* Write the data array into a FITS file and keep it open: */
-  fptr=gal_fits_img_write_to_ptr(data, filename);
-
-  /* Write all the headers and the version information. */
-  gal_fits_key_write_version_in_ptr(&headers, program_string, fptr);
+  fptr=gal_fits_img_write_to_ptr(data, filename, keylist, freekeys);
 
   /* Close the FITS file. */
   fits_close_file(fptr, &status);
@@ -2912,8 +2961,8 @@ gal_fits_img_write(gal_data_t *data, char *filename,
 
 void
 gal_fits_img_write_to_type(gal_data_t *data, char *filename,
-                           gal_fits_list_key_t *headers,
-                           char *program_string, int type)
+                           gal_fits_list_key_t *headers, int type,
+                           int freekeys)
 {
   /* If the input dataset is not the correct type, then convert it,
      otherwise, use the input data structure. */
@@ -2922,7 +2971,7 @@ gal_fits_img_write_to_type(gal_data_t *data, char *filename,
                          : gal_data_copy_to_new_type(data, type));
 
   /* Write the converted dataset into an image. */
-  gal_fits_img_write(towrite, filename, headers, program_string);
+  gal_fits_img_write(towrite, filename, headers, freekeys);
 
   /* Free the dataset if it was allocated. */
   if(towrite!=data) gal_data_free(towrite);
@@ -2947,8 +2996,7 @@ gal_fits_img_write_to_type(gal_data_t *data, char *filename,
 void
 gal_fits_img_write_corr_wcs_str(gal_data_t *input, char *filename,
                                 char *wcsstr, int nkeyrec, double *crpix,
-                                gal_fits_list_key_t *headers,
-                                char *program_string)
+                                gal_fits_list_key_t *keylist, int freekeys)
 {
   int status=0;
   fitsfile *fptr;
@@ -2959,7 +3007,7 @@ gal_fits_img_write_corr_wcs_str(gal_data_t *input, char *filename,
           __func__);
 
   /* Write the data array into a FITS file and keep it open. */
-  fptr=gal_fits_img_write_to_ptr(input, filename);
+  fptr=gal_fits_img_write_to_ptr(input, filename, keylist, freekeys);
 
   /* Write the WCS headers into the FITS file. */
   gal_fits_key_write_wcsstr(fptr, NULL, wcsstr, nkeyrec);
@@ -2976,9 +3024,6 @@ gal_fits_img_write_corr_wcs_str(gal_data_t *input, char *filename,
         fits_update_key(fptr, TDOUBLE, "CRPIX3", &crpix[2], NULL, &status);
       gal_fits_io_error(status, NULL);
     }
-
-  /* Write all the headers and the version information. */
-  gal_fits_key_write_version_in_ptr(&headers, program_string, fptr);
 
   /* Close the file and return. */
   fits_close_file(fptr, &status);
@@ -4320,7 +4365,7 @@ fits_tab_write_col(fitsfile *fptr, gal_data_t *col, int tableformat,
 void
 gal_fits_tab_write(gal_data_t *cols, gal_list_str_t *comments,
                    int tableformat, char *filename, char *extname,
-                   struct gal_fits_list_key_t **keylist)
+                   struct gal_fits_list_key_t *keylist, int freekeys)
 {
   fitsfile *fptr;
   gal_data_t *col;
@@ -4369,15 +4414,11 @@ gal_fits_tab_write(gal_data_t *cols, gal_list_str_t *comments,
     fits_tab_write_col(fptr, col, tableformat, &i, tform[i], filename);
 
   /* Write the requested keywords. */
-  if(keylist)
-    gal_fits_key_write_in_ptr(keylist, fptr);
+  if(keylist) gal_fits_key_write_in_ptr(keylist, fptr, freekeys);
 
   /* Write the comments if there were any. */
   for(strt=comments; strt!=NULL; strt=strt->next)
     fits_write_comment(fptr, strt->v, &status);
-
-  /* Write all the headers and the version information. */
-  gal_fits_key_write_version_in_ptr(NULL, NULL, fptr);
 
   /* Clean up and close the FITS file. Note that each element in the
      'ttype' and 'tunit' arrays just points to the respective string in the

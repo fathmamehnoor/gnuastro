@@ -315,6 +315,58 @@ struct argp_option gal_commonopts_options[] =
       GAL_OPTIONS_NOT_MANDATORY,
       GAL_OPTIONS_NOT_SET
     },
+    {
+      "outfitsnodate",
+      GAL_OPTIONS_KEY_OUTFITSNODATE,
+      0,
+      0,
+      "No 'DATE' in 0-th HDU of output FITS.",
+      GAL_OPTIONS_GROUP_OUTPUT,
+      &cp->outfitsnodate,
+      GAL_OPTIONS_NO_ARG_TYPE,
+      GAL_OPTIONS_RANGE_0_OR_1,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET
+    },
+    {
+      "outfitsnoversions",
+      GAL_OPTIONS_KEY_OUTFITSNOVERSIONS,
+      0,
+      0,
+      "No versions in 0-th HDU of output FITS.",
+      GAL_OPTIONS_GROUP_OUTPUT,
+      &cp->outfitsnoversions,
+      GAL_OPTIONS_NO_ARG_TYPE,
+      GAL_OPTIONS_RANGE_0_OR_1,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET
+    },
+    {
+      "outfitsnocommit",
+      GAL_OPTIONS_KEY_OUTFITSNOCOMMIT,
+      0,
+      0,
+      "No Git commit in 0-th HDU of output FITS.",
+      GAL_OPTIONS_GROUP_OUTPUT,
+      &cp->outfitsnocommit,
+      GAL_OPTIONS_NO_ARG_TYPE,
+      GAL_OPTIONS_RANGE_0_OR_1,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET
+    },
+    {
+      "outfitsnoconfig",
+      GAL_OPTIONS_KEY_OUTFITSNOCONFIG,
+      0,
+      0,
+      "No metadata in 0-th HDU of output FITS.",
+      GAL_OPTIONS_GROUP_OUTPUT,
+      &cp->outfitsnoconfig,
+      GAL_OPTIONS_NO_ARG_TYPE,
+      GAL_OPTIONS_RANGE_0_OR_1,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET
+    },
 
 
 

@@ -647,8 +647,8 @@ keywords_wcs_convert(struct fitsparams *p)
     output=p->cp.output;
   else
     {
-      if( asprintf(&suffix, "-%s.fits",
-                   p->wcsdistortion ? p->wcsdistortion : p->wcscoordsys)<0 )
+      if(asprintf(&suffix, "-%s.fits",
+                  p->wcsdistortion ? p->wcsdistortion : p->wcscoordsys)<0)
         error(EXIT_FAILURE, 0, "%s: asprintf allocation", __func__);
       output=gal_checkset_automatic_output(&p->cp, p->input->v, suffix);
     }
@@ -659,7 +659,7 @@ keywords_wcs_convert(struct fitsparams *p)
     {
       /* Add the output WCS to the dataset and write it. */
       data->wcs=outwcs;
-      gal_fits_img_write(data, output, NULL, PROGRAM_NAME);
+      gal_fits_img_write(data, output, NULL, 0);
 
       /* Clean up, but remove the pointer first (so it doesn't free it
          here). */
@@ -667,7 +667,7 @@ keywords_wcs_convert(struct fitsparams *p)
       gal_data_free(data);
     }
   else
-    gal_wcs_write(outwcs, output, p->wcsdistortion, NULL, PROGRAM_NAME);
+    gal_wcs_write(outwcs, output, p->wcsdistortion, NULL, PROGRAM_NAME, 0);
 
   /* Clean up. */
   wcsfree(inwcs);
@@ -993,7 +993,7 @@ keywords_value(struct fitsparams *p)
   gal_checkset_writable_remove(p->cp.output, p->input->v, 0,
                                p->cp.dontdelete);
   gal_table_write(out, NULL, NULL, p->cp.tableformat,
-                  p->cp.output, "KEY-VALUES", p->colinfoinstdout);
+                  p->cp.output, "KEY-VALUES", p->colinfoinstdout, 0);
 
   /* Clean up. */
   gal_list_str_free(p->keyvalue, 0);

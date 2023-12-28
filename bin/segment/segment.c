@@ -1065,8 +1065,8 @@ segment_save_sn_table(struct clumps_params *clprm)
   /* Set the column pointers and write them into a table.. */
   clumpinobj->next=sn;
   objind->next=clumpinobj;
-  gal_table_write(objind, NULL, comments, p->cp.tableformat, p->clumpsn_d_name,
-                  "DET_CLUMP_SN", 0);
+  gal_table_write(objind, NULL, comments, p->cp.tableformat,
+                  p->clumpsn_d_name, "DET_CLUMP_SN", 0, 0);
 
 
   /* Clean up. */
@@ -1312,7 +1312,7 @@ segment_detections(struct segmentparams *p)
             }
 
           /* Write the demonstration array into the check image.  */
-          gal_fits_img_write(demo, p->segmentationname, NULL, PROGRAM_NAME);
+          gal_fits_img_write(demo, p->segmentationname, NULL, 0);
 
           /* Increment the step counter. */
           ++clprm.step;
@@ -1383,9 +1383,14 @@ segment_output(struct segmentparams *p)
   float *f, *ff;
   gal_fits_list_key_t *keys=NULL;
 
+  /* Write the configuration keywords. */
+  gal_fits_key_write_filename("input", p->inputname, &p->cp.ckeys, 1,
+                              p->cp.quiet);
+  gal_fits_key_write(p->cp.ckeys, p->cp.output, "0", "NONE", 1, 1);
+
   /* The Sky-subtracted input (if requested). */
   if(!p->rawoutput)
-    gal_fits_img_write(p->input, p->cp.output, NULL, PROGRAM_NAME);
+    gal_fits_img_write(p->input, p->cp.output, NULL, 0);
 
   /* The clump labels. */
   gal_fits_key_list_add(&keys, GAL_TYPE_FLOAT32, "CLUMPSN", 0,
@@ -1395,7 +1400,7 @@ segment_output(struct segmentparams *p)
                         &p->numclumps, 0, "Total number of clumps", 0,
                         "counter", 0);
   p->clabel->name="CLUMPS";
-  gal_fits_img_write(p->clabel, p->cp.output, keys, PROGRAM_NAME);
+  gal_fits_img_write(p->clabel, p->cp.output, keys, 1);
   p->clabel->name=NULL;
   keys=NULL;
 
@@ -1403,10 +1408,10 @@ segment_output(struct segmentparams *p)
   if(!p->noobjects)
     {
       gal_fits_key_list_add(&keys, GAL_TYPE_SIZE_T, "NUMLABS", 0,
-                            &p->numobjects, 0, "Total number of objects", 0,
-                            "counter", 0);
+                            &p->numobjects, 0, "Total number of objects",
+                            0, "counter", 0);
       p->olabel->name="OBJECTS";
-      gal_fits_img_write(p->olabel, p->cp.output, keys, PROGRAM_NAME);
+      gal_fits_img_write(p->olabel, p->cp.output, keys, 1);
       p->olabel->name=NULL;
       keys=NULL;
     }
@@ -1443,20 +1448,14 @@ segment_output(struct segmentparams *p)
       if(p->std->size == p->input->size)
         {
           p->std->wcs=p->input->wcs;
-          gal_fits_img_write(p->std, p->cp.output, keys, PROGRAM_NAME);
+          gal_fits_img_write(p->std, p->cp.output, keys, 1);
           p->std->wcs=NULL;
         }
       else
-        gal_tile_full_values_write(p->std, &p->cp.tl, 1, p->cp.output, keys,
-                                   PROGRAM_NAME);
+        gal_tile_full_values_write(p->std, &p->cp.tl, 1, p->cp.output,
+                                   keys, 1);
       p->std->name=NULL;
     }
-
-  /* Write the configuration keywords. */
-  gal_fits_key_write_filename("input", p->inputname, &p->cp.okeys, 1,
-                              p->cp.quiet);
-  gal_fits_key_write_config(&p->cp.okeys, "Segment configuration",
-                            "SEGMENT-CONFIG", p->cp.output, "0", "NONE");
 
   /* Let the user know that the output is written. */
   if(!p->cp.quiet)
@@ -1505,12 +1504,11 @@ segment(struct segmentparams *p)
      in. */
   if(p->segmentationname)
     {
-      gal_fits_img_write(p->input, p->segmentationname, NULL, PROGRAM_NAME);
+      gal_fits_img_write(p->input, p->segmentationname, NULL, 0);
       if(p->input!=p->conv)
-        gal_fits_img_write(p->conv, p->segmentationname, NULL, PROGRAM_NAME);
+        gal_fits_img_write(p->conv, p->segmentationname, NULL, 0);
       p->olabel->name="DETECTION_LABELS";
-      gal_fits_img_write(p->olabel, p->segmentationname, NULL,
-                         PROGRAM_NAME);
+      gal_fits_img_write(p->olabel, p->segmentationname, NULL, 0);
       p->olabel->name=NULL;
     }
   if(!p->cp.quiet)

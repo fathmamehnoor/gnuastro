@@ -103,7 +103,7 @@ detection_initial(struct noisechiselparams *p)
   if(p->detectionname)
     {
       p->binary->name="THRESHOLDED";
-      gal_fits_img_write(p->binary, p->detectionname, NULL, PROGRAM_NAME);
+      gal_fits_img_write(p->binary, p->detectionname, NULL, 0);
       p->binary->name=NULL;
     }
 
@@ -133,7 +133,7 @@ detection_initial(struct noisechiselparams *p)
   if(p->detectionname)
     {
       p->binary->name="ERODED";
-      gal_fits_img_write(p->binary, p->detectionname, NULL, PROGRAM_NAME);
+      gal_fits_img_write(p->binary, p->detectionname, NULL, 0);
       p->binary->name=NULL;
     }
 
@@ -173,7 +173,7 @@ detection_initial(struct noisechiselparams *p)
   if(p->detectionname)
     {
       p->olabel->name="OPENED-AND-LABELED";
-      gal_fits_img_write(p->olabel, p->detectionname, NULL, PROGRAM_NAME);
+      gal_fits_img_write(p->olabel, p->detectionname, NULL, 0);
       p->olabel->name=NULL;
     }
 
@@ -371,7 +371,7 @@ detection_pseudo_find(struct noisechiselparams *p, gal_data_t *workbin,
   if(p->detectionname)
     {
       workbin->name = s0d1 ? "DTHRESH-ON-DET" : "DTHRESH-ON-SKY";
-      gal_fits_img_write(workbin, p->detectionname, NULL, PROGRAM_NAME);
+      gal_fits_img_write(workbin, p->detectionname, NULL, 0);
       workbin->name=NULL;
     }
 
@@ -382,8 +382,8 @@ detection_pseudo_find(struct noisechiselparams *p, gal_data_t *workbin,
      to store all tiles. Finally, since we are working on a 'uint8_t' type,
      the size of each element is only 1 byte. */
   fho_prm.copyspace=gal_pointer_allocate(GAL_TYPE_UINT8,
-                                         p->cp.numthreads*p->maxltcontig, 0,
-                                         __func__, "fho_prm.copyspace");
+                                         p->cp.numthreads*p->maxltcontig,
+                                         0, __func__, "fho_prm.copyspace");
 
 
   /* Fill the holes and open on each large tile. When no check image is
@@ -429,13 +429,14 @@ detection_pseudo_find(struct noisechiselparams *p, gal_data_t *workbin,
               bin->name="OPENED";
               break;
             default:
-              error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s so "
-                    "we can address the issue. the value %d is not "
-                    "recognized.", __func__, PACKAGE_BUGREPORT, fho_prm.step);
+              error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s "
+                    "so we can address the issue. the value %d is not "
+                    "recognized.", __func__, PACKAGE_BUGREPORT,
+                    fho_prm.step);
             }
 
           /* Write the temporary array into the check image. */
-          gal_fits_img_write(bin, p->detectionname, NULL, PROGRAM_NAME);
+          gal_fits_img_write(bin, p->detectionname, NULL, 0);
 
           /* Increment the step counter. */
           ++fho_prm.step;
@@ -652,7 +653,7 @@ detection_sn(struct noisechiselparams *p, gal_data_t *worklab, size_t num,
           while(++plab<plabend);
         }
       worklab->name=extname;
-      gal_fits_img_write(worklab, p->detectionname, NULL, PROGRAM_NAME);
+      gal_fits_img_write(worklab, p->detectionname, NULL, 0);
       worklab->name=NULL;
     }
 
@@ -668,7 +669,8 @@ detection_sn(struct noisechiselparams *p, gal_data_t *worklab, size_t num,
         {
           /* Get the flux weighted center coordinates. */
           for(j=0;j<ndim;++j)
-            coord[j]=GAL_DIMENSION_FLT_TO_INT(pos[i*pcols+j+1]/pos[i*pcols]);
+            coord[j]=GAL_DIMENSION_FLT_TO_INT(pos[i*pcols+j+1]
+                                              /pos[i*pcols]);
 
           /* Get the Sky standard deviation on this tile. */
           err  = ((float *)(p->std->array))[
@@ -764,8 +766,7 @@ detection_pseudo_remove_low_sn(struct noisechiselparams *p,
   if(p->detectionname)
     {
       workbin->name="TRUE-PSEUDOS";
-      gal_fits_img_write(workbin, p->detectionname, NULL,
-                         PROGRAM_NAME);
+      gal_fits_img_write(workbin, p->detectionname, NULL, 0);
       workbin->name=NULL;
     }
 
@@ -1170,8 +1171,7 @@ detection(struct noisechiselparams *p)
   if(p->detectionname)
     {
       workbin->name="DETECTIONS-INIT-TRUE";
-      gal_fits_img_write(workbin, p->detectionname, NULL,
-                         PROGRAM_NAME);
+      gal_fits_img_write(workbin, p->detectionname, NULL, 0);
       workbin->name=NULL;
     }
   if(!p->cp.quiet)
@@ -1254,8 +1254,7 @@ detection(struct noisechiselparams *p)
   if(p->detectionname)
     {
       p->olabel->name="DETECTION-FINAL";
-      gal_fits_img_write(p->olabel, p->detectionname, NULL,
-                         PROGRAM_NAME);
+      gal_fits_img_write(p->olabel, p->detectionname, NULL, 0);
       p->olabel->name=NULL;
     }
 

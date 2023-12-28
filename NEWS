@@ -11,6 +11,20 @@ See the end of the file for license conditions.
     this by showing the brighter parts of the image as color, intermediate
     regions as black and the noisy/faint regions as gray/white.
 
+*** All programs
+  - The following options are now available in all programs to allow
+    customization of which metadata is printed in the 0-th HDU of the FITS
+    output of all Gnuastro programs. Also see the "Changed features" list
+    for an important change in this regard to all Gnuastro output FITS
+    files.
+    --outfitsnoconfig: do not print any metadata in the 0-th HDU (including
+      the used options and their values, the date, the versions and git
+      commit of running directory).
+    --outfitsnodate: do not write the 'DATE' keyword.
+    --outfitsnoversions: do not write the versions of Gnuastro and
+      mandatory dependencies.
+    --outfitsnocommit: do not write the Git commit.
+
 *** Arithmetic
   - New operators:
     - rotate-coord: given a 2D point's coordinates, return the coordinates
@@ -94,6 +108,11 @@ See the end of the file for license conditions.
   - gal_dimension_collapse_sclip_fill_mean: filled sigma-clipped mean
   - gal_dimension_collapse_sclip_fill_median: filled sigma-clipped median.
   - gal_dimension_collapse_sclip_fill_number: filled sigma-clipped number.
+  - gal_fits_key_list_add_date: add 'DATE' to current list of keywords.
+  - gal_fits_key_list_add_git_commit: add the Git commit information of the
+    running directory to the input list of keywords (if built with libgit2).
+  - gal_fits_key_list_add_software_versions: add versions of Gnustro and
+    its mandatory dependencies to the input list of keywords.
   - gal_statistics_clip_mad: MAD clipping of given input.
   - gal_statistics_mad: return median absolute deviation (MAD).
   - gal_statistics_median_mad: return median and MAD.
@@ -129,7 +148,27 @@ See the end of the file for license conditions.
     - GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_MAD: bit flag for measuring MAD.
 
 ** Removed features
+*** Library
+  - gal_fits_key_write_version: redundant with the new
+    'gal_fits_key_list_add_software_versions'.
+  - gal_fits_key_write_version_in_ptr: as in gal_fits_key_write_version.
+  - gal_fits_key_write_config: redundant since all configuration (options)
+    are stored as generic keys.
+
 ** Changed features
+*** All programs
+  - Date and versions FITS keywords are only written in the 0-th HDU of
+    output FITS files (along with the options names and values), not the
+    HDU(s) containing data. Until now, the data and versions metadata were
+    written in the data HDU. However, ultimately, these are also metadata
+    and are better suited for the 0-th HDU. For example when everything
+    else is identical, you expect an exactly reproducible HDU (to verify
+    with the FITS 'CHECKSUM' for example), but every time you run, 'DATE'
+    will be different! Similarly for the versions of the software or Git
+    commit (they may change, while your dataset doesn't). To disable these
+    in the 0-th HDU also, see the newly added '--outfitsno*' options in the
+    new features.
+
 *** Arithmetic
   - Binary operators (like '+' or 'x') that are given two integers will
     crash with an error if the input operands have the same width but
@@ -141,10 +180,23 @@ See the end of the file for license conditions.
     on Gnuastro's Matrix chat channel (#gnuastro:openastronomy.org).
 
 *** Library
+  - gal_fits_key_write: to generalize, the "title" argument has been
+    removed (because it is a keyword). It can also create the file if it
+    doesn't exist and can optionally free the list of keywords (until now,
+    it would always free them).
+  - gal_fits_key_write_in_ptr: similar to 'gal_fits_key_write'.
+  - gal_fits_img_write: no more 'program_name'; it is a keyword title;
+    added 'freekeys' argument to optionally free the input keyword list.
+  - gal_fits_img_write_to_type: as in 'gal_fits_img_write'.
+  - gal_fits_img_write_corr_wcs_str: as in 'gal_fits_img_write'.
+  - gal_fits_tab_write: as in 'gal_fits_img_write'.
   - GAL_STATISTICS_CLIP_MAX_CONVERGE: new name for the old
     'GAL_STATISTICS_SIG_CLIP_MAX_CONVERGE'. Since we now also have
     MAD-clipping.
   - gal_statistics_clip_sigma: new name for 'gal_statistics_sigma_clip'.
+  - gal_table_write: as in 'gal_fits_img_write'.
+  - gal_tile_full_values_write: as in 'gal_fits_img_write'.
+  - gal_wcs_write: as in 'gal_fits_img_write'.
 
 ** Bugs fixed
   - bug #64852: astscript-zeropoint: crash when input is in 0-th HDU;

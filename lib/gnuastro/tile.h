@@ -153,7 +153,7 @@ void
 gal_tile_full_values_write(gal_data_t *tilevalues,
                            struct gal_tile_two_layer_params *tl,
                            int withblank, char *filename,
-                           gal_fits_list_key_t *keys, char *program_string);
+                           gal_fits_list_key_t *keys, int freekeys);
 
 gal_data_t *
 gal_tile_full_values_smooth(gal_data_t *tilevalues,

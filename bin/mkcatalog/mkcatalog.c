@@ -722,10 +722,9 @@ mkcatalog_write_outputs(struct mkcatalogparams *p)
       /* Reverse the comments list (so it is printed in the same order
          here), write the objects catalog and free the comments. */
       gal_list_str_reverse(&comments);
-      gal_table_write(p->objectcols, &keylist, NULL, p->cp.tableformat,
-                      p->objectsout, "OBJECTS", 0);
+      gal_table_write(p->objectcols, keylist, NULL, p->cp.tableformat,
+                      p->objectsout, "OBJECTS", 0, 1);
       gal_list_str_free(comments, 1);
-
 
       /* CLUMPS catalog */
       if(p->clumps)
@@ -740,7 +739,7 @@ mkcatalog_write_outputs(struct mkcatalogparams *p)
              here), write the objects catalog and free the comments. */
           gal_list_str_reverse(&comments);
           gal_table_write(p->clumpcols, NULL, comments, p->cp.tableformat,
-                          p->clumpsout, "CLUMPS", 0);
+                          p->clumpsout, "CLUMPS", 0, 1);
           gal_list_str_free(comments, 1);
         }
     }
@@ -748,11 +747,9 @@ mkcatalog_write_outputs(struct mkcatalogparams *p)
   /* Configuration information. */
   if(outisfits)
     {
-      gal_fits_key_write_filename("input", p->objectsfile, &p->cp.okeys,
+      gal_fits_key_write_filename("input", p->objectsfile, &p->cp.ckeys,
                                   1, p->cp.quiet);
-      gal_fits_key_write_config(&p->cp.okeys, "MakeCatalog configuration",
-                                "MKCATALOG-CONFIG", p->objectsout, "0",
-                                "NONE");
+      gal_fits_key_write(p->cp.ckeys, p->objectsout, "0", "NONE", 1, 0);
     }
 
 

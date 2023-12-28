@@ -308,11 +308,12 @@ fits_print_extension_info(struct fitsparams *p)
         printf("           ('%s': no unit in HDU metadata, or "
                "HDU is a table)\n", GAL_BLANK_STRING);
       if(hascomments)
-        printf(" Column 6: Comments about the HDU (e.g., if its HEALpix, or "
-               "etc).\n");
+        printf(" Column 6: Comments about the HDU (e.g., if its HEALpix, "
+               "or etc).\n");
       printf("-----\n");
     }
-  gal_table_write(cols, NULL, NULL, GAL_TABLE_FORMAT_TXT, NULL, NULL, 0);
+  gal_table_write(cols, NULL, NULL, GAL_TABLE_FORMAT_TXT, NULL, NULL,
+                  0, 0);
   gal_list_data_free(cols);
 }
 

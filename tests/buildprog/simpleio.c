@@ -45,7 +45,7 @@ main(int argc, char *argv[])
   printf("%s (hdu %s) is read into memory.\n", argv[1], argv[2]);
 
   /* Save the image in memory into another file. */
-  gal_fits_img_write(image, outname, NULL, "BuildProgram's Simpleio");
+  gal_fits_img_write(image, outname, NULL, 0);
 
   /* Let the user know. */
   printf("%s created.\n", outname);

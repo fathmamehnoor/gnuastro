@@ -296,7 +296,8 @@ upperlimit_write_keys(struct mkcatalogparams *p,
                             "counter", 0);
   gal_fits_key_list_add_end(keylist, GAL_TYPE_STRING, "UPRNGNAM", 0,
                             (void *)(p->rng_name), 0,
-                            "Random number generator name.", 0, NULL, 0);
+                            "Random number generator name.",
+                            0, NULL, 0);
   mkcatalog_outputs_keys_numeric(keylist, &p->rng_seed,
                                  GAL_TYPE_ULONG, "UPRNGSEE",
                                  "Random number generator seed.", NULL);
@@ -346,8 +347,10 @@ upperlimit_write_keys(struct mkcatalogparams *p,
 
 /* Write the values into a table for the user */
 static void
-upperlimit_write_check(struct mkcatalogparams *p, gal_list_sizet_t *check_x,
-                       gal_list_sizet_t *check_y, gal_list_sizet_t *check_z,
+upperlimit_write_check(struct mkcatalogparams *p,
+                       gal_list_sizet_t *check_x,
+                       gal_list_sizet_t *check_y,
+                       gal_list_sizet_t *check_z,
                        gal_list_f32_t *check_s)
 {
   float *sarr;
@@ -425,8 +428,8 @@ upperlimit_write_check(struct mkcatalogparams *p, gal_list_sizet_t *check_x,
   x->next=y;
   if(check_z) { y->next=z; z->next=s; }
   else        { y->next=s;            }
-  gal_table_write(x, &keylist, NULL, p->cp.tableformat, p->upcheckout,
-                  "UPPERLIMIT_CHECK", 0);
+  gal_table_write(x, keylist, NULL, p->cp.tableformat, p->upcheckout,
+                  "UPPERLIMIT_CHECK", 0, 1);
 
   /* Inform the user. */
   if(!p->cp.quiet)

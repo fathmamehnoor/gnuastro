@@ -159,7 +159,7 @@ struct argp_option program_options[] =
       UI_KEY_WRITEALL,
       0,
       0,
-      "Write all images in stack (not just a single one).",
+      "Write all remaining data in the output.",
       GAL_OPTIONS_GROUP_OUTPUT,
       &p->writeall,
       GAL_OPTIONS_NO_ARG_TYPE,

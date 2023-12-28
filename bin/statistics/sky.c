@@ -166,9 +166,10 @@ sky(struct statisticsparams *p)
         printf("  - Kernel: %s (hdu: %s)\n", p->kernelname, p->khdu);
     }
 
+
   /* When checking steps, the input image is the first extension. */
   if(p->checksky)
-    gal_fits_img_write(p->input, p->checkskyname, NULL, PROGRAM_NAME);
+    gal_fits_img_write(p->input, p->checkskyname, NULL,  0);
 
 
   /* Convolve the image (if desired). */
@@ -179,8 +180,7 @@ sky(struct statisticsparams *p)
                                         cp->numthreads, 1,
                                         tl->workoverch, 0);
       if(p->checksky)
-        gal_fits_img_write(p->convolved, p->checkskyname, NULL,
-                           PROGRAM_NAME);
+        gal_fits_img_write(p->convolved, p->checkskyname, NULL, 0);
       if(!cp->quiet)
         gal_timing_report(&t1, "Input convolved with kernel.", 1);
     }
@@ -212,9 +212,9 @@ sky(struct statisticsparams *p)
   if(p->checksky)
     {
       gal_tile_full_values_write(p->sky_t, tl, !p->ignoreblankintiles,
-                                 p->checkskyname, NULL, PROGRAM_NAME);
+                                 p->checkskyname, NULL, 0);
       gal_tile_full_values_write(p->std_t, tl, !p->ignoreblankintiles,
-                                 p->checkskyname, NULL, PROGRAM_NAME);
+                                 p->checkskyname, NULL, 0);
     }
 
 
@@ -244,9 +244,9 @@ sky(struct statisticsparams *p)
   if(p->checksky)
     {
       gal_tile_full_values_write(p->sky_t, tl, !p->ignoreblankintiles,
-                                 p->checkskyname, NULL, PROGRAM_NAME);
+                                 p->checkskyname, NULL, 0);
       gal_tile_full_values_write(p->std_t, tl, !p->ignoreblankintiles,
-                                 p->checkskyname, NULL, PROGRAM_NAME);
+                                 p->checkskyname, NULL, 0);
     }
 
 
@@ -268,9 +268,9 @@ sky(struct statisticsparams *p)
       if(p->checksky)
         {
           gal_tile_full_values_write(p->sky_t, tl, !p->ignoreblankintiles,
-                                     p->checkskyname, NULL, PROGRAM_NAME);
+                                     p->checkskyname, NULL, 0);
           gal_tile_full_values_write(p->std_t, tl, !p->ignoreblankintiles,
-                                     p->checkskyname, NULL, PROGRAM_NAME);
+                                     p->checkskyname, NULL, 0);
           if(!cp->quiet)
             printf("  - Check image written to '%s'.\n", p->checkskyname);
         }
@@ -290,14 +290,13 @@ sky(struct statisticsparams *p)
   p->std_t->name="SKY_STD";
   p->cp.keepinputdir=keepinputdir;
   gal_tile_full_values_write(p->sky_t, tl, !p->ignoreblankintiles, outname,
-                             NULL, PROGRAM_NAME);
+                             NULL, 0);
   gal_tile_full_values_write(p->std_t, tl, !p->ignoreblankintiles, outname,
-                             NULL, PROGRAM_NAME);
+                             NULL, 0);
   p->sky_t->name = p->std_t->name = NULL;
-  gal_fits_key_write_filename("input", p->inputname, &p->cp.okeys, 1,
+  gal_fits_key_write_filename("input", p->inputname, &p->cp.ckeys, 1,
                               p->cp.quiet);
-  gal_fits_key_write_config(&p->cp.okeys, "Statistics configuration",
-                            "STATISTICS-CONFIG", outname, "0", "NONE");
+  gal_fits_key_write(p->cp.ckeys, outname, "0", "NONE", 1, 0);
   if(!cp->quiet)
     printf("  - Sky and its STD written to '%s'.\n", outname);
 
