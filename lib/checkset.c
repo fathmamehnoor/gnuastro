@@ -352,6 +352,18 @@ gal_checkset_string_has_space(char *in)
 
 
 
+void
+gal_checkset_string_case_change(char *in, int toupper1_tolower0)
+{
+  if(toupper1_tolower0) do *in=toupper(*in); while(*in++!='\0');
+  else                  do *in=tolower(*in); while(*in++!='\0');
+
+}
+
+
+
+
+
 char *
 gal_checkset_malloc_cat(char *inname, char *toappend)
 {

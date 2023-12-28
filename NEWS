@@ -73,6 +73,9 @@ See the end of the file for license conditions.
                  you want something similar to 3-sigma (the default), you
                  should set the MAD multiple to 5 (the default).
 
+*** Makefile extension
+  - 'ast-text-to-upper': convert input string to upper-case.
+  - 'ast-text-to-lower': convert input string to lower-case.
 *** Library
 **** Functions
   - gal_dimension_collapse_mclip_mad: MAD-clipped MAD.

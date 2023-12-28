@@ -82,6 +82,9 @@ gal_checkset_known_types(char *optarg, int *type, char *filename,
 int
 gal_checkset_string_has_space(char *in);
 
+void
+gal_checkset_string_case_change(char *in, int toupper1_tolower0);
+
 char *
 gal_checkset_malloc_cat(char *inname, char *toappend);
 

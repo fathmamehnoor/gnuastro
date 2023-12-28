@@ -825,6 +825,11 @@ Makefile extensions (for GNU Make)
 * Loading the Gnuastro Make functions::  How to find and load Gnuastro's Make library.
 * Makefile functions of Gnuastro::  The available functions.
 
+Makefile functions of Gnuastro
+
+* Text functions for Makefiles::  Basic text operations to supplement Make.
+* Astronomy functions for Makefiles::  Astronomy/FITS related functions.
+
 Library
 
 * Review of library fundamentals::  Guide on libraries and linking.
@@ -35510,7 +35515,9 @@ All Gnuastro Make functions start with the @command{ast-} prefix (similar to the
 After you have loaded Gnuastro's shared library for Makefiles within your Makefile, you can call these functions just like any Make function.
 For instructions on how to load Gnuastro's Make functions, see @ref{Loading the Gnuastro Make functions}.
 
-The Make functions in Gnuastro have been recently added (in August 2022), and will be gradually increasing, as we find the need for more specialized functions.
+There are two types of Make functions in Gnuastro's Make extensions:
+1) Basic operations on text which more general than astronomy or Gnuastro, see @ref{Text functions for Makefiles}).
+2) Operations that are directly related to astronomy (mostly FITS files) and Gnuastro, see @ref{Astronomy functions for Makefiles}).
 
 @cartouche
 @noindent
@@ -35523,32 +35530,19 @@ Otherwise, each time the value is used, the function will be expanded (possibly 
 For more, see the @url{https://www.gnu.org/software/make/manual/html_node/Flavors.html, The two flavors of variables} in the GNU Make manual.
 @end cartouche
 
+@menu
+* Text functions for Makefiles::  Basic text operations to supplement Make.
+* Astronomy functions for Makefiles::  Astronomy/FITS related functions.
+@end menu
+
+@node Text functions for Makefiles, Astronomy functions for Makefiles, Makefile functions of Gnuastro, Makefile functions of Gnuastro
+@subsection Text functions for Makefiles
+
+The functions described below are generic (not limited to astronomy/FITS) functions that operate on plain text.
+You can see these as functions that should have been implemented in GNU Make itself.
+The names of these functions start with @code{ast-text-*} and each has a fully working example to demonstrate its usage.
+
 @table @code
-@item $(ast-version-is STRING)
-@cindex Reproducibility
-Returns @code{1} if the version of the used Gnuastro is equal to @code{STRING}, and @code{0} otherwise.
-This is useful/critical for obtaining reproducible results on different systems.
-It can be used in combination with @url{https://www.gnu.org/software/make/manual/html_node/Conditionals.html, Conditionals in Make} to ensure the required version of Gnuastro is going to be used in your workflow.
-
-For example, in the minimal working Makefile below, we are using it to specify if the default (first) target (@code{all}) should have any prerequisites (and let the workflow start), or if it should simply print a message (that the required version of Gnuastro isn't installed) and abort (without any prerequisites).
-
-@example
-load /usr/local/lib/libgnuastro_make.so
-
-gnuastro-version = 0.19
-ifeq ($(ast-version-is $(gnuastro-version)),1)
-all: paper.pdf
-else
-all:; @@echo "Please use Gnuastro $(gnuastro-version)"
-endif
-
-result.fits: input.fits
-        astnoisechisel $< --output=$@@
-
-paper.pdf: result.fits
-        pdflatex --halt-on-error paper.tex
-@end example
-
 @item $(ast-text-contains STRING, TEXT)
 Returns all white-space-separated words in @code{TEXT} that contain the @code{STRING}, removing any words that @emph{do not} match.
 For example, the following minimal Makefile will only print the @code{bAaz Aah} word of the list.
@@ -35576,6 +35570,66 @@ load /usr/local/lib/libgnuastro_make.so
 list = fooo baar bAaz uggh Aah
 all:
      echo $(ast-text-not-contains Aa, $(list))
+@end example
+
+@item $(ast-text-to-upper STRING)
+Returns the input string but with all characters in UPPER-CASE.
+For example, the following minimal Makefile will print @code{FOOO BAAR UGGH} word of the list.
+
+@example
+load /usr/local/lib/libgnuastro_make.so
+
+list   = fOOo bAar UggH
+ulist := $(ast-text-to-upper $(list))
+all:; echo $(ulist)
+@end example
+
+@item $(ast-text-to-lower STRING)
+Returns the input string but with all characters in lower-case.
+For example, the following minimal Makefile will print @code{fooo baar uggh} word of the list.
+
+@example
+load /usr/local/lib/libgnuastro_make.so
+
+list  = fOOo bAar UggH
+list := $(ast-text-to-lower $(list))
+all:; echo $(ulist)
+@end example
+
+@end table
+
+
+@node Astronomy functions for Makefiles,  , Text functions for Makefiles, Makefile functions of Gnuastro
+@subsection Astronomy functions for Makefiles
+
+FITS files (the standard data format in astronomy) have unique features (header keywords and HDUs) that can greatly help designing workflows in Makefiles.
+The Makefile extension functions of this section allow you to optimally use those features within your pipelines.
+Besides FITS, when desinging your workflow/pipeline with Gnuastro, there are also special features like version checking that simplify your design.
+
+@table @code
+@item $(ast-version-is STRING)
+@cindex Reproducibility
+Returns @code{1} if the version of the used Gnuastro is equal to @code{STRING}, and @code{0} otherwise.
+This is useful/critical for obtaining reproducible results on different systems.
+It can be used in combination with @url{https://www.gnu.org/software/make/manual/html_node/Conditionals.html, Conditionals in Make} to ensure the required version of Gnuastro is going to be used in your workflow.
+
+For example, in the minimal working Makefile below, we are using it to specify if the default (first) target (@code{all}) should have any prerequisites (and let the workflow start), or if it should simply print a message (that the required version of Gnuastro isn't installed) and abort (without any prerequisites).
+
+@example
+load /usr/local/lib/libgnuastro_make.so
+
+gnuastro-version = 0.19
+ifeq ($(ast-version-is $(gnuastro-version)),1)
+all: paper.pdf
+else
+all:; @@echo "Please use Gnuastro $(gnuastro-version)"
+endif
+
+result.fits: input.fits
+        astnoisechisel $< --output=$@@
+
+paper.pdf: result.fits
+        pdflatex --halt-on-error paper.tex
 @end example
 
 @item $(ast-fits-with-keyvalue KEYNAME, KEYVALUES, HDU, FITS_FILES)

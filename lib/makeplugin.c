@@ -48,9 +48,14 @@ int plugin_is_GPL_compatible=1;
 
 /* Names of the separate functions. */
 #define MAKEPLUGIN_FUNC_PREFIX "ast"
-static char *version_is_name=MAKEPLUGIN_FUNC_PREFIX"-version-is";
+/* Basic text functions */
+static char *text_to_upper=MAKEPLUGIN_FUNC_PREFIX"-text-to-upper";
+static char *text_to_lower=MAKEPLUGIN_FUNC_PREFIX"-text-to-lower";
 static char *text_contains_name=MAKEPLUGIN_FUNC_PREFIX"-text-contains";
 static char *text_not_contains_name=MAKEPLUGIN_FUNC_PREFIX"-text-not-contains";
+
+/* Gnuastro analysis functions */
+static char *version_is_name=MAKEPLUGIN_FUNC_PREFIX"-version-is";
 static char *fits_with_keyvalue_name=MAKEPLUGIN_FUNC_PREFIX"-fits-with-keyvalue";
 static char *fits_unique_keyvalues_name=MAKEPLUGIN_FUNC_PREFIX"-fits-unique-keyvalues";
 
@@ -164,6 +169,35 @@ makeplugin_text_not_contains(const char *caller, unsigned int argc,
   return makeplugin_text_contains_base(argv, 0);
 }
 
+
+
+
+
+/* Convert input string to upper-case. */
+static char *
+makeplugin_text_to_upper(const char *caller, unsigned int argc,
+                         char **argv)
+{
+  char *out;
+  gal_checkset_allocate_copy(argv[0], &out);
+  gal_checkset_string_case_change(out, 1);
+  return out;
+}
+
+
+
+
+
+/* Convert input string to upper-case. */
+static char *
+makeplugin_text_to_lower(const char *caller, unsigned int argc,
+                         char **argv)
+{
+  char *out;
+  gal_checkset_allocate_copy(argv[0], &out);
+  gal_checkset_string_case_change(out, 0);
+  return out;
+}
 
 
 
@@ -291,14 +325,28 @@ makeplugin_fits_unique_keyvalues(const char *caller, unsigned int argc,
 
 
 
-/* Top-level function (that should have this name). */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**********************************************************************/
+/********          High-level interface with Make             *********/
+/**********************************************************************/
 int
 libgnuastro_make_gmk_setup()
 {
-  /* Return 1 if Gnuastro has the requested version. */
-  gmk_add_function(version_is_name, makeplugin_version_is,
-                   1, 1, GMK_FUNC_DEFAULT);
-
+  /* ------------ Basic useful text functions ------------ */
   /* Return the input strings that contain the given string. */
   gmk_add_function(text_contains_name, makeplugin_text_contains,
                    2, 2, GMK_FUNC_DEFAULT);
@@ -306,6 +354,23 @@ libgnuastro_make_gmk_setup()
   /* Return the input strings that DON'T contain the given string. */
   gmk_add_function(text_not_contains_name, makeplugin_text_not_contains,
                    2, 2, GMK_FUNC_DEFAULT);
+
+  /* Convert input sting into upper-case. */
+  gmk_add_function(text_to_upper, makeplugin_text_to_upper,
+                   1, 1, GMK_FUNC_DEFAULT);
+
+  /* Convert input string to lower-case. */
+  gmk_add_function(text_to_lower, makeplugin_text_to_lower,
+                   1, 1, GMK_FUNC_DEFAULT);
+
+
+
+
+
+  /* ------------ Gnuastro related functions ------------ */
+  /* Return 1 if Gnuastro has the requested version. */
+  gmk_add_function(version_is_name, makeplugin_version_is,
+                   1, 1, GMK_FUNC_DEFAULT);
 
   /* Select files, were a certain keyword has a certain value. It takes
      four arguments. */
