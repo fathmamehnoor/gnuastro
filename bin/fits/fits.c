@@ -559,13 +559,13 @@ fits_skycoverage(struct fitsparams *p)
       switch(ndim)
         {
         case 2:
-          printf("  Center: %-15.10g%-15.10g\n", center[0], center[1]);
-          printf("  Width:  %-15.10g%-15.10g\n", width[0],  width[1]);
+          printf("  Center: %-15.10g %-15.10g\n", center[0], center[1]);
+          printf("  Width:  %-15.10g %-15.10g\n", width[0],  width[1]);
           break;
         case 3:
-          printf("  Center: %-15.10g%-15.10g%-15.10g\n", center[0],
+          printf("  Center: %-15.10g %-15.10g %-15.10g\n", center[0],
                  center[1], center[2]);
-          printf("  width:  %-15.10g%-15.10g%-15.10g\n", width[0],
+          printf("  width:  %-15.10g %-15.10g %-15.10g\n", width[0],
                  width[1], width[2]);
           break;
         default:
@@ -579,7 +579,7 @@ fits_skycoverage(struct fitsparams *p)
                        0, 0, &nwcs, "--hdu");
       printf("\nSky coverage by range along dimensions:\n");
       for(i=0;i<ndim;++i)
-        printf("  %-8s %-15.10g%-15.10g\n", gal_wcs_dimension_name(wcs, i),
+        printf("  %-8s %-15.10g %-15.10g\n", gal_wcs_dimension_name(wcs, i),
                min[i], max[i]);
       wcsfree(wcs);
     }
