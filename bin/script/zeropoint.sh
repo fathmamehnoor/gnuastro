@@ -172,8 +172,29 @@ Citations and acknowledgement are vital for the continued work on Gnuastro.
 
 Please cite the following record(s) and add the acknowledgement statement below in your work to support us. Please note that different Gnuastro programs may have different corresponding papers. Hence, please check all the programs you used. Don't forget to also include the version as shown above for reproducibility.
 
-First paper introducing Gnuastro
---------------------------------
+Paper introducing the zero point script
+---------------------------------------
+@ARTICLE{astscrip-zeropoint,
+       author = {{Eskandarlou}, Sepideh and {Akhlaghi}, Mohammad and {Infante-Sainz}, Ra{\'u}l and {Saremi}, Elham and {Raji}, Samane and {Sharbaf}, Zahra and {Golini}, Giulia and {Ghaffari}, Zohreh and {Knapen}, Johan H.},
+        title = "{Gnuastro: Estimating the Zero-point Magnitude in Astronomical Imaging}",
+      journal = {Research Notes of the American Astronomical Society},
+     keywords = {Flux calibration, Astronomy software, Open source software, Astronomical techniques, 544, 1855, 1866, 1684, Astrophysics - Instrumentation and Methods for Astrophysics},
+         year = 2023,
+        month = dec,
+       volume = {7},
+       number = {12},
+          eid = {269},
+        pages = {269},
+          doi = {10.3847/2515-5172/ad14f4},
+archivePrefix = {arXiv},
+       eprint = {2312.04263},
+ primaryClass = {astro-ph.IM},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/2023RNAAS...7..269E},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+
+Paper introducing Gnuastro
+--------------------------
   @ARTICLE{gnuastro,
      author = {{Akhlaghi}, M. and {Ichikawa}, T.},
       title = "{Noise-based Detection and Segmentation of Nebulous Objects}",
@@ -190,6 +211,9 @@ First paper introducing Gnuastro
      adsurl = {https://ui.adsabs.harvard.edu/abs/2015ApJS..220....1A},
     adsnote = {Provided by the SAO/NASA Astrophysics Data System}
   }
+
+
+
 
 Acknowledgement
 ---------------

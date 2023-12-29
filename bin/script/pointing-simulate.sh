@@ -148,8 +148,8 @@ archivePrefix = {arXiv},
         adsnote = {Provided by the SAO/NASA Astrophysics Data System}
   }
 
-First paper introducing Gnuastro (currently main citation)
-----------------------------------------------------------
+Paper introducing Gnuastro (currently main citation)
+----------------------------------------------------
   @ARTICLE{gnuastro,
      author = {{Akhlaghi}, M. and {Ichikawa}, T.},
       title = "{Noise-based Detection and Segmentation of Nebulous Objects}",
