@@ -73,6 +73,11 @@ See the end of the file for license conditions.
     - collapse-sigclip-fill-median: Collapse dim. by filled sigma-clip. median.
     - collapse-sigclip-fill-number: Collapse dim. by filled sigma-clipped num.
 
+*** Fits
+  --datasum-encoded: new option that will return an ASCII encoded
+    16-character string for the value of the 'DATASUM' concept in FITS data
+    verification.
+
 *** Statistics
   --mad: Median Absolute Deviation (MAD) of input dataset.
   --madclip: MAD-clipping, showing intermediate results.
@@ -108,6 +113,7 @@ See the end of the file for license conditions.
   - gal_dimension_collapse_sclip_fill_mean: filled sigma-clipped mean
   - gal_dimension_collapse_sclip_fill_median: filled sigma-clipped median.
   - gal_dimension_collapse_sclip_fill_number: filled sigma-clipped number.
+  - gal_fits_hdu_datasum_encoded: the 16-character encoded sting datasum.
   - gal_fits_key_list_add_date: add 'DATE' to current list of keywords.
   - gal_fits_key_list_add_git_commit: add the Git commit information of the
     running directory to the input list of keywords (if built with libgit2).

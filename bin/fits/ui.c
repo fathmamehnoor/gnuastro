@@ -469,9 +469,9 @@ ui_read_check_mode_extension(struct fitsparams *p)
   uint8_t stdoutcheck=0;
 
   if( p->remove || p->copy || p->cut || p->numhdus || p->datasum
-      || p->pixelscale || p->pixelareaarcsec2 || p->skycoverage
-      || p->hastablehdu || p->hasimagehdu || p->listtablehdus
-      || p->listimagehdus )
+      || p->datasumencoded || p->pixelscale || p->pixelareaarcsec2
+      || p->skycoverage || p->hastablehdu || p->hasimagehdu
+      || p->listtablehdus || p->listimagehdus )
     {
       /* A small sanity check. */
       if(p->mode!=FITS_MODE_INVALID)
@@ -479,10 +479,10 @@ ui_read_check_mode_extension(struct fitsparams *p)
               "cannot be called together");
 
       /* Some HDU options cannot be called with other options. */
-      stdoutcheck = ( p->numhdus + p->datasum + p->pixelscale
-                      + p->pixelareaarcsec2 + p->skycoverage
-                      + p->hastablehdu + p->hasimagehdu + p->listtablehdus
-                      + p->listimagehdus );
+      stdoutcheck = ( p->numhdus + p->datasum + p->datasumencoded
+                      + p->pixelscale + p->pixelareaarcsec2
+                      + p->skycoverage + p->hastablehdu + p->hasimagehdu
+                      + p->listtablehdus + p->listimagehdus );
 
       /* Make sure if an output file is needed. */
       if(stdoutcheck)
@@ -672,7 +672,8 @@ ui_fill_fits_headerll(gal_list_str_t *input, gal_fits_list_key_t **output,
       if(keyname)
         {
           if( !strcasecmp(keyname,"checksum")
-              || !strcasecmp(keyname,"datasum") )
+              || !strcasecmp(keyname,"datasum")
+              || !strcasecmp(keyname,"datasum-encoded"))
             needsvalue=0;
         }
 

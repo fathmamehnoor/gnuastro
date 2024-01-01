@@ -64,6 +64,7 @@ struct fitsparams
   gal_list_str_t       *cut;   /* Copy ext. to output and remove.       */
   uint8_t           numhdus;   /* Print number of HDUs in FITS file.    */
   uint8_t           datasum;   /* Calculate and print HDU's datasum.    */
+  uint8_t    datasumencoded;   /* Calculate and print HDU's datasum.    */
   uint8_t        pixelscale;   /* Calculate and print HDU's pixelscale. */
   uint8_t  pixelareaarcsec2;   /* Return pixel area in arcsec^2.        */
   uint8_t       skycoverage;   /* Calculate and image coverage in WCS.  */

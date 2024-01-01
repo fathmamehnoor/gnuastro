@@ -746,6 +746,29 @@ gal_fits_hdu_datasum(char *filename, char *hdu, char *hdu_option_name)
 
 
 
+/* Calculate the encoded datasum of the given HDU in the given file. */
+char *
+gal_fits_hdu_datasum_encoded(char *filename, char *hdu, char *hdu_option_name)
+{
+  char *out;
+  unsigned long datasum;
+
+  /* Allocate a 17 character string (the encoded string is by definition 16
+     characters long and we need a 17th one for '\0'). */
+  out=gal_pointer_allocate(GAL_TYPE_UINT8, 17, 0, __func__, "out");
+
+  /* Generate the datasum as an integer. */
+  datasum=gal_fits_hdu_datasum(filename, hdu, hdu_option_name);
+
+  /* Encode the 'datasum' and return the string. */
+  fits_encode_chksum(datasum, 0, out);
+  return out;
+}
+
+
+
+
+
 /* Calculate the FITS standard datasum for the opened FITS pointer. */
 unsigned long
 gal_fits_hdu_datasum_ptr(fitsfile *fptr)

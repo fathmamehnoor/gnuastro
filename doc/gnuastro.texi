@@ -16080,6 +16080,11 @@ For more on @code{DATASUM} in the FITS standard, see @ref{Keyword inspection and
 
 You can use this option to confirm that the data in two different HDUs (possibly with different keywords) is identical.
 Its advantage over @option{--write=datasum} (which writes the @code{DATASUM} keyword into the given HDU) is that it does not require write permissions.
+
+@item --datasum-encoded
+Similar to @option{--datasum}, except that the output will be an encoded string of numbers and small-caps alphabetic characters.
+This is the same encoding algorithm that is used for the @code{CHECKSUM} keyword, but applied to the value of the @code{DATASUM} result.
+In some scenarios, this string can be more useful than the raw integer.
 @end table
 
 The following options manipulate (move/delete) the HDUs in one FITS file or to another FITS file.
@@ -39167,7 +39172,10 @@ Return the number of HDUs/extensions in @file{filename}.
 Return the @code{DATASUM} of the given HDU in the given FITS file.
 For more on @code{DATASUM} in the FITS standard, see @ref{Keyword inspection and manipulation} (under the @code{checksum} component of @option{--write}).
 For more on @code{hdu_option_name} see the description of @code{gal_fits_hdu_open}.
+@end deftypefun
 
+@deftypefun {unsigned long} gal_fits_hdu_datasum_encoded (char @code{*filename}, char @code{*hdu}, char @code{*hdu_option_name})
+Similar to @code{gal_fits_hdu_datasum}, but the returned value is always a 16-character string following the encoding that is described in the FITS standard (primarily for the @code{CHECKSUM} keyword, but can also be used for @code{DATASUM}.
 @end deftypefun
 
 @deftypefun {unsigned long} gal_fits_hdu_datasum_ptr (fitsfile @code{*fptr})

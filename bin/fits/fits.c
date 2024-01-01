@@ -348,7 +348,20 @@ fits_hdu_number(struct fitsparams *p)
 static void
 fits_datasum(struct fitsparams *p)
 {
-  printf("%ld\n", gal_fits_hdu_datasum(p->input->v, p->cp.hdu, "--hdu"));
+  char *out;
+
+  if(p->datasum)
+    printf("%ld\n", gal_fits_hdu_datasum(p->input->v, p->cp.hdu, "--hdu"));
+  else if(p->datasumencoded)
+    {
+      out=gal_fits_hdu_datasum_encoded(p->input->v, p->cp.hdu, "--hdu");
+      printf("%s\n", out);
+      free(out);
+    }
+  else
+    error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at '%s' to fix "
+          "this bug! Both 'datasum' and 'datasumencoded' are zero",
+          __func__, PACKAGE_BUGREPORT);
 }
 
 
@@ -890,7 +903,6 @@ fits(struct fitsparams *p)
 
       /* Options that must be called alone. */
       if(p->numhdus)               fits_hdu_number(p);
-      else if(p->datasum)          fits_datasum(p);
       else if(p->pixelscale)       fits_pixelscale(p);
       else if(p->pixelareaarcsec2) fits_pixelarea(p);
       else if(p->skycoverage)      fits_skycoverage(p);
@@ -899,6 +911,7 @@ fits(struct fitsparams *p)
       else if(p->listimagehdus)    fits_certain_hdu(p, 1, 0);
       else if(p->listtablehdus)    fits_certain_hdu(p, 1, 1);
       else if(p->listallhdus)      fits_list_all_hdus(p);
+      else if(p->datasum || p->datasumencoded) fits_datasum(p);
 
       /* Options that can be called together. */
       else

@@ -167,6 +167,10 @@ gal_fits_hdu_num(char *filename);
 unsigned long
 gal_fits_hdu_datasum(char *filename, char *hdu, char *hdu_option_name);
 
+char *
+gal_fits_hdu_datasum_encoded(char *filename, char *hdu,
+                             char *hdu_option_name);
+
 unsigned long
 gal_fits_hdu_datasum_ptr(fitsfile *fptr);
 

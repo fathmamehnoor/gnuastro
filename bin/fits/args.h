@@ -64,6 +64,19 @@ struct argp_option program_options[] =
       GAL_OPTIONS_NOT_SET
     },
     {
+      "datasum-encoded",
+      UI_KEY_DATASUMENCODED,
+      0,
+      0,
+      "16 character string encoding of '--datasum'.",
+      UI_GROUP_EXTENSION_INFORMATION,
+      &p->datasumencoded,
+      GAL_OPTIONS_NO_ARG_TYPE,
+      GAL_OPTIONS_RANGE_0_OR_1,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET
+    },
+    {
       "pixelscale",
       UI_KEY_PIXELSCALE,
       0,
