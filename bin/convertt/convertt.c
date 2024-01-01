@@ -331,6 +331,7 @@ convertt(struct converttparams *p)
     case OUT_FORMAT_FITS:
       if(p->numch==3 && p->rgbtohsv)
         color_rgb_to_hsv(p);
+      gal_fits_key_write(p->cp.ckeys, p->cp.output, "0", "NONE", 1, 1);
       for(channel=p->chll; channel!=NULL; channel=channel->next)
         gal_fits_img_write(channel, p->cp.output, NULL, 0);
       break;

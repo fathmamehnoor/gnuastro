@@ -20547,7 +20547,7 @@ However, if you want the cropped data to be written into the primary (0-th) HDU,
 If the output file already exists by default Crop will re-write it (so that all existing HDUs in it will be deleted).
 If you want the cropped HDU to be appended to existing HDUs, use @option{--append} described below.
 
-The header of each output cropped image will contain the names of the input image(s) it was cut from.
+The 0-th HDU of each output cropped image will contain the names of the input image(s) it was cut from.
 If a name is longer than the 70 character space that the FITS standard allows for header keyword values, the name will be cut into several keywords from the nearest slash (@key{/}).
 The keywords have the following format: @command{ICFn_m} (for Crop File).
 Where @command{n} is the number of the image used in this crop and @command{m} is the part of the name (it can be broken into multiple keywords).

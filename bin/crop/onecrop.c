@@ -477,7 +477,8 @@ onecrop_flpixel(struct onecropparams *crp)
                     status, wcs_errmsg[status]);
 
           /* Find the first and last pixels of this crop. */
-          gal_box_border_from_center(pixcrd, ndim, p->iwidth, fpixel, lpixel);
+          gal_box_border_from_center(pixcrd, ndim, p->iwidth, fpixel,
+                                     lpixel);
         }
       break;
 
@@ -496,6 +497,54 @@ onecrop_flpixel(struct onecropparams *crp)
       crp->fpixel[0]=crp->fpixel[1]=1;
       crp->lpixel[0]=dsize[1];
       crp->lpixel[1]=dsize[0];
+    }
+}
+
+
+
+
+
+static void
+one_crop_make_array_0th(struct onecropparams *crp, char *outname,
+                        long *fpixel_i, long *lpixel_i, long *naxes)
+{
+  struct cropparams *p=crp->p;
+
+  int status=0;
+  fitsfile *fptr;
+  char basekeyname[FLEN_KEYWORD-5];
+  size_t i, j=0, ndim=p->imgs->ndim;
+  struct inputimgs *img=&p->imgs[crp->in_ind];
+  char region[FLEN_VALUE], regionkey[FLEN_KEYWORD];
+
+  /* Create the file (after this function returns, the rest assumes that
+     the file is ready). */
+  if(p->primaryimghdu)
+    {
+      if(fits_create_file(&fptr, outname, &status))
+        gal_fits_io_error(status, "creating file");
+      fits_close_file(fptr, &status);
+    }
+  else
+    {
+      /* Write the selected region of this image as a string to include
+         as a FITS keyword. Then we want to delete the last coma ','.*/
+      for(i=0;i<ndim;++i)
+        j += sprintf(&region[j], "%ld:%ld,", fpixel_i[i], lpixel_i[i]);
+      region[j-1]='\0';
+
+      /* Add the specific cropping parameters. */
+      gal_fits_key_list_title_add_end(&p->cp.ckeys, "Crop metadata", 0);
+      sprintf(basekeyname, "ICF%zu", crp->numimg);
+      gal_fits_key_write_filename(basekeyname, img->name, &p->cp.ckeys,
+                                  0, p->cp.quiet);
+      sprintf(regionkey, "%sPIX", basekeyname);
+      gal_fits_key_list_add_end(&p->cp.ckeys, GAL_TYPE_STRING, regionkey,
+                                0, region, 0, "Range of pixels used "
+                                "for this output.", 0, NULL, 0);
+
+      /* Write the 0-th HDU. */
+      gal_fits_key_write(p->cp.ckeys, outname, "0", "NONE", 0, 1);
     }
 }
 
@@ -541,6 +590,7 @@ onecrop_make_array(struct onecropparams *crp, long *fpixel_i,
     for(i=0;i<ndim;++i)
       naxes[i] = crp->lpixel[i]-crp->fpixel[i]+1;
 
+
   /* Create the FITS file with a blank first extension, then close it, so
      with the next 'fits_open_file', we build the image in the second
      extension. But only if the user didn't want the append the crop to an
@@ -548,16 +598,7 @@ onecrop_make_array(struct onecropparams *crp, long *fpixel_i,
      for Gnuastro's outputs, we can consistently use '-h1' (something like
      how you count columns, or generally everything from 1). */
   if(p->append==0 || gal_checkset_check_file_return(outname)==0)
-    {
-      if(fits_create_file(&ofp, outname, &status))
-        gal_fits_io_error(status, "creating file");
-      if(p->primaryimghdu==0)
-        {
-          fits_create_img(ofp, SHORT_IMG, 0, naxes, &status);
-          gal_fits_key_write(p->cp.ckeys, outname, "0", "NONE", 0, 0);
-        }
-      fits_close_file(ofp, &status);
-    }
+    one_crop_make_array_0th(crp, outname, fpixel_i, lpixel_i, naxes);
 
 
   /* Create the output crop image. */
@@ -629,12 +670,6 @@ onecrop_make_array(struct onecropparams *crp, long *fpixel_i,
           gal_fits_io_error(status, NULL);
         }
     }
-
-
-  /* Add the Crop information title, the actual keywords will be written
-     later. The keywords will contain the pixels of the is cropped region
-     from input image(s): */
-  gal_fits_key_write_title_in_ptr("Crop information", ofp);
 }
 
 
@@ -662,11 +697,8 @@ onecrop(struct onecropparams *crp)
   char *stdoutstring;
   int status=0, anynul=0;
   int returnvalue=1, hasoneelem=1;
-  fitsfile *ifp=crp->infits, *ofp;
-  char basekeyname[FLEN_KEYWORD-5];     /* '-5': avoid gcc 8.1+ warnings! */
-  gal_fits_list_key_t *headers=NULL;    /* See above comment for more.    */
-  size_t i, j, cropsize=1, ndim=img->ndim;
-  char region[FLEN_VALUE], regionkey[FLEN_KEYWORD];
+  fitsfile *ifp=crp->infits, *ofp;      /* '-5': avoid gcc 8.1+ warnings! */
+  size_t i, cropsize=1, ndim=img->ndim; /* See above comment for more.    */
   long fpixel_o[MAXDIM], lpixel_o[MAXDIM], inc[MAXDIM];
   long naxes[MAXDIM], fpixel_i[MAXDIM], lpixel_i[MAXDIM];
 
@@ -743,31 +775,11 @@ onecrop(struct onecropparams *crp)
          single element and the user asked for it). */
       if(crp->outfits)
         {
-          /* Write the array into the image. */
+          /* Write the array into the file. */
           status=0;
           if( fits_write_subset(ofp, gal_fits_type_to_datatype(p->type),
                                 fpixel_o, lpixel_o, array, &status) )
             gal_fits_io_error(status, NULL);
-
-
-          /* Write the selected region of this image as a string to include
-             as a FITS keyword. Then we want to delete the last coma ','.*/
-          j=0;
-          for(i=0;i<ndim;++i)
-            j += sprintf(&region[j], "%ld:%ld,", fpixel_i[i], lpixel_i[i]);
-          region[j-1]='\0';
-
-
-          /* A section has been added to the cropped image from this input
-             image, so save the information of this image. */
-          sprintf(basekeyname, "ICF%zu", crp->numimg);
-          gal_fits_key_write_filename(basekeyname, img->name, &headers, 0,
-                                      p->cp.quiet);
-          sprintf(regionkey, "%sPIX", basekeyname);
-          gal_fits_key_list_add_end(&headers, GAL_TYPE_STRING, regionkey,
-                                    0, region, 0, "Range of pixels used "
-                                    "for this output.", 0, NULL, 0);
-          gal_fits_key_write_in_ptr(headers, ofp, 1);
         }
 
 

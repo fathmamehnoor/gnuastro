@@ -778,7 +778,7 @@ if [ $nocentering = 0 ]; then
 
     # Read the overlap range from the 'ICF1PIX' keyword (which is printed
     # in all outputs of Crop).
-    overlaprange=$(astfits $cropped -h1 --keyvalue=ICF1PIX -q \
+    overlaprange=$(astfits $cropped -h0 --keyvalue=ICF1PIX -q \
                        | sed -e's|:| |g' -e's|,| |')
 
     # Calculate the position of the bottom-left pixel of the cropped image
