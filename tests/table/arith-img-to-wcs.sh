@@ -7,7 +7,7 @@
 #     Mohammad Akhlaghi <mohammad@akhlaghi.org>
 # Contributing author(s):
 #     Sepideh Eskandarlou <sepideh.eskandarlou@gmail.com>
-# Copyright (C) 2015-2023 Free Software Foundation, Inc.
+# Copyright (C) 2015-2024 Free Software Foundation, Inc.
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright

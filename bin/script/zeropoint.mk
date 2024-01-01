@@ -10,13 +10,13 @@
 # commands.
 #
 # Current maintainer:
-#     2022-2023 Sepideh Eskandarlou <sepideh.eskandarlou@gmail.com>
+#     Sepideh Eskandarlou <sepideh.eskandarlou@gmail.com>
 # Contributing authors:
-#     2019-2023 Mohammad Akhlaghi <mohammad@akhlaghi.org>
-#     2019-2023 Raul Infante-Sainz <infantesainz@gmail.com>
-#     2019-2022 Samane Raji <samaneraji@gmail.com>
-#     2019-2022 Zahra sharbaf <zahra.sharbaf2@gmail.com>
-# Copyright (C) 2022-2023 Free Software Foundation, Inc.
+#     Mohammad Akhlaghi <mohammad@akhlaghi.org>
+#     Raul Infante-Sainz <infantesainz@gmail.com>
+#     Samane Raji <samaneraji@gmail.com>
+#     Zahra sharbaf <zahra.sharbaf2@gmail.com>
+# Copyright (C) 2022-2024 Free Software Foundation, Inc.
 #
 # This Makefile is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the

@@ -7,11 +7,11 @@
 # Run with '--help' for more information.
 #
 # Current maintainer:
-#     2021-2023 Raul Infante-Sainz <infantesainz@gmail.com>
+#     Raul Infante-Sainz <infantesainz@gmail.com>
 # Contributing authors:
-#     2021-2023 Mohammad Akhlaghi <mohammad@akhlaghi.org>
-#     2021-2023 Samane Raji <samaneraji@gmail.com>
-# Copyright (C) 2021-2023 Free Software Foundation, Inc.
+#     Mohammad Akhlaghi <mohammad@akhlaghi.org>
+#     Samane Raji <samaneraji@gmail.com>
+# Copyright (C) 2021-2024 Free Software Foundation, Inc.
 #
 # Gnuastro is free software: you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free
@@ -176,7 +176,7 @@ EOF
 print_version() {
     cat <<EOF
 $scriptname (GNU Astronomy Utilities) $version
-Copyright (C) 2021-2023, Free Software Foundation, Inc.
+Copyright (C) 2021-2024, Free Software Foundation, Inc.
 License GPLv3+: GNU General public license version 3 or later.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.

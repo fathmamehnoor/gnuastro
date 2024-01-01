@@ -39,7 +39,7 @@
 This book documents version @value{VERSION} of the GNU Astronomy Utilities (Gnuastro).
 Gnuastro provides various programs and libraries for astronomical data manipulation and analysis.
 
-Copyright @copyright{} 2015-2023 Free Software Foundation, Inc.
+Copyright @copyright{} 2015-2024 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document under the terms of the GNU Free Documentation License, Version 1.3 or any later version published by the Free Software Foundation; with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
@@ -5029,8 +5029,8 @@ These are very important points that you will definitely encouter during your ow
 #!/bin/bash
 # Script to download and keep the deep region of the XDF survey.
 #
-# Copyright (C) 2023      Your Name <yourname@@email.company>
-# Copyright (C) 2021-2023 Initial Author <incase@@there-is.any>
+# Copyright (C) 2024      Your Name <yourname@@email.company>
+# Copyright (C) 2021-2024 Initial Author <incase@@there-is.any>
 #
 # This script is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -10164,7 +10164,7 @@ Here is the script that summarizes the steps in @ref{Preparing input and generat
 @verbatim
 #!/bin/bash
 #
-# Copyright (C) 2023-2023 Mohammad Akhlaghi <mohammad@akhlaghi.org>
+# Copyright (C) 2024-2024 Mohammad Akhlaghi <mohammad@akhlaghi.org>
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium under the GNU GPL v3+, without royalty
@@ -44334,8 +44334,8 @@ The existing name of the original author of this example program is only for cas
  * into memory  and use the 'void *array' pointer. This is just intended
  * to demonstrate how to use the array pointer of 'gal_data_t'.
  *
- * Copyright (C) 2023      Your Name <your@@email.address>
- * Copyright (C) 2020-2023 Mohammad Akhlaghi <mohammad@@akhlaghi.org>
+ * Copyright (C) 2024      Your Name <your@@email.address>
+ * Copyright (C) 2020-2024 Mohammad Akhlaghi <mohammad@@akhlaghi.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44413,8 +44413,8 @@ The existing name of the original author of this example program is only for cas
  * The following simple program shows how you can inspect the neighbors
  * of a pixel using the GAL_DIMENSION_NEIGHBOR_OP function-like macro.
  *
- * Copyright (C) 2023      Your Name <your@@email.address>
- * Copyright (C) 2020-2023 Mohammad Akhlaghi <mohammad@@akhlaghi.org>
+ * Copyright (C) 2024      Your Name <your@@email.address>
+ * Copyright (C) 2020-2024 Mohammad Akhlaghi <mohammad@@akhlaghi.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44508,8 +44508,8 @@ This program was also built and run when you ran @code{make check} during the bu
  * pixels between different threads and print the value of each pixel
  * and the thread it was assigned to.
  *
- * Copyright (C) 2023      Your Name <your@@email.address>
- * Copyright (C) 2020-2023 Mohammad Akhlaghi <mohammad@@akhlaghi.org>
+ * Copyright (C) 2024      Your Name <your@@email.address>
+ * Copyright (C) 2020-2024 Mohammad Akhlaghi <mohammad@@akhlaghi.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44673,8 +44673,8 @@ The existing name of the original author of this example program is only for cas
  * columns in memory, it will print them out along with their sum. The
  * rest of the program is a demonstration of writing a table.
  *
- * Copyright (C) 2023      Your Name <your@@email.address>
- * Copyright (C) 2020-2023 Mohammad Akhlaghi <mohammad@@akhlaghi.org>
+ * Copyright (C) 2024      Your Name <your@@email.address>
+ * Copyright (C) 2020-2024 Mohammad Akhlaghi <mohammad@@akhlaghi.org>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44822,8 +44822,8 @@ The existing name of the original author of this example program is only for cas
  * In the example below, we are warping the input.fits file to the same
  * pixel grid and WCS as reference.fits image.
  *
- * Copyright (C) 2023      Your Name <your@@email.address>
- * Copyright (C) 2022-2023 Pedram Ashofteh-Ardakani <pedramardakani@pm.me>
+ * Copyright (C) 2024      Your Name <your@@email.address>
+ * Copyright (C) 2022-2024 Pedram Ashofteh-Ardakani <pedramardakani@pm.me>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44949,8 +44949,8 @@ The existing name of the original author of this example program is only for cas
  * let the Warp library measure the proper output image size that will
  * contain the aligned image.
  *
- * Copyright (C) 2023      Your Name <your@@email.address>
- * Copyright (C) 2022-2023 Pedram Ashofteh-Ardakani <pedramardakani@pm.me>
+ * Copyright (C) 2024      Your Name <your@@email.address>
+ * Copyright (C) 2022-2024 Pedram Ashofteh-Ardakani <pedramardakani@pm.me>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
