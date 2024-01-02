@@ -32164,6 +32164,67 @@ $ astscript-fits-view image.fits --ds9scale=minmax
 
 Recall that if you want your image pixels to have the same values as the @code{MEAN} column in your profile, you should run MakeProfiles with @option{--mcolnocustprof}.
 
+In case you want to build the profile using @ref{Generate radial profile}, be sure to use the @option{--oversample} option of @command{astscript-radial-profile}.
+The higher the oversampling, the better your result will be.
+For example you can run the following script to see the effect (also see @url{https://savannah.gnu.org/bugs/?65106, bug 65106}).
+But don't take the oversampling too high: both the radial profile script and MakeProfiles will become slower and the precision of your results will decrease.
+
+@verbatim
+#!/bin/bash
+
+# Function to avoid repeating code: first generate a radial profile
+# with a certain oversampling, then build a 2D profile from it):
+# The first argument is the oversampling, the second is the suffix.
+gen_rad_make_2dprf () {
+
+    # Generate the radial profile
+    radraw=$bdir/radial-profile-$2.fits
+    astscript-radial-profile $prof -o$radraw \
+			     --oversample=$1 \
+			     --zeroisnotblank
+
+    # Generate the custom table format
+    custraw=$bdir/customtable-$2.fits
+    asttable $radraw --output=interval.fits \
+             -c'arith RADIUS sorted-to-interval',MEAN \
+	     -o$custraw
+
+    # Build the 2D profie.
+    prof2draw=$bdir/prof2d-$2.fits
+    echo "1 $xc $yc 8 30 0 0 1 0 1" \
+	| astmkprof --customtable=$custraw \
+		    --mergedsize=$xw,$yw \
+                    --output=$prof2draw \
+		    --mcolnocustprof \
+                    --oversample=1 \
+		    --clearcanvas \
+		    --mode=img
+}
+
+# Directory to hold built files
+bdir=build
+if ! [ -d $bdir ]; then mkdir $bdir; fi
+
+# Build a Guassian profile in the center of an image to start with.
+prof=$bdir/prof.fits
+astmkprof --kernel=gaussian,2,5 -o$prof
+
+# Find the center pixel of the image
+xw=$(astfits $prof --keyvalue=NAXIS1 --quiet)
+yw=$(astfits $prof --keyvalue=NAXIS2 --quiet)
+xc=$(echo $xw | awk '{print int($1/2)+1}')
+yc=$(echo $yw| awk '{print int($1/2)+1}')
+
+# Generate two 2D radial profiles, one with an oversampling of 1
+# and another with an oversampling of 5.
+gen_rad_make_2dprf 1 "raw"
+gen_rad_make_2dprf 5 "oversample"
+
+# View the two images beside each other:
+astscript-fits-view $bdir/prof2d-raw.fits \
+		    $bdir/prof2d-oversample.fits
+@end verbatim
+
 @item --customtablehdu INT/STR
 The HDU/extension in the FITS file given to @option{--customtable}.
 

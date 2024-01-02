@@ -224,6 +224,9 @@ See the end of the file for license conditions.
   - bug #65055: Columns of empty FITS tables (with no rows) read in reverse.
   - bug #65084: Fits program's --skycoverage prints connected numbers for
     cubes; found with help of Rahna Payyasseri Thanduparackal.
+  - bug #65106: Necessity of using --oversample with
+    astscript-radial-profile when a 2D profile is to be created with
+    '--customtable' of MakeProfile; reported by Sepideh Eskandarlou.
 
 
 
