@@ -2037,7 +2037,7 @@ struct multioperandparams
         n=0;                                                            \
         j=tprm->indexs[tind];                                           \
                                                                         \
-        /* Read the necessay values from each input. */                 \
+        /* Put the values from each input into a single array. */       \
         for(i=0;i<p->dnum;++i) pixs[n++]=a[i][j];                       \
                                                                         \
         /* If there are any usable elements, do the measurement. */     \
@@ -2085,7 +2085,7 @@ struct multioperandparams
                       p->operator);                                     \
               }                                                         \
                                                                         \
-            /* If we are on clip-dilate operators, keep the values. */  \
+            /* If we are on clip-fill operators, keep the values. */    \
             if(center)                                                  \
               {                                                         \
                 center[j]=carr[GAL_STATISTICS_CLIP_OUTCOL_MEDIAN];      \
@@ -2536,6 +2536,10 @@ arithmetic_multioperand_clip_fill(struct multioperandparams *p,
                        list->minmapsize, list->quietmmap);
   gal_data_free(fp.upper);    /* We are freeing these here to avoid*/
   gal_data_free(fp.lower);    /* keeping extra RAM. */
+
+  /* Free the center and spreads (no longer necessary). */
+  gal_data_free(p->center); p->center=NULL;
+  gal_data_free(p->spread); p->spread=NULL;
 
   /* Re-run sigma-clipping on threads. */
   gal_threads_spin_off(multioperand_on_thread, p, p->out->size,

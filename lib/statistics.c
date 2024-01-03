@@ -417,8 +417,8 @@ statistics_mad_in_sorted_no_blank(gal_data_t *sorted, gal_data_t *med,
     case GAL_TYPE_UINT64: type=GAL_TYPE_INT64; break;
     default:              type=GAL_TYPE_INVALID; /* Not necessary. */
     }
-  use=gal_data_copy_to_new_type(sorted, ( type!=GAL_TYPE_INVALID
-                                          ? type : sorted->type) );
+  use=gal_data_copy_to_new_type(sorted, ( type==GAL_TYPE_INVALID
+                                          ? sorted->type : type ) );
 
   /* Subtract the median from the input. */
   use=gal_arithmetic(GAL_ARITHMETIC_OP_MINUS, 1, flags, use, med);
@@ -2663,17 +2663,19 @@ statistics_clip(gal_data_t *input, float multip, float param,
             printf("%-5zu %-10zu %-12.5e %-12.5e\n", num+1, size, center,
                    spread);
 
-          /* If we are working by tolerance, check if we should jump out of
-             the loop. Normally, 'oldstd' should be larger than std,
-             because the possible outliers have been removed. If it is not,
-             it means that we have clipped too much and must stop anyway,
-             so we don't need an absolute value on the difference!
-
-             Note that when all the elements are identical after the clip,
-             'std' will be zero. In this case we shouldn't calculate the
-             tolerance (because it will be infinity and thus lager than the
-             requested tolerance level value). */
-          if( bytolerance && num>0 )
+          /* See if we should break out of the loop:
+             - When the spread is zero we should break out in any case (if
+               it is by tolerance or number of clips): this can happen in
+               two situtaions: when all the elements are identical after
+               the clip (resulting in both MAD and STD to be zero), or when
+               we have three numbers (for example) and two of them are the
+               same (resulting in a MAD of zero).
+             - If we are working by tolerance, normally, 'oldspread' should
+               be larger than 'spread', because the possible outliers have
+               been removed. If it is not, it means that we have clipped
+               too much and must stop anyway, so we don't need an absolute
+               value on the difference! */
+          if( spread==0 || (bytolerance && num>0) )
             if( spread==0 || ((oldspread - spread) / spread) < param )
               {
                 if(spread==0) oldspread=spread;

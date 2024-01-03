@@ -3388,8 +3388,8 @@ options_as_fits_keywords_write(gal_fits_list_key_t **keys,
   void *vptr;
   int vptrfree;
   uint8_t vtype;
-  char *name, *doc;
   gal_list_str_t *tmp;
+  char *name, *doc, *strval;
 
   for(i=0; !gal_options_is_last(&options[i]); ++i)
     if( options[i].set && option_is_printable(&options[i]) )
@@ -3400,12 +3400,14 @@ options_as_fits_keywords_write(gal_fits_list_key_t **keys,
               tmp!=NULL; tmp=tmp->next)
             {
               /* 'name' and 'doc' have a 'const' qualifier. */
-              gal_checkset_allocate_copy(options[i].name, &name);
+              gal_checkset_allocate_copy(tmp->v, &strval);
               gal_checkset_allocate_copy(options[i].doc,  &doc);
+              gal_checkset_allocate_copy(options[i].name, &name);
               gal_fits_key_list_add(keys, GAL_TYPE_STRING, name, 1,
-                                    tmp->v, 0, doc, 1, NULL, 0);
+                                    strval, 1, doc, 1, NULL, 0);
             }
-        /* Normal types. */
+
+        /* Normal (single element) types. */
         else
           {
             /* If the option is associated with a special function for
