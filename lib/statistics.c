@@ -411,10 +411,10 @@ statistics_mad_in_sorted_no_blank(gal_data_t *sorted, gal_data_t *med,
      negative after subtracting the median. */
   switch(sorted->type)
     {
-    case GAL_TYPE_UINT8:  type=GAL_TYPE_INT16;
-    case GAL_TYPE_UINT16: type=GAL_TYPE_INT32;
-    case GAL_TYPE_UINT32: type=GAL_TYPE_INT64;
-    case GAL_TYPE_UINT64: type=GAL_TYPE_INT64;
+    case GAL_TYPE_UINT8:  type=GAL_TYPE_INT16; break;
+    case GAL_TYPE_UINT16: type=GAL_TYPE_INT32; break;
+    case GAL_TYPE_UINT32: type=GAL_TYPE_INT64; break;
+    case GAL_TYPE_UINT64: type=GAL_TYPE_INT64; break;
     default:              type=GAL_TYPE_INVALID; /* Not necessary. */
     }
   use=gal_data_copy_to_new_type(sorted, ( type!=GAL_TYPE_INVALID
@@ -440,7 +440,7 @@ statistics_mad_in_sorted_no_blank(gal_data_t *sorted, gal_data_t *med,
     for(i=0;i<sorted->size;++i)
       printf("%-15g    %-15g\n", s[i], u[i]);
     printf("Median: %g\n", ma[0]);
-    printf("MAD: %g\n", Ma[0]);
+    printf("MAD:    %g\n", Ma[0]);
     exit(0);
   } */
 
@@ -2630,8 +2630,8 @@ statistics_clip(gal_data_t *input, float multip, float param,
       start=nbs->array;
       while(num<maxnum && size)
         {
-          /* Find the average and Standard deviation, note that both
-             'start' and 'size' will be different in the next round. */
+          /* 'start' and 'size' will be different in the next round
+             (updated within 'CLIPALL'). */
           nbs->array = start;
           nbs->size = oldsize = size;
 
