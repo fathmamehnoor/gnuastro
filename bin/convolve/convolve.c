@@ -260,7 +260,7 @@ removepaddingcorrectroundoff(struct convolveparams *p)
      hi1 are the coordinates of the first pixel in the output image. In the
      case of deconvolution, if the maximum radius is larger than the input
      image, we will also only be using region that contains non-zero rows
-     and columns.*/
+     and columns. */
   if(p->makekernel)
     {
       hi0      = mkwidth < isize[0] ? p->ps0/2-p->makekernel : 0;
@@ -305,7 +305,7 @@ fftinitializer(struct convolveparams *p, struct fftonthreadparams **outfp)
   size_t i;
   struct fftonthreadparams *fp;
 
-  /* Allocate the fftonthreadparams array.  */
+  /* Allocate the fftonthreadparams array. */
   errno=0;
   *outfp=fp=malloc(p->cp.numthreads*sizeof *fp);
   if(fp==NULL)
@@ -369,7 +369,7 @@ correctdeconvolve(struct convolveparams *p, double **spatial)
   /* First convert the complex image to a real image: */
   complextoreal(p->pimg, ps0*ps1, COMPLEX_TO_REAL_SPEC, &s);
 
-  /* Allocate the array to keep the new values */
+  /* Allocate the array to keep the new values. */
   errno=0;
   n=malloc(ps0*ps1*sizeof *n);
   if(n==NULL)
@@ -404,7 +404,7 @@ correctdeconvolve(struct convolveparams *p, double **spatial)
           r=sqrt( (ii-ci)*(ii-ci) + (jj-cj)*(jj-cj) );
           sum += n[ii*ps1+jj] = r < p->makekernel ? s[i*ps1+j] : 0;
 
-          /*printf("(%zu, %zu) --> (%zu, %zu)\n", i, j, ii, jj);*/
+          /*printf("(%zu, %zu) --> (%zu, %zu)\n", i, j, ii, jj); */
         }
     }
 
@@ -413,7 +413,7 @@ correctdeconvolve(struct convolveparams *p, double **spatial)
   df=(d=n)+ps0*ps1; do *d++/=sum; while(d<df);
 
 
-  /* Clean up: */
+  /* Clean up. */
   free(s);
   *spatial=n;
 }
@@ -448,7 +448,7 @@ correctdeconvolve(struct convolveparams *p, double **spatial)
   p->s1. In this case, those index values which are smaller than p->s0
   or p->s1 belong to the input image and those which are equal or
   larger than larger belong to the kernel image (after subtraction for
-  p->s0 or p->s1).*/
+  p->s0 or p->s1). */
 void *
 onedimensionfft(void *inparam)
 {
@@ -754,6 +754,48 @@ convolve_frequency(struct convolveparams *p)
 
 
 
+void
+convolve_spatial(struct convolveparams *p)
+{
+  gal_data_t *out, *check;
+  int multidim=p->input->ndim>1;
+  struct gal_options_common_params *cp=&p->cp;
+
+
+  /* Prepare the mesh structure. */
+  if(multidim) gal_tile_full_two_layers(p->input, &cp->tl);
+
+  /* Save the tile IDs if they are requested. */
+  if(multidim && cp->tl.tilecheckname)
+    {
+      check=gal_tile_block_check_tiles(cp->tl.tiles);
+      gal_fits_img_write(check, cp->tl.tilecheckname, NULL, 0);
+      gal_data_free(check);
+    }
+
+  /* Do the spatial convolution. One of the main reason someone would
+     want to do spatial domain convolution with this Convolve program
+     is edge correction. So by default we assume it and will only
+     ignore it if the user asks. */
+  out=gal_convolve_spatial(multidim ? cp->tl.tiles : p->input,
+                           p->kernel,
+                           cp->numthreads,
+                           multidim ? !p->noedgecorrection : 1,
+                           multidim ? cp->tl.workoverch : 1,
+                           p->conv_on_blank);
+
+  /* Clean up: free the actual input and replace it's pointer with the
+     convolved dataset to save as output. */
+  gal_tile_full_free_contents(&cp->tl);
+  gal_data_free(p->input);
+  p->input=out;
+}
+
+
+
+
+
+
 
 
 
@@ -774,44 +816,11 @@ convolve_frequency(struct convolveparams *p)
 void
 convolve(struct convolveparams *p)
 {
-  gal_data_t *out, *check;
-  int multidim=p->input->ndim>1;
   struct gal_options_common_params *cp=&p->cp;
 
-
   /* Do the convolution. */
-  if(p->domain==CONVOLVE_DOMAIN_SPATIAL)
-    {
-      /* Prepare the mesh structure. */
-      if(multidim) gal_tile_full_two_layers(p->input, &cp->tl);
-
-      /* Save the tile IDs if they are requested. */
-      if(multidim && cp->tl.tilecheckname)
-        {
-          check=gal_tile_block_check_tiles(cp->tl.tiles);
-          gal_fits_img_write(check, cp->tl.tilecheckname, NULL, 0);
-          gal_data_free(check);
-        }
-
-      /* Do the spatial convolution. One of the main reason someone would
-         want to do spatial domain convolution with this Convolve program
-         is edge correction. So by default we assume it and will only
-         ignore it if the user asks.*/
-      out=gal_convolve_spatial(multidim ? cp->tl.tiles : p->input,
-                               p->kernel,
-                               cp->numthreads,
-                               multidim ? !p->noedgecorrection : 1,
-                               multidim ? cp->tl.workoverch : 1,
-                               p->conv_on_blank);
-
-      /* Clean up: free the actual input and replace it's pointer with the
-         convolved dataset to save as output. */
-      gal_tile_full_free_contents(&cp->tl);
-      gal_data_free(p->input);
-      p->input=out;
-    }
-  else
-    convolve_frequency(p);
+  if(p->domain==CONVOLVE_DOMAIN_SPATIAL) convolve_spatial(p);
+  else                                   convolve_frequency(p);
 
   /* Write Convolve's parameters as keywords into the first extension of
      the output. */

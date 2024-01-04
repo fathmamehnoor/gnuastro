@@ -147,7 +147,7 @@ parse_opt(int key, char *arg, struct argp_state *state)
 {
   struct convolveparams *p = state->input;
 
-  /* Pass 'gal_options_common_params' into the child parser.  */
+  /* Pass 'gal_options_common_params' into the child parser. */
   state->child_inputs[0] = &p->cp;
 
   /* In case the user incorrectly uses the equal sign (for example
@@ -575,7 +575,7 @@ ui_preparations(struct convolveparams *p)
               "on 1D datasets");
       else
         {
-          /* Make sure the size of the kernel is the same as the input */
+          /* Make sure the size of the kernel is the same as the input. */
           if( p->input->dsize[0]!=p->kernel->dsize[0]
               || p->input->dsize[1]!=p->kernel->dsize[1] )
             error(EXIT_FAILURE, 0, "with the '--makekernel' ('-m') option, "
@@ -628,7 +628,7 @@ ui_preparations(struct convolveparams *p)
 
       /* If there are any NaN pixels, set them to zero and normalize it. A
          blank pixel in a kernel is going to make a completely blank
-         output.*/
+         output. */
       if( !p->nokernelnorm )
         {
           sumv=0;
@@ -732,7 +732,7 @@ ui_read_check_inputs_setup(int argc, char *argv[], struct convolveparams *p)
 #include "args.h"
 
 
-  /* Initialize the options and necessary information.  */
+  /* Initialize the options and necessary information. */
   ui_initialize_options(p, program_options, gal_commonopts_options);
 
 

@@ -38,7 +38,7 @@ main(int argc, char *argv[])
   struct timeval t1;
   struct convolveparams p={{{0},0},0};
 
-  /* Set the starting time.*/
+  /* Set the starting time. */
   time(&p.rawtime);
   gettimeofday(&t1, NULL);
 
