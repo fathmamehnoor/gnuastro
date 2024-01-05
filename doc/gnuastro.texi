@@ -442,6 +442,7 @@ Common options
 Shell tips
 
 * Separate shell variables for multiple outputs::  When you get values from one command.
+* Truncating start of long string FITS keyword values::
 
 Configuration files
 
@@ -14294,9 +14295,10 @@ In this section, we will review some useful tips and tricks that can be helpful 
 
 @menu
 * Separate shell variables for multiple outputs::  When you get values from one command.
+* Truncating start of long string FITS keyword values:: When the end of the string matters.
 @end menu
 
-@node Separate shell variables for multiple outputs,  , Shell tips, Shell tips
+@node Separate shell variables for multiple outputs, Truncating start of long string FITS keyword values, Shell tips, Shell tips
 @subsubsection Separate shell variables for multiple outputs
 
 Sometimes your commands print multiple values and you want to use them as different shell variables.
@@ -14401,6 +14403,38 @@ This @command{eval}-based solution has been tested in in GNU Bash, Dash and Zsh 
 This is because the constructs used here are pretty low-level (and widely available).
 
 For examples usages of this technique, see the following sections: @ref{Extracting a single spectrum and plotting it} and @ref{Pseudo narrow-band images}.
+
+@node Truncating start of long string FITS keyword values,  , Separate shell variables for multiple outputs, Shell tips
+@subsubsection Truncating start of long string FITS keyword values
+
+When you want to put a string (not a numnber, for example a file name) into the keyword value, if it is longer than 68 characters, CFITSIO is going to truncate the end of the string.
+The number 68 is the maximum allowable sting keyword length in the FITS standard@footnote{In the FITS standard, the full length of a keyword (including its name) is 80 characters.
+The keyword name occupies 8 characters, which is followed by an @key{=} (1 character).
+For strings, we need one SPACE after the @key{=}, and the string should be enclosed in two single quotes.
+Accounting for all of these, we get @mymath{80-8-1-1-2=68} available characters.}.
+A robust way to solve this problem is to break the keyword into multiple keywords and continue the file name there.
+However, especially when dealing with file names, it is usually the last few characters that you want to preserve (the first ones are usually just basic operating system locations).
+
+Below, you can see the three necessary commands to optionally (when the length is too long) truncate such long strings in GNU Bash.
+When truncation is necessary, to inform the reader that the value has been truncated, we'll put `@code{...}' at the start of the string.
+
+@verbatim
+$ fname="/a/very/long/file/location"
+$ if [ ${#fname} -gt 68 ]; then value="...${fname: -65}"; \
+  else                          value=$fname; \
+  fi
+$ astfits image.fits --write=KEYNAME,"$value"
+@end verbatim
+
+@noindent
+Here are the core handy constructs of Bash that we are using here:
+
+@table @code
+@item $@{#fname@}
+Returns the length of the value given to the @code{fname} variable.
+@item $@{fname: -65@}
+Returns the last 65 characters in the value of the @code{fname} variable.
+@end table
 
 @node Configuration files, Getting help, Command-line, Common program behavior
 @section Configuration files
