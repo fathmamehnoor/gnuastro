@@ -4329,25 +4329,25 @@ gal_arithmetic_operator_string(int operator)
     case GAL_ARITHMETIC_OP_MADCLIP_MAD:     return "madclip-mad";
     case GAL_ARITHMETIC_OP_MADCLIP_STD:     return "madclip-std";
     case GAL_ARITHMETIC_OP_MADCLIP_FILL_NUMBER:
-      return "madclip-dilate-number";
+      return "madclip-fill-number";
     case GAL_ARITHMETIC_OP_MADCLIP_FILL_MEDIAN:
-      return "madclip-dilate-median";
+      return "madclip-fill-median";
     case GAL_ARITHMETIC_OP_MADCLIP_FILL_MEAN:
-      return "madclip-dilate-mean";
+      return "madclip-fill-mean";
     case GAL_ARITHMETIC_OP_MADCLIP_FILL_MAD:
-      return "madclip-dilate-mad";
+      return "madclip-fill-mad";
     case GAL_ARITHMETIC_OP_MADCLIP_FILL_STD:
-      return "madclip-dilate-std";
+      return "madclip-fill-std";
     case GAL_ARITHMETIC_OP_SIGCLIP_FILL_NUMBER:
-      return "sigclip-dilate-number";
+      return "sigclip-fill-number";
     case GAL_ARITHMETIC_OP_SIGCLIP_FILL_MEDIAN:
-      return "sigclip-dilate-median";
+      return "sigclip-fill-median";
     case GAL_ARITHMETIC_OP_SIGCLIP_FILL_MEAN:
-      return "sigclip-dilate-mean";
+      return "sigclip-fill-mean";
     case GAL_ARITHMETIC_OP_SIGCLIP_FILL_MAD:
-      return "sigclip-dilate-mad";
+      return "sigclip-fill-mad";
     case GAL_ARITHMETIC_OP_SIGCLIP_FILL_STD:
-      return "sigclip-dilate-std";
+      return "sigclip-fill-std";
 
     case GAL_ARITHMETIC_OP_MKNOISE_SIGMA:   return "mknoise-sigma";
     case GAL_ARITHMETIC_OP_MKNOISE_SIGMA_FROM_MEAN:
