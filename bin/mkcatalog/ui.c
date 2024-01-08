@@ -954,20 +954,24 @@ ui_read_labels(struct mkcatalogparams *p)
   keys[0].type=GAL_TYPE_SIZE_T;
   keys[0].array=&p->numobjects;
   gal_fits_key_read(p->objectsfile, p->cp.hdu, keys, 0, 0, "--hdu");
-  if(keys[0].status) /* status!=0: the key couldn't be read by CFITSIO. */
+  if(keys[0].status) /* status!=0: the key didn't exist. */
     {
+      /* Get the maximum of the labels.*/
       tmp=gal_statistics_maximum(p->objects);
       p->numobjects=*((int32_t *)(tmp->array)); /*numobjects is int32_t.*/
+
+      /* In case the input is all blank, the maximum will be blank, so in
+         effect, there we no objects. */
+      if(p->numobjects==GAL_BLANK_INT32) p->numobjects=0;
       gal_data_free(tmp);
     }
-
 
   /* If there were no objects in the input, then inform the user with an
      error (it is pointless to build a catalog). */
   if(p->numobjects==0)
-    error(EXIT_FAILURE, 0, "no object labels (non-zero pixels) in "
-          "%s (hdu %s). To make a catalog, labeled regions must be "
-          "defined", p->objectsfile, p->cp.hdu);
+    error(EXIT_FAILURE, 0, "no object labels (non-zero and non-blank "
+          "pixels) in %s (hdu %s). To make a catalog, labeled regions "
+          "must be defined", p->objectsfile, p->cp.hdu);
 
 
   /* See if the labels image has blank pixels and set the flags

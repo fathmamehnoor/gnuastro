@@ -227,6 +227,8 @@ See the end of the file for license conditions.
   - bug #65106: Necessity of using --oversample with
     astscript-radial-profile when a 2D profile is to be created with
     '--customtable' of MakeProfile; reported by Sepideh Eskandarlou.
+  - bug #65141: MakeCatalog crash when labled image is all blank; reported
+    by Sepideh Eskandarlou.
 
 
 
