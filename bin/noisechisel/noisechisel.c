@@ -237,7 +237,7 @@ noisechisel_output(struct noisechiselparams *p)
 
 
 /***********************************************************************/
-/*************             High level function           ***************/
+/*************             Top-level function            ***************/
 /***********************************************************************/
 void
 noisechisel(struct noisechiselparams *p)

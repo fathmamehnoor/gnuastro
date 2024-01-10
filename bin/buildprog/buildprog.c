@@ -68,6 +68,9 @@ buildprog_as_one_string(char *opt, gal_list_str_t *list)
 
 
 
+/*******************************************************************/
+/*************            Top-level function           *************/
+/*******************************************************************/
 /* Create the build command and run it.
 
    Necessity of CONFIG_GNUASTRO_LDADD: By default Libtool will look into

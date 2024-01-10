@@ -44,6 +44,7 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 
 
 
+
 /* Write the log entry for each crop.
 
    A maximum length of FILENAME_BUFFER_IN_VERB characters is set for the
@@ -392,12 +393,12 @@ crop_mode_wcs(void *inparam)
 
 
 /*******************************************************************/
-/**************           Output function           ****************/
+/**************         Top-level function          ****************/
 /*******************************************************************/
 /* Main function for the Image Mode. It is assumed that if only one
    crop box from each input image is desired, the first and last
    pixels are already set, irrespective of how the user specified that
-   box.  */
+   box. */
 void
 crop(struct cropparams *p)
 {

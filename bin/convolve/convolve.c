@@ -811,7 +811,7 @@ convolve_spatial(struct convolveparams *p)
 
 
 /******************************************************************/
-/*************          Outside function          *****************/
+/*************         Top-level function         *****************/
 /******************************************************************/
 void
 convolve(struct convolveparams *p)

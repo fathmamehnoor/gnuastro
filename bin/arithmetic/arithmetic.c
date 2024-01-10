@@ -2092,7 +2092,7 @@ reversepolish(struct arithmeticparams *p)
 
 
 /***************************************************************/
-/*************             Top function            *************/
+/*************         Top-level function          *************/
 /***************************************************************/
 void
 arithmetic(struct arithmeticparams *p)

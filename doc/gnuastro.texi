@@ -38608,7 +38608,7 @@ This ancillary information about the contents of the memory location is very use
 However, @code{void *} is just a raw address (pointer), it contains no information on the contents it points to.
 
 These properties make the @code{void *} very useful when you want to treat the contents of an address in different ways.
-You can use the @code{void *} list defined in this section and its function on any kind of data: for example you can use it to keep a list of custom data structures that you have built for your own separate program.
+You can use the @code{void *} list defined in this section and its function on any kind of data: for example, you can use it to keep a list of custom data structures that you have built for your own separate program.
 Each node in the list can keep anything and this gives you great versatility.
 But in using @code{void *}, please beware that ``with great power comes great responsibility''.
 
@@ -40550,7 +40550,7 @@ inwcs=gal_wcs_read("image.fits", "1", 0, 0, 0, &nwcs);
 data->wcs=gal_wcs_distortion_convert(inwcs, GAL_WCS_DISTORTION_TPV,
                                      NULL);
 wcsfree(inwcs);
-gal_fits_img_write(data, "tpv.fits", NULL, NULL);
+gal_fits_img_write(data, "tpv.fits", NULL, 0);
 @end example
 
 @end deftypefun
@@ -41091,7 +41091,7 @@ main(void)
   out2=gal_arithmetic(GAL_ARITHMETIC_OP_PLUS, 1, flag, in2, out1);
 
   /* Write the output into a file. */
-  gal_fits_img_write(out2, "out.fits", NULL, NULL);
+  gal_fits_img_write(out2, "out.fits", NULL, 0);
 
   /* Clean up. Due to the in-place flag (in
    * 'GAL_ARITHMETIC_FLAGS_BASIC'), 'out1' and 'out2' point to the
@@ -45005,7 +45005,7 @@ main(void)
 
   /* WARNING: make sure there is no file with same name as 'out.fits'
    * or the result will be appended to its final HDU. */
-  gal_fits_img_write(wa.output, outname, NULL, "warp-demo");
+  gal_fits_img_write(wa.output, outname, NULL, 0);
 
   /* Clean up. */
   gal_data_free(wa.input);
@@ -45138,7 +45138,7 @@ main(void)
 
   /* WARNING: make sure there is no file with same name as 'out.fits'
    * or the result will be appended to its final HDU. */
-  gal_fits_img_write(wa.output, outname, NULL, "warp-demo");
+  gal_fits_img_write(wa.output, outname, NULL, 0);
 
 
   /* Remove the pointers to arrays that we didn't allocate (and thus,

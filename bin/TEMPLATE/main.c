@@ -33,7 +33,7 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 #include "TEMPLATE.h"
 
 
-/* Main function */
+/* Main function. */
 int
 main (int argc, char *argv[])
 {

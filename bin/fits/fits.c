@@ -178,7 +178,7 @@ fits_print_extension_info(struct fitsparams *p)
         }
 
 
-      /* Read the extension name*/
+      /* Read the extension name. */
       fits_read_keyword(fptr, "EXTNAME", extname, NULL, &status);
       switch(status)
         {
@@ -206,7 +206,7 @@ fits_print_extension_info(struct fitsparams *p)
         case 0:
           /* For tables, we don't bother reading 'BUNIT', because it is
              meaningless even if it exists (each colum has its separate
-             units). So 'status' will be zero in this case.*/
+             units). So 'status' will be zero in this case. */
           if(hdutype==IMAGE_HDU)
             gal_fits_key_clean_str_value(bunit);
           else /* Its a table HDU. */
@@ -407,7 +407,7 @@ fits_pixelscale(struct fitsparams *p)
 
   /* If not in quiet-mode, print some extra information. We don't want the
      last number to have a space after it, so we'll write the last one
-     outside the loop.*/
+     outside the loop. */
   if(p->cp.quiet==0)
     {
       printf("Basic information for --pixelscale (remove extra info "
@@ -527,7 +527,7 @@ fits_pixelarea(struct fitsparams *p)
   /* Calculate the pixel-scale in each dimension. */
   pixelscale=gal_wcs_pixel_scale(wcs);
 
-  /* Calcluate the pixel area (currently only in arcsec^N) */
+  /* Calcluate the pixel area (currently only in arcsec^N). */
   area=1;
   for(i=0;i<ndim;++i) area *= pixelscale[i]*3600;
   printf("%g\n", area);
@@ -648,7 +648,7 @@ fits_certain_hdu(struct fitsparams *p, int list1has0,
   int has=0, naxis, hducounter=1, hdutype, status=0;
 
   /* Make sure the given file exists: CFITSIO adds '.gz' silently (see more
-     in the comments within 'gal_fits_hdu_open')*/
+     in the comments within 'gal_fits_hdu_open'). */
   gal_checkset_check_file(p->input->v);
 
   /* Open the FITS file. */
@@ -740,7 +740,7 @@ fits_list_all_hdus(struct fitsparams *p)
   int hducounter=1, hdutype, status=0;
 
   /* Make sure the given file exists: CFITSIO adds '.gz' silently (see more
-     in the comments within 'gal_fits_hdu_open')*/
+     in the comments within 'gal_fits_hdu_open'). */
   gal_checkset_check_file(p->input->v);
 
   /* Open the FITS file. */
@@ -802,7 +802,7 @@ fits_hdu_remove(struct fitsparams *p, int *r)
 
 
 /* This is similar to the library's 'gal_fits_open_to_write', except that
-   it won't create an empty first extension.*/
+   it won't create an empty first extension. */
 fitsfile *
 fits_open_to_write_no_blank(char *filename)
 {
@@ -851,7 +851,7 @@ fits_hdu_copy(struct fitsparams *p, int cut1_copy0, int *r)
       in=gal_fits_hdu_open(p->input->v, hdu,
                            cut1_copy0 ? READWRITE : READONLY, 1, hopt);
 
-      /* If the output isn't opened yet, open it.  */
+      /* If the output isn't opened yet, open it. */
       if(out==NULL)
         out = ( ( gal_fits_hdu_format(p->input->v, hdu, hopt)==IMAGE_HDU
                   && p->primaryimghdu )
@@ -884,6 +884,9 @@ fits_hdu_copy(struct fitsparams *p, int cut1_copy0, int *r)
 
 
 
+/***************************************************************/
+/*************         Top-level function          *************/
+/***************************************************************/
 int
 fits(struct fitsparams *p)
 {

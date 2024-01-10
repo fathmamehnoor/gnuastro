@@ -27,6 +27,13 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 
 #include <main.h>
 
+
+
+
+
+/*******************************************************************/
+/*************            Top-level function           *************/
+/*******************************************************************/
 void
 TEMPLATE(struct TEMPLATEparams *p)
 {

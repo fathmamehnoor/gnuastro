@@ -44,10 +44,6 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 
 
 
-
-/**************************************************************/
-/************            Main function            *************/
-/**************************************************************/
 static void
 cosmiccal_print_input(struct cosmiccalparams *p)
 {
@@ -146,6 +142,9 @@ cosmiccal_printall(struct cosmiccalparams *p)
 
 
 
+/***************************************************************/
+/*************         Top-level function          *************/
+/***************************************************************/
 void
 cosmiccal(struct cosmiccalparams *p)
 {

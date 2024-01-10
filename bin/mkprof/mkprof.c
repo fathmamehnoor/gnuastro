@@ -759,7 +759,7 @@ mkprof_write(struct mkprofparams *p)
 
 
 /**************************************************************/
-/************           Outside function          *************/
+/************         Top-level function          *************/
 /**************************************************************/
 void
 mkprof(struct mkprofparams *p)

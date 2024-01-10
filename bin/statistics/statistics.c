@@ -1887,7 +1887,7 @@ statistics_fit(struct statisticsparams *p)
 
 
 /*******************************************************************/
-/**************             Main function            ***************/
+/**************          Top-level function          ***************/
 /*******************************************************************/
 void
 statistics(struct statisticsparams *p)

@@ -305,7 +305,7 @@ convertt_scale_to_uchar(struct converttparams *p)
 
 
 /**************************************************************/
-/**************           Main function         ***************/
+/**************       Top-level function        ***************/
 /**************************************************************/
 void
 convertt(struct converttparams *p)
@@ -343,7 +343,7 @@ convertt(struct converttparams *p)
       gal_txt_write(p->chll, NULL, NULL, p->cp.output, 0, 1, 0);
       break;
 
-    /* JPEG: */
+    /* JPEG. */
     case OUT_FORMAT_JPEG:
       if(p->colormap) color_map_prepare(p);
       else convertt_scale_to_uchar(p);
@@ -358,14 +358,14 @@ convertt(struct converttparams *p)
                     0, p->marks);
       break;
 
-    /* PDF */
+    /* PDF. */
     case OUT_FORMAT_PDF:
       if(p->colormap) color_map_prepare(p); else convertt_scale_to_uchar(p);
       gal_pdf_write(p->chll, p->cp.output, p->widthincm, p->borderwidth,
                     p->bordercolor, p->forcemin || p->forcemax, p->marks);
       break;
 
-    /* TIFF */
+    /* TIFF. */
     case OUT_FORMAT_TIFF:
       if(p->colormap) color_map_prepare(p); else convertt_scale_to_uchar(p);
       gal_tiff_write(p->chll, p->cp.output);

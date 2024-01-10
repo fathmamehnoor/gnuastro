@@ -50,7 +50,7 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 /***************************************************************/
 /* Multiply a 2 element vector with a transformation matrix and put the
    result in the 2 element output array. It is assumed that the input is
-   from a flat coordinate systemy. */
+   from a flat coordinate system. */
 #define WARP_MAPPOINT(V, T, O)                                  \
   {                                                             \
     (O)[0]=( ( (T)[0]*(V)[0] + (T)[1]*(V)[1] + (T)[2] )         \
@@ -526,7 +526,7 @@ warp_write_wcs_linear(struct warpparams *p)
 
 
 /***************************************************************/
-/**************       Outside function        ******************/
+/**************      Top-level function       ******************/
 /***************************************************************/
 void
 warp(struct warpparams *p)
@@ -537,7 +537,7 @@ warp(struct warpparams *p)
   /* Do the preparations and set the pointers to the functions to use. */
   if( p->wcsalign )
     {
-      /* Calculate and allocate the output image size and WCS */
+      /* Calculate and allocate the output image size and WCS. */
       if(!p->cp.quiet)
         {
           gal_timing_report(NULL, "Initializing the output image...", 1);
@@ -545,7 +545,7 @@ warp(struct warpparams *p)
         }
       gal_warp_wcsalign_init(wa);
 
-      /* Fill the output image */
+      /* Fill the output image. */
       if(!p->cp.quiet)
         {
           gal_timing_report(&t0, "Done", 2);
@@ -572,7 +572,7 @@ warp(struct warpparams *p)
                            p->cp.numthreads, p->cp.minmapsize,
                            p->cp.quietmmap);
 
-      /* Fix the linear matrix before saving the output image to disk */
+      /* Fix the linear matrix before saving the output image to disk. */
       warp_write_wcs_linear(p);
     }
 
