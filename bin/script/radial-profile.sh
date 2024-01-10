@@ -503,7 +503,7 @@ fi
 
 # Correct the central position (to cropped image)
 # -----------------------------------------------
-dxy=$(astfits $crop -h1 \
+dxy=$(astfits $crop -h0 \
           | grep ICF1PIX \
           | sed -e"s/'/ /g" -e's/\:/ /g' -e's/,/ /' \
           | awk '{print $3-1, $5-1}')
