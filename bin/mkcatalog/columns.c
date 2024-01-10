@@ -238,7 +238,8 @@ columns_wcs_preparation(struct mkcatalogparams *p)
         break;
     }
 
-  /* Convert the high-level WCS columns to low-level ones. */
+  /* Other checks; including conversion of the high-level WCS columns to
+     low-level ones. */
   for(colcode=p->columnids; colcode!=NULL; colcode=colcode->next)
     switch(colcode->v)
       {
@@ -272,6 +273,39 @@ columns_wcs_preparation(struct mkcatalogparams *p)
         pixscale=gal_wcs_pixel_scale(p->objects->wcs);
         p->pixelarcsecsq=pixscale[0]*pixscale[1]*3600.0f*3600.0f;
         free(pixscale);
+        break;
+
+      /* The '--frac-max-*' options. */
+      case UI_KEY_FRACMAX1SUM:
+      case UI_KEY_FRACMAX2SUM:
+      case UI_KEY_FRACMAX1AREA:
+      case UI_KEY_FRACMAX2AREA:
+      case UI_KEY_FRACMAX1RADIUS:
+      case UI_KEY_FRACMAX2RADIUS:
+
+        /* The '--frac-max' option should also be called. */
+        if(p->fracmax==NULL)
+          error(EXIT_FAILURE, 0, "the '--frac-max*-*' options should be "
+                "called with the '--frac-max' option (to specify what "
+                "fractions should be used). For example "
+                "'--frac-max=0.8,0.5' allows measurements at fractions "
+                "0.8 (for '--frac-max1-*' measurements) and 0.5 (for "
+                "'--frac-max2-*' measurements) of the maximum");
+
+        /* The second fraction values can only be used if there is a second
+           value. */
+        switch(colcode->v)
+          {
+          case UI_KEY_FRACMAX2SUM:
+          case UI_KEY_FRACMAX2AREA:
+          case UI_KEY_FRACMAX2RADIUS:
+            if(p->fracmax->size!=2)
+              error(EXIT_FAILURE, 0, "only one fraction is given to "
+                    "'--frac-max', but the second fraction's "
+                    "measurements are requested (for example "
+                    "'--frac-max2-sum'). Either give two fractions to "
+                    "'--frac-max' or use '--frac-max1-*' measurements");
+          }
         break;
       }
 }
@@ -1956,7 +1990,7 @@ columns_define_alloc(struct mkcatalogparams *p)
         case UI_KEY_FRACMAX2SUM:
           name           = ( colcode->v==UI_KEY_FRACMAX1SUM
                              ? "FRAC_MAX1_SUM"
-                             : "FRAC_MAX1_SUM" );
+                             : "FRAC_MAX2_SUM" );
           unit           = MKCATALOG_NO_UNIT;
           otype          = GAL_TYPE_FLOAT32;
           ctype          = GAL_TYPE_FLOAT32;

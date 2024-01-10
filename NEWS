@@ -210,6 +210,8 @@ See the end of the file for license conditions.
   - gal_wcs_write: as in 'gal_fits_img_write'.
 
 ** Bugs fixed
+  - bug #64825: astscript-fits-view only takes the last HDU provided;
+    reported by Teet Kuumta and fixed by Raul Infante-Sainz.
   - bug #64852: astscript-zeropoint: crash when input is in 0-th HDU;
     reported by 'danc' in https://savannah.gnu.org/support/?110952; fixed
     by Sepideh Eskandarlou.
@@ -229,6 +231,8 @@ See the end of the file for license conditions.
     '--customtable' of MakeProfile; reported by Sepideh Eskandarlou.
   - bug #65141: MakeCatalog crash when labled image is all blank; reported
     by Sepideh Eskandarlou.
+  - bug #65149: MakeCatalog '--frac-max*-*' measurements done without
+    '--frac-max'; reported by Helena Domínguez Sánchez.
 
 
 

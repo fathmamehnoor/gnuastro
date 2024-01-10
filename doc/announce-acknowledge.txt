@@ -1,6 +1,7 @@
 Alphabetically ordered list to acknowledge in the next release.
 
 Alberto Moreno Signes
+Helena Domínguez Sánchez
 Ignacio Ruiz Cejudo
 Rahna Payyasseri Thanduparackal
 Sepideh Eskandarlou
