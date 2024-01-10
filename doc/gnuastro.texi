@@ -10673,7 +10673,7 @@ For example when observing time-variable phenomena where cutting the exposures t
 If this is not the case for you (for example in galaxy evolution), continue with the rest of this section.
 
 Because we have multiple exposures that are slightly (sub-pixel) shifted, we can also increase the spatial resolution of the output.
-For example, let's set the output coordinate-delta (or pixel scale) to be 1/2 of the input.
+For example, let's set the output coordinate-delta (@option{--cdelt}, or pixel scale) to be 1/2 of the input.
 In other words, the number of pixels in each dimension of the output is double the first Warp command of this section:
 
 @example
@@ -10682,7 +10682,7 @@ $ astwarp jplus-exp1.fits.fz --center=107.62920,39.72472 \
           --checkmaxfrac
 
 $ aststatistics jplus-e1.fits -hMAX-FRAC --minimum --maximum
-0.06263604388 0.2506802701
+6.26360438764095e-02 2.50680270139128e-01
 
 $ astscript-fits-view jplus-e1.fits
 @end example
@@ -10706,7 +10706,7 @@ This is why you don't see any Moir@'e pattern in the warped image.
 
 In J-PLUS, each part of the sky was observed with a three-point pointing pattern (very small shifts in each pointing).
 Let's download the other two exposures and warp the same region of the sky to the same pixel grid (using the @option{--gridfile} feature).
-Then, let's open all three cropped images in one DS9 instance:
+Then, let's open all three warped images in one DS9 instance:
 
 @example
 $ wget $jplusdr2/get_fits?id=771465 -Ojplus-exp2.fits.fz
@@ -10725,24 +10725,26 @@ In the three warped images, you don't see any Moir@'e pattern, so far so good...
 now, take the following steps:
 @enumerate
 @item
+In the small ``Cube'' window, click the ``Next'' button so you see the @code{MAX-FRAC} extension/HDU.
+@item
 Click on the ``Frame'' button (in the top row of buttons just on top of the image), and select the ``Single'' button in the bottom row.
 @item
-Open the ``Zoom'' menu, and select ``Zoom 16''.
+Open the ``Zoom'' menu (not button), and select ``Zoom 16''.
 @item
-In the bottom row of buttons right on top of the image, press the ``next'' button to flip through each exposure's @code{MAX-FRAC} extension.
+Press the @key{TAB} key to flip through each exposure.
 @item
-Focus your eyes on the pixels with the largest value (white colored pixels), while pressing the ``next'' button to flip between the exposures.
-You will see that in each exposure they cover different pixels.
+Focus your eyes on the pixels with the largest value (white colored pixels), while pressing @key{TAB} to flip between the exposures.
+You will see that in each exposure they cover different pixels (nicely getting averaged out after stacking).
 @end enumerate
 
-The exercise above shows that the effect varying smoothing level (that had already shrank to a per-pixel level) will be further decreased after we stack the images.
+The exercise above shows that the Moir@'e pattern (that had already decreased significantly) will be further decreased after we stack the images.
 So let's stack these three images with the commands below.
-First, we need to remove the sky-level from each image using @ref{NoiseChisel}, then we'll stack the @code{INPUT-NO-SKY} extensions using sigma-clipping (to reject outliers by @ref{Sigma clipping}, using the @ref{Stacking operators}).
+First, we need to remove the sky-level from each image using @ref{NoiseChisel}, then we'll stack the @code{INPUT-NO-SKY} extensions using filled MAD-clipping (to reject outliers, and especially diffuse outliers, robustly, see @ref{Clipping outliers}).
 
 @example
-$ astnoisechisel jplus-e1.fits -ojplus-nc1.fits
-$ astnoisechisel jplus-e2.fits -ojplus-nc2.fits
-$ astnoisechisel jplus-e3.fits -ojplus-nc3.fits
+$ for i in $(seq 3); do \
+   astnoisechisel jplus-e$i.fits -ojplus-nc$i.fits; \
+  done
 
 $ astarithmetic jplus-nc*.fits 3 5 0.2 sigclip-mean \
                 -gINPUT-NO-SKY -ojplus-stack.fits
