@@ -29,8 +29,10 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <string.h>
 
+#include <gnuastro/txt.h>
 #include <gnuastro/wcs.h>
 #include <gnuastro/fits.h>
+
 
 #include <gnuastro-internal/options.h>
 #include <gnuastro-internal/checkset.h>
@@ -561,17 +563,35 @@ ui_check_only_options(struct fitsparams *p)
 static void
 ui_check_options_and_arguments(struct fitsparams *p)
 {
-  /* Make sure an input file name was given and if it was a FITS file, that
-     a HDU is also given. */
-  if(p->input==NULL)
-    error(EXIT_FAILURE, 0, "no input file is specified");
-  gal_list_str_reverse(&p->input);
 
-  /* More than one input is currently only acceptable with the '--keyvalue'
-     option. */
-  if( gal_list_str_number(p->input) > 1 && p->keyvalue==NULL)
-    error(EXIT_FAILURE, 0, "one input file is expected but %zu input "
-          "files are given", gal_list_str_number(p->input));
+
+  /* Other than the '--keyvalue' option, the rest of the operations only
+     require a single file. */
+  if(p->keyvalue)
+    {
+      /* If '--infilelist' is given and there is no input files, read the
+         names of the inputs from that. Otherwose, complain about not
+         having any input.*/
+      if(p->input==NULL)
+        {
+          if(p->infilelist)
+            p->input=gal_txt_read_to_list(p->infilelist);
+          else
+            error(EXIT_FAILURE, 0, "no input file(s) specified");
+        }
+    }
+  else
+    {
+      /* If there are any inputs. */
+      if(p->input==NULL)
+        error(EXIT_FAILURE, 0, "no input file is specified");
+      gal_list_str_reverse(&p->input);
+
+      /* Only one input. */
+      if( gal_list_str_number(p->input) > 1)
+        error(EXIT_FAILURE, 0, "one input file is expected but %zu input "
+              "files are given", gal_list_str_number(p->input));
+    }
 }
 
 

@@ -16201,6 +16201,13 @@ $ astfits image-a.fits --keyvalue=NAXIS,NAXIS1 \
 2      774    672
 @end example
 
+@cartouche
+@noindent
+@cindex Argument list too long
+@strong{Argument list too long:} if the list of input files are too long, the shell is going to complain with the @code{Argument list too long} error!
+To avoid this problem, you can put the list of files in a plain-text file and give that plain-text file to the Fits program through the @option{--infilelist} option discussed below.
+@end cartouche
+
 The output is internally stored (and finally printed) as a table (with one column per keyword).
 Therefore just like the Table program, you can use @option{--colinfoinstdout} to print the metadata like the example below (also see @ref{Invoking asttable}).
 The keyword metadata (comments and units) are extracted from the comments and units of the keyword in the input files (first file that has a comment or unit).
@@ -16243,6 +16250,19 @@ For example, with the command below you can search all the FITS files in all the
 
 @example
 astfits $(find /TOP/DIR/ -name "*.fits") --keyvalue=NAXIS2
+@end example
+
+@item --infilelist=STR
+A plain-text file containing the list of input files that will be used in @option{--keyvalue}.
+Each word (group of characters separated by SPACE or new-line) is assumed to be the name of the separate input file.
+This option is only relevant when no input files are given as arguments on the command-line: if any arguments are given, this option is ignored.
+
+This is necessary when the list of input files are very long; causing the shell to emits an @code{Argument list too long} error!
+In such cases, you can put the list into a plain-text file and use this option like below:
+
+@example
+$ ls $(path)/*.fits > list.txt
+$ astfits --infilelist=list.txt --keyvalue=NAXIS1
 @end example
 
 @item -O
@@ -39914,6 +39934,12 @@ All the functions that can read plain text tables will accept a filename as well
 The reason for keeping the standard input is that once something is read from the standard input, it is hard to put it back.
 We often need to read a text file several times: once to count how many columns it has and which ones are requested, and another time to read the desired columns.
 So it easier to keep it all in allocated memory and pass it on from the start for each round.
+@end deftypefun
+
+@deftypefun {gal_list_str_t *} gal_txt_read_to_list (char *filename)
+Read the contents of the given plain-text file and put each word (separated by a SPACE character, into a new node of the output list.
+The order of nodes in the output is the same as the input.
+Any new-line character at the end of a word is removed in the output list.
 @end deftypefun
 
 @deftypefun void gal_txt_write (gal_data_t @code{*cols}, struct gal_fits_list_key_t @code{**keylist}, gal_list_str_t @code{*comment}, char @code{*filename}, uint8_t @code{colinfoinstdout}, int @code{tab0_img1}, int @code{freekeys})

@@ -210,12 +210,19 @@ gal_list_str_extract(char *string)
         gal_list_str_add(&list, token, 1);
     }
 
-  /* Go over each token and change the temporarily replaced value to a
-     SPACE. */
+  /* Go over each token and make final corrections: */
   for(tmp=list;tmp!=NULL;tmp=tmp->next)
-    for(c=tmp->v; *c!='\0'; ++c)
-      if(*c==LIST_COMMENTED_SPACE)
-        *c=' ';
+    {
+      /* Change the temporarily replaced value to a SPACE. */
+      for(c=tmp->v; *c!='\0'; ++c)
+        if(*c==LIST_COMMENTED_SPACE)
+          *c=' ';
+
+      /* If the last character is a new-line character, set it to the end
+         of the string. */
+      if( tmp->v[strlen(tmp->v)-1]=='\n' )
+        tmp->v[strlen(tmp->v)-1]='\0';
+    }
 
   /* Return the list. */
   gal_list_str_reverse(&list);

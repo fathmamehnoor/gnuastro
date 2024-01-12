@@ -33,6 +33,22 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 struct argp_option program_options[] =
   {
     {
+      "infilelist",
+      UI_KEY_INFILELIST,
+      "STR",
+      0,
+      "plain-text file with list of input files.",
+      GAL_OPTIONS_GROUP_INPUT,
+      &p->infilelist,
+      GAL_TYPE_STRING,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET
+    },
+
+
+
+    {
       0, 0, 0, 0,
       "HDU (extension) information:",
       UI_GROUP_EXTENSION_INFORMATION

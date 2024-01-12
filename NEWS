@@ -74,6 +74,11 @@ See the end of the file for license conditions.
     - collapse-sigclip-fill-number: Collapse dim. by filled sigma-clipped num.
 
 *** Fits
+  --infilelist: plain-text file name that contains the list of input
+    files. Currently this only works with '--keyvalue' and is necessary
+    when you want to get the keywords of a very long list of files (for
+    example thousands!). Without this option, the shell is going to abort
+    with an "Argument list too long" error message.
   --datasum-encoded: new option that will return an ASCII encoded
     16-character string for the value of the 'DATASUM' concept in FITS data
     verification.
@@ -122,6 +127,8 @@ See the end of the file for license conditions.
   - gal_statistics_clip_mad: MAD clipping of given input.
   - gal_statistics_mad: return median absolute deviation (MAD).
   - gal_statistics_median_mad: return median and MAD.
+  - gal_txt_read_to_list: read all the space-separated words of the input
+    plain-text file as a separate node in a linked list of strings.
 
 **** Macros
   - Used by 'gal_arithmetic':

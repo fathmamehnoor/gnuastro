@@ -105,6 +105,9 @@ gal_txt_image_read(char *filename, gal_list_str_t *lines, size_t minmapsize,
 gal_list_str_t *
 gal_txt_stdin_read(long timeout_microsec);
 
+gal_list_str_t *
+gal_txt_read_to_list(char *filename);
+
 void
 gal_txt_write(gal_data_t *input, struct gal_fits_list_key_t *keylist,
               gal_list_str_t *comment, char *filename,

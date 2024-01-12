@@ -1628,6 +1628,55 @@ gal_txt_stdin_read(long timeout_microsec)
 
 
 
+gal_list_str_t *
+gal_txt_read_to_list(char *filename)
+{
+  FILE *fp;
+  gal_list_str_t *out=NULL;
+  char *line, *format_err="empty";
+  size_t linelen=10; /* 'linelen' will be increased by 'getline'. */
+
+  /* Make sure an input filename is given. */
+  if(filename==NULL) return NULL;
+
+  /* Open the file. */
+  errno=0;
+  fp=fopen(filename, "r");
+  if(fp==NULL)
+    error(EXIT_FAILURE, errno, "%s: couldn't open to read as a plain "
+          "text %s (from Gnuastro's '%s')", filename, format_err,
+          __func__);
+
+  /* Allocate the space necessary to keep each line as we parse it. Note
+     that 'getline' is going to later 'realloc' this space to fit the line
+     length. */
+  errno=0;
+  line=malloc(linelen*sizeof *line);
+  if(line==NULL)
+    error(EXIT_FAILURE, errno, "%s: allocating %zu bytes for line",
+          __func__, linelen*sizeof *line);
+
+
+  /* Read the comments of the line for possible information about the
+     lines, but also confirm/complete the info by parsing the first
+     uncommented line. */
+  while( getline(&line, &linelen, fp) != -1 )
+    {
+      if(out==NULL)
+        out=gal_list_str_extract(line);
+      else
+        gal_list_str_last(out)->next=gal_list_str_extract(line);
+    }
+
+  /* Return the output. */
+  return out;
+}
+
+
+
+
+
+
 
 
 
