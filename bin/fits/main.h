@@ -59,7 +59,7 @@ struct fitsparams
   int    hdu_in_commandline;   /* HDU wasn't given in config. file.     */
   gal_list_str_t     *input;   /* Name of input file.                   */
   char              *outhdu;   /* HDU of output (only when necessary).  */
-  char          *infilelist;   /* List of input files.                  */
+  char           *arguments;   /* List of input files.                  */
   gal_list_str_t    *remove;   /* Remove extensions from a file.        */
   gal_list_str_t      *copy;   /* Copy extensions to output.            */
   gal_list_str_t       *cut;   /* Copy ext. to output and remove.       */

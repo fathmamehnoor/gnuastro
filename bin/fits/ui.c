@@ -569,13 +569,13 @@ ui_check_options_and_arguments(struct fitsparams *p)
      require a single file. */
   if(p->keyvalue)
     {
-      /* If '--infilelist' is given and there is no input files, read the
+      /* If '--arguments' is given and there is no input files, read the
          names of the inputs from that. Otherwose, complain about not
          having any input.*/
       if(p->input==NULL)
         {
-          if(p->infilelist)
-            p->input=gal_txt_read_to_list(p->infilelist);
+          if(p->arguments)
+            p->input=gal_txt_read_to_list(p->arguments);
           else
             error(EXIT_FAILURE, 0, "no input file(s) specified");
         }

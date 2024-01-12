@@ -75,7 +75,7 @@ enum option_keys_enum
      automatically). */
   UI_KEY_TITLE        = 1000,
   UI_KEY_DATASUM,
-  UI_KEY_INFILELIST,
+  UI_KEY_ARGUMENTS,
   UI_KEY_DATASUMENCODED,
   UI_KEY_PIXELSCALE,
   UI_KEY_PIXELAREAONWCS,

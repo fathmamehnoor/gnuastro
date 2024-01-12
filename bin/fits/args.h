@@ -33,13 +33,13 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 struct argp_option program_options[] =
   {
     {
-      "infilelist",
-      UI_KEY_INFILELIST,
+      "arguments",
+      UI_KEY_ARGUMENTS,
       "STR",
       0,
       "plain-text file with list of input files.",
       GAL_OPTIONS_GROUP_INPUT,
-      &p->infilelist,
+      &p->arguments,
       GAL_TYPE_STRING,
       GAL_OPTIONS_RANGE_ANY,
       GAL_OPTIONS_NOT_MANDATORY,
