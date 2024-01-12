@@ -38800,9 +38800,11 @@ In this example multiple images are linked together as a list:
 int quietmmap=1;
 size_t minmapsize=-1;
 gal_data_t *tmp, *list=NULL;
-tmp = gal_fits_img_read("file1.fits", "1", minmapsize, quietmmap);
+tmp = gal_fits_img_read("file1.fits", "1", minmapsize, quietmmap,
+                        NULL);
 gal_list_data_add( &list, tmp );
-tmp = gal_fits_img_read("file2.fits", "1", minmapsize, quietmmap);
+tmp = gal_fits_img_read("file2.fits", "1", minmapsize, quietmmap,
+                        NULL);
 gal_list_data_add( &list, tmp );
 @end example
 @end deftypefun
@@ -38887,7 +38889,7 @@ Similar to @code{gal_array_name_recognized}, but for FITS files, it will also ch
 See the description of @code{gal_fits_file_recognized} for more (@ref{FITS macros errors filenames}).
 @end deftypefun
 
-@deftypefun gal_data_t gal_array_read (char @code{*filename}, char @code{*extension}, gal_list_str_t @code{*lines}, size_t @code{minmapsize}, int @code{quietmmap}, char @code{*ext_option_name})
+@deftypefun gal_data_t gal_array_read (char @code{*filename}, char @code{*extension}, gal_list_str_t @code{*lines}, size_t @code{minmapsize}, int @code{quietmmap}, char @code{*hdu_option_name})
 Read the array within the given extension (@code{extension}) of @code{filename}, or the @code{lines} list (see below).
 If the array is larger than @code{minmapsize} bytes, then it will not be read into RAM, but a file on the HDD/SSD (no difference for the programmer).
 Messages about the memory-mapped file can be disabled with @code{quietmmap}.
@@ -38903,17 +38905,18 @@ Thus if you just want a single array (and want to check if the user has not give
 It will mostly be the output of @code{gal_txt_stdin_read}, which is used to read the program's input as separate lines from the standard input (see @ref{Text files}).
 Note that @code{filename} and @code{lines} are mutually exclusive and one of them must be @code{NULL}.
 
-@code{ext_option_name} is used in error messages related to the extensions (e.g., HDUs in FITS) and is expected to the command-line option name that users to your program can specify the HDU for this particular input.
-For example if the given @code{extension} doesn't exist in @file{filename}, a descriptive error message is printed which instructs the users how to find and fix the problem.
-In that error message it also suggests the option to use to help the users of your program.
+@code{hdu_option_name} is used in error messages related to extensions (e.g., HDUs in FITS) and is expected to be the command-line option name that users of your program can specify to select an input HDU for this particular input; for example, if the kernel is used as the input, users should determine @option{--khdu} for this option.
+If the given @code{extension} doesn't exist in @file{filename}, a descriptive error message is printed instructing the users how to find and fix the problem.
+This error message also suggests the option to use in order to help users of your program to inform them what option they should give a HDU to.
+If you don't have an option that is configured by the users of your program, you can set this to @code{NONE} or @code{NULL}.
 @end deftypefun
 
-@deftypefun void gal_array_read_to_type (char @code{*filename}, char @code{*extension}, gal_list_str_t @code{*lines}, uint8_t @code{type}, size_t @code{minmapsize}, int @code{quietmmap}, char @code{*ext_option_name})
+@deftypefun void gal_array_read_to_type (char @code{*filename}, char @code{*extension}, gal_list_str_t @code{*lines}, uint8_t @code{type}, size_t @code{minmapsize}, int @code{quietmmap}, char @code{*hdu_option_name})
 Similar to @code{gal_array_read}, but the output data structure(s) will
 have a numeric data type of @code{type}, see @ref{Numeric data types}.
 @end deftypefun
 
-@deftypefun void gal_array_read_one_ch (char @code{*filename}, char @code{*extension}, gal_list_str_t @code{*lines}, size_t @code{minmapsize}, int @code{quietmmap}, char @code{*ext_option_name})
+@deftypefun void gal_array_read_one_ch (char @code{*filename}, char @code{*extension}, gal_list_str_t @code{*lines}, size_t @code{minmapsize}, int @code{quietmmap}, char @code{*hdu_option_name})
 @cindex Channel
 @cindex Color channel
 Read the dataset within @code{filename} (extension/hdu/dir @code{extension}) and make sure it is only a single channel.
@@ -38922,10 +38925,10 @@ This is just a simple wrapper around @code{gal_array_read} that checks if there 
 Formats like JPEG or TIFF support multiple channels per input, but it may happen that your program only works on a single dataset.
 This function can be a convenient way to make sure that the data that comes into your program is only one channel.
 
-Regarding @code{*ext_option_name}, see the description for the same argument in the description of @code{gal_array_read}.
+Regarding @code{*hdu_option_name}, see the description for the same argument in the description of @code{gal_array_read}.
 @end deftypefun
 
-@deftypefun void gal_array_read_one_ch_to_type (char @code{*filename}, char @code{*extension}, gal_list_str_t @code{*lines}, uint8_t @code{type}, size_t @code{minmapsize}, int @code{quietmmap}, char @code{*ext_option_name})
+@deftypefun void gal_array_read_one_ch_to_type (char @code{*filename}, char @code{*extension}, gal_list_str_t @code{*lines}, uint8_t @code{type}, size_t @code{minmapsize}, int @code{quietmmap}, char @code{*hdu_option_name})
 Similar to @code{gal_array_read_one_ch}, but the output data structure will
 has a numeric data type of @code{type}, see @ref{Numeric data types}.
 @end deftypefun
@@ -39064,7 +39067,7 @@ $ asttable --info table.fits
 
 Read the specified columns in a file (named @code{filename}), or list of strings (@code{lines}) into a linked list of data structures.
 If the file is FITS, then @code{hdu} will also be used, otherwise, @code{hdu} is ignored.
-For more on @code{hdu_option_name} see the description of @code{gal_fits_hdu_open} in @ref{FITS HDUs}.
+For more on @code{hdu_option_name} see the description of @code{gal_array_read} in @ref{Array input output}.
 
 @code{lines} is a list of strings with each node representing one line (including the new-line character), see @ref{List of strings}.
 It will mostly be the output of @code{gal_txt_stdin_read}, which is used to read the program's input as separate lines from the standard input (see @ref{Text files}).
@@ -39288,7 +39291,7 @@ Return the number of HDUs/extensions in @file{filename}.
 @cindex @code{DATASUM}: FITS keyword
 Return the @code{DATASUM} of the given HDU in the given FITS file.
 For more on @code{DATASUM} in the FITS standard, see @ref{Keyword inspection and manipulation} (under the @code{checksum} component of @option{--write}).
-For more on @code{hdu_option_name} see the description of @code{gal_fits_hdu_open}.
+For more on @code{hdu_option_name} see the description of @code{gal_array_read} in @ref{Array input output}.
 @end deftypefun
 
 @deftypefun {unsigned long} gal_fits_hdu_datasum_encoded (char @code{*filename}, char @code{*hdu}, char @code{*hdu_option_name})
@@ -39304,7 +39307,7 @@ For more on @code{DATASUM} in the FITS standard, see @ref{Keyword inspection and
 @deftypefun int gal_fits_hdu_format (char @code{*filename}, char @code{*hdu}, char @code{*hdu_option_name})
 Return the format of the HDU as one of CFITSIO's recognized macros:
 @code{IMAGE_HDU}, @code{ASCII_TBL}, or @code{BINARY_TBL}.
-For more on @code{hdu_option_name} see the description of @code{gal_fits_hdu_open}.
+For more on @code{hdu_option_name} see the description of @code{gal_array_read} in @ref{Array input output}.
 @end deftypefun
 
 @deftypefun int gal_fits_hdu_is_healpix (fitsfile @code{*fptr})
@@ -39323,18 +39326,14 @@ See the description under @option{--hdu} in @ref{Input output options} for more.
 
 If @code{exitonerror!=0} and the given HDU cannot be opened for any reason, the function will exit the program, and print an informative message.
 Otherwise, when the HDU cannot be opened, it will just return a NULL pointer.
-
-@code{hdu_option_name} is used in error messages related to the given HDU name/identifier.
-It is expected to the command-line option name that users to your program can specify the HDU for this particular input.
-For example if the given @code{hdu} doesn't exist in @file{filename}, a descriptive error message is printed which instructs the users how to find and fix the problem.
-The text in that error message, also suggests the option to use to fix the problem (hence the purpose of this argument).
+For more on @code{hdu_option_name} see the description of @code{gal_array_read} in @ref{Array input output}.
 @end deftypefun
 
 @deftypefun {fitsfile *} gal_fits_hdu_open_format (char @code{*filename}, char @code{*hdu}, int @code{img0_tab1}, char @code{*hdu_option_name})
 Open (in read-only format) the @code{hdu} HDU/extension of @file{filename} as an image or table.
 When @code{img0_tab1} is @code{0}(zero) but the HDU is a table, this function will abort with an error.
 It will also abort with an error when @code{img0_tab1} is @code{1} (one), but the HDU is an image.
-For more on @code{hdu_option_name} see the description of @code{gal_fits_hdu_open}.
+For more on @code{hdu_option_name} see the description of @code{gal_array_read} in @ref{Array input output}.
 
 A FITS HDU may contain both tables or images.
 When your program needs one of these formats, you can call this function so if the user provided the wrong HDU/file, it will abort and inform the user that the file/HDU is has the wrong format.
@@ -39508,7 +39507,7 @@ So it is much more efficient if the order that you ask for keywords is based on 
 @end deftypefun
 
 
-@deftypefun void gal_fits_key_read (char @code{*filename}, char @code{*hdu}, gal_data_t @code{*keysll}, int @code{readcomment}, int @code{readunit})
+@deftypefun void gal_fits_key_read (char @code{*filename}, char @code{*hdu}, gal_data_t @code{*keysll}, int @code{readcomment}, int @code{readunit}, char @code{*hdu_option_name})
 Same as @code{gal_fits_read_keywords_fptr} (see above), but accepts the
 filename and HDU as input instead of an already opened CFITSIO
 @code{fitsfile} pointer.
@@ -39610,10 +39609,7 @@ This function will put a few blank keyword lines along with a comment @code{WCS 
 Write the list of keywords in @code{keylist} into the @code{hdu} extension of the file called @code{filename}.
 If the file may not exist before this function is activated, set @code{create_fits_not_exists} to non-zero and set the HDU to @code{"0"}.
 If the keywords should be freed after they are written, set the @code{freekeys} value to non-zero.
-
-The @code{hdu_option_name} will be used in error messages if the HDU in the file cannot be opened for writing.
-This is useful for the users of your programs to inform them what option they should give a HDU to.
-If you don't have an option that is configured by the users of your program, you can set this to @code{NONE}.
+For more on @code{hdu_option_name} see the description of @code{gal_array_read} in @ref{Array input output}.
 
 The list nodes are meant to be dynamically allocated (because they will be freed after being written).
 We thus recommend using the @code{gal_fits_key_list_add} or @code{gal_fits_key_list_add_end} to create and fill the list.
@@ -39647,13 +39643,14 @@ Write the list of keywords in @code{keylist} into the given CFITSIO @code{fitsfi
 For more on the input @code{keylist}, see the description and example for @code{gal_fits_key_write}, above.
 @end deftypefun
 
-@deftypefun {gal_list_str_t *} gal_fits_with_keyvalue (gal_list_str_t *files, char *hdu, char *name, gal_list_str_t *values)
+@deftypefun {gal_list_str_t *} gal_fits_with_keyvalue (gal_list_str_t *files, char *hdu, char *name, gal_list_str_t *values, char *hdu_option_name)
 Given a list of FITS file names (@code{files}), a certain HDU (@code{hdu}), a certain keyword name (@code{name}), and a list of acceptable values (@code{values}), return the subset of file names where the requested keyword name has one of the acceptable values.
+For more on @code{hdu_option_name} see the description of @code{gal_array_read} in @ref{Array input output}.
 @end deftypefun
 
 @deftypefun {gal_list_str_t *} gal_fits_unique_keyvalues (gal_list_str_t @code{*files}, char @code{*hdu}, char @code{*name}, char @code{*hdu_option_name})
 Given a list of FITS file names (@code{files}), a certain HDU (@code{hdu}), a certain keyword name (@code{name}), return the list of unique values to that keyword name in all the files.
-For more on @code{hdu_option_name} see the description of @code{gal_fits_hdu_open} in @ref{FITS HDUs}.
+For more on @code{hdu_option_name} see the description of @code{gal_array_read} in @ref{Array input output}.
 @end deftypefun
 
 
@@ -39676,21 +39673,22 @@ If @code{name} and @code{unit} are not @code{NULL} (point to a @code{char *}), t
 Put the number of dimensions in the @code{hdu} extension of @file{filename}
 in the space that @code{ndim} points to and return the size of the dataset
 along each dimension as an allocated array with @code{*ndim} elements.
-For more on @code{hdu_option_name} see the description of @code{gal_fits_hdu_open} in @ref{FITS HDUs}.
+For more on @code{hdu_option_name} see the description of @code{gal_array_read} in @ref{Array input output}.
 @end deftypefun
 
-@deftypefun {gal_data_t *} gal_fits_img_read (char @code{*filename}, char @code{*hdu}, size_t @code{minmapsize}, int @code{quietmmap})
+@deftypefun {gal_data_t *} gal_fits_img_read (char @code{*filename}, char @code{*hdu}, size_t @code{minmapsize}, int @code{quietmmap}, char @code{*hdu_option_name})
 Read the contents of the @code{hdu} extension/HDU of @code{filename} into a Gnuastro generic data container (see @ref{Generic data container}) and return it.
 If the necessary space is larger than @code{minmapsize}, then do not keep the data in RAM, but in a file on the HDD/SSD.
 For more on @code{minmapsize} and @code{quietmmap} see the description under the same name in @ref{Generic data container}.
-For more on @code{hdu_option_name} see the description of @code{gal_fits_hdu_open} in @ref{FITS HDUs}.
+For more on @code{hdu_option_name} see the description of @code{gal_array_read} in @ref{Array input output}.
 
 Note that this function only reads the main data within the requested FITS extension, the WCS will not be read into the returned dataset.
 To read the WCS, you can use @code{gal_wcs_read} function as shown below.
 Afterwards, the @code{gal_data_free} function will free both the dataset and any WCS structure (if there are any).
 @example
-data=gal_fits_img_read(filename, hdu, -1, 1);
-data->wcs=gal_wcs_read(filename, hdu, 0, 0, 0, &data->wcs->nwcs);
+data=gal_fits_img_read(filename, hdu, -1, 1, NULL);
+data->wcs=gal_wcs_read(filename, hdu, 0, 0, 0, &data->wcs->nwcs,
+                       NULL);
 @end example
 @end deftypefun
 
@@ -39711,14 +39709,14 @@ If there are blank values, this function will change the blank values to @code{0
 If the input image does not have the other two requirements, this function will abort with an error describing the condition to the user.
 The finally returned dataset will have a @code{float32} type.
 
-For more on @code{hdu_option_name} see the description of @code{gal_fits_hdu_open} in @ref{FITS HDUs}.
+For more on @code{hdu_option_name} see the description of @code{gal_array_read} in @ref{Array input output}.
 @end deftypefun
 
 @deftypefun {fitsfile *} gal_fits_img_write_to_ptr (gal_data_t @code{*input}, char @code{*filename}, gal_fits_list_key_t @code{*keylist}, int @code{freekeys})
 Write the @code{input} dataset into a FITS file named @file{filename} and return the corresponding CFITSIO @code{fitsfile} pointer.
 This function will not close @code{fitsfile}, so you can still add other extensions to it after this function or make other modifications.
 
-In case you want to add keywords into the HDU that containst he data, you can use the second two arguments (see the description of @code{gal_fits_key_write}).
+In case you want to add keywords into the HDU that contain the data, you can use the second two arguments (see the description of @code{gal_fits_key_write}).
 These keywords will be written into the HDU before writing the data: when there are more than roughly 5 keywords (assuming your dataset has WCS) and your dataset is large, this can result in significant optimization of the running time (because adding a keyword beyond the 36 key slots will cause the whole data to shift for another block of 36 keywords).
 @end deftypefun
 
@@ -39780,7 +39778,7 @@ If the @code{fitsptr} is not a table, this function will abort the program with 
 Store the information of each column in @code{hdu} of @code{filename} into an array of data structures with @code{numcols} elements (one data structure for each column) see @ref{Arrays of datasets}.
 The total number of rows in the table is also put into the memory that @code{numrows} points to.
 The format of the table (e.g., FITS binary or ASCII table) will be put in @code{tableformat} (macros defined in @ref{Table input output}).
-For more on @code{hdu_option_name} see the description of @code{gal_fits_hdu_open} in @ref{FITS HDUs}.
+For more on @code{hdu_option_name} see the description of @code{gal_array_read} in @ref{Array input output}.
 
 This function is just for column information.
 Therefore it only stores meta-data like column name, units and comments.
@@ -39791,7 +39789,7 @@ To be generic, it is recommended to use @code{gal_table_info} which will allow g
 
 @deftypefun {gal_data_t *} gal_fits_tab_read (char @code{*filename}, char @code{*hdu}, size_t @code{numrows}, gal_data_t @code{*colinfo}, gal_list_sizet_t @code{*indexll}, size_t @code{numthreads}, size_t @code{minmapsize}, int @code{quietmmap}, char @code{*hdu_option_name})
 Read the columns given in the list @code{indexll} from a FITS table (in @file{filename} and HDU/extension @code{hdu}) into the returned linked list of data structures, see @ref{List of size_t} and @ref{List of gal_data_t}.
-For more on @code{hdu_option_name} see the description of @code{gal_fits_hdu_open} in @ref{FITS HDUs}.
+For more on @code{hdu_option_name} see the description of @code{gal_array_read} in @ref{Array input output}.
 
 Each column will be read independently, therefore they will be read in @code{numthreads} CPU threads to greatly speed up the reading when there are many columns and rows.
 However, this only happens if CFITSIO was configured with @option{--enable-reentrant}.
@@ -40427,7 +40425,7 @@ Therefore, be sure to not call this function simultaneously (over multiple threa
 [@strong{Not thread-safe}] Return the WCSLIB structure that is read from the HDU/extension @code{hdu} of the file @code{filename}.
 Also put the number of coordinate representations found into the space that @code{nwcs} points to.
 Please see @code{gal_wcs_read_fitsptr} for more.
-For more on @code{hdu_option_name} see the description of @code{gal_fits_hdu_open} in @ref{FITS HDUs}.
+For more on @code{hdu_option_name} see the description of @code{gal_array_read} in @ref{Array input output}.
 
 After processing has finished, you should free the WCS structure that this function returns with @code{gal_wcs_free}.
 @end deftypefun
@@ -40571,8 +40569,8 @@ For example, if you want to convert the TPV coefficients of your input @file{ima
 
 @example
 int nwcs;
-gal_data_t *data=gal_fits_img_read("image.fits", "1", -1, 1);
-inwcs=gal_wcs_read("image.fits", "1", 0, 0, 0, &nwcs);
+gal_data_t *data=gal_fits_img_read("image.fits", "1", -1, 1, NULL);
+inwcs=gal_wcs_read("image.fits", "1", 0, 0, 0, &nwcs, NULL);
 data->wcs=gal_wcs_distortion_convert(inwcs, GAL_WCS_DISTORTION_TPV,
                                      NULL);
 wcsfree(inwcs);
@@ -40636,7 +40634,7 @@ In other cases, this function will return a NaN.
 Find the sky coverage of the image HDU (@code{hdu}) within @file{filename}.
 The number of dimensions is written into @code{ndim}, and space for the various output arrays is internally allocated and filled with the respective values.
 Therefore you need to free them afterwards.
-For more on @code{hdu_option_name} see the description of @code{gal_fits_hdu_open} in @ref{FITS HDUs}.
+For more on @code{hdu_option_name} see the description of @code{gal_array_read} in @ref{Array input output}.
 
 Currently this function only supports images that are less than 180 degrees in width (which is usually the case!).
 This requirement has been necessary to account for images that cross the RA=0 hour circle on the sky.
@@ -41107,8 +41105,8 @@ main(void)
   int flag=GAL_ARITHMETIC_FLAGS_BASIC;
 
   /* Read the input images. */
-  in1=gal_fits_img_read("image1.fits", "1", -1, 1);
-  in2=gal_fits_img_read("image2.fits", "1", -1, 1);
+  in1=gal_fits_img_read("image1.fits", "1", -1, 1, NULL);
+  in2=gal_fits_img_read("image2.fits", "1", -1, 1, NULL);
 
   /* Take the logarithm (base-e) of the first input. */
   out1=gal_arithmetic(GAL_ARITHMETIC_OP_LOG, 1, flag, in1);
@@ -41552,7 +41550,7 @@ char *filename="input.fits", *hdu="1";
 ...
 
 /* Read the input dataset. */
-input=gal_fits_img_read(filename, hdu, -1, 1);
+input=gal_fits_img_read(filename, hdu, -1, 1, NULL);
 
 /* Do a sanity check and preparations. */
 gal_tile_full_sanity_check(filename, hdu, input, &tl);
@@ -42112,7 +42110,7 @@ main (void)
   /* Write the k-d tree to a file and write root index and input
    * name as FITS keywords ('gal_table_write' frees 'keylist').*/
   gal_fits_key_list_title_add(&keylist, "k-d tree parameters", 0);
-  gal_fits_key_write_filename("KDTIN", inputfile, &keylist, 0);
+  gal_fits_key_write_filename("KDTIN", inputfile, &keylist, 0, 1);
   gal_fits_key_list_add_end(&keylist, GAL_TYPE_SIZE_T, keyname, 0,
                             &root, 0, comment, 0, unit, 0);
   gal_table_write(kdtree, &keylist, NULL, GAL_TABLE_FORMAT_BFITS,
@@ -42180,7 +42178,7 @@ main (void)
    * See example in description of 'gal_fits_key_read_from_ptr'.*/
   keysll[0].name="KDTROOT";
   keysll[0].type=GAL_TYPE_SIZE_T;
-  gal_fits_key_read(kdtreefile, kdtreehdu, keysll, 0, 0);
+  gal_fits_key_read(kdtreefile, kdtreehdu, keysll, 0, 0, NULL);
   keysll[0].name=NULL; /* Since we did not allocate it. */
   rkey=gal_data_copy_to_new_type(&keysll[0], GAL_TYPE_SIZE_T);
   root=((size_t *)(rkey->array))[0];
@@ -44500,7 +44498,7 @@ main(void)
 
   /* Read `img.fits' (HDU: 1) as a float32 array. */
   image=gal_fits_img_read_to_type(filename, hdu, GAL_TYPE_FLOAT32,
-                                  -1, 1, "NULL");
+                                  -1, 1, NULL);
 
 
   /* Use the allocated space as a single precision floating
@@ -44575,7 +44573,7 @@ main(void)
   size_t i, num, *dinc;
   gal_data_t *input=gal_fits_img_read_to_type("input.fits", "1",
                                               GAL_TYPE_FLOAT32, -1, 1,
-                                              "NULL");
+                                              NULL);
 
   /* To avoid the `void *' pointer and have `dinc'. */
   array=input->array;
@@ -44730,7 +44728,7 @@ main(void)
 
   /* Read the image into memory as a float32 data type. */
   p.image=gal_fits_img_read_to_type(filename, hdu, GAL_TYPE_FLOAT32,
-                                    minmapsize, quietmmap, "NULL");
+                                    minmapsize, quietmmap, NULL);
 
 
   /* Print some basic information before the actual contents: */
@@ -44998,14 +44996,15 @@ main(void)
 
   /* Read the input image and its WCS. */
   wa.input=gal_array_read_one_ch_to_type(filename, hdu, NULL,
-                                         GAL_TYPE_FLOAT64, -1,  0);
-  wa.input->wcs=gal_wcs_read(filename, hdu, 0, 0, 0, &wa.input->nwcs);
+                                         GAL_TYPE_FLOAT64, -1,  0, NULL);
+  wa.input->wcs=gal_wcs_read(filename, hdu, 0, 0, 0, &wa.input->nwcs,
+                             NULL);
 
   /* Prepare the warp input structure, use all threads available. */
   wa.coveredfrac=1; wa.edgesampling=0; wa.numthreads=0;
 
   /* Set the target grid to be the same as wcsref.fits file on hdu 0. */
-  wa.twcs=gal_wcs_read(gridfile, gridhdu, 0, 0, 0, &nwcs);
+  wa.twcs=gal_wcs_read(gridfile, gridhdu, 0, 0, 0, &nwcs, NULL);
   if(wa.twcs==NULL)
     {
       fprintf(stderr, "%s (hdu %s): no WCS! Can't continue\n",
@@ -45015,7 +45014,7 @@ main(void)
 
   /* Read the output image size (from the reference image). Note that
    * 'dsize' will be freed while freeing 'widthinpix'). */
-  dsize=gal_fits_img_info_dim(gridfile, gridhdu, &ndim);
+  dsize=gal_fits_img_info_dim(gridfile, gridhdu, &ndim, NULL);
 
   /* Convert the 'dsize' to a 'gal_data_t' so the library can use it. */
   wa.widthinpix=gal_data_alloc(dsize, GAL_TYPE_SIZE_T, 1, &ndim,
@@ -45143,8 +45142,9 @@ main(void)
 
   /* Read the input image and its WCS. */
   wa.input=gal_array_read_one_ch_to_type(filename, hdu, NULL,
-					 GAL_TYPE_FLOAT64, -1, 0);
-  wa.input->wcs=gal_wcs_read(filename, hdu, 0, 0, 0, &wa.input->nwcs);
+					 GAL_TYPE_FLOAT64, -1, 0, NULL);
+  wa.input->wcs=gal_wcs_read(filename, hdu, 0, 0, 0, &wa.input->nwcs,
+                             NULL);
 
 
   /* Prepare the warp input structure. */

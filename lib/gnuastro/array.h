@@ -63,24 +63,24 @@ gal_array_file_recognized(char *name);
 
 gal_data_t *
 gal_array_read(char *filename, char *extension, gal_list_str_t *lines,
-               size_t minmapsize, int quietmmap, char *ext_option_name);
+               size_t minmapsize, int quietmmap, char *hdu_option_name);
 
 gal_data_t *
 gal_array_read_to_type(char *filename, char *extension,
                        gal_list_str_t *lines, uint8_t type,
                        size_t minmapsize, int quietmmap,
-                       char *ext_option_name);
+                       char *hdu_option_name);
 
 gal_data_t *
 gal_array_read_one_ch(char *filename, char *extension,
                       gal_list_str_t *lines, size_t minmapsize,
-                      int quietmmap, char *ext_option_name);
+                      int quietmmap, char *hdu_option_name);
 
 gal_data_t *
 gal_array_read_one_ch_to_type(char *filename, char *extension,
                               gal_list_str_t *lines, uint8_t type,
                               size_t minmapsize, int quietmmap,
-                              char *ext_option_name);
+                              char *hdu_option_name);
 
 
 __END_C_DECLS    /* From C++ preparations */
