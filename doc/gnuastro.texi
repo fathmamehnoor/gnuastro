@@ -38150,7 +38150,7 @@ If it is in the middle, you just have to change two.
 You initially define a variable of this type with a @code{NULL} pointer as shown below:
 
 @example
-struct list_float *mylist=NULL;
+struct list_float *list=NULL;
 @end example
 
 @noindent
@@ -38222,9 +38222,9 @@ This can be useful when your string may be changed later in the program, but you
 Here is one short/simple example of initializing and adding elements to a string list:
 
 @example
-gal_list_str_t *strlist=NULL;
-gal_list_str_add(&strlist, "bottom of list.", 1);
-gal_list_str_add(&strlist, "second last element of list.", 1);
+gal_list_str_t *list=NULL;
+gal_list_str_add(&list, "bottom of list.", 1);
+gal_list_str_add(&list, "second last element of list.", 1);
 @end example
 
 @end deftypefun
@@ -38250,10 +38250,10 @@ For program outputs, it is best to make your own implementation with a better, m
 For example, the following code snippet.
 
 @example
-size_t i;
+size_t i=0;
 gal_list_str_t *tmp;
 for(tmp=list; tmp!=NULL; tmp=tmp->next)
-  printf("String %zu: %s\n", i, tmp->v);
+  printf("String %zu: %s\n", ++i, tmp->v);
 @end example
 @end deftypefun
 
@@ -38269,6 +38269,11 @@ If @code{freevalue} is not zero, also free the string within the nodes.
 @deftypefun {gal_list_str_t *} gal_list_str_extract (char @code{*string})
 Extract space-separated components of the input string.
 If any space element should be kept (and not considered as a delimiter between two tokens), precede it with a backslash (@code{\}).
+Be aware that in C programming, when including a backslash character within a string literal, the correct format is indeed to use two backslashes ("\\") to represent a single backslash:
+
+@example
+gal_list_str_extract("bottom of\\ list");
+@end example
 @end deftypefun
 
 @deftypefun {char *} gal_list_str_cat (gal_list_str_t @code{*list}, char @code{delimiter})
@@ -38309,9 +38314,9 @@ Add a new node (containing @code{value}) to the top of the @code{list} of @code{
 Here is one short example of initializing and adding elements to a string list:
 
 @example
-gal_list_i32_t *i32list=NULL;
-gal_list_i32_add(&i32list, 52);
-gal_list_i32_add(&i32list, -4);
+gal_list_i32_t *list=NULL;
+gal_list_i32_add(&list, 52);
+gal_list_i32_add(&list, -4);
 @end example
 
 @end deftypefun
@@ -38339,10 +38344,10 @@ For example, the following code snippet.
 You can also modify it to print all values in one line, etc., depending on the context of your program.
 
 @example
-size_t i;
+size_t i=0;
 gal_list_i32_t *tmp;
 for(tmp=list; tmp!=NULL; tmp=tmp->next)
-  printf("String %zu: %s\n", i, tmp->v);
+  printf("Number %zu: %s\n", ++i, tmp->v);
 @end example
 @end deftypefun
 
@@ -38397,9 +38402,9 @@ Add a new node (containing @code{value}) to the top of the @code{list} of @code{
 Here is one short example of initializing and adding elements to a string list:
 
 @example
-gal_list_sizet_t *slist=NULL;
-gal_list_sizet_add(&slist, 45493);
-gal_list_sizet_add(&slist, 930484);
+gal_list_sizet_t *list=NULL;
+gal_list_sizet_add(&list, 45493);
+gal_list_sizet_add(&list, 930484);
 @end example
 
 @end deftypefun
@@ -38427,10 +38432,10 @@ For example, the following code snippet.
 You can also modify it to print all values in one line, etc., depending on the context of your program.
 
 @example
-size_t i;
+size_t i=0;
 gal_list_sizet_t *tmp;
 for(tmp=list; tmp!=NULL; tmp=tmp->next)
-  printf("String %zu: %zu\n", i, tmp->v);
+  printf("Number %zu: %zu\n", ++i, tmp->v);
 @end example
 @end deftypefun
 
@@ -38477,9 +38482,9 @@ Add a new node (containing @code{value}) to the top of the @code{list} of @code{
 Here is one short example of initializing and adding elements to a string list:
 
 @example
-gal_list_f32_t *flist=NULL;
-gal_list_f32_add(&flist, 3.89);
-gal_list_f32_add(&flist, 1.23e-20);
+gal_list_f32_t *list=NULL;
+gal_list_f32_add(&list, 3.89);
+gal_list_f32_add(&list, 1.23e-20);
 @end example
 
 @end deftypefun
@@ -38507,10 +38512,10 @@ For example, in the following code snippet.
 You can also modify it to print all values in one line, etc., depending on the context of your program.
 
 @example
-size_t i;
+size_t i=0;
 gal_list_f32_t *tmp;
 for(tmp=list; tmp!=NULL; tmp=tmp->next)
-  printf("Node %zu: %f\n", i, tmp->v);
+  printf("Number %zu: %f\n", ++i, tmp->v);
 @end example
 @end deftypefun
 
@@ -38558,9 +38563,9 @@ Add a new node (containing @code{value}) to the top of the @code{list} of @code{
 Here is one short example of initializing and adding elements to a string list:
 
 @example
-gal_list_f64_t *dlist=NULL;
-gal_list_f64_add(&dlist, 3.8129395763193);
-gal_list_f64_add(&dlist, 1.239378923931e-20);
+gal_list_f64_t *list=NULL;
+gal_list_f64_add(&list, 3.8129395763193);
+gal_list_f64_add(&list, 1.239378923931e-20);
 @end example
 
 @end deftypefun
@@ -38588,10 +38593,10 @@ For example, in the following code snippet.
 You can also modify it to print all values in one line, etc., depending on the context of your program.
 
 @example
-size_t i;
+size_t i=0;
 gal_list_f64_t *tmp;
 for(tmp=list; tmp!=NULL; tmp=tmp->next)
-  printf("Node %zu: %f\n", i, tmp->v);
+  printf("Number %zu: %f\n", ++i, tmp->v);
 @end example
 @end deftypefun
 
@@ -38650,9 +38655,9 @@ Add a new node (containing @code{value}) to the top of the @code{list} of @code{
 Here is one short example of initializing and adding elements to a string list:
 
 @example
-gal_list_void_t *vlist=NULL;
-gal_list_f64_add(&vlist, some_pointer);
-gal_list_f64_add(&vlist, another_pointer);
+gal_list_void_t *list=NULL;
+gal_list_f64_add(&list, some_pointer);
+gal_list_f64_add(&list, another_pointer);
 @end example
 
 @end deftypefun
