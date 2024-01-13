@@ -16205,7 +16205,7 @@ $ astfits image-a.fits --keyvalue=NAXIS,NAXIS1 \
 @noindent
 @cindex Argument list too long
 @strong{Argument list too long:} if the list of input files are too long, the shell is going to complain with the @code{Argument list too long} error!
-To avoid this problem, you can put the list of files in a plain-text file and give that plain-text file to the Fits program through the @option{--infilelist} option discussed below.
+To avoid this problem, you can put the list of files in a plain-text file and give that plain-text file to the Fits program through the @option{--arguments} option discussed below.
 @end cartouche
 
 The output is internally stored (and finally printed) as a table (with one column per keyword).
@@ -16252,17 +16252,17 @@ For example, with the command below you can search all the FITS files in all the
 astfits $(find /TOP/DIR/ -name "*.fits") --keyvalue=NAXIS2
 @end example
 
-@item --infilelist=STR
+@item --arguments=STR
 A plain-text file containing the list of input files that will be used in @option{--keyvalue}.
 Each word (group of characters separated by SPACE or new-line) is assumed to be the name of the separate input file.
 This option is only relevant when no input files are given as arguments on the command-line: if any arguments are given, this option is ignored.
 
-This is necessary when the list of input files are very long; causing the shell to emits an @code{Argument list too long} error!
+This is necessary when the list of input files are very long; causing the shell to abort with an @code{Argument list too long} error.
 In such cases, you can put the list into a plain-text file and use this option like below:
 
 @example
 $ ls $(path)/*.fits > list.txt
-$ astfits --infilelist=list.txt --keyvalue=NAXIS1
+$ astfits --arguments=list.txt --keyvalue=NAXIS1
 @end example
 
 @item -O
@@ -24000,7 +24000,7 @@ $ astarithmetic 1 image.fits / --out=inverse.fits
 $ astarithmetic image.fits -1 x --out=negative.fits
 
 ## Subtract extension 4 from extension 1 (counting from zero):
-$ astarithmetic image.fits image.fits - --out=skysub.fits           \
+$ astarithmetic image.fits image.fits - --out=skysub.fits \
                 --hdu=1 --hdu=4
 
 ## Add two images, then divide them by 2 (2 is read as floating point):
@@ -24011,7 +24011,7 @@ $ astarithmetic image1.fits image2.fits + 2.0 / --out=average.fits
 $ astarithmetic image1.fits image2.fits average --out=average.fits
 
 ## Calculate the median of three images in three separate extensions:
-$ astarithmetic img1.fits img2.fits img3.fits median                \
+$ astarithmetic img1.fits img2.fits img3.fits median \
                 -h0 -h1 -h2 --out=median.fits
 @end example
 
@@ -24038,6 +24038,24 @@ See @ref{Common options} for a review of the options in all Gnuastro programs.
 Arithmetic just redefines the @option{--hdu} and @option{--dontdelete} options as explained below.
 
 @table @option
+
+@item --arguments=STR
+A plain-text file containing the command-line arguments that will be used by Arithmetic.
+This option is only relevant when no arguments are given on the command-line: if any arguments are given, this option is ignored.
+
+@cindex Argument list too long
+This is necessary when the set of of input files and operators (arguments; see @ref{Arguments and options}) are very long (thousands of long file names for example; usually generated within large pipelines).
+Such long arguments will cause the shell to abort with an @code{Argument list too long} error.
+In such cases, you can put the list into a plain-text file and use this option like below (assuming you want to stack all the files in a certain directory with the @code{mean} operator; see @ref{Stacking operators}):
+
+@example
+$ counter=0;
+$ for f in $(pwd)/*.fits; do \
+    echo $f; counter=$((counter+1)); \
+  done > arguments.txt; \
+  echo "$counter mean" >> arguments.txt
+$ astarithmetic --arguments=list.txt -g1
+@end example
 
 @item -h INT/STR
 @itemx --hdu INT/STR

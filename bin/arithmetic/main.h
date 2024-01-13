@@ -73,6 +73,7 @@ struct arithmeticparams
   struct gal_arithmetic_set_params setprm; /* Parameters for 'set-'.    */
 
   /* Input: */
+  char          *arguments;  /* File containing arguments to be used.   */
   gal_list_str_t     *hdus;  /* List of all given HDU strings.          */
   gal_list_str_t   *tokens;  /* List of all arithmetic tokens.          */
   char            *wcsfile;  /* File to use for output's WCS.           */

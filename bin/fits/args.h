@@ -37,7 +37,7 @@ struct argp_option program_options[] =
       UI_KEY_ARGUMENTS,
       "STR",
       0,
-      "plain-text file with list of input files.",
+      "Plain-text file with command-line arguments.",
       GAL_OPTIONS_GROUP_INPUT,
       &p->arguments,
       GAL_TYPE_STRING,

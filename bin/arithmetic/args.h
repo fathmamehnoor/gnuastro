@@ -83,6 +83,19 @@ struct argp_option program_options[] =
       GAL_OPTIONS_NOT_MANDATORY,
       GAL_OPTIONS_NOT_SET
     },
+    {
+      "arguments",
+      UI_KEY_ARGUMENTS,
+      "STR",
+      0,
+      "Plain-text file with command-line arguments.",
+      GAL_OPTIONS_GROUP_INPUT,
+      &p->arguments,
+      GAL_TYPE_STRING,
+      GAL_OPTIONS_RANGE_ANY,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET
+    },
 
 
 

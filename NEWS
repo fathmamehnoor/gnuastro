@@ -26,6 +26,12 @@ See the end of the file for license conditions.
     --outfitsnocommit: do not write the Git commit.
 
 *** Arithmetic
+  --arguments: takes the name of plain-text file that contains the list of
+    arguments to the program. This option is critical if you have very long
+    (thousands) of operands and operators (which happen in large pipelines
+    where the arguments are constructed automatically). Without this
+    option, the shell is going to abort with an "Argument list too long"
+    error message.
   - New operators:
     - rotate-coord: given a 2D point's coordinates, return the coordinates
       after it has been rotated by your requested angle around your

@@ -28,6 +28,7 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <string.h>
 
+#include <gnuastro/txt.h>
 #include <gnuastro/wcs.h>
 #include <gnuastro/list.h>
 #include <gnuastro/fits.h>
@@ -261,21 +262,31 @@ ui_check_options_and_arguments(struct arithmeticparams *p)
   char *tofilename=NULL, *basename=NULL;
   struct gal_options_common_params *cp=&p->cp;
 
-  /* First, make sure that any tokens are actually given. */
-  if(p->tokens==NULL)
-    error(EXIT_FAILURE, 0, "no input tokens. Please specify a file name "
-          "or number (as operands) along with operator(s) as input. "
-          "Please run any of the following commands for more "
-          "information.\n\n"
-          "    $ astarithmetic --help           # Short info.\n"
-          "    $ info astarithmetic             # Full invocation "
-          "documentation.\n");
-
-  /* The input tokens are put in a lastin-firstout (simple) linked list, so
-     change them to the correct order so the order we pop a token is the
-     same order that the user input a value. Note that for the options this
-     was done in 'gal_options_read_config_set'. */
-  gal_list_str_reverse(&p->tokens);
+  /* First, make sure that tokens are actually given. */
+  if(p->tokens)
+    {
+      /* The input tokens are put in a lastin-firstout (simple) linked
+         list, so change them to the correct order so the order we pop a
+         token is the same order that the user input a value. Note that for
+         the options this was done in 'gal_options_read_config_set'. */
+      gal_list_str_reverse(&p->tokens);
+    }
+  else
+    {
+      if(p->arguments)
+        {
+          p->tokens=gal_txt_read_to_list(p->arguments);
+          free(p->arguments); p->arguments=NULL;
+        }
+      else
+        error(EXIT_FAILURE, 0, "no input tokens. Please specify a file "
+              "name or number (as operands) along with operator(s) as "
+              "input; or use the '--arguments' options. Please run any "
+              "of the following commands for more information.\n\n"
+              "    $ astarithmetic --help           # Short info.\n"
+              "    $ info astarithmetic             # Full invocation "
+              "documentation.\n");
+    }
 
   /* To allow adding extensions to existing files, let the 'keep' flag be
      the same as the 'dontdelete'. */
