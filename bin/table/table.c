@@ -1102,7 +1102,7 @@ table_catrows_findhdu(char *filename, gal_list_str_t **hdull)
       if(*hdull) { hdu=(*hdull)->v; *hdull=(*hdull)->next; }
       else
         error(EXIT_FAILURE, 0, "not enough '--catrowhdu's (or "
-              "'-H'). For every FITS table given to '--catrowfile'. "
+              "'-X'). For every FITS table given to '--catrowfile'. "
               "A call to '--catrowhdu' is necessary to identify "
               "its HDU/extension");
     }
