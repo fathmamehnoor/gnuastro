@@ -180,7 +180,7 @@ EOF
 #   if a value is appended to the short format it should crash. So in the
 #   second test for these ('-l*') will account for both the case where we
 #   have an equal sign and where we don't.
-inputs=""
+input=""
 while [ $# -gt 0 ]
 do
     # Initialize 'tcol':
@@ -233,7 +233,13 @@ do
 
         # Not an option (not starting with a '-'): assumed to be input FITS
         # file name.
-        *) if [ x"$inputs" = x ]; then inputs="$1"; else inputs="$inputs $1"; fi; shift;;
+        *) if [ x"$input" = x ]; then
+             if [ -f "$1" ]; then
+                 input="$1";
+             else echo "$scriptname: $1: no such file"; exit 1;
+             fi;
+           else echo "$scriptname: only one input should be given"; exit 1
+           fi; shift;;
     esac
 
     # If a column was given, add it to possibly existing previous columns
@@ -313,8 +319,8 @@ if [ x"$mode" = xwcs ]; then unit="\""; else unit=""; fi
 # Write the metadata in the output.
 printf "# Region file format: DS9 version 4.1\n" > $out
 printf "# Created by $scriptname (GNU Astronomy Utilities) $version\n" >> $out
-if [ x"$inputs" = x ]; then printf "# Input from stdin\n" >> $out
-else          printf "# Input file: $inputs (hdu $hdu)\n" >> $out
+if [ x"$input" = x ]; then printf "# Input from stdin\n" >> $out
+else printf "# Input file: $input (hdu $hdu)\n" >> $out
 fi
 printf "# Columns: $col\n" >> $out
 if [ x"$namecol" != x ]; then
@@ -334,7 +340,7 @@ else                        printf "image\n" >> $out;   fi
 # 'printf' will not see anything and use the next variable where the unit
 # should be printed! See https://savannah.gnu.org/bugs/index.php?64153
 if [ x"$namecol" = x ]; then
-    if [ x"$inputs" = x ]; then
+    if [ x"$input" = x ]; then
         cat /dev/stdin \
             | asttable --column=$col \
             | while read a b; do \
@@ -342,14 +348,14 @@ if [ x"$namecol" = x ]; then
                          $a $b $radius "$unit" >> $out; \
               done
     else
-        asttable $inputs --hdu=$hdu --column=$col \
+        asttable $input --hdu=$hdu --column=$col \
             | while read a b; do \
                   printf "circle(%f,%f,%f%s)\n" \
                          $a $b $radius "$unit" >> $out; \
               done
     fi
 else
-    if [ x"$inputs" = x ]; then
+    if [ x"$input" = x ]; then
         cat /dev/stdin \
             | asttable --column=$col --column=$namecol \
             | while read a b c; do \
@@ -357,7 +363,7 @@ else
                          $a $b $radius "$unit" $c >> $out; \
               done
     else
-        asttable $inputs --hdu=$hdu --column=$col --column=$namecol \
+        asttable $input --hdu=$hdu --column=$col --column=$namecol \
             | while read a b c; do \
                   printf "circle(%f,%f,%f%s) # text={%g}\n" \
                          $a $b $radius "$unit" $c >> $out; \

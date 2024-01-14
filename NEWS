@@ -248,7 +248,9 @@ See the end of the file for license conditions.
 
 ** Bugs fixed
   - bug #52674: Correcting Clang warnings on macOS during compilation;
-    fixed with help of Thorsten Alteholz and Raul Infante-Sainz
+    fixed with help of Thorsten Alteholz and Raul Infante-Sainz.
+  - bug #61476: astscript-ds9-region: output created when input file does
+    not exist; reported by Sepideh Eskandarlou, fixed by Thorsten Alteholz.
   - bug #64825: astscript-fits-view only takes the last HDU provided;
     reported by Teet Kuumta and fixed by Raul Infante-Sainz.
   - bug #64852: astscript-zeropoint: crash when input is in 0-th HDU;
@@ -272,6 +274,8 @@ See the end of the file for license conditions.
     by Sepideh Eskandarlou.
   - bug #65149: MakeCatalog '--frac-max*-*' measurements done without
     '--frac-max'; reported by Helena Domínguez Sánchez.
+
+
 
 
 
