@@ -226,6 +226,11 @@ sky(struct statisticsparams *p)
                                       p->outliersigma, p->checkskyname,
                                       "--outliernumngb");
 
+  /* If the user only wants the sky level to this step, don't bother with
+     the rest (note that 'p->checksky' was activated in 'ui.c').  */
+  if(p->checkskynointerp)
+    exit(EXIT_SUCCESS);
+
 
   /* Interpolate the Sky and its standard deviation. */
   if(!cp->quiet) gettimeofday(&t1, NULL);

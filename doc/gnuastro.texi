@@ -27660,6 +27660,11 @@ But in other scenarios this default behavior is not desired; for example, if you
 Create a multi-extension FITS file showing the steps that were used to estimate the Sky value over the input, see @ref{Quantifying signal in a tile}.
 The file will have two extensions for each step (one for the Sky and one for the Sky standard deviation).
 
+@item --checkskynointerp
+Similar to @code{--checksky}, but it will stop as soon as the outlier tiles have been identified and before it interpolates the values to cover the whole image.
+
+This is useful when you want the good tile values before interpolation, and don't want to slow down your pipeline with the extra computing that interpolation and smoothing require.
+
 @end table
 
 @node NoiseChisel, Segment, Statistics, Data analysis

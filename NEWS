@@ -90,6 +90,9 @@ See the end of the file for license conditions.
     verification.
 
 *** Statistics
+  --checkskynointerp: similar to '--checksky', but stop as soon as the good
+    tiles are found (do not continue to interpolation and smoothing of the
+    tiles which can be time consuming if not needed).
   --mad: Median Absolute Deviation (MAD) of input dataset.
   --madclip: MAD-clipping, showing intermediate results.
   --sigclip-mad: MAD of input after sigma-clipping.

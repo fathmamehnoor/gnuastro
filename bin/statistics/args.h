@@ -774,6 +774,19 @@ struct argp_option program_options[] =
       GAL_OPTIONS_NOT_SET
     },
     {
+      "checkskynointerp",
+      UI_KEY_CHECKSKYNOINTERP,
+      0,
+      0,
+      "Similar to --checksky, stops at interpolation.",
+      UI_GROUP_SKY,
+      &p->checkskynointerp,
+      GAL_OPTIONS_NO_ARG_TYPE,
+      GAL_OPTIONS_RANGE_0_OR_1,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET
+    },
+    {
       "ignoreblankintiles",
       UI_KEY_IGNOREBLANKINTILES,
       0,

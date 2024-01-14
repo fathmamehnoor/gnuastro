@@ -604,6 +604,11 @@ ui_check_only_options(struct statisticsparams *p)
         }
     }
 
+  /* In case '--checkskynointep' is given, we want everything to be similar
+     to '--checksky' in the initial phases (when necessary, we will
+     check 'p->checkskynointerp'. */
+  if(p->checkskynointerp) p->checksky=1;
+
   /* Reverse the list of statistics to print in one row and also the
      arguments, so it has the same order the user wanted. */
   gal_list_f64_reverse(&p->tp_args);
@@ -1210,7 +1215,7 @@ ui_preparations(struct statisticsparams *p)
           gal_data_free(check);
         }
 
-      /* Set the steps image name. */
+      /* Set the check-sky output name;  */
       if(p->sky && p->checksky)
         p->checkskyname=gal_checkset_automatic_output(cp, checkbasename,
                                                       "_sky_steps.fits");

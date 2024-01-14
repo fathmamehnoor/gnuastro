@@ -114,6 +114,7 @@ struct statisticsparams
   double   outliersclip[2];  /* Outlier Sigma-clipping params.           */
   size_t       smoothwidth;  /* Width of flat kernel to smooth interpd.  */
   uint8_t         checksky;  /* Save the steps for deriving the Sky.     */
+  uint8_t checkskynointerp;  /* Stop --checksky before interpolation.    */
   double    sclipparams[2];  /* Muliple and parameter of sigma clipping. */
   double    mclipparams[2];  /* Muliple and parameter of sigma clipping. */
   uint8_t ignoreblankintiles;/* Ignore input's blank values.             */
