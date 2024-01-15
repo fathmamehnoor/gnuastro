@@ -32,7 +32,8 @@ bin_PROGRAMS = astcrop
 
 ## Reason for linking with 'libgnu' described in 'bin/TEMPLATE/Makefile.am'.
 astcrop_LDADD = $(top_builddir)/bootstrapped/lib/libgnu.la \
-                -lgnuastro $(CONFIG_LDADD)
+                $(top_builddir)/lib/libgnuastro.la \
+                $(CONFIG_LDADD)
 
 astcrop_SOURCES = main.c ui.c crop.c wcsmode.c onecrop.c
 

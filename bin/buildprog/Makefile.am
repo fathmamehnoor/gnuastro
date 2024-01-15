@@ -39,7 +39,8 @@ bin_PROGRAMS = astbuildprog
 
 ## Reason for linking with 'libgnu' described in 'bin/TEMPLATE/Makefile.am'.
 astbuildprog_LDADD = $(top_builddir)/bootstrapped/lib/libgnu.la \
-                     -lgnuastro $(CONFIG_LDADD)
+                     $(top_builddir)/lib/libgnuastro.la \
+                     $(CONFIG_LDADD)
 
 # Basic program sources.
 astbuildprog_SOURCES = main.c ui.c buildprog.c

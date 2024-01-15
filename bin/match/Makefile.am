@@ -32,7 +32,8 @@ bin_PROGRAMS = astmatch
 
 ## Reason for linking with 'libgnu' described in 'bin/TEMPLATE/Makefile.am'.
 astmatch_LDADD = $(top_builddir)/bootstrapped/lib/libgnu.la \
-                 -lgnuastro $(CONFIG_LDADD)
+                 $(top_builddir)/lib/libgnuastro.la \
+                 $(CONFIG_LDADD)
 
 astmatch_SOURCES = main.c ui.c match.c
 

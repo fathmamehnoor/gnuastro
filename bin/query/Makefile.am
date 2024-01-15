@@ -32,7 +32,8 @@ bin_PROGRAMS = astquery
 
 ## Reason for linking with 'libgnu' described in 'bin/TEMPLATE/Makefile.am'.
 astquery_LDADD = $(top_builddir)/bootstrapped/lib/libgnu.la \
-                 -lgnuastro $(CONFIG_LDADD)
+                 $(top_builddir)/lib/libgnuastro.la \
+                 $(CONFIG_LDADD)
 
 astquery_SOURCES = main.c ui.c query.c astron.c gaia.c ned.c tap.c \
                    vizier.c

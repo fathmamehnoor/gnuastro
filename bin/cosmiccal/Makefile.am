@@ -32,7 +32,8 @@ bin_PROGRAMS = astcosmiccal
 
 ## Reason for linking with 'libgnu' described in 'bin/TEMPLATE/Makefile.am'.
 astcosmiccal_LDADD = $(top_builddir)/bootstrapped/lib/libgnu.la \
-                     -lgnuastro $(CONFIG_LDADD)
+                     $(top_builddir)/lib/libgnuastro.la \
+                     $(CONFIG_LDADD)
 
 astcosmiccal_SOURCES = main.c ui.c cosmiccal.c
 

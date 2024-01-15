@@ -32,7 +32,8 @@ bin_PROGRAMS = astmkprof
 
 ## Reason for linking with 'libgnu' described in 'bin/TEMPLATE/Makefile.am'.
 astmkprof_LDADD = $(top_builddir)/bootstrapped/lib/libgnu.la \
-                  -lgnuastro $(CONFIG_LDADD)
+                  $(top_builddir)/lib/libgnuastro.la \
+                  $(CONFIG_LDADD)
 
 astmkprof_SOURCES = main.c ui.c mkprof.c oneprofile.c profiles.c
 

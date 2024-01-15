@@ -247,6 +247,8 @@ See the end of the file for license conditions.
   - gal_wcs_write: as in 'gal_fits_img_write'.
 
 ** Bugs fixed
+  - bug #46225: Programs don't depend on libs in Makefiles; fixed by
+    Thorsten Alteholz.
   - bug #52295: Cosmology library integrals crash for high z; fixed by
     Thorsten Alteholz.
   - bug #52674: Correcting Clang warnings on macOS during compilation;
