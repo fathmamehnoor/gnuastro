@@ -186,6 +186,76 @@ EOF
 }
 
 
+print_citation() {
+    empty="" # needed for the ascii art!
+    cat <<EOF
+
+Thank you for using $scriptname (GNU Astronomy Utilities) $version
+
+Citations and acknowledgement are vital for the continued work on Gnuastro.
+
+Please cite the following record(s) and add the acknowledgement statement below in your work to support us. Please note that different Gnuastro programs may have different corresponding papers. Hence, please check all the programs you used. Don't forget to also include the version as shown above for reproducibility.
+
+Paper introducing this script
+-----------------------------
+  @ARTICLE{astscript-color-faint-gray,
+         author = {{Infante-Sainz}, Ra{\'u}l and {Akhlaghi}, Mohammad},
+          title = "{Gnuastro: Visualizing the Full Dynamic Range in Color Images}",
+        journal = {Research Notes of the American Astronomical Society},
+       keywords = {Astronomy software, Astronomy data visualization, Open source software, Low surface brightness galaxies, 1855, 1968, 1866, 940, Astrophysics - Instrumentation and Methods for Astrophysics, Astrophysics - Astrophysics of Galaxies, Computer Science - Computer Vision and Pattern Recognition},
+           year = 2024,
+          month = jan,
+         volume = {8},
+         number = {1},
+            eid = {10},
+          pages = {10},
+            doi = {10.3847/2515-5172/ad1aae},
+  archivePrefix = {arXiv},
+         eprint = {2401.03814},
+   primaryClass = {astro-ph.IM},
+         adsurl = {https://ui.adsabs.harvard.edu/abs/2024RNAAS...8...10I},
+        adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+  }
+
+Paper introducing Gnuastro (currently main citation)
+----------------------------------------------------
+  @ARTICLE{gnuastro,
+     author = {{Akhlaghi}, M. and {Ichikawa}, T.},
+      title = "{Noise-based Detection and Segmentation of Nebulous Objects}",
+    journal = {ApJS},
+  archivePrefix = "arXiv",
+     eprint = {1505.01664},
+   primaryClass = "astro-ph.IM",
+       year = 2015,
+      month = sep,
+     volume = 220,
+        eid = {1},
+      pages = {1},
+        doi = {10.1088/0067-0049/220/1/1},
+     adsurl = {https://ui.adsabs.harvard.edu/abs/2015ApJS..220....1A},
+    adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+  }
+
+Acknowledgement
+---------------
+This work was partly done using GNU Astronomy Utilities (Gnuastro, ascl.net/1801.009) version $version. Work on Gnuastro has been funded by the Japanese Ministry of Education, Culture, Sports, Science, and Technology (MEXT) scholarship and its Grant-in-Aid for Scientific Research (21244012, 24253003), the European Research Council (ERC) advanced grant 339659-MUSICOS, the Spanish Ministry of Economy and Competitiveness (MINECO, grant number AYA2016-76219-P) and the NextGenerationEU grant through the Recovery and Resilience Facility project ICTS-MRR-2021-03-CEFCA.
+                                               ,
+                                              {|'--.
+                                             {{\    \ $empty
+      Many thanks from all                   |/\`'--./=.
+      Gnuastro developers!                   \`\.---' \`\\
+                                                  |\  ||
+                                                  | |//
+                                                   \//_/|
+                                                   //\__/
+                                                  //
+                   (http://www.chris.com/ascii/) |/
+
+EOF
+}
+
+
+
 
 
 
@@ -305,7 +375,7 @@ do
         -'?'*|--help=*)   on_off_option_error --help -?;;
         -V|--version)     print_version; exit 0;;
         -V*|--version=*)  on_off_option_error --version -V;;
-        --cite)           astfits --cite; exit 0;;
+        --cite)           print_citation; exit 0;;
         --cite=*)         on_off_option_error --cite;;
 
         # Unrecognized option:

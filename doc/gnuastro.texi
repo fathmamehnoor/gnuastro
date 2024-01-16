@@ -8765,7 +8765,6 @@ In this tutorial, we review how to prepare your images and create informative RG
 We start with aligning the images to the same pixel grid (which is usually necessary!) and using the low-level engine (Gnuastro's @ref{ConvertType} program) directly to create an RGB image.
 Afterwards, we will use a higher-level installed script (@ref{Color images with gray faint regions}).
 This is a high-level wrapper over ConvertType that does some pre-processing and stretches the pixel values to enhance their 8-bit representation before calling ConvertType.
-@c This installed script was first described in Infante-Sainz et al. (2023, @url{TBD}).
 
 @menu
 * Color channels in same pixel grid::  Warping all inputs to the same pixel grid.
@@ -8973,7 +8972,7 @@ But we saw that showing the brighter and fainter parts of the galaxy in a single
 In this section, we will use Gnuastro's @command{astscript-color-faint-gray} installed script to address this problem and create images which visualize a major fraction of the contents of our astronomical data.
 
 This script aims to solve the problems mentioned in the previous section.
-See Infante-Sainz et al. (2023, which first introduced this script) for examples of the final images we will be producing in this tutorial.
+See Infante-Sainz et al. (2024, @url{https://arxiv.org/abs/2401.03814}), which first introduced this script, for examples of the final images we will be producing in this tutorial.
 This script uses a non-linear transformation to modify the bright input values before combining them to produce the color image.
 Furthermore, for the faint regions of the image, it will use grayscale and avoid color over all (as we saw, colored noised is not too nice to look at!).
 The faint regions are also inverted: so the brightest pixel in the faint (black-and-white or grayscale) region is black and the faintest pixels will be white.
@@ -9304,7 +9303,7 @@ In certain situations, the combination of channels may not have a traditional co
 For instance, combining an X-ray channel with an optical filter and a far-infrared image can complicate the interpretation in terms of human understanding of color.
 But the physical interpretation remains valid as the different channels (colors in the output) represent different physical phenomena of astronomical sources.
 Another easier example is the use of narrow-band filters such as the H-alpha of J-PLUS survey.
-This is shown in the Bottom-right panel of Figure 1 by Infante-Sainz et al. (2023, @url{TBD}), in this case the G channel has been substituted by the image corresponding to the H-alpha filter to show the star formation regions.
+This is shown in the Bottom-right panel of Figure 1 by Infante-Sainz et al. (2024, @url{https://arxiv.org/abs/2401.03814}), in this case the G channel has been substituted by the image corresponding to the H-alpha filter to show the star formation regions.
 Therefore, please use the weights with caution, as it can significantly affect the output and misinform your readers/viewers.
 
 If you do apply weights be sure to report the weights in the caption of the image (beside the filters that were used for each channel).
@@ -9345,15 +9344,15 @@ Two additional options are available to smooth different regions by convolving w
 The value specified for these options represents the full width at half maximum of the Gaussian kernel.
 
 Congratulations!
-By following the tutorial up to this point, we have been able to reproduce three images of Infante-Sainz et al. (2023, @url{TBD}).
-You can see the commands that were used to generate them within the reproducible source of that paper at @url{TBD}.
+By following the tutorial up to this point, we have been able to reproduce three images of Infante-Sainz et al. (2024, @url{https://arxiv.org/abs/2401.03814}).
+You can see the commands that were used to generate them within the reproducible source of that paper at @url{https://codeberg.org/gnuastro/papers/src/branch/color-faint-gray}.
 Remember that this paper is reproducible throught Maneage, so you can explore and build the entire paper by yourself.
 For more on Maneage, see Akhlaghi et al. @url{https://ui.adsabs.harvard.edu/abs/2021CSE....23c..82A, 2021}.
 
 This tutorial provided a general overview of the various options to construct a color image from three different FITS images using the @command{astscript-color-faint-gray} script.
 Keep in mind that the optimal parameters for generating the best color image depend on your specific goals and the quality of your input images.
 We encourage you to follow this tutorial with the provided J-PLUS images and later with your own dataset.
-See @ref{Color images with gray faint regions} for more information, and please consider citing Infante-Sainz et al. (2023, @url{TBD}) if you use this script in your work (the full Bib@TeX{} entry of this paper will be given to you with the @option{--cite} option).
+See @ref{Color images with gray faint regions} for more information, and please consider citing Infante-Sainz et al. (2024, @url{https://arxiv.org/abs/2401.03814}) if you use this script in your work (the full Bib@TeX{} entry of this paper will be given to you with the @option{--cite} option).
 
 @node Zero point of an image, Pointing pattern design, Color images with full dynamic range, Tutorials
 @section Zero point of an image
@@ -34592,7 +34591,7 @@ To solve this issue, it is possible to perform some transformations of the image
 This is actually what the current script does: it makes some non-linear transformations and then uses Gnuastro's ConvertType to generate the color image.
 There are several parameters and options in order to change the final output that are described in @ref{Invoking astscript-color-faint-gray}.
 A full tutorial describing this script with actual data is available in @ref{Color images with full dynamic range}.
-A general overview of this script will be published in Infante-Sainz et al. @url{TBD, 2023}; please cite it if this script proves useful in your research.
+A general overview of this script is published in Infante-Sainz et al. @url{https://arxiv.org/abs/2401.03814, 2024}; please cite it if this script proves useful in your research.
 
 @menu
 * Invoking astscript-color-faint-gray::  Details of options and arguments.
