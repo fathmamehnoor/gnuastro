@@ -28,6 +28,7 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <gsl/gsl_errno.h>
 #include <gsl/gsl_const_mksa.h>
 #include <gsl/gsl_integration.h>
 
@@ -249,9 +250,12 @@ gal_cosmology_proper_distance(double z, double H0, double o_lambda_0,
                               double o_matter_0, double o_radiation_0)
 {
   cosmology_density_check(o_lambda_0, o_matter_0, o_radiation_0);
+  int status;
   size_t neval;
   gsl_function F;
-  double result, error, c=GSL_CONST_MKSA_SPEED_OF_LIGHT;
+  gsl_integration_workspace *w;
+  gsl_error_handler_t *gslerrhandler;
+  double result, gslerr, c=GSL_CONST_MKSA_SPEED_OF_LIGHT;
   double o_curv_0 = 1.0 - ( o_lambda_0 + o_matter_0 + o_radiation_0 );
   double H0s=H0/1000/GSL_CONST_MKSA_PARSEC;  /* H0 in units of seconds. */
   struct cosmology_integrand_t p={o_lambda_0, o_curv_0, o_matter_0,
@@ -261,9 +265,29 @@ gal_cosmology_proper_distance(double z, double H0, double o_lambda_0,
   F.params=&p;
   F.function=&cosmology_integrand_proper_dist;
 
-  /* Do the integration. */
-  gsl_integration_qng(&F, 0.0f, z, GSLIEPSABS, GSLIEPSREL, &result,
-                      &error, &neval);
+  /* Temporarily switch off error handling */
+  gslerrhandler=gsl_set_error_handler_off();
+
+  /* Do the integration (first with the fast GSL function). */
+  status=gsl_integration_qng(&F, 0.0f, z, GSLIEPSABS, GSLIEPSREL, &result,
+                             &gslerr, &neval);
+
+  /* If the first integration failed, try a slower, but more robust one. */
+  if (status!=GSL_SUCCESS)
+    {
+      w=gsl_integration_workspace_alloc(GSLILIMIT);
+      status=gsl_integration_qag(&F, 0.0f, z, GSLIEPSABS, GSLIEPSREL,
+                                 GSLILIMIT, GSL_INTEG_GAUSS21, w,
+                                 &result, &gslerr);
+      gsl_integration_workspace_free(w);
+      if (status!=GSL_SUCCESS)
+        error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at '%s' to "
+              "fix the problem. The status of the second integration is "
+              "%i.",  __func__, PACKAGE_BUGREPORT, status);
+  }
+
+  /* Reactivate "normal" error handling */
+  gslerrhandler=gsl_set_error_handler(gslerrhandler);
 
   /* Return the result. */
   return result * c / H0s / (1e6 * GSL_CONST_MKSA_PARSEC);
@@ -279,9 +303,12 @@ gal_cosmology_comoving_volume(double z, double H0, double o_lambda_0,
                               double o_matter_0, double o_radiation_0)
 {
   cosmology_density_check(o_lambda_0, o_matter_0, o_radiation_0);
+  int status;
   size_t neval;
   gsl_function F;
-  double result, error;
+  double result, gslerr;
+  gsl_integration_workspace *w;
+  gsl_error_handler_t *gslerrhandler;
   double c=GSL_CONST_MKSA_SPEED_OF_LIGHT;
   double H0s=H0/1000/GSL_CONST_MKSA_PARSEC;     /* H0 in units of seconds. */
   double cH = c / H0s / (1e6 * GSL_CONST_MKSA_PARSEC);
@@ -293,9 +320,29 @@ gal_cosmology_comoving_volume(double z, double H0, double o_lambda_0,
   F.params=&p;
   F.function=&cosmology_integrand_comoving_volume;
 
+  /* temporarily switch off error handling */
+  gslerrhandler=gsl_set_error_handler_off();
+
   /* Do the integration. */
-  gsl_integration_qng(&F, 0.0f, z, GSLIEPSABS, GSLIEPSREL,
-                      &result, &error, &neval);
+  status=gsl_integration_qng(&F, 0.0f, z, GSLIEPSABS, GSLIEPSREL,
+                      &result, &gslerr, &neval);
+
+  /* If the first integration failed, try a slower, but more robust one. */
+  if (status!=GSL_SUCCESS)
+    {
+      w=gsl_integration_workspace_alloc(GSLILIMIT);
+     status=gsl_integration_qag(&F, 0.0f, z, GSLIEPSABS, GSLIEPSREL,
+                                GSLILIMIT, GSL_INTEG_GAUSS21, w,
+                                &result, &gslerr);
+     gsl_integration_workspace_free(w);
+     if (status!=GSL_SUCCESS)
+       error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at '%s' to "
+             "fix the problem. The status of the second integration is "
+             "%i.",  __func__, PACKAGE_BUGREPORT, status);
+    }
+
+  /* Reactivate "normal" error handling */
+  gslerrhandler=gsl_set_error_handler(gslerrhandler);
 
   /* Return the result. */
   return result * 4 * M_PI * cH*cH*cH;
