@@ -10937,12 +10937,14 @@ Let's look at them one by one (from the one that is most affected to the least):
 @item std.fits
 The standard deviation (third image in DS9) is the most strongly affected statistic by an outlier.
 This is so strong that the edge of the circle is also clearly visible!
-The standard deviation is calculated by first finding th mean, and estimating the difference of each element from the mean.
+The standard deviation is calculated by first finding the mean, and estimating the difference of each element from the mean.
 Those differences are then taken to the power of two and finally the square root is taken (after a division by the number).
 It is the power-of-two component that amplifies the effect of the single outlier as you see here.
 
 @item mean.fits
-The mean (first image in DS9) is also affected by the outlier such
+The mean (first image in DS9) is also affected by the outlier in such a way that the circle footprint is clearly visible.
+This is because the nine images have the same importance in the combination with a simple mean.
+Therefore, the outlier value pushes the result to higher values and the circle is printed.
 
 @item median.fits
 The median (second image in DS9) is also affected by the outlier; although much less significantly than the standard deviation or mean.
@@ -10958,7 +10960,7 @@ Therefore, using the 5th element (after sorting), we are systematically choosing
 
 With larger datasets, the difference between the central elements will be less.
 However, the improved precision (in the elements without an outlier) will also be more.
-A detailed analysis of the effect of a single outlier on the median based on the number of inputs can be done as an excersize; but in general, as this argument shows, the median is not immune to outliers; especially when you care about low signal-to-noise signal (as we do in astronomy: low surface brightness science).
+A detailed analysis of the effect of a single outlier on the median based on the number of inputs can be done as an exercise; but in general, as this argument shows, the median is not immune to outliers; especially when you care about low signal-to-noise regimes (as we do in astronomy: low surface brightness science).
 
 @item mad.fits
 The median absolute deviation (fourth image in DS9) is affected by outliers in a similar fashion to the median.
@@ -10981,7 +10983,7 @@ $ astscript-fits-view build/collapsed-*.fits
 @end example
 
 The last command opens TOPCAT.
-In the ``Graphics'' menu, select plane plot and you will see all the values fluctuating around zero (with a maximum/minimum around @mymath{\pm2}).
+In the ``Graphics'' menu, select plane plot and you will see all the values fluctuating around 10 (with a maximum/minimum around @mymath{\pm2}).
 Afterwards, click on the ``Layers'' menu and click on ``Add position control''.
 In the opened tab at the bottom (where the scroll bar infront of ``Table'' is empty), select the other table.
 In the regions that there was no circle in any of the vertical axises, the two match nicely (the noise level is the same).
@@ -11074,13 +11076,13 @@ When the outliers are as strong as above, the outliers will be removed through t
 @enumerate
 @item
 Calculate the standard deviation (@mymath{\sigma}) and median (@mymath{m}) of a distribution.
-The median used because, as shown above, the mean is too significantly affected by the presence of outliers.
+The median is used because, as shown above, the mean is too significantly affected by the presence of outliers.
 @item
 Remove all points that are smaller or larger than @mymath{m\pm\alpha\sigma}.
 @item
 Go back to step 1, unless the selected exit criteria is reached.
 There are commonly two types of exit criteria (to stop the @mymath{\sigma}-clipping iteration).
-Within Gnuastro's programs that use sigma-clipping, the exit criteria is the second value to the @option{--sclipparams} option (the first value is the @mymath{m} above):
+Within Gnuastro's programs that use sigma-clipping, the exit criteria is the second value to the @option{--sclipparams} option (the first value is the @mymath{\alpha} above):
 
 @itemize
 @item
