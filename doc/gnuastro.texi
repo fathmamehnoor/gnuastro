@@ -1174,7 +1174,8 @@ They can be run just like a program and behave very similarly (with minor differ
 
 @item astscript-pointing-simulate
 (See @ref{Pointing pattern simulation}) Given a table of pointings on the sky, create and a reference image that contains your camera's distortions and properties, generate a stacked exposure map.
-This is very useful in testing the coverage of dither patterns when designing your observing strategy and it is highly customizable, see the tutorial in @ref{Pointing pattern design}.
+This is very useful in testing the coverage of dither patterns when designing your observing strategy and it is highly customizable.
+See Akhlaghi @url{https://arxiv.org/abs/2310.15006,2023}, or the dedicated tutorial in @ref{Pointing pattern design}.
 
 @item astscript-radial-profile
 (See @ref{Generate radial profile}) Calculate the radial profile of an object within an image.
@@ -1184,13 +1185,15 @@ See Infante-Sainz et al. @url{https://arxiv.org/abs/2401.05303,2024}.
 @item astscript-color-faint-gray
 (see @ref{Color images with gray faint regions}) Given three images for the Red-Green-Blue (RGB) channels, this script will use the bright pixels for color and will show the faint/diffuse regions in grayscale.
 This greatly helps in visualizing the full dynamic range of astronical data.
-See Infante-Sainz et al. @url{https://arxiv.org/abs/2401.03814,2024}.
+See Infante-Sainz et al. @url{https://arxiv.org/abs/2401.03814,2024} or a dedicated tutorial in @ref{Color images with full dynamic range}.
 
 @item astscript-sort-by-night
 (See @ref{Sort FITS files by night}) Given a list of FITS files, and a HDU and keyword name (for a date), this script separates the files in the same night (possibly over two calendar days).
 
 @item astscript-zeropoint
 (see @ref{Zero point estimation}) Estimate the zero point (to calibrate pixel values) of an input image using a reference image or a reference catalog.
+This is necessary to produce measurements with physical units from new images.
+See Eskandarlou et al. @url{https://arxiv.org/abs/2312.04263,2023}, or a dedicated tutorial in @ref{Zero point of an image}.
 
 @item astscript-psf-*
 The following scripts are used to estimate the extended PSF estimation and subtraction as described in the tutorial @ref{Building the extended PSF}:
@@ -9366,6 +9369,7 @@ For more on the definition and importance of the zero point magnitude, see @ref{
 @cindex SDSS
 In this tutorial, we will use Gnuastro's @command{astscript-zeropoint}, to estimate the zero point of a single exposure image from the @url{https://www.j-plus.es, J-PLUS survey}, while using an @url{http://www.sdss.org, SDSS} image as reference (recall that all SDSS images have been calibrated to have a fixed zero point of 22.5).
 In this case, both images that we are using were taken with the SDSS @emph{r} filter.
+See Eskandarlou et al. @url{https://arxiv.org/abs/2312.04263,2023}.
 
 @cartouche
 @cindex Johnson filters
@@ -34122,6 +34126,7 @@ For the full set of options an a detailed description of each, see @ref{Invoking
 @node Invoking astscript-zeropoint,  , Zero point estimation, Zero point estimation
 @subsection Invoking astscript-zeropoint
 This installed script will calculate the zero point of an input image to calibrate it.
+A general overview of this script has been published in Eskandarlou et al. @url{https://arxiv.org/abs/2312.04263,2023}; please cite it if this script proves useful in your research.
 The reference can be an image or catalog (which have been previously calibrated)
 The executable name is @command{astscript-zeropoint}, with the following general template:
 
@@ -34339,8 +34344,11 @@ Use a non-standard Makefile for the Makefile to call.
 This option is primarily useful during the development of this script and its Makefile, not for normal/regular user.
 So if you are not developing this script, you can safely ignore this option.
 When this option is given, the default installed Makefile will not be used: the file given to this option will be read by @command{make} (within the script) instead.
-@end table
 
+@item --cite
+Give BibTeX and acknowledgment information for citing this script within your paper.
+For more, see @option{Operating mode options}.
+@end table
 
 @node Pointing pattern simulation, Color images with gray faint regions, Zero point estimation, Installed scripts
 @section Pointing pattern simulation

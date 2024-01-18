@@ -317,8 +317,6 @@ do
         -p=*|--position-angle=*)   positionangle="${1#*=}";                             check_v "$1" "$positionangle";  shift;;
         -p*)                       positionangle=$(echo "$1"  | sed -e's/-p//');        check_v "$1" "$positionangle";  shift;;
 
-
-
         # Output parameters
         -k|--keeptmp)     keeptmp=1; shift;;
         -k*|--keeptmp=*)  on_off_option_error --keeptmp -k;;
@@ -510,19 +508,17 @@ fi
 # output, it will be used for saving the output file. If the user does not
 # specify a output name, then a default value containing the center will be
 # generated.
-objectid="$xcoord"_"$ycoord"
+objectid="$xcoord"-"$ycoord"
 bname_prefix=$(basename "$inputs" | sed 's/\.fits/ /' | awk '{print $1}')
 if [ x"$tmpdir" = x ]; then \
-  tmpdir=$(pwd)/"$bname_prefix"_stamp
+  tmpdir=$(pwd)/"$bname_prefix"-stamp-$objectid
 fi
 
-if [ -d "$tmpdir" ]; then
-  junk=1
-else
-  mkdir -p "$tmpdir"
-fi
+# Existance of the temporary directory (delete it if already exists).
+if [ -d "$tmpdir" ]; then  rm -r "$tmpdir"; fi
+mkdir "$tmpdir"
 
-# Output
+# Output.
 if [ x"$output" = x ]; then
   output="$bname_prefix"_stamp_$objectid.fits
 fi
@@ -565,7 +561,7 @@ fi
 # We are setting '--checkcenter=0' in Crop so it doesn't check if the
 # central pixel is covered or not (we may be interested in the outer parts
 # of the PSF of a star that is centered outside of the image).
-cropped=$tmpdir/cropped-$objectid.fits
+cropped=$tmpdir/cropped.fits
 astcrop $inputs --hdu=$hdu --mode=img --checkcenter=0 \
         --width=$xwidthinpix,$ywidthinpix \
         --center=$xcenter,$ycenter \
@@ -632,13 +628,13 @@ EOF
 
     else
         # To help in debugging (when '--quiet' is not called)
-        if [ x"$quiet" = x ]; then
+        if [ x"$quiet" = x ] && [ x"$center" != x ]; then
             echo "$scriptname: $segment: at $center, found clump $clab in object $olab"
         fi
 
         # Crop the object and clump image to same size as desired stamp.
-        cropclp=$tmpdir/cropped-clumps-$objectid.fits
-        cropobj=$tmpdir/cropped-objects-$objectid.fits
+        cropclp=$tmpdir/cropped-clumps.fits
+        cropobj=$tmpdir/cropped-objects.fits
         astcrop $segment --hdu=OBJECTS --mode=img \
                 --center=$xcenter,$ycenter \
                 --width=$xwidthinpix,$ywidthinpix --output=$cropobj $quiet
@@ -647,7 +643,7 @@ EOF
                 --width=$xwidthinpix,$ywidthinpix --output=$cropclp $quiet
 
         # Mask all the undesired regions.
-        cropped_masked=$tmpdir/cropped-masked-$objectid.fits
+        cropped_masked=$tmpdir/cropped-masked.fits
         astarithmetic $cropped --hdu=1 set-i --output=$cropped_masked $quiet \
                       $cropobj --hdu=1 set-o \
                       $cropclp --hdu=1 set-c \
@@ -656,7 +652,6 @@ EOF
                       1 dilate set-cmask \
                       o o $olab eq 0 where set-omask \
                       i omask cmask or nan where
-
     fi
 
     # Apply the signal-to-noise threshold if the user provided one, and
@@ -666,49 +661,47 @@ EOF
         # Mask all the pixels that are below the threshold based on the
         # signal to noise value which is obtained form the SKY_STD. Finally
         # label the separate regions.
-	cropsnt=$tmpdir/cropped-snt-$objectid.fits
-	cropstd=$tmpdir/cropped-std-$objectid.fits
-        croplab=$tmpdir/cropped-lab-$objectid.fits
-	astcrop $segment --hdu=SKY_STD --mode=img \
+        cropsnt=$tmpdir/cropped-snt.fits
+        cropstd=$tmpdir/cropped-std.fits
+        croplab=$tmpdir/cropped-lab.fits
+        astcrop $segment --hdu=SKY_STD --mode=img \
                 --center=$xcenter,$ycenter \
                 --width=$xwidthinpix,$ywidthinpix \
-		--output=$cropstd $quiet
+                --output=$cropstd $quiet
 
         # Fill the NAN pixels with maximum value of the image plus one (so
         # the fill value is not present in the image).
         fillval=$(astarithmetic $cropped_masked maxvalue 1 + -q)
-        fill=$tmpdir/cropped-masked-fill-nan-pix-$objectid.fits
+        fill=$tmpdir/cropped-masked-fill-nan-pix.fits
         astarithmetic $cropped_masked set-i i i isblank $fillval \
                       where --output=$fill
 
         # Apply the threshold and label the regions above the threshold.
         astarithmetic $fill -h1 set-v \
-		      $cropstd -h1        set-s \
-		      v s /               set-sn \
-		      v sn $snthresh lt \
-		      2 dilate nan where set-all \
+                      $cropstd -h1        set-s \
+                      v s /               set-sn \
+                      v sn $snthresh lt \
+                      2 dilate nan where set-all \
                       all tofilefree-$cropsnt \
                       all isnotblank 2 connected-components \
                       --output=$croplab
 
         # Extract the label of the central coordinate.
-        id=$(astcrop $croplab -h1 --mode=wcs \
+        id=$(astcrop $croplab -h1 --mode=$mode \
                      --center=$xcoord,$ycoord \
                      --widthinpix --width=1 --oneelemstdout -q)
 
-        # Mask all the pixels that do not belong to the main object.
-        msk=$tmpdir/mask-$objectid.fits
-        astarithmetic $cropsnt $croplab $id ne nan where -g1 \
-                      --output=$msk.fits
+        # Mask all the pixels that do not belong to the main object and set
+        # all the originally NaN-valued pixels to NaN again.
+        msk=$tmpdir/mask.fits
+        astarithmetic $cropsnt $croplab $id ne nan where set-i \
+                      i i $fillval eq nan where -g1 --output=$msk
 
-        # Set all the originally NaN-valued pixels to NaN again.
-        astarithmetic $msk.fits set-i i i $fillval eq nan where \
-                      --output=$msk
-
-        # Clean up.
-	mv $msk $cropped_masked
+        # Set the masked image to the desired output of this step.
+        mv $msk $cropped_masked
     fi
 
+# No '--segment' provided.
 else
     cropped_masked=$cropped
 fi
@@ -810,13 +803,13 @@ if [ $nocentering = 0 ]; then
 
     # Warp image based on the measured displacement (first component of the
     # output above).
-    warpped=$tmpdir/cropped-masked-warpforcenter-$objectid.fits
+    warpped=$tmpdir/cropped-masked-warpforcenter.fits
     DXY=$(echo "$warpcoord" | awk '{print $1}')
     astwarp $cropped_masked --translate=$DXY --output=$warpped
 
     # Crop image based on the calculated shift (second component of the
     # output above).
-    centermsk=$tmpdir/cropped-masked-centered-$objectid.fits
+    centermsk=$tmpdir/cropped-masked-centered.fits
     CXY=$(echo "$warpcoord" | awk '{print $2}')
     astcrop $warpped -h1 \
             --mode=img --output=$centermsk \
@@ -844,7 +837,7 @@ if [ x"$normradiusmin" != x   -a   x"$normradiusmax" != x ]; then
     # Otherwise, compute the radial profile up to the outer part of the
     # ring for the normalization (to not wast CPU time). If the user
     # specifies sigma clip parameters, use them.
-    radialprofile=$tmpdir/rprofile-$objectid.fits
+    radialprofile=$tmpdir/rprofile.fits
     maxr=$(echo "$normradiusmax" | awk '{print $1+1}')
     if [ x"$sigmaclip" = x ]; then finalsigmaclip=""
     else                           finalsigmaclip="--sigmaclip=$sigmaclip";
@@ -867,9 +860,9 @@ if [ x"$normradiusmin" != x   -a   x"$normradiusmax" != x ]; then
     values=$(asttable $radialprofile $quiet \
                       --range=1,$normradiusmin,$normradiusmax)
     if ! normvalue=$(echo "$values" \
-                          | aststatistics --column=2 --$normop \
-                                          $finalsigmaclip -q \
-                          2> /dev/null); then
+                         | aststatistics --column=2 --$normop \
+                                         $finalsigmaclip -q \
+                                         2> /dev/null); then
         normvalue=nan
     fi
 else
