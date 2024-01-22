@@ -226,6 +226,8 @@ See the end of the file for license conditions.
   - gal_wcs_write: as in 'gal_fits_img_write'.
 
 ** Bugs fixed
+  - bug #52674: Correcting Clang warnings on macOS during compilation;
+    fixed with help of Thorsten Alteholz and Raul Infante-Sainz
   - bug #64825: astscript-fits-view only takes the last HDU provided;
     reported by Teet Kuumta and fixed by Raul Infante-Sainz.
   - bug #64852: astscript-zeropoint: crash when input is in 0-th HDU;
