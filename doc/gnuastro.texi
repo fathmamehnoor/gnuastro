@@ -1179,10 +1179,12 @@ This is very useful in testing the coverage of dither patterns when designing yo
 @item astscript-radial-profile
 (See @ref{Generate radial profile}) Calculate the radial profile of an object within an image.
 The object can be at any location in the image, using various measures (median, sigma-clipped mean, etc.), and the radial distance can also be measured on any general ellipse.
+See Infante-Sainz et al. @url{https://arxiv.org/abs/2401.05303,2024}.
 
 @item astscript-color-faint-gray
 (see @ref{Color images with gray faint regions}) Given three images for the Red-Green-Blue (RGB) channels, this script will use the bright pixels for color and will show the faint/diffuse regions in grayscale.
 This greatly helps in visualizing the full dynamic range of astronical data.
+See Infante-Sainz et al. @url{https://arxiv.org/abs/2401.03814,2024}.
 
 @item astscript-sort-by-night
 (See @ref{Sort FITS files by night}) Given a list of FITS files, and a HDU and keyword name (for a date), this script separates the files in the same night (possibly over two calendar days).
@@ -25538,7 +25540,7 @@ $ astwarp image.fits
 ## Align four exposures to same pixel grid and stack them with
 ## Arithmetic program's sigma-clipped mean operator (out of many
 ## stacking operators, see Arithmetic's documentation).
-$ grid="--center=1.234,5.678 --widthinpix=1001,1001 --cdelt=0.2/3600"
+$ grid="--center=1.234,5.678 --width=1001,1001 --widthinpix --cdelt=0.2/3600"
 $ astwarp a.fits $grid --output=A.fits
 $ astwarp b.fits $grid --output=B.fits
 $ astwarp c.fits $grid --output=C.fits
@@ -33436,6 +33438,7 @@ This script uses @ref{MakeProfiles} to generate elliptical apertures with the va
 @subsection Invoking astscript-radial-profile
 
 This installed script will measure the radial profile of an object within an image.
+A general overview of this script has been published in Infante-Sainz et al. @url{https://arxiv.org/abs/2401.05303,2024)}; please cite it if this script proves useful in your research.
 For more on installed scripts please see (see @ref{Installed scripts}).
 This script can be used with the following general template:
 
@@ -33748,6 +33751,10 @@ You can disable the deletion of the temporary directory with the @option{--keept
 Do Not delete the temporary directory (see description of @option{--tmpdir} above).
 This option is useful for debugging.
 For example, to check that the profiles generated for obtaining the radial profile have the desired center, shape and orientation.
+
+@item --cite
+Give BibTeX and acknowledgment information for citing this script within your paper.
+For more, see @option{Operating mode options}.
 @end table
 
 

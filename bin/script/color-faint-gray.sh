@@ -258,7 +258,6 @@ EOF
 
 
 
-
 # Functions to check option values and complain if necessary.
 on_off_option_error() {
     if [ "x$2" = x ]; then
