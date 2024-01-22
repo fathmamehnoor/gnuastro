@@ -876,8 +876,8 @@ eps_mark_in_img_fl_pixel(float x, float y, float s1, float s2,
   switch(shape)
     {
     case GAL_EPS_MARK_SHAPE_LINE:
-      width[0]=s1; width[1]=0.1; break; /* We will add line-width later, */
-                                        /* And width[1] shouldn't be 0.  */
+      width[0]=s1; width[1]=0; break;   /* EPS line-width will be added */
+                                        /* later, this is the box size. */
     case GAL_EPS_MARK_SHAPE_PLUS:
     case GAL_EPS_MARK_SHAPE_SQUARE:
       width[0]=width[1]=s1; break;
