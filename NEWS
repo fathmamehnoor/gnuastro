@@ -4,6 +4,17 @@ Copyright (C) 2015-2024 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 * Noteworthy changes in release X.XX (library XX.0.0) (YYYY-MM-DD)
+** New publications
+  - https://ui.adsabs.harvard.edu/abs/2023RNAAS...7..269E by Eskandarlou et
+    al. on Gnuastro's zero point measurement script for calibration of
+    astronomical images ('astscript-zeropoint').
+  - https://ui.adsabs.harvard.edu/abs/2024RNAAS...8...10I by Infante-Sainz
+    & Akhlaghi on Gnuastro's script to visualize the full dynamic range of
+    astronomical images ('astscript-color-faint-gray').
+  - https://ui.adsabs.harvard.edu/abs/2024RNAAS...8...22I by Infante-Sainz
+    et al. on Gnuastro's script to measure the radial profile of a given
+    source ('astscript-radial-profile').
+
 ** New features
 *** New program
   - 'astscript-color-faint-gray': a new installed script to maximize the
@@ -205,6 +216,16 @@ See the end of the file for license conditions.
   - The 'ICF*' keywords are now written in the 0-th HDU of Crop's outputs
     (the extension with no data, only metadata). Therefore, the WCS is now
     the only metadata in the HDU containing data.
+
+*** astscript-psf-stamp
+  - When no name is given to the temporary directory, the default name will
+    contain the center coordinates as a suffix (to avoid being confused
+    with other calls for other centers), and the contents of the temporary
+    directy will have the same filename. Until now, the temporary directory
+    name would be the same for different calls, and the coordinates suffix
+    would be in the temporary file names. This could cause confusions and
+    bugs (for example one call to this script could delete the temporary
+    directory that was being used by a later call).
 
 *** Library
   - gal_fits_key_write: to generalize, the "title" argument has been
