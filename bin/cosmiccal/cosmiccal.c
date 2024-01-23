@@ -72,38 +72,41 @@ cosmiccal_printall(struct cosmiccalparams *p)
   double curage, ccritd, distmod, outage, zcritd;
 
   /* The user wants everything, do all the calculations and print
-     everything with full descriptions. */
+     everything with full descriptions.
+
+     Note that 'quiet' is activated here because the same sanity check is
+     already done in CosmicCalculator's 'ui.c'. */
   curage=gal_cosmology_age(0.0f, p->H0, p->olambda, p->omatter,
-                           p->oradiation);
+                           p->oradiation, 1);
 
   ccritd=gal_cosmology_critical_density(0.0f, p->H0, p->olambda, p->omatter,
-                                        p->oradiation);
+                                        p->oradiation, 1);
 
   pd=gal_cosmology_proper_distance(p->redshift, p->H0, p->olambda, p->omatter,
-                                   p->oradiation);
+                                   p->oradiation, 1);
 
   ad=gal_cosmology_angular_distance(p->redshift, p->H0, p->olambda,
-                                    p->omatter, p->oradiation);
+                                    p->omatter, p->oradiation, 1);
 
   ld=gal_cosmology_luminosity_distance(p->redshift, p->H0, p->olambda,
-                                       p->omatter, p->oradiation);
+                                       p->omatter, p->oradiation, 1);
 
   distmod=gal_cosmology_distance_modulus(p->redshift, p->H0, p->olambda,
-                                         p->omatter, p->oradiation);
+                                         p->omatter, p->oradiation, 1);
 
   absmagconv=gal_cosmology_to_absolute_mag(p->redshift, p->H0, p->olambda,
-                                           p->omatter, p->oradiation);
+                                           p->omatter, p->oradiation, 1);
 
   outage=gal_cosmology_age(p->redshift, p->H0, p->olambda, p->omatter,
-                           p->oradiation);
+                           p->oradiation, 1);
 
   zcritd=gal_cosmology_critical_density(p->redshift, p->H0, p->olambda,
-                                        p->omatter, p->oradiation);
+                                        p->omatter, p->oradiation, 1);
 
   vel=gal_cosmology_velocity_from_z(p->redshift);
 
   vz=gal_cosmology_comoving_volume(p->redshift, p->H0, p->olambda, p->omatter,
-                                   p->oradiation);
+                                   p->oradiation, 1);
 
   /* Print out results: */
   cosmiccal_print_input(p);
@@ -163,7 +166,10 @@ cosmiccal(struct cosmiccalparams *p)
     }
 
   /* In case the user just wants one number, only print that and
-     return. */
+     return.
+
+     Note that 'quiet' is activated here because the same sanity check is
+     already done in CosmicCalculator's 'ui.c'. */
   if(p->specific)
     {
       for(tmp=p->specific;tmp!=NULL;tmp=tmp->next)
@@ -177,14 +183,15 @@ cosmiccal(struct cosmiccalparams *p)
 
             case UI_KEY_AGENOW:
               printf("%f", gal_cosmology_age(0.0f, p->H0, p->olambda,
-                                             p->omatter, p->oradiation));
+                                             p->omatter, p->oradiation, 1));
               break;
 
             case UI_KEY_CRITICALDENSITYNOW:
               printf("%e", gal_cosmology_critical_density(0.0f, p->H0,
                                                           p->olambda,
                                                           p->omatter,
-                                                          p->oradiation));
+                                                          p->oradiation,
+                                                          1));
               break;
 
             case UI_KEY_PROPERDISTANCE:
@@ -192,7 +199,8 @@ cosmiccal(struct cosmiccalparams *p)
                                                          p->H0,
                                                          p->olambda,
                                                          p->omatter,
-                                                         p->oradiation));
+                                                         p->oradiation,
+                                                         1));
               break;
 
             case UI_KEY_ANGULARDIAMDIST:
@@ -200,7 +208,8 @@ cosmiccal(struct cosmiccalparams *p)
                                                           p->H0,
                                                           p->olambda,
                                                           p->omatter,
-                                                          p->oradiation));
+                                                          p->oradiation,
+                                                          1));
               break;
 
             case UI_KEY_ARCSECTANDIST:
@@ -208,7 +217,8 @@ cosmiccal(struct cosmiccalparams *p)
                                                             p->H0,
                                                             p->olambda,
                                                             p->omatter,
-                                                            p->oradiation)
+                                                            p->oradiation,
+                                                            1)
                              * 1000 * M_PI / 3600 / 180 ) );
               break;
 
@@ -217,7 +227,8 @@ cosmiccal(struct cosmiccalparams *p)
                                                              p->H0,
                                                              p->olambda,
                                                              p->omatter,
-                                                             p->oradiation));
+                                                             p->oradiation,
+                                                             1));
               break;
 
             case UI_KEY_DISTANCEMODULUS:
@@ -225,26 +236,28 @@ cosmiccal(struct cosmiccalparams *p)
                                                           p->H0,
                                                           p->olambda,
                                                           p->omatter,
-                                                          p->oradiation));
+                                                          p->oradiation,
+                                                          1));
               break;
 
             case UI_KEY_ABSMAGCONV:
               printf("%f", gal_cosmology_to_absolute_mag(p->redshift, p->H0,
                                                          p->olambda,
                                                          p->omatter,
-                                                         p->oradiation));
+                                                         p->oradiation,
+                                                         1));
               break;
 
             case UI_KEY_AGE:
               printf("%f", gal_cosmology_age(p->redshift, p->H0, p->olambda,
-                                             p->omatter, p->oradiation));
+                                             p->omatter, p->oradiation, 1));
               break;
 
             case UI_KEY_LOOKBACKTIME:
               curage=gal_cosmology_age(0.0f, p->H0, p->olambda, p->omatter,
-                                       p->oradiation);
+                                       p->oradiation, 1);
               zage=gal_cosmology_age(p->redshift, p->H0, p->olambda,
-                                     p->omatter, p->oradiation);
+                                     p->omatter, p->oradiation, 1);
               printf("%f", curage-zage);
               break;
 
@@ -253,14 +266,16 @@ cosmiccal(struct cosmiccalparams *p)
                                                           p->H0,
                                                           p->olambda,
                                                           p->omatter,
-                                                          p->oradiation));
+                                                          p->oradiation,
+                                                          1));
               break;
 
             case UI_KEY_VOLUME:
               printf("%f", gal_cosmology_comoving_volume(p->redshift, p->H0,
                                                          p->olambda,
                                                          p->omatter,
-                                                         p->oradiation));
+                                                         p->oradiation,
+                                                         1));
               break;
 
             case UI_KEY_USEDVELOCITY:

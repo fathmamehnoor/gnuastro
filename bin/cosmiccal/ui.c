@@ -407,12 +407,13 @@ ui_check_only_options(struct cosmiccalparams *p)
 
   /* Check if the density fractions add up to 1 (within floating point
      error). */
-  if( sum > (1+1e-8) || sum < (1-1e-8) )
-    error(EXIT_FAILURE, 0, "sum of fractional densities is not 1, but "
-          "%.8f. The cosmological constant ('olambda'), matter "
-          "('omatter') and radiation ('oradiation') densities are given "
-          "as %.8f, %.8f, %.8f", sum, p->olambda, p->omatter,
-          p->oradiation);
+  if( (sum > (1+1e-8) || sum < (1-1e-8)) && p->cp.quiet==0)
+    error(EXIT_SUCCESS, 0, "WARNING: non-flat FLRW model: the curvature "
+          "density parameter is %.8f; therefore angular diameter based "
+          "distances like '--angulardiamdist' or '--arcsectandist' will "
+          "be wrong in Gnuastro's current implementation; see "
+          "https://savannah.gnu.org/bugs/?65195. This warning message "
+          "can be disabled with '--quiet'", 1.0-sum);
 
   /* Make sure that '--listlines' and '--listlinesatz' aren't called
      together. */

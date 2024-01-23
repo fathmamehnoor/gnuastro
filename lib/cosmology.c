@@ -86,7 +86,7 @@ struct cosmology_integrand_t
     sum should not exceed 1. */
 static void
 cosmology_density_check(double o_lambda_0, double o_matter_0,
-                        double o_radiation_0)
+                        double o_radiation_0, int quiet)
 {
   double sum = o_lambda_0 + o_matter_0 + o_radiation_0;
 
@@ -111,13 +111,12 @@ cosmology_density_check(double o_lambda_0, double o_matter_0,
 
   /* Check if the density fractions add up to 1 (within floating point
       error). */
-  if( sum > (1+1e-8) || sum < (1-1e-8) )
-    error(EXIT_FAILURE, 0, "sum of fractional densities is not 1, "
-          "but %.8f. The cosmological constant ('olambda'), matter "
-          "('omatter') and radiation ('oradiation') densities are given "
-          "as %.8f, %.8f, %.8f", sum, o_lambda_0, o_matter_0,
-          o_radiation_0);
-
+  if( (sum > (1+1e-8) || sum < (1-1e-8)) && quiet==0 )
+    error(EXIT_SUCCESS, 0, "WARNING: non-flat FLRW model: the curvature "
+          "density parameter is %.8f; therefore angular diameter based "
+          "distances like will be wrong in Gnuastro's current "
+          "implementation; see https://savannah.gnu.org/bugs/?65195. "
+          "This warning message can be disabled with '--quiet'", 1.0-sum);
 }
 
 
@@ -220,7 +219,7 @@ cosmology_integrand_comoving_volume(double z, void *params)
    fractional densities must add up to 1. */
 double
 gal_cosmology_age(double z, double H0, double o_lambda_0, double o_matter_0,
-                  double o_radiation_0)
+                  double o_radiation_0, int quiet)
 {
   gsl_function F;
   double result, error;
@@ -232,7 +231,7 @@ gal_cosmology_age(double z, double H0, double o_lambda_0, double o_matter_0,
 
   /* Basic sanity check (no problem with the usage of these variables in
      the definitions above; they are just  */
-  cosmology_density_check(o_lambda_0, o_matter_0, o_radiation_0);
+  cosmology_density_check(o_lambda_0, o_matter_0, o_radiation_0, quiet);
 
   /* Set the GSL function parameters. */
   F.params=&p;
@@ -250,7 +249,8 @@ gal_cosmology_age(double z, double H0, double o_lambda_0, double o_matter_0,
 /* Proper distance to z (Mpc). */
 double
 gal_cosmology_proper_distance(double z, double H0, double o_lambda_0,
-                              double o_matter_0, double o_radiation_0)
+                              double o_matter_0, double o_radiation_0,
+                              int quiet)
 {
   int status;
   size_t neval;
@@ -265,7 +265,7 @@ gal_cosmology_proper_distance(double z, double H0, double o_lambda_0,
 
   /* Basic sanity check (no problem with the usage of these variables in
      the definitions above; they are just  */
-  cosmology_density_check(o_lambda_0, o_matter_0, o_radiation_0);
+  cosmology_density_check(o_lambda_0, o_matter_0, o_radiation_0, quiet);
 
   /* Set the GSL function parameters */
   F.params=&p;
@@ -306,7 +306,8 @@ gal_cosmology_proper_distance(double z, double H0, double o_lambda_0,
 /* Comoving volume over 4pi stradian to z (Mpc^3). */
 double
 gal_cosmology_comoving_volume(double z, double H0, double o_lambda_0,
-                              double o_matter_0, double o_radiation_0)
+                              double o_matter_0, double o_radiation_0,
+                              int quiet)
 {
   int status;
   size_t neval;
@@ -323,7 +324,7 @@ gal_cosmology_comoving_volume(double z, double H0, double o_lambda_0,
 
   /* Basic sanity check (no problem with the usage of these variables in
      the definitions above; they are just  */
-  cosmology_density_check(o_lambda_0, o_matter_0, o_radiation_0);
+  cosmology_density_check(o_lambda_0, o_matter_0, o_radiation_0, quiet);
 
   /* Set the GSL function parameters */
   F.params=&p;
@@ -364,7 +365,8 @@ gal_cosmology_comoving_volume(double z, double H0, double o_lambda_0,
 /* Critical density at redshift z in units of g/cm^3. */
 double
 gal_cosmology_critical_density(double z, double H0, double o_lambda_0,
-                               double o_matter_0, double o_radiation_0)
+                               double o_matter_0, double o_radiation_0,
+                               int quiet)
 {
   double H;
   double H0s=H0/1000/GSL_CONST_MKSA_PARSEC;     /* H0 in units of seconds. */
@@ -374,7 +376,7 @@ gal_cosmology_critical_density(double z, double H0, double o_lambda_0,
 
   /* Basic sanity check (no problem with the usage of these variables in
      the definitions above; they are just  */
-  cosmology_density_check(o_lambda_0, o_matter_0, o_radiation_0);
+  cosmology_density_check(o_lambda_0, o_matter_0, o_radiation_0, quiet);
 
   /* Set the place holder, then return the result. */
   H = H0s * cosmology_integrand_Ez(z, &p);
@@ -388,11 +390,16 @@ gal_cosmology_critical_density(double z, double H0, double o_lambda_0,
 /* Angular diameter distance to z (Mpc). */
 double
 gal_cosmology_angular_distance(double z, double H0, double o_lambda_0,
-                               double o_matter_0, double o_radiation_0)
+                               double o_matter_0, double o_radiation_0,
+                               int quiet)
 {
-  cosmology_density_check(o_lambda_0, o_matter_0, o_radiation_0);
+  /* Sanity checks. */
+  cosmology_density_check(o_lambda_0, o_matter_0, o_radiation_0, quiet);
+
+  /* Note that here 'quiet' is activated because we already do the
+     density check once. */
   return gal_cosmology_proper_distance(z, H0, o_lambda_0, o_matter_0,
-                                       o_radiation_0) / (1+z);
+                                       o_radiation_0, 1) / (1+z);
 }
 
 
@@ -402,11 +409,16 @@ gal_cosmology_angular_distance(double z, double H0, double o_lambda_0,
 /* Luminosity distance to z (Mpc). */
 double
 gal_cosmology_luminosity_distance(double z, double H0, double o_lambda_0,
-                                  double o_matter_0, double o_radiation_0)
+                                  double o_matter_0, double o_radiation_0,
+                                  int quiet)
 {
-  cosmology_density_check(o_lambda_0, o_matter_0, o_radiation_0);
+  /* Sanity checks. */
+  cosmology_density_check(o_lambda_0, o_matter_0, o_radiation_0, quiet);
+
+  /* Note that here 'quiet' is activated because we already do the density
+     check once. */
   return gal_cosmology_proper_distance(z, H0, o_lambda_0, o_matter_0,
-                                       o_radiation_0) * (1+z);
+                                       o_radiation_0, 1) * (1+z);
 }
 
 
@@ -416,11 +428,16 @@ gal_cosmology_luminosity_distance(double z, double H0, double o_lambda_0,
 /* Distance modulus at z (no units). */
 double
 gal_cosmology_distance_modulus(double z, double H0, double o_lambda_0,
-                               double o_matter_0, double o_radiation_0)
+                               double o_matter_0, double o_radiation_0,
+                               int quiet)
 {
-  cosmology_density_check(o_lambda_0, o_matter_0, o_radiation_0);
+  /* Sanity checks. */
+  cosmology_density_check(o_lambda_0, o_matter_0, o_radiation_0, quiet);
+
+  /* Note that here 'quiet' is activated because we already do the density
+     check once. */
   double ld=gal_cosmology_luminosity_distance(z, H0, o_lambda_0, o_matter_0,
-                                              o_radiation_0);
+                                              o_radiation_0, 1);
   return 5*(log10(ld*1000000)-1);
 }
 
@@ -431,11 +448,16 @@ gal_cosmology_distance_modulus(double z, double H0, double o_lambda_0,
 /* Convert apparent to absolute magnitude. */
 double
 gal_cosmology_to_absolute_mag(double z, double H0, double o_lambda_0,
-                              double o_matter_0, double o_radiation_0)
+                              double o_matter_0, double o_radiation_0,
+                              int quiet)
 {
-  cosmology_density_check(o_lambda_0, o_matter_0, o_radiation_0);
+  /* Sanity checks. */
+  cosmology_density_check(o_lambda_0, o_matter_0, o_radiation_0, quiet);
+
+  /* Note that here 'quiet' is activated because we already do the density
+     check once. */
   double dm=gal_cosmology_distance_modulus(z, H0, o_lambda_0, o_matter_0,
-                                           o_radiation_0);
+                                           o_radiation_0, 1);
   return dm-2.5*log10(1.0+z);
 }
 

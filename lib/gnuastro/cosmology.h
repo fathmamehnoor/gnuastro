@@ -51,42 +51,49 @@ __BEGIN_C_DECLS  /* From C++ preparations */
 /* Age of the universe (in Gyrs). */
 double
 gal_cosmology_age(double z, double H0, double o_lambda_0, double o_matter_0,
-                  double o_radiation_0);
+                  double o_radiation_0, int quiet);
 
 /* Proper distance to z (Mpc). */
 double
 gal_cosmology_proper_distance(double z, double H0, double o_lambda_0,
-                              double o_matter_0, double o_radiation_0);
+                              double o_matter_0, double o_radiation_0,
+                              int quiet);
 
 /* Comoving volume over 4pi stradian to z (Mpc^3). */
 double
 gal_cosmology_comoving_volume(double z, double H0, double o_lambda_0,
-                              double o_matter_0, double o_radiation_0);
+                              double o_matter_0, double o_radiation_0,
+                              int quiet);
 
 /* Critical density at redshift z in units of g/cm^3. */
 double
 gal_cosmology_critical_density(double z, double H0, double o_lambda_0,
-                               double o_matter_0, double o_radiation_0);
+                               double o_matter_0, double o_radiation_0,
+                               int quiet);
 
 /* Angular diameter distance to z (Mpc). */
 double
 gal_cosmology_angular_distance(double z, double H0, double o_lambda_0,
-                               double o_matter_0, double o_radiation_0);
+                               double o_matter_0, double o_radiation_0,
+                               int quiet);
 
 /* Luminosity distance to z (Mpc). */
 double
 gal_cosmology_luminosity_distance(double z, double H0, double o_lambda_0,
-                                  double o_matter_0, double o_radiation_0);
+                                  double o_matter_0, double o_radiation_0,
+                                  int quiet);
 
 /* Distance modulus at z (no units). */
 double
 gal_cosmology_distance_modulus(double z, double H0, double o_lambda_0,
-                               double o_matter_0, double o_radiation_0);
+                               double o_matter_0, double o_radiation_0,
+                               int quiet);
 
 /* Convert apparent to absolute magnitude. */
 double
 gal_cosmology_to_absolute_mag(double z, double H0, double o_lambda_0,
-                              double o_matter_0, double o_radiation_0);
+                              double o_matter_0, double o_radiation_0,
+                              int quiet);
 
 double
 gal_cosmology_velocity_from_z(double z);

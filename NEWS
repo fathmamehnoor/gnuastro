@@ -213,10 +213,17 @@ See the end of the file for license conditions.
     on Gnuastro's Matrix chat channel (#gnuastro:openastronomy.org).
 
 *** CosmicCalculator
+  - In a non-FLRW model (when the sum of the densities is not 1.0),
+    CosmicCalculator no longer crashes with an error since calculations
+    like the radial comoving distance ('--properdistance') are still valid
+    in a curved cosmology. Instead a warning is printed informing the user
+    that with Gnuastro's current implementation angular diameter based
+    calculations will be wrong. This was implemented by Boud Roukema.
   --angulardiamdist is the new name for the old '--angulardimdist'
     option. This was necessary to avoid confusion of 'dim' in the old name
     with "dimension"; 'diam' makes it clear that this is a "diameter", not
-    'dimension'.
+    'dimension'. This was suggested by Boud Roukema.
+
 *** Crop
   - The 'ICF*' keywords are now written in the 0-th HDU of Crop's outputs
     (the extension with no data, only metadata). Therefore, the WCS is now
@@ -233,6 +240,14 @@ See the end of the file for license conditions.
     directory that was being used by a later call).
 
 *** Library
+  - gal_cosmology_age: a 'quiet' argument is added to disable warnings.
+  - gal_cosmology_proper_distance: similar 'gal_cosmology_age'.
+  - gal_cosmology_comoving_volume: similar 'gal_cosmology_age'.
+  - gal_cosmology_critical_density: similar 'gal_cosmology_age'.
+  - gal_cosmology_angular_distance: similar 'gal_cosmology_age'.
+  - gal_cosmology_luminosity_distance: similar 'gal_cosmology_age'.
+  - gal_cosmology_distance_modulus: similar 'gal_cosmology_age'.
+  - gal_cosmology_to_absolute_mag: similar 'gal_cosmology_age'.
   - gal_fits_key_write: to generalize, the "title" argument has been
     removed (because it is a keyword). It can also create the file if it
     doesn't exist and can optionally free the list of keywords (until now,
@@ -285,6 +300,9 @@ See the end of the file for license conditions.
     '--frac-max'; reported by Helena Domínguez Sánchez.
   - bug #65194: --quiet does not disable the warning for un-given
     minmapsize; reported by Boud Roukema.
+  - bug #65195: CosmicCalculator prevents non-flat FLRW models and angular
+    diameter distance only correct in flat models. Found and fixed by Boud
+    Roukema.
 
 
 
