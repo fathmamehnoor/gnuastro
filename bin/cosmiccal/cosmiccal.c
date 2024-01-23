@@ -194,7 +194,7 @@ cosmiccal(struct cosmiccalparams *p)
                                                           p->oradiation));
               break;
 
-            case UI_KEY_ANGULARDIMDIST:
+            case UI_KEY_ANGULARDIAMDIST:
               printf("%f", gal_cosmology_angular_distance(p->redshift, p->H0,
                                                            p->olambda,
                                                            p->omatter,

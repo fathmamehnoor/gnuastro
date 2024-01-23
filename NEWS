@@ -212,6 +212,11 @@ See the end of the file for license conditions.
     Sepideh Eskandarlou and implemented by Faezeh Bidjarchian after a poll
     on Gnuastro's Matrix chat channel (#gnuastro:openastronomy.org).
 
+*** CosmicCalculator
+  --angulardiamdist is the new name for the old '--angulardimdist'
+    option. This was necessary to avoid confusion of 'dim' in the old name
+    with "dimension"; 'diam' makes it clear that this is a "diameter", not
+    'dimension'.
 *** Crop
   - The 'ICF*' keywords are now written in the 0-th HDU of Crop's outputs
     (the extension with no data, only metadata). Therefore, the WCS is now

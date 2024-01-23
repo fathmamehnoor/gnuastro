@@ -61,7 +61,7 @@ enum option_keys_enum
   UI_KEY_AGENOW              = 'G',
   UI_KEY_CRITICALDENSITYNOW  = 'C',
   UI_KEY_PROPERDISTANCE      = 'd',
-  UI_KEY_ANGULARDIMDIST      = 'A',
+  UI_KEY_ANGULARDIAMDIST     = 'A',
   UI_KEY_ARCSECTANDIST       = 's',
   UI_KEY_LUMINOSITYDIST      = 'L',
   UI_KEY_DISTANCEMODULUS     = 'u',

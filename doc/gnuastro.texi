@@ -33086,7 +33086,7 @@ The proper distance (at current time) to object at the given redshift in Megapar
 See @ref{Distance on a 2D curved space} for a description of the proper distance.
 
 @item -A
-@itemx --angulardimdist
+@itemx --angulardiamdist
 The angular diameter distance to object at given redshift in Megaparsecs (Mpc).
 
 @item -s

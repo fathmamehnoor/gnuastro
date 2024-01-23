@@ -191,8 +191,8 @@ struct argp_option program_options[] =
       ui_add_to_single_value,
     },
     {
-      "angulardimdist",
-      UI_KEY_ANGULARDIMDIST,
+      "angulardiamdist",
+      UI_KEY_ANGULARDIAMDIST,
       0,
       0,
       "Angular diameter distance (Mpc).",
