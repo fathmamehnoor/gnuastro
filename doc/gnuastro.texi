@@ -8758,7 +8758,7 @@ These three filters are hard-wired in your monitor and in most normal camera (fo
 For more on the concept and usage of colors, see @ref{Color} and @ref{Colormaps for single-channel pixels}.
 
 @cindex Dynamic range
-However, normal images (that you take with your smarphone during the day for example) have a very limited dynamic range (difference between brightest and fainest part of an image).
+However, normal images (that you take with your smartphone during the day for example) have a very limited dynamic range (difference between brightest and fainest part of an image).
 For example in an image you take from a farm, the brightnest pixel (the sky) cannot be more than 255 times the faintest/darkest shadow in the image (because normal cameras produce unsigned 8 bit integers; containing @mymath{2^8=256} levels; see @ref{Numeric data types}).
 
 However, astronomical sources span a much wider dynamic range such that their central parts can be tens of millions of times brighter than their larger outer regions.
@@ -9270,7 +9270,7 @@ $ astscript-color-faint-gray $R $G $B $params --output=m51-sb.pdf \
                              --regions=regions.fits
 @end example
 
-Open @file{R-sb.pdf} and have a look.
+Open @file{m51-sb.pdf} and have a look.
 Do you see how the different regions (SB intervals) have been coloured differently?
 They come from the SB levels we defined, and because it is using absolute thresholds in physical units of surface brightness, the visualization is not only a nicelooking color image, but can be used in scientific analysis.
 
