@@ -618,10 +618,10 @@ gscaled="$tmpdir/G_scaled.fits"
 bscaled="$tmpdir/B_scaled.fits"
 
 # Compute normalized weights
-weight_sum=$(astarithmetic $rweight $gweight $bweight 3 sum --type=f32 -q)
-rweight_sum=$(astarithmetic $rweight $weight_sum / -q | awk '{printf "%.4f", $1}')
-gweight_sum=$(astarithmetic $gweight $weight_sum / -q | awk '{printf "%.4f", $1}')
-bweight_sum=$(astarithmetic $bweight $weight_sum / -q | awk '{printf "%.4f", $1}')
+weight_sum=$(astarithmetic $rweight f32 $gweight f32 $bweight f32 3 sum --type=f32 -q)
+rweight_sum=$(astarithmetic $rweight f32 $weight_sum / -q | awk '{printf "%.4f", $1}')
+gweight_sum=$(astarithmetic $gweight f32 $weight_sum / -q | awk '{printf "%.4f", $1}')
+bweight_sum=$(astarithmetic $bweight f32 $weight_sum / -q | awk '{printf "%.4f", $1}')
 
 wmax=$(astarithmetic $rweight_sum $gweight_sum $bweight_sum 3 max --type=f32 -q)
 
