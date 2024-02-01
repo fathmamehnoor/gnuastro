@@ -165,13 +165,15 @@ A copy of the license is included in the section entitled ``GNU Free Documentati
 @author Mohammad Akhlaghi
 
 @page
+@vskip 0pt plus 1filll
+@insertcopying
+
+@page
 Gnuastro (source code, book and web page) authors (sorted by number of
 commits):
 @quotation
 @include authors.texi
 @end quotation
-@vskip 0pt plus 1filll
-@insertcopying
 
 @page
 @quotation
