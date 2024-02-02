@@ -341,7 +341,7 @@ Color images with full dynamic range
 * Color image using linear transformation::  A linear color mapping won't show much!
 * Color for bright regions and grayscale for faint::  Show the full dynamic range.
 * Manually setting color-black-gray regions::  Physically motivated regions.
-* Weights contrast and other customizations::  Nice ways to enhance visual appearance.
+* Weights contrast markers and other customizations::  Nice ways to enhance visual appearance.
 
 Zero point of an image
 
@@ -444,7 +444,7 @@ Common options
 Shell tips
 
 * Separate shell variables for multiple outputs::  When you get values from one command.
-* Truncating start of long string FITS keyword values::
+* Truncating start of long string FITS keyword values::  When the end of the string matters.
 
 Configuration files
 
@@ -4549,6 +4549,13 @@ Finally, let's remove all the temporary files we built in the top-level tutorial
 @example
 $ rm *.fits *.pdf
 @end example
+
+@cartouche
+@noindent
+@strong{Color images:} In this tutorial we just used one of the fitlers and showed the surface brightness image of that single filter as a grayscale image.
+But the image can also be in color (using three filters) to better convey the physical properties of the objects in your image.
+To create an image that shows the full dynamic range of your data, see this dedicated tutorial @ref{Color images with full dynamic range}.
+@end cartouche
 
 @node Marking objects for publication, Writing scripts to automate the steps, FITS images in a publication, General program usage tutorial
 @subsection Marking objects for publication
@@ -8778,7 +8785,7 @@ This is a high-level wrapper over ConvertType that does some pre-processing and 
 * Color image using linear transformation::  A linear color mapping won't show much!
 * Color for bright regions and grayscale for faint::  Show the full dynamic range.
 * Manually setting color-black-gray regions::  Physically motivated regions.
-* Weights contrast and other customizations::  Nice ways to enhance visual appearance.
+* Weights contrast markers and other customizations::  Nice ways to enhance visual appearance.
 @end menu
 
 @node Color channels in same pixel grid, Color image using linear transformation, Color images with full dynamic range, Color images with full dynamic range
@@ -9201,7 +9208,7 @@ To conclude this section of the tutorial, let's clean up the temporary test file
 $ rm m51-check.pdf m51-colorval.pdf
 @end example
 
-@node Manually setting color-black-gray regions, Weights contrast and other customizations, Color for bright regions and grayscale for faint, Color images with full dynamic range
+@node Manually setting color-black-gray regions, Weights contrast markers and other customizations, Color for bright regions and grayscale for faint, Color images with full dynamic range
 @subsection Manually setting color-black-gray regions
 
 In @ref{Color for bright regions and grayscale for faint}, we created a non-linear colored image.
@@ -9279,8 +9286,8 @@ They come from the SB levels we defined, and because it is using absolute thresh
 This is really interesting because now it is possible to use color images for detecting low surface brightness features at the same time they provide quantitative measurements.
 Of course, here we have defined this region label image just using two surface brightness values, but it is possible to define any other labeled region image that you may need for your particular purpose.
 
-@node Weights contrast and other customizations,  , Manually setting color-black-gray regions, Color images with full dynamic range
-@subsection Weights, contrast and other customizations
+@node Weights contrast markers and other customizations,  , Manually setting color-black-gray regions, Color images with full dynamic range
+@subsection Weights, contrast, markers and other customizations
 
 Previously (in @ref{Manually setting color-black-gray regions}) we used an absolute (in units ofo surface brightness) thresholding for selecting which regions to show by color, black and gray.
 To keep the previous configurations and avoid long commands, let's add the previous options to the @code{params} shell variable.
@@ -9343,12 +9350,69 @@ $ for g in 0.4 2.0; do \
 
 Comparing the last three files (@file{m51-contrast.pdf}, @file{m51-gamma-0.4.pdf} and @file{m51-gamma-2.0.pdf}), you will clearly see the effect of the @option{--gamma}.
 
-Finally, instead of using a combination of the three input images for the gray background, you can introduce a fourth image that will be used for generating the gray background.
-This image is referred to as the "K" channel and may be useful when a particular filter is deeper or has unique characteristics.
+Instead of using a combination of the three input images for the gray background, you can introduce a fourth image that will be used for generating the gray background.
+This image is referred to as the "K" channel and may be useful when a particular filter is deeper, has unique characteristics, or you have built by some custom processing to show the diffuse features better.
 In this case, this image will be used for defining the @option{--colorval} and @option{--grayval} thresholds, but the rationale remains the same as explained earlier.
 
 Two additional options are available to smooth different regions by convolving with a Gaussian kernel: @option{--colorkernelfwhm} for smoothing color regions and @option{--graykernelfwhm} for convolving gray regions.
 The value specified for these options represents the full width at half maximum of the Gaussian kernel.
+
+Finally, another commonly useful feature is @option{--markoptions}: it allows you to mark and label the final output image with vector graphics over the color image.
+The arguments passed through this option are directly passed to ConvertType for the generation of the output image.
+This feature was already used in @ref{Marking objects for publication} of the @ref{General program usage tutorial}; see there for a more complete introduction.
+
+Let's create four marks/labels just to illustrate the procedure within @command{astscript-color-faint-gray}.
+First we need to create a table that contains the parameters for creating the marks (coordinates, shape, size, colors, etc.).
+In order to have an example that could be easily salable to more marks, with elaborated options let's create it by parts: the header with the column names, and the parameters.
+With the following commands, we'll create the header that contains the column metadata.
+
+@example
+echo "# Column 1: ra      [pix, f32] RA coordinate"   > markers.txt
+echo "# Column 2: dec     [pix, f32] Dec coordinate" >> markers.txt
+echo "# Column 3: shape   [none, u8] Marker shape"   >> markers.txt
+echo "# Column 4: size    [pix, f32] Marker Size"    >> markers.txt
+echo "# Column 5: qratio  [none, f32] Axis ratio"    >> markers.txt
+echo "# Column 6: angle   [deg, f32] Position angle" >> markers.txt
+echo "# Column 7: color   [none, u8] Marker color"   >> markers.txt
+@end example
+
+Next is to create the parameters that define the markers.
+In this case, with the lines below we create four markers (cross, ellipse, square, and line) at different positions, with different shapes, and colors.
+These lines are appened to the header file created previously.
+@example
+echo "400.00  400.00  3  60.000  0.50  0.000  8"  >> markers.txt
+echo "1800.0  400.00  4  120.00  0.30  45.00  58" >> markers.txt
+echo "400.00  1800.0  6  180.00  1.00  0.000  85" >> markers.txt
+echo "1800.0  1800.0  8  240.00  1.00  -45.0  25" >> markers.txt
+@end example
+
+Now that we have the table containing the definition of the markers, we use the @option{--markoptions} option of this script.
+This option will pass what ever is given to it directly to ConvertType, so you can use all the options in @ref{Drawing with vector graphics}.
+For this basic example, let's give it the following options:
+
+@example
+markoptions="--mode=img \
+             --sizeinarcsec \
+             --markshape=shape \
+             --markrotate=angle \
+             --markcolor=color \
+             --marks=markers.txt \
+             --markcoords=ra,dec \
+             --marksize=size,qratio"
+@end example
+
+The last step consists in executing the script with the option that provides all the markers options.
+
+@example
+$ astscript-color-faint-gray $R $G $B $params --contrast=2 \
+                             --markoptions="$markoptions" \
+                             --output=m51-marked.pdf
+@end example
+
+Open the @file{m51-marked.pdf} and check that the four markers have been printed on the image.
+With this quick example we just show the possibility of drawing markers on images very easily.
+This task can be automated, for example by plotting markers from a given catalog at specific positions, and so on.
+Note that there are many other options for customize your markers/drawings over an output of ConvertType, see @ref{Drawing with vector graphics} and @ref{Marking objects for publication}.
 
 Congratulations!
 By following the tutorial up to this point, we have been able to reproduce three images of Infante-Sainz et al. @url{https://arxiv.org/abs/2401.03814,2024}.
@@ -14306,7 +14370,7 @@ In this section, we will review some useful tips and tricks that can be helpful 
 
 @menu
 * Separate shell variables for multiple outputs::  When you get values from one command.
-* Truncating start of long string FITS keyword values:: When the end of the string matters.
+* Truncating start of long string FITS keyword values::  When the end of the string matters.
 @end menu
 
 @node Separate shell variables for multiple outputs, Truncating start of long string FITS keyword values, Shell tips, Shell tips
@@ -34820,6 +34884,12 @@ The transformation is: @mymath{\rm{output}=\rm{contrast}\times{image}+brightness
 Gamma exponent value for a gamma transformation.
 This transformation is not linear: @mymath{\rm{output}=\rm{image}^{gamma}}.
 This option overrides @option{--bias} or @option{--contrast}.
+
+@item --markoptions=STR
+Options to draw marks on the final output image.
+Anything given to this option is passed directly to ConvertType in order to draw marks on the output image.
+For example, if you construct a table named @file{marks.txt} that contains the column names: x, y, shape, size, qratio, angle, color; you will execute the script with the following option: @option{--markoptions="--marks=markers.txt --markcoords=x,y --markshape=shape --marksize=size,qratio --markrotate=angle --markcolor=color"}.
+See @ref{Drawing with vector graphics} for more information on how to draw markers and @ref{Weights contrast markers and other customizations} for a tutorial.
 
 @item --checkparams
 Print the statistics of intermediate images that are used for estimating the parameters.

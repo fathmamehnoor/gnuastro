@@ -76,6 +76,7 @@ maxvalrange=100.0
 bias=0.0
 gamma=1.0
 contrast=1.0
+markoptions=""
 
 quiet=""
 tmpdir=""
@@ -135,10 +136,12 @@ $scriptname options:
   -Q, --qbright=FLT       Parameter for bringing out brighter features.
   -s, --stretch=FLT       Linear stretching parameter for faint features.
 
- Contrast and bias
+ Contrast, bias, and marks
   -b, --bias              Constant (bias) to add to all the pixels (linear).
   -c, --contrast          Change the contrast of the final image (linear).
   -G, --gamma             Gamma parameter (nonlinear, overrides bias/contrast).
+      --markoptions=STR   Options to mark/label the output (passed to ConvertType).
+
 
  Color and gray parameters
       --coloronly         No grayscale regions, background in color (black).
@@ -343,6 +346,8 @@ do
         -b|--bias)           bias="$2";                                 check_v "$1" "$bias";  shift;shift;;
         -b=*|--bias=*)       bias="${1#*=}";                            check_v "$1" "$bias";  shift;;
         -b*)                 bias=$(echo "$1"  | sed -e's/-b//');       check_v "$1" "$bias";  shift;;
+        --markoptions)       markoptions="$2";                          check_v "$1" "$markoptions";  shift;shift;;
+        --markoptions=*)     markoptions="${1#*=}";                     check_v "$1" "$markoptions";  shift;;
 
         --coloronly)        coloronly=1; shift;;
         --regions)          regions="$2";                              check_v "$1" "$regions";  shift;shift;;
@@ -806,6 +811,7 @@ if [ x$coloronly = x1 ]; then
     astconvertt $I_R_enhanced -h1 \
                 $I_G_enhanced -h1 \
                 $I_B_enhanced -h1 \
+                $markoptions      \
                 --output=$output $quiet
 
     # Remove images
@@ -1040,6 +1046,7 @@ else
     astconvertt $I_R_black_gray -h1 \
                 $I_G_black_gray -h1 \
                 $I_B_black_gray -h1 \
+                $markoptions      \
                 --output=$output $quiet
 fi
 
