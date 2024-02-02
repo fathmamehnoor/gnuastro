@@ -2862,7 +2862,7 @@ gal_options_read_low_level_checks(struct gal_options_common_params *cp)
     cp->numthreads=gal_threads_number();
 
   /* If 'minmapsize==0' and quiet isn't given, print a warning. */
-  if(cp->minmapsize==0)
+  if(cp->minmapsize==0 && cp->quiet==0)
     {
       fprintf(stderr, "\n\n"
               "========= WARNING =========\n"

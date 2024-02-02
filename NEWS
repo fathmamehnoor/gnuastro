@@ -283,8 +283,8 @@ See the end of the file for license conditions.
     by Sepideh Eskandarlou.
   - bug #65149: MakeCatalog '--frac-max*-*' measurements done without
     '--frac-max'; reported by Helena Domínguez Sánchez.
-
-
+  - bug #65194: --quiet does not disable the warning for un-given
+    minmapsize; reported by Boud Roukema.
 
 
 
