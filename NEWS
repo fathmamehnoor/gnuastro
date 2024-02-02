@@ -268,41 +268,44 @@ See the end of the file for license conditions.
 
 ** Bugs fixed
   - bug #46225: Programs don't depend on libs in Makefiles; reported by
-    Mosè Giordano and fixed by Thorsten Alteholz.
+                Mosè Giordano and fixed by Thorsten Alteholz.
   - bug #52295: Cosmology library integrals crash for high z; fixed by
-    Thorsten Alteholz.
+                Thorsten Alteholz.
   - bug #52674: Correcting Clang warnings on macOS during compilation;
-    fixed with help of Thorsten Alteholz and Raul Infante-Sainz.
+                fixed with help of Thorsten Alteholz and Raul
+                Infante-Sainz.
   - bug #61476: astscript-ds9-region: output created when input file does
-    not exist; reported by Sepideh Eskandarlou, fixed by Thorsten Alteholz.
+                not exist; reported by Sepideh Eskandarlou, fixed by
+                Thorsten Alteholz.
   - bug #64825: astscript-fits-view only takes the last HDU provided;
-    reported by Teet Kuumta and fixed by Raul Infante-Sainz.
+                reported by Teet Kuumta and fixed by Raul Infante-Sainz.
   - bug #64852: astscript-zeropoint: crash when input is in 0-th HDU;
-    reported by 'danc' in https://savannah.gnu.org/support/?110952; fixed
-    by Sepideh Eskandarlou.
+                reported in https://savannah.gnu.org/support/?110952; fixed
+                by Sepideh Eskandarlou.
   - bug #64915: Segment's SKY_STD output HDU does not have WCS; reported by
-    Sepideh Eskandarlou.
+                Sepideh Eskandarlou.
   - bug #64952: Table error message for incorrect column name was not
-    complete; reported by Sepideh Eskandarlou.
+                complete; reported by Sepideh Eskandarlou.
   - bug #65005: astscript-psf-unit not accounting for --innerhdu; reported
-    by Ignacio Ruiz Cejudo.
+                by Ignacio Ruiz Cejudo.
   - bug #65050: Use --libtool option in the TEMPLATE usage; found and fixed
-    by Faezeh Bidjarchian.
-  - bug #65055: Columns of empty FITS tables (with no rows) read in reverse.
+                by Faezeh Bidjarchian.
+  - bug #65055: Columns of empty FITS tables (with no rows) read in
+                reverse.
   - bug #65084: Fits program's --skycoverage prints connected numbers for
-    cubes; found with help of Rahna Payyasseri Thanduparackal.
-  - bug #65106: Necessity of using --oversample with
-    astscript-radial-profile when a 2D profile is to be created with
-    '--customtable' of MakeProfile; reported by Sepideh Eskandarlou.
+                cubes; found with help of Rahna Payyasseri Thanduparackal.
+  - bug #65106: Necessity of --oversample with astscript-radial-profile
+                when a 2D profile is to be created with '--customtable' of
+                MakeProfile; reported by Sepideh Eskandarlou.
   - bug #65141: MakeCatalog crash when labled image is all blank; reported
-    by Sepideh Eskandarlou.
+                by Sepideh Eskandarlou.
   - bug #65149: MakeCatalog '--frac-max*-*' measurements done without
-    '--frac-max'; reported by Helena Domínguez Sánchez.
+                '--frac-max'; reported by Helena Domínguez Sánchez.
   - bug #65194: --quiet does not disable the warning for un-given
-    minmapsize; reported by Boud Roukema.
+                minmapsize; reported by Boud Roukema.
   - bug #65195: CosmicCalculator prevents non-flat FLRW models and angular
-    diameter distance only correct in flat models. Found and fixed by Boud
-    Roukema.
+                diameter distance only correct in flat models. Found and
+                fixed by Boud Roukema.
 
 
 
