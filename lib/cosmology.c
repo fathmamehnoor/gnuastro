@@ -222,7 +222,6 @@ double
 gal_cosmology_age(double z, double H0, double o_lambda_0, double o_matter_0,
                   double o_radiation_0)
 {
-  cosmology_density_check(o_lambda_0, o_matter_0, o_radiation_0);
   gsl_function F;
   double result, error;
   double o_curv_0 = 1.0 - ( o_lambda_0 + o_matter_0 + o_radiation_0 );
@@ -230,6 +229,10 @@ gal_cosmology_age(double z, double H0, double o_lambda_0, double o_matter_0,
   gsl_integration_workspace *w=gsl_integration_workspace_alloc(GSLILIMIT);
   struct cosmology_integrand_t p={o_lambda_0, o_curv_0, o_matter_0,
                                   o_radiation_0};
+
+  /* Basic sanity check (no problem with the usage of these variables in
+     the definitions above; they are just  */
+  cosmology_density_check(o_lambda_0, o_matter_0, o_radiation_0);
 
   /* Set the GSL function parameters. */
   F.params=&p;
@@ -249,7 +252,6 @@ double
 gal_cosmology_proper_distance(double z, double H0, double o_lambda_0,
                               double o_matter_0, double o_radiation_0)
 {
-  cosmology_density_check(o_lambda_0, o_matter_0, o_radiation_0);
   int status;
   size_t neval;
   gsl_function F;
@@ -260,6 +262,10 @@ gal_cosmology_proper_distance(double z, double H0, double o_lambda_0,
   double H0s=H0/1000/GSL_CONST_MKSA_PARSEC;  /* H0 in units of seconds. */
   struct cosmology_integrand_t p={o_lambda_0, o_curv_0, o_matter_0,
                                   o_radiation_0};
+
+  /* Basic sanity check (no problem with the usage of these variables in
+     the definitions above; they are just  */
+  cosmology_density_check(o_lambda_0, o_matter_0, o_radiation_0);
 
   /* Set the GSL function parameters */
   F.params=&p;
@@ -302,7 +308,6 @@ double
 gal_cosmology_comoving_volume(double z, double H0, double o_lambda_0,
                               double o_matter_0, double o_radiation_0)
 {
-  cosmology_density_check(o_lambda_0, o_matter_0, o_radiation_0);
   int status;
   size_t neval;
   gsl_function F;
@@ -315,6 +320,10 @@ gal_cosmology_comoving_volume(double z, double H0, double o_lambda_0,
   double o_curv_0 = 1.0 - ( o_lambda_0 + o_matter_0 + o_radiation_0 );
   struct cosmology_integrand_t p={o_lambda_0, o_curv_0, o_matter_0,
                                   o_radiation_0};
+
+  /* Basic sanity check (no problem with the usage of these variables in
+     the definitions above; they are just  */
+  cosmology_density_check(o_lambda_0, o_matter_0, o_radiation_0);
 
   /* Set the GSL function parameters */
   F.params=&p;
@@ -357,12 +366,15 @@ double
 gal_cosmology_critical_density(double z, double H0, double o_lambda_0,
                                double o_matter_0, double o_radiation_0)
 {
-  cosmology_density_check(o_lambda_0, o_matter_0, o_radiation_0);
   double H;
   double H0s=H0/1000/GSL_CONST_MKSA_PARSEC;     /* H0 in units of seconds. */
   double o_curv_0 = 1.0 - ( o_lambda_0 + o_matter_0 + o_radiation_0 );
   struct cosmology_integrand_t p={o_lambda_0, o_curv_0, o_matter_0,
                                   o_radiation_0};
+
+  /* Basic sanity check (no problem with the usage of these variables in
+     the definitions above; they are just  */
+  cosmology_density_check(o_lambda_0, o_matter_0, o_radiation_0);
 
   /* Set the place holder, then return the result. */
   H = H0s * cosmology_integrand_Ez(z, &p);
