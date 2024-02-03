@@ -122,12 +122,12 @@ all the commits needed for this release have been completed.
  - Check if README includes all the recent updates and important features.
 
 
- - Run the following commands to keep the list of people who contributed
-   code and those that must be acknowledged for the announcement ('P.P' is
-   the previous version).
+ - Run the following commands to keep the list of people that must be
+   acknowledged for the announcement ('P.P' is the previous version). The
+   people who contributed code will be automatically added in the announce
+   generation step.
 
-     $ git shortlog gnuastro_vX.X...HEAD --numbered --summary > ~/people.txt
-     $ cat doc/announce-acknowledge.txt >> ~/people.txt
+     $ cat doc/announce-acknowledge.txt > ~/people.txt
 
      [STABLE] Remove the names in 'doc/announce-acknowledge.txt'.
 
@@ -230,13 +230,13 @@ all the commits needed for this release have been completed.
  - Prepare the announcement:
 
    - To run the command of the step below, you will need the following
-     temporary changes (from the top source directory). Replace 'XXXX' with
-     the old version and 'YYYY' with the new version.
+     temporary changes (from the top source directory). Replace 'X.XX' with
+     the old version and 'Y.YY' with the new version.
 
      $ cd TOP-SOURCE-DIR
      $ cp build/gnuastro-XXXX.tar.* ./
-     $ git tag -a vXXXX gnuastro_vXXXX^{}
-     $ git tag -a vYYYY HEAD
+     $ git tag -a vX.XX gnuastro_vX.XX^{}
+     $ git tag -a vY.YY gnuastro_vY.YY^{}
 
    - The command below will calculate the checksums and also make the links
      ready. You just have to add a starting and ending similar to previous
@@ -253,7 +253,7 @@ all the commits needed for this release have been completed.
    - Delete the temporary tags and files:
 
      $ rm gnuastro-0.XXXX.tar.*
-     $ git tag -d vXXXX vYYYY
+     $ git tag -d vX.XX vY.YY
 
 
  - Based on previous announcements, add an intro, the NEWS file and the
@@ -278,6 +278,16 @@ all the commits needed for this release have been completed.
    - Package the announced Gnuastro for Debian (described below) and submit
      it there.
 
+   - Go to your Conda fork and delete the branch locally and remotely (The
+     conda bot should have made the automatic pull request by this time);
+     so you can pull the automatically inserted changes.
+
+     $ cd GNUASTRO-CONDA-SRC
+     $ git checkout main
+     $ git pull
+     $ git branch -D XXXX-dev
+     $ git push fork --delete XXXX-dev
+
    - Update/edit the following URLs with the latest version (where
      necessary, may be updated already):
      - https://savannah.gnu.org/news/submit.php?group=gnuastro
@@ -292,6 +302,15 @@ all the commits needed for this release have been completed.
      the next release some change will be made in the library.
 
    - Uncomment the sub-titles of the title page in 'doc/gnuastro.texi'.
+
+   - Add the basic entries in the 'NEWS' for the next release:
+
+     * Noteworthy changes in release X.XX (library XX.X.X) (YYYY-MM-DD)
+     ** New publications
+     ** New features
+     ** Removed features
+     ** Changed features
+     ** Bugs fixed
 
    - Commit all the changes above.
 
