@@ -1186,7 +1186,7 @@ See Infante-Sainz et al. @url{https://arxiv.org/abs/2401.05303,2024}.
 
 @item astscript-color-faint-gray
 (see @ref{Color images with gray faint regions}) Given three images for the Red-Green-Blue (RGB) channels, this script will use the bright pixels for color and will show the faint/diffuse regions in grayscale.
-This greatly helps in visualizing the full dynamic range of astronical data.
+This greatly helps in visualizing the full dynamic range of astronomical data.
 See Infante-Sainz et al. @url{https://arxiv.org/abs/2401.03814,2024} or a dedicated tutorial in @ref{Color images with full dynamic range}.
 
 @item astscript-sort-by-night
@@ -4552,7 +4552,7 @@ $ rm *.fits *.pdf
 
 @cartouche
 @noindent
-@strong{Color images:} In this tutorial we just used one of the fitlers and showed the surface brightness image of that single filter as a grayscale image.
+@strong{Color images:} In this tutorial we just used one of the filters and showed the surface brightness image of that single filter as a grayscale image.
 But the image can also be in color (using three filters) to better convey the physical properties of the objects in your image.
 To create an image that shows the full dynamic range of your data, see this dedicated tutorial @ref{Color images with full dynamic range}.
 @end cartouche
@@ -8768,10 +8768,10 @@ For more on the concept and usage of colors, see @ref{Color} and @ref{Colormaps 
 
 @cindex Dynamic range
 However, normal images (that you take with your smartphone during the day for example) have a very limited dynamic range (difference between brightest and fainest part of an image).
-For example in an image you take from a farm, the brightnest pixel (the sky) cannot be more than 255 times the faintest/darkest shadow in the image (because normal cameras produce unsigned 8 bit integers; containing @mymath{2^8=256} levels; see @ref{Numeric data types}).
+For example in an image you take from a farm, the brightness pixel (the sky) cannot be more than 255 times the faintest/darkest shadow in the image (because normal cameras produce unsigned 8 bit integers; containing @mymath{2^8=256} levels; see @ref{Numeric data types}).
 
 However, astronomical sources span a much wider dynamic range such that their central parts can be tens of millions of times brighter than their larger outer regions.
-Our astronomcial images in the FITS format are therefore usually 32-bit floating points to preserve this information.
+Our astronomical images in the FITS format are therefore usually 32-bit floating points to preserve this information.
 Therefore a simple linear scaling of 32-bit astronomical data to the 8-bit range will put most of the pixels on the darkest level and barely show anything!
 This presents a major challenge in visualizing our astronomical images on a monitor, in print or for a projector when showing slides.
 
@@ -8908,7 +8908,7 @@ This can be accomplished using the @option{--fluxlow} and @option{--fluxhigh} op
 Pixel values below @option{--fluxlow} are mapped to the minimum value (displayed as black in the default colormap), and pixel values above @option{--fluxhigh} are mapped to the maximum value (displayed as white))
 The choice of these values depends on the pixel value distribution of the images.
 
-But before that, we have to accont for an important differerences between the filters: the brightness of the background also has different values in different filters (the sky has colors!)
+But before that, we have to account for an important differences between the filters: the brightness of the background also has different values in different filters (the sky has colors!)
 So before making more progress, generally, first you have to subtract the sky from all three images you want to feed to the color channels.
 In a previous tutorial (@ref{Detecting large extended targets}) we used these same images as a basis to show how you can do perfect sky subtraction in the presence of large extended objects like M51.
 Here we are just doing a visualization and bringing pixels to 8-bit, so we don't need that level of precision reached there (we won't be doing photometry!).
@@ -8924,9 +8924,9 @@ $ for f in i r g; do \
 
 @cartouche
 @noindent
-@strong{Accounting for zeropoints:} An important step that we have not implemented in this section is to unify the zeropoints of the three filters.
+@strong{Accounting for zero points:} An important step that we have not implemented in this section is to unify the zero points of the three filters.
 In the case of SDSS (and some other surveys), the images have already been brought to the same zero point, but that is not generally the case.
-So before subtracting sky (and estimating the standard deviation) you should also unify the zeropoints of your images (for example through Arithmetic's @code{counts-to-nanomaggy} or @code{counts-to-jy} described in @ref{Unit conversion operators}).
+So before subtracting sky (and estimating the standard deviation) you should also unify the zero points of your images (for example through Arithmetic's @code{counts-to-nanomaggy} or @code{counts-to-jy} described in @ref{Unit conversion operators}).
 If you don't already have the zero point of your images, see the dedicated tutorial: @ref{Zero point of an image}.
 @end cartouche
 
@@ -8946,7 +8946,7 @@ $ aststatistics no-sky/g-sdss.fits -hSKY_STD --median
 @end example
 
 You see that the sky standard deviation of the reddest filter (i) is almost three times the bluest filter (g)!
-This is usually the case in any scenario (redder emission usually requires much less energy and gets absorbed less, so the background is usually brighter in the redest filters).
+This is usually the case in any scenario (redder emission usually requires much less energy and gets absorbed less, so the background is usually brighter in the reddest filters).
 As a result, we should define our limits based on the noise of the reddest filter.
 Let's set the minimum flux to 0 and the maximum flux to ~50 times the noise of the i-band image (@mymath{0.027\times50=1.35}).
 
@@ -9058,7 +9058,7 @@ Pixel values below this number will not be shown on the color image.
 In general, if the sky background has been subtracted (see @ref{Color image using linear transformation}), you can use the same value (0) for all three.
 However, it is possible to consider different minimum values for the inputs (in this case use as many @option{-m} as input images).
 In this particular case, a minimum value of zero for all images is suitable.
-To keep the command simple, we'll add the zeropoint, minimum and HDU of each image in the variable that also had its filename.
+To keep the command simple, we'll add the zero point, minimum and HDU of each image in the variable that also had its filename.
 
 @example
 $ R="aligned/i-jplus.fits -h1 --zeropoint=23.43 --minimum=0.0"
@@ -9071,7 +9071,7 @@ In contrast to the previous image, the new PDF (with a minimum value of zero) ex
 
 Now let's review briefly how the script modifies the pixel value distribution in order to show the entire dynamical range in an appropriate way.
 The script combines the three images into a single one by using a the mean operator, as a consequence, the combined image is the average of the three R, G, and B images.
-This averaged image is used for performing the asinh transformation of Lupton et al. @url{https://ui.adsabs.harvard.edu/abs/2004PASP..116..133L, 2004} that is controled by two parameters: @option{--qbright} (@mymath{q}) and @option{--stretch} (@mymath{s}).
+This averaged image is used for performing the asinh transformation of Lupton et al. @url{https://ui.adsabs.harvard.edu/abs/2004PASP..116..133L, 2004} that is controlled by two parameters: @option{--qbright} (@mymath{q}) and @option{--stretch} (@mymath{s}).
 
 The asinh transformation consists in transforming the combined image (@mymath{I}) according to the expression: @mymath{f(I) = asinh(q\times{}s\times{}I)/q}.
 When @mymath{q\rightarrow0}, the expression becomes linear with a slope of the ``stretch'' (@mymath{s}) parameter: @mymath{f(I) = s\times{}I}.
@@ -9088,8 +9088,8 @@ Comparing @file{m51.pdf} and @file{m51-qlow.pdf}, you will see that a large area
 Only the very brightest pixels (core of the galaxies and stars) are shown in color.
 Now, let's bring out the fainter regions around the brightest pixels linearly by increasing @option{--stretch}.
 This allows you to reveal fainter regions, such as outer parts of galaxies, spiral arms, stellar streams, and similar structures.
-Please, try different values to see the efect of changing this parameter.
-Here, we will use the value of @option{--strech=100}.
+Please, try different values to see the effect of changing this parameter.
+Here, we will use the value of @option{--stretch=100}.
 
 @example
 $ astscript-color-faint-gray $R $G $B --output=m51-qlow-shigh.pdf \
@@ -9132,7 +9132,7 @@ $ rm m51-coloronly.pdf
 Now that we have the basic parameters are set, let's consider other parameters that allow to fine tune the three ranges of values: color for the brightest pixel values, black for intermediate pixel values, and gray for the faintest pixel values:
 @itemize
 @item
-@option{--colorval} defines the boudary between the color and black regions (the lowest pixel value that is colored).
+@option{--colorval} defines the boundary between the color and black regions (the lowest pixel value that is colored).
 @item
 @option{--grayval} defines the boundary between the black and gray regions (the highest gray value).
 @end itemize
@@ -9158,7 +9158,7 @@ $ aststatistics ./tmp/COLORGRAY_threshold.fits
 @end example
 
 In other words, all pixels between 100 and this value (1.4) on the threshold image will be shown in color.
-To see its efect, let's increase this parameter to @option{--colorval=25}.
+To see its effect, let's increase this parameter to @option{--colorval=25}.
 By doing this, we expect that only bright pixels (those between 100 and 25 in the threshold image) will be in color.
 
 @example
@@ -9184,7 +9184,7 @@ $ astscript-color-faint-gray $R $G $B $params --output=m51-check.pdf \
 Open the image and check that the regions shown in color are smaller (as before), and that now there is a region around those color pixels that are in pure black.
 After the black pixels toward the fainter ones, they are shown in gray.
 As explained above, in the gray region, the brightest are black and the faintest are white.
-It is recomended to experiment with different values around the estimated one to have a feeling on how it changes the image.
+It is recommended to experiment with different values around the estimated one to have a feeling on how it changes the image.
 To have even better idea of those regions, please run the following example to keep temporary files and check the labeled image it has produced:
 
 @example
@@ -9213,7 +9213,7 @@ $ rm m51-check.pdf m51-colorval.pdf
 
 In @ref{Color for bright regions and grayscale for faint}, we created a non-linear colored image.
 We used the @option{--colorval} and @option{--grayval} options to specify which regions to show in gray (faintest values), black (intermediate values) and color (brightest values).
-We also saw that the script uses a labeled image with three possible values for each pixel to idenfify how that pixel should be colored.
+We also saw that the script uses a labeled image with three possible values for each pixel to identify how that pixel should be colored.
 
 A useful feature of this script is the possibility of providing this labeled image as an input directly.
 This expands the possibilities of generating color images in a more quantitative way.
@@ -9221,7 +9221,7 @@ In this section, we'll use this feature to use a more physically motivated crite
 
 First, let's generate a surface brightness image from the R channel.
 That is, the value of each pixel will be in the units of surface brightness (mag/arcsec@mymath{^2}).
-To do that, we need obtain the pixel area in arcsec and use the zeropoint value of the image.
+To do that, we need obtain the pixel area in arcsec and use the zero point value of the image.
 Then, the @option{counts-to-sb} operator of @command{astarithmetic} is used.
 For more on the conversion of NaN surface brightness values and the value to @code{R_sbl} (which is roughly the surface brightness limit of this image), see @ref{FITS images in a publication}.
 
@@ -9280,8 +9280,8 @@ $ astscript-color-faint-gray $R $G $B $params --output=m51-sb.pdf \
 @end example
 
 Open @file{m51-sb.pdf} and have a look.
-Do you see how the different regions (SB intervals) have been coloured differently?
-They come from the SB levels we defined, and because it is using absolute thresholds in physical units of surface brightness, the visualization is not only a nicelooking color image, but can be used in scientific analysis.
+Do you see how the different regions (SB intervals) have been colored differently?
+They come from the SB levels we defined, and because it is using absolute thresholds in physical units of surface brightness, the visualization is not only a nice looking color image, but can be used in scientific analysis.
 
 This is really interesting because now it is possible to use color images for detecting low surface brightness features at the same time they provide quantitative measurements.
 Of course, here we have defined this region label image just using two surface brightness values, but it is possible to define any other labeled region image that you may need for your particular purpose.
@@ -9289,7 +9289,7 @@ Of course, here we have defined this region label image just using two surface b
 @node Weights contrast markers and other customizations,  , Manually setting color-black-gray regions, Color images with full dynamic range
 @subsection Weights, contrast, markers and other customizations
 
-Previously (in @ref{Manually setting color-black-gray regions}) we used an absolute (in units ofo surface brightness) thresholding for selecting which regions to show by color, black and gray.
+Previously (in @ref{Manually setting color-black-gray regions}) we used an absolute (in units of surface brightness) thresholding for selecting which regions to show by color, black and gray.
 To keep the previous configurations and avoid long commands, let's add the previous options to the @code{params} shell variable.
 To help in readability, we will repeat the other shell variables from previous sections also:
 
@@ -9310,7 +9310,7 @@ $ astscript-color-faint-gray $R $G $B $params -w1 -w1 -w2 \
 @end example
 
 The colored pixels of the output are much bluer now and the distinction between the two merging galaxies is more clear.
-However, keep in mind that altering the different filters can lead to incorrect subsequent analyses by the readers/viewers of this work (for example they will falsly think that the galaxy is blue, and not red!).
+However, keep in mind that altering the different filters can lead to incorrect subsequent analyses by the readers/viewers of this work (for example they will falsely think that the galaxy is blue, and not red!).
 If the reduction and photometric calibration are correct, and the images represent what you consider as the red, green, and blue channels, then the output color image should be suitable without weights.
 
 In certain situations, the combination of channels may not have a traditional color interpretation.
@@ -9371,14 +9371,14 @@ echo "# Column 1: ra      [pix, f32] RA coordinate"   > markers.txt
 echo "# Column 2: dec     [pix, f32] Dec coordinate" >> markers.txt
 echo "# Column 3: shape   [none, u8] Marker shape"   >> markers.txt
 echo "# Column 4: size    [pix, f32] Marker Size"    >> markers.txt
-echo "# Column 5: qratio  [none, f32] Axis ratio"    >> markers.txt
+echo "# Column 5: aratio  [none, f32] Axis ratio"    >> markers.txt
 echo "# Column 6: angle   [deg, f32] Position angle" >> markers.txt
 echo "# Column 7: color   [none, u8] Marker color"   >> markers.txt
 @end example
 
 Next is to create the parameters that define the markers.
 In this case, with the lines below we create four markers (cross, ellipse, square, and line) at different positions, with different shapes, and colors.
-These lines are appened to the header file created previously.
+These lines are appended to the header file created previously.
 @example
 echo "400.00  400.00  3  60.000  0.50  0.000  8"  >> markers.txt
 echo "1800.0  400.00  4  120.00  0.30  45.00  58" >> markers.txt
@@ -9398,7 +9398,7 @@ markoptions="--mode=img \
              --markcolor=color \
              --marks=markers.txt \
              --markcoords=ra,dec \
-             --marksize=size,qratio"
+             --marksize=size,aratio"
 @end example
 
 The last step consists in executing the script with the option that provides all the markers options.
@@ -9417,7 +9417,7 @@ Note that there are many other options for customize your markers/drawings over 
 Congratulations!
 By following the tutorial up to this point, we have been able to reproduce three images of Infante-Sainz et al. @url{https://arxiv.org/abs/2401.03814,2024}.
 You can see the commands that were used to generate them within the reproducible source of that paper at @url{https://codeberg.org/gnuastro/papers/src/branch/color-faint-gray}.
-Remember that this paper is reproducible throught Maneage, so you can explore and build the entire paper by yourself.
+Remember that this paper is exactly reproducible with Maneage, so you can explore and build the entire paper by yourself.
 For more on Maneage, see Akhlaghi et al. @url{https://ui.adsabs.harvard.edu/abs/2021CSE....23c..82A, 2021}.
 
 This tutorial provided a general overview of the various options to construct a color image from three different FITS images using the @command{astscript-color-faint-gray} script.
@@ -9664,7 +9664,7 @@ To keep intermediate results the @command{astscript-zeropoint} script keeps temp
 If you like to check the temporary files of the intermediate steps, you can use @option{--keeptmp} option to not remove them.
 
 Let's take a closer look into the contents of each HDU.
-First, we'll use Gnuastro’s @command{asttable} to see the measured zeropoint for this aperture.
+First, we'll use Gnuastro’s @command{asttable} to see the measured zero point for this aperture.
 We are using @option{-Y} to have human-friendly (non-scientific!) numbers (which are sufficient here) and @option{-O} to also show the metadata of each column at the start.
 
 @example
@@ -11002,7 +11002,7 @@ $ astscript-fits-view build/stack-*.fits
 Color-blind readers may not clearly see the issue in the opened images with this color bar.
 In this case, please choose the ``color'' menu at the top of the DS9 and select ``gray'' or any other color that makes the circle most visible.
 
-The effect of an outlier on the different measurements above can be visually seen (and quatitatively measured) through the visibility of the circle (that was only present in one image, of nine).
+The effect of an outlier on the different measurements above can be visually seen (and quantitatively measured) through the visibility of the circle (that was only present in one image, of nine).
 Let's look at them one by one (from the one that is most affected to the least):
 
 @table @file
@@ -11057,8 +11057,8 @@ $ astscript-fits-view build/collapsed-*.fits
 The last command opens TOPCAT.
 In the ``Graphics'' menu, select plane plot and you will see all the values fluctuating around 10 (with a maximum/minimum around @mymath{\pm2}).
 Afterwards, click on the ``Layers'' menu and click on ``Add position control''.
-In the opened tab at the bottom (where the scroll bar infront of ``Table'' is empty), select the other table.
-In the regions that there was no circle in any of the vertical axises, the two match nicely (the noise level is the same).
+In the opened tab at the bottom (where the scroll bar in front of ``Table'' is empty), select the other table.
+In the regions that there was no circle in any of the vertical axes, the two match nicely (the noise level is the same).
 However, you see that the image columns that were partly covered by the outlying circle gradually get more affected as the width of the circle in that column increases (the full diameter of the circle was in the middle of the image).
 This shows how the median is biased by outliers as their number increases.
 
@@ -11239,7 +11239,7 @@ The standard deviation is itself heavily influenced by the presence of outliers.
 Therefore a sufficiently small number of outliers can expand the standard deviation such that they stay within the boundaries.
 
 @item
-When the outliers do not consititute a clearly distinct distribution like the example here, sigma-clipping will not be able to separate them like here.
+When the outliers do not constitute a clearly distinct distribution like the example here, sigma-clipping will not be able to separate them like here.
 @end itemize
 @end cartouche
 
@@ -11277,7 +11277,7 @@ X: (linear: -31.9714 -- 79.4266, in 65 bins)
  |-----------------------------------------------------------------
 @end example
 
-We see that even tough the circle is still clearly visible in the noise, the histogram is not longer separate; it has blended into the noise, and just caused a skewnewss in the otherwise symmetric noise distribution.
+We see that even tough the circle is still clearly visible in the noise, the histogram is not longer separate; it has blended into the noise, and just caused a skewness in the otherwise symmetric noise distribution.
 Let's try running the @option{--sigmaclip} option as above:
 
 @example
@@ -11389,7 +11389,7 @@ Statistics (after clipping):
 
 We see that the median, mean and standard deviation after MAD-clipping is much better than the basic @mymath{\sigma}-clipping (see @ref{Sigma clipping}): the median is now 10.3 (was 10.5 in @mymath{\sigma}-clipping), mean is 10.7 (was 10.11) and the standard deviation is 10.6 (was 10.12).
 
-Let'scompare the MAD-clipped stacks with the results of the previous section.
+Let's compare the MAD-clipped stacks with the results of the previous section.
 Since we want the images shown in a certain order, we'll first construct the list of images (with a @code{for} loop that will fill the @file{imgs} variable).
 Note that this assumes you have ran and carefully read/understand all the commands in the previous sections (@ref{Building inputs and analysis without clipping} and @ref{Sigma clipping}).
 Tip: the three @option{--ds9extra} options ensure that the bottom row (showing the number of images used in each pixel) has the same scale and limits in all three columns.
@@ -11501,7 +11501,7 @@ When comparing the two in TOPCAT (following the same process described in @ref{B
 The 4.48 multiple of MAD-clipping (corresponding to 3 sigma), was not successful in removing the many outlying pixels due to the circle in the central pixels of the image.
 
 This is a relatively high threshold and was used because for the images, we only had 9 elements in each clipping for every pixel.
-But for the collapsing, we have many more pixels in each vertical direction fo the image (201 pixels).
+But for the collapsing, we have many more pixels in each vertical direction of the image (201 pixels).
 Let's decrease the threshold to 3 and calculate the collapsed mean after MAD-clipping, once with filled re-clipping and once without it:
 
 @example
@@ -14482,7 +14482,7 @@ For examples usages of this technique, see the following sections: @ref{Extracti
 @node Truncating start of long string FITS keyword values,  , Separate shell variables for multiple outputs, Shell tips
 @subsubsection Truncating start of long string FITS keyword values
 
-When you want to put a string (not a numnber, for example a file name) into the keyword value, if it is longer than 68 characters, CFITSIO is going to truncate the end of the string.
+When you want to put a string (not a number, for example a file name) into the keyword value, if it is longer than 68 characters, CFITSIO is going to truncate the end of the string.
 The number 68 is the maximum allowable sting keyword length in the FITS standard@footnote{In the FITS standard, the full length of a keyword (including its name) is 80 characters.
 The keyword name occupies 8 characters, which is followed by an @key{=} (1 character).
 For strings, we need one SPACE after the @key{=}, and the string should be enclosed in two single quotes.
@@ -22029,7 +22029,7 @@ The first popped operand is the termination criteria and the second is the multi
 
 For example, in the command below, the first popped operand (@command{0.01}) is the MAD-clipping termination criteria.
 If the termination criteria is larger than, or equal to, 1 it is interpreted as a pre-defined the number of clips.
-But if it is between 0 and 1, then it is the tolerance level on the change in the median absolute devaition (see @ref{MAD clipping}).
+But if it is between 0 and 1, then it is the tolerance level on the change in the median absolute deviation (see @ref{MAD clipping}).
 The second popped operand (@command{5}) is the multiple of the median absolute deviation to use in MAD-clipping.
 The third popped operand (@command{3}) is number of datasets that will be used (similar to the first popped operand to @command{min}).
 
@@ -22642,7 +22642,7 @@ Similar to @option{collapse-sum}, but the returned dataset will be the desired s
 @itemx collapse-madclip-fill-mean
 @itemx collapse-madclip-fill-median
 @itemx collapse-madclip-fill-number
-Collapse the input dataset (fourth popped operand) along the FITS dimension given as the first popped operand by calculating the desired statistic after median absolute deviation (MAD) filled re-cliping.
+Collapse the input dataset (fourth popped operand) along the FITS dimension given as the first popped operand by calculating the desired statistic after median absolute deviation (MAD) filled re-clipping.
 The MAD-clipping parameters (namely, the multiple of sigma and termination criteria) are read as the third and second popped operands respectively.
 
 This is the most robust method to reject outliers; for more on filled re-clipping and its advantages, see @ref{Filled re-clipping}.
@@ -22675,7 +22675,7 @@ But if you are forced to save the output in plain-text, use the @code{float64} o
 @itemx collapse-madclip-mean
 @itemx collapse-madclip-median
 @itemx collapse-madclip-number
-Collapse the input dataset (fourth popped operand) along the FITS dimension given as the first popped operand by calculating the desired statistic after median absolute deviation (MAD) cliping.
+Collapse the input dataset (fourth popped operand) along the FITS dimension given as the first popped operand by calculating the desired statistic after median absolute deviation (MAD) clipping.
 This operator is called similarly to the @code{collapse-madclip-fill-*} operators, see the description there for more.
 
 @item  collapse-sigclip-fill-mad
@@ -22691,7 +22691,7 @@ This operator is called similarly to the @code{collapse-madclip-fill-*} operator
 @itemx collapse-sigclip-mean
 @itemx collapse-sigclip-median
 @itemx collapse-sigclip-number
-Collapse the input dataset (fourth popped operand) along the FITS dimension given as the first popped operand by calculating the desired statistic after @mymath{\sigma}-cliping.
+Collapse the input dataset (fourth popped operand) along the FITS dimension given as the first popped operand by calculating the desired statistic after @mymath{\sigma}-clipping.
 This operator is called similarly to the @code{collapse-madclip-fill-*} operators, see the description there for more.
 @end table
 
@@ -32338,7 +32338,7 @@ gen_rad_make_2dprf () {
              -c'arith RADIUS sorted-to-interval',MEAN \
 	     -o$custraw
 
-    # Build the 2D profie.
+    # Build the 2D profile.
     prof2draw=$bdir/prof2d-$2.fits
     echo "1 $xc $yc 8 30 0 0 1 0 1" \
 	| astmkprof --customtable=$custraw \
@@ -32354,7 +32354,7 @@ gen_rad_make_2dprf () {
 bdir=build
 if ! [ -d $bdir ]; then mkdir $bdir; fi
 
-# Build a Guassian profile in the center of an image to start with.
+# Build a Gaussian profile in the center of an image to start with.
 prof=$bdir/prof.fits
 astmkprof --kernel=gaussian,2,5 -o$prof
 
@@ -34781,7 +34781,7 @@ This value can dramatically change the output color image (especially when there
 Zero point value for each R, G, B, and K FITS images.
 If a single value is given, it is used for all the input images.
 
-Internally, the zero point values are used to transform the pixel values in units of Janskies.
+Internally, the zero point values are used to transform the pixel values in units of Janskys.
 The units are not important for a color image, but the fact that the images are photometrically calibrated is important for obtaining an output color image whose color distribution is realistic.
 
 @item -w
@@ -34800,8 +34800,8 @@ It is up to the user to use this parameter carefully.
 @itemx --qbright=FLT
 It is one of the parameters that control the asinh transformation.
 It should be used in combination with @option{--stretch}.
-In general, it has to be set to low values to bringth out the brightest regions.
-Then adjust @option{--stretch} to set the linear stretch (show the intermediate/faint structures).
+In general, it has to be set to low values to better show the brightest regions.
+Afterwards, adjust @option{--stretch} to set the linear stretch (show the intermediate/faint structures).
 
 @item -s
 @itemx --stretch=FLT
@@ -34814,8 +34814,8 @@ In general, this parameter is chosen after setting @option{--qbright} to a low v
 @noindent
 @strong{The asinh transformation.}
 The asinh transformation is done on the stacked R, G, B image.
-It consists in the modification of the stacked image (I) in order to show the entire dynamical range appropriately follwing the expression: @mymath{f(I) = asinh(} @option{qbright} @mymath{\cdot} @option{stretch} @mymath{\cdot I) /} @option{qbright}.
-See @ref{Color images with full dynamic range} for a complete tutorial that shows the intrincacies of this transformation with step-by-step examples.
+It consists in the modification of the stacked image (I) in order to show the entire dynamical range appropriately following the expression: @mymath{f(I) = asinh(} @option{qbright} @mymath{\cdot} @option{stretch} @mymath{\cdot I) /} @option{qbright}.
+See @ref{Color images with full dynamic range} for a complete tutorial that shows the intricacies of this transformation with step-by-step examples.
 @end cartouche
 
 @item --coloronly
@@ -34833,7 +34833,7 @@ It ranges from 100 (all pixels becoming black) to 0 (all pixels becoming white).
 Check the histogram @code{FOR COLOR and GRAY THRESHOLDS} with the option @option{--checkparams} to select the value.
 
 @item --regions=STR
-Labled image, identifying the pixels to use for color (value 2), those to use for black (value 1) and those to use for gray (value 0).
+Labeled image, identifying the pixels to use for color (value 2), those to use for black (value 1) and those to use for gray (value 0).
 When this option is given the @option{--colorval} and @option{--grayval} options will be ignored.
 This gives you the freedom to select the pixels to show in color, black or gray based on any criteria that is relevant for your purpose.
 For an example of using this option to get a physically motivated threshold, see @ref{Manually setting color-black-gray regions}.
@@ -34854,7 +34854,7 @@ Color region are defined by those pixels between 100 and @option{--colorval}.
 Pure black region are defined by those pixels between @option{--colorval} to @option{grayval}.
 Gray region are defined by those pixels between @option{--grayval} to 0.
 
-If a fourth image is provided as the ``K'' channel, then this image is used as the thresold image.
+If a fourth image is provided as the ``K'' channel, then this image is used as the threshold image.
 See @ref{Color images with full dynamic range} for a complete tutorial.
 @end cartouche
 
@@ -34888,7 +34888,7 @@ This option overrides @option{--bias} or @option{--contrast}.
 @item --markoptions=STR
 Options to draw marks on the final output image.
 Anything given to this option is passed directly to ConvertType in order to draw marks on the output image.
-For example, if you construct a table named @file{marks.txt} that contains the column names: x, y, shape, size, qratio, angle, color; you will execute the script with the following option: @option{--markoptions="--marks=markers.txt --markcoords=x,y --markshape=shape --marksize=size,qratio --markrotate=angle --markcolor=color"}.
+For example, if you construct a table named @file{marks.txt} that contains the column names: x, y, shape, size, axis ratio, angle, color; you will execute the script with the following option: @option{--markoptions="--marks=markers.txt --markcoords=x,y --markshape=shape --marksize=size,axisratio --markrotate=angle --markcolor=color"}.
 See @ref{Drawing with vector graphics} for more information on how to draw markers and @ref{Weights contrast markers and other customizations} for a tutorial.
 
 @item --checkparams
@@ -35848,7 +35848,7 @@ all:; echo $(ulist)
 
 FITS files (the standard data format in astronomy) have unique features (header keywords and HDUs) that can greatly help designing workflows in Makefiles.
 The Makefile extension functions of this section allow you to optimally use those features within your pipelines.
-Besides FITS, when desinging your workflow/pipeline with Gnuastro, there are also special features like version checking that simplify your design.
+Besides FITS, when designing your workflow/pipeline with Gnuastro, there are also special features like version checking that simplify your design.
 
 @table @code
 @item $(ast-version-is STRING)

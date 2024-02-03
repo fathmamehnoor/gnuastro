@@ -87,6 +87,8 @@ all the commits needed for this release have been completed.
        $ git@github.com:conda-forge/gnuastro-feedstock.git
        $ cd gnuastro-feedstock
        $ git remote add fork YOUR-FORK-GIT-LOCATION
+       $ git checkout main
+       $ git pull
        $ git checkout -b XXXX-dev
        $ emacs recipe/meta.yaml
           --> Don't touch the version! The development versioning format
