@@ -29392,7 +29392,7 @@ Statistically speaking, a ``measurement'' is a sampling from an underlying distr
 Through our measurements, we aim to identify that underlying distribution (the ``truth'')!
 With the command below, let's look at the pixel statistics of @file{1.fits} (output is shown immediately under it).
 
-@c If you change this output, replace the standard deviation (10.09) below
+@c If you change this output, replace the standard deviation (10.0) below
 @c in the text.
 @example
 $ aststatistics 1.fits
@@ -29401,26 +29401,24 @@ Statistics (GNU Astronomy Utilities) @value{VERSION}
 Input: 1.fits (hdu: 1)
 -------
   Number of elements:                      40000
-  Minimum:                                 -4.72824245470431e+01
-  Maximum:                                 4.24861780263050e+01
-  Mode:                                    0.09274776246
-  Mode quantile:                           0.5004125103
-  Median:                                  8.36190404450713e-02
-  Mean:                                    0.098637593
-  Standard deviation:                      10.09065298
+  Minimum:                                 61
+  Maximum:                                 155
+  Median:                                  100
+  Mean:                                    100.044925
+  Standard deviation:                      10.00066032
 -------
 Histogram:
- |                                  * ****
- |                                *********
- |                               ************
- |                              **************
- |                             *****************
- |                           ********************
- |                         ***********************
- |                        **************************
- |                      ******************************
- |                  **************************************
- |*    * *********************************************************** * *
+ |                          *  *
+ |                          *  *  *
+ |                       *  *  *  *
+ |                       *  *  *  *  *
+ |                       *  *  *  *  *
+ |                    *  * ********  * *
+ |                    *  ************* *
+ |                 *  ******************  *
+ |                 ************************  *
+ |              *********************************
+ |* ********************************************************** **      *
  |----------------------------------------------------------------------
 @end example
 
@@ -29496,10 +29494,10 @@ This is therefore defined as the @emph{standard error of the mean}, or ``error''
 From the example above, you see that the error is smaller than the standard deviation (smaller when you have a larger sample).
 In fact, @url{https://en.wikipedia.org/wiki/Standard_error#Derivation, it can be shown} that this ``error of the mean'' (@mymath{\sigma_{\bar{x}}}) is related to the distribution standard deviation (@mymath{\sigma}) through the following equation.
 Where @mymath{N} is the number of points used to measure the mean in one sample (@mymath{200\times200=40000} in this case).
-Note that the @mymath{10.09} below was reported as ``standard deviation'' in the first run of @code{aststatistics} on @file{1.fits} above):
+Note that the @mymath{10.0} below was reported as ``standard deviation'' in the first run of @code{aststatistics} on @file{1.fits} above):
 
-@c The 10.09 depends on the 'aststatistics 1.fits' command above.
-@dispmath{\sigma_{\bar{x}}=\frac{\sigma}{\sqrt{N}} \quad\quad {\rm or} \quad\quad \widehat\sigma_{\bar{x}}\approx\frac{\sigma_x}{\sqrt{N}} = \frac{10.09}{200} = 0.05}
+@c The 10.0 depends on the 'aststatistics 1.fits' command above.
+@dispmath{\sigma_{\bar{x}}=\frac{\sigma}{\sqrt{N}} \quad\quad {\rm or} \quad\quad \widehat\sigma_{\bar{x}}\approx\frac{\sigma_x}{\sqrt{N}} = \frac{10.0}{200} = 0.05}
 
 @noindent
 Taking the considerations above into account, we should clearly distinguish the following concepts when talking about the standard deviation or error:
