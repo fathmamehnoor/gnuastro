@@ -703,7 +703,7 @@ Quantifying measurement limits
 * Upper limit magnitude of each detection::  How reliable is your magnitude?
 * Magnitude limit of image::    Measured magnitude of objects at certain S/N.
 * Surface brightness limit of image::  Extrapolate per-pixel noise-level to standard units.
-* Upper limit magnitude of image::  Measure the noise-level for a certain aperture.
+* Upper limit surface brightness of image::  Measure the noise-level for a certain aperture.
 
 MakeCatalog measurements
 
@@ -2113,7 +2113,7 @@ We are very grateful to the organizers of these workshops and the attendees for 
 @cartouche
 @noindent
 @strong{Write the example commands manually:} Try to type the example commands on your terminal manually and use the history feature of your command-line (by pressing the ``up'' button to retrieve previous commands).
-Do Not simply copy and paste the commands shown here.
+Do not simply copy and paste the commands shown here.
 This will help simulate future situations when you are processing your own datasets.
 @end cartouche
 
@@ -2443,12 +2443,12 @@ See Section 8 of the @url{https://fits.gsfc.nasa.gov/standard40/fits_standard40a
 
 With the commands below, we will use @code{CDELT} (along with the number of non-blank pixels) to find the answer of our initial question: ``how much of the sky does this image cover?''.
 The lines starting with @code{##} are just comments for you to read and understand each command.
-Do Not type them on the terminal (no problem if you do, they will just not have any effect).
+Do not type them on the terminal (no problem if you do, they will just not have any effect).
 The commands are intentionally repetitive in some places to better understand each step and also to demonstrate the beauty of command-line features like history, variables, pipes and loops (which you will commonly use as you become more proficient on the command-line).
 
 @cartouche
 @noindent
-@strong{Use shell history:} Do Not forget to make effective use of your shell's history: you do not have to re-type previous command to add something to them (like the examples below).
+@strong{Use shell history:} Do not forget to make effective use of your shell's history: you do not have to re-type previous command to add something to them (like the examples below).
 This is especially convenient when you just want to make a small change to your previous command.
 Press the ``up'' key on your keyboard (possibly multiple times) to see your previous command(s) and modify them accordingly.
 @end cartouche
@@ -2938,7 +2938,7 @@ $ astwarp flat-ir/xdf-f160w.fits --rotate=20 --scale=0.25
 @end example
 
 If you have multiple warps, do them all in one command.
-Do Not warp them in separate commands because the correlated noise will become too strong.
+Do not warp them in separate commands because the correlated noise will become too strong.
 As you see in the matrix that is printed when you run Warp, it merges all the warps into a single warping matrix (see @ref{Merging multiple warpings}) and simply applies that (mixes the pixel values) just once.
 However, if you run Warp multiple times, the pixels will be mixed multiple times, creating a strong artificial blur/smoothing, or stronger correlated noise.
 
@@ -3112,7 +3112,7 @@ In common surveys the number of exposures is usually 10 or less.
 See Figure 2 of Akhlaghi @url{https://arxiv.org/abs/1909.11230, 2019} and the discussion on @option{--detgrowquant} there for more on how NoiseChisel ``grow''s the detected objects and the patterns caused by correlated noise.
 
 Let's tweak NoiseChisel's configuration a little to get a better result on this dataset.
-Do Not forget that ``@emph{Good statistical analysis is not a purely routine matter, and generally calls for more than one pass through the computer}'' (Anscombe 1973, see @ref{Science and its tools}).
+Do not forget that ``@emph{Good statistical analysis is not a purely routine matter, and generally calls for more than one pass through the computer}'' (Anscombe 1973, see @ref{Science and its tools}).
 A good scientist must have a good understanding of her tools to make a meaningful analysis.
 So do not hesitate in playing with the default configuration and reviewing the manual when you have a new dataset (from a new instrument) in front of you.
 Robust data analysis is an art, therefore a good scientist must first be a good artist.
@@ -3386,7 +3386,7 @@ $ astsegment nc/xdf-f105w.fits -oseg/xdf-f105w.fits
 Segment's operation is very much like NoiseChisel (in fact, prior to version 0.6, it was part of NoiseChisel).
 For example, the output is a multi-extension FITS file (previously discussed in @ref{NoiseChisel and Multi-Extension FITS files}), it has check images and uses the undetected regions as a reference (previously discussed in @ref{NoiseChisel optimization for detection}).
 Please have a look at Segment's multi-extension output to get a good feeling of what it has done.
-Do Not forget to flip through the extensions in the ``Cube'' window.
+Do not forget to flip through the extensions in the ``Cube'' window.
 
 @example
 $ astscript-fits-view seg/xdf-f160w.fits
@@ -5148,7 +5148,7 @@ In this tutorial, we will walk you through the strategy of detecting such target
 
 @cartouche
 @noindent
-@strong{Do Not start with this tutorial:} If you have not already completed @ref{General program usage tutorial}, we strongly recommend going through that tutorial before starting this one.
+@strong{Do not start with this tutorial:} If you have not already completed @ref{General program usage tutorial}, we strongly recommend going through that tutorial before starting this one.
 Basic features like access to this book on the command-line, the configuration files of Gnuastro's programs, benefiting from the modular nature of the programs, viewing multi-extension FITS files, or using NoiseChisel's outputs are discussed in more detail there.
 @end cartouche
 
@@ -5180,7 +5180,7 @@ To access the dataset we will use here, write @code{NGC5195} in the ``Object Nam
 @cartouche
 @noindent
 @strong{Type the example commands:} Try to type the example commands on your terminal and use the history feature of your command-line (by pressing the ``up'' button to retrieve previous commands).
-Do Not simply copy and paste the commands shown here.
+Do not simply copy and paste the commands shown here.
 This will help simulate future situations when you are processing your own datasets.
 @end cartouche
 
@@ -5312,7 +5312,7 @@ When you call any of NoiseChisel's @option{--check*} options, by default, it wil
 This allows you to focus on the problem you wanted to check as soon as possible (you can disable this feature with the @option{--continueaftercheck} option).
 
 To optimize the threshold-related settings for this image, let's play with this quantile threshold check image a little.
-Do Not forget that ``@emph{Good statistical analysis is not a purely routine matter, and generally calls for more than one pass through the computer}'' (Anscombe 1973, see @ref{Science and its tools}).
+Do not forget that ``@emph{Good statistical analysis is not a purely routine matter, and generally calls for more than one pass through the computer}'' (Anscombe 1973, see @ref{Science and its tools}).
 A good scientist must have a good understanding of her tools to make a meaningful analysis.
 So do not hesitate in playing with the default configuration and reviewing the manual when you have a new dataset (from a new instrument) in front of you.
 Robust data analysis is an art, therefore a good scientist must first be a good artist.
@@ -5474,14 +5474,14 @@ As the gradient in the @code{SKY} extension shows, and the deep images cited abo
 But this is already far deeper than what most (if not all) other tools can detect.
 Therefore, we will stop configuring NoiseChisel at this point in the tutorial and let you play with the other options a little more, while reading more about it in the papers: Akhlaghi and Ichikawa @url{https://arxiv.org/abs/1505.01664,2015} and @url{https://arxiv.org/abs/1909.11230,2019}) and @ref{NoiseChisel}.
 When you do find a better configuration feel free to contact us for feedback.
-Do Not forget that good data analysis is an art, so like a sculptor, master your chisel for a good result.
+Do not forget that good data analysis is an art, so like a sculptor, master your chisel for a good result.
 
 To avoid typing all these options every time you run NoiseChisel on this image, you can use Gnuastro's configuration files, see @ref{Configuration files}.
 For an applied example of setting/using them, see @ref{Option management and configuration files}.
 
 @cartouche
 @noindent
-@strong{This NoiseChisel configuration is NOT GENERIC:} Do Not use the configuration derived above, on another instrument's image @emph{blindly}.
+@strong{This NoiseChisel configuration is NOT GENERIC:} Do not use the configuration derived above, on another instrument's image @emph{blindly}.
 If you are unsure, just use the default values.
 As you saw above, the reason we chose this particular configuration for NoiseChisel to detect the wings of the M51 group was strongly influenced by the noise properties of this particular image.
 Remember @ref{NoiseChisel optimization for detection}, where we looked into the very deep XDF image which had strong correlated noise?
@@ -6129,7 +6129,7 @@ If you need your access to the command-line before closing DS9, add a @code{&} a
 @cindex Purity
 @cindex Completeness
 While DS9 is open, slide the dynamic range (values for black and white, or minimum/maximum values in different color schemes) and zoom into various regions of the M51 group to see if you are satisfied with the detected clumps.
-Do Not forget that through the ``Cube'' window that is opened along with DS9, you can flip through the extensions and see the actual clumps also.
+Do not forget that through the ``Cube'' window that is opened along with DS9, you can flip through the extensions and see the actual clumps also.
 The questions you should be asking yourself are these: 1) Which real clumps (as you visually @emph{feel}) have been missed? In other words, is the @emph{completeness} good? 2) Are there any clumps which you @emph{feel} are false? In other words, is the @emph{purity} good?
 
 Note that completeness and purity are not independent of each other, they are anti-correlated: the higher your purity, the lower your completeness and vice-versa.
@@ -9987,7 +9987,7 @@ This is very large, and you want to design a pointing pattern that will allow yo
 
 @cartouche
 @noindent
-@strong{Do Not start with this tutorial:} If you are new to Gnuastro and have not already completed @ref{General program usage tutorial}, we recommend going through that tutorial before starting this one.
+@strong{Do not start with this tutorial:} If you are new to Gnuastro and have not already completed @ref{General program usage tutorial}, we recommend going through that tutorial before starting this one.
 Basic features like access to this book on the command-line, the configuration files of Gnuastro's programs, benefiting from the modular nature of the programs, viewing multi-extension FITS files, and many others are discussed in more detail there.
 @end cartouche
 
@@ -11652,7 +11652,7 @@ If CFITSIO was not configured with this option, any program which needs this cap
 To install CFITSIO from source, we strongly recommend that you have a look through Chapter 2 (Creating the CFITSIO library) of the CFITSIO manual and understand the options you can pass to @command{$ ./configure} (they are not too much).
 This is a very basic package for most astronomical software and it is best that you configure it nicely with your system.
 Once you download the source and unpack it, the following configure script should be enough for most purposes.
-Do Not forget to read chapter two of the manual though, for example, the second option is only for 64bit systems.
+Do not forget to read chapter two of the manual though, for example, the second option is only for 64bit systems.
 The manual also explains how to check if it has been installed correctly.
 
 CFITSIO comes with two executable files called @command{fpack} and @command{funpack}.
@@ -11691,7 +11691,7 @@ $ ./testprog > testprog.lis
 @end example
 
 Recall that the modification above is ONLY NECESSARY FOR THIS STEP.
-@emph{Do Not} put the @code{LD_LIBRARY_PATH} modification command in a permanent place (like your bash startup file).
+@emph{Do not} put the @code{LD_LIBRARY_PATH} modification command in a permanent place (like your bash startup file).
 After installing CFITSIO, close your terminal and continue working on a new terminal (so @code{LD_LIBRARY_PATH} has its default value).
 For more on @code{LD_LIBRARY_PATH}, see @ref{Installation directory}.
 
@@ -12977,7 +12977,7 @@ So if you choose to search in your customized directory first, please @emph{be s
 @noindent
 @strong{Summary:} When you are using a server which does not give you administrator/root access AND you would like to give priority to your own built programs and libraries, not the version that is (possibly already) present on the server, add these lines to your startup file.
 See above for which startup file is best for your case and for a detailed explanation on each.
-Do Not forget to replace `@file{/YOUR-HOME-DIR}' with your home directory (for example, `@file{/home/your-id}'):
+Do not forget to replace `@file{/YOUR-HOME-DIR}' with your home directory (for example, `@file{/home/your-id}'):
 
 @example
 export PATH="/YOUR-HOME-DIR/.local/bin:$PATH"
@@ -13413,7 +13413,7 @@ If you want to use the libraries for your other programming projects, then expor
 @item
 @command{$ make check}: @emph{Only the first couple of tests pass, all the rest fail or get skipped.}  It is highly likely that when searching for shared libraries, your system does not look into the @file{/usr/local/lib} directory (or wherever you installed Gnuastro or its dependencies).
 To make sure it is added to the list of directories, add the following line to your @file{~/.bashrc} file and restart your terminal.
-Do Not forget to change @file{/usr/local/lib} if the libraries are installed in other (non-standard) directories.
+Do not forget to change @file{/usr/local/lib} if the libraries are installed in other (non-standard) directories.
 
 @example
 export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/lib"
@@ -13943,7 +13943,7 @@ If the kernel capacity is exceeded, the program will crash.
 @end cartouche
 
 @item --quietmmap
-Do Not print any message when an array is stored in non-volatile memory
+Do not print any message when an array is stored in non-volatile memory
 (HDD/SSD) and not RAM, see the description of @option{--minmapsize} (above)
 for more.
 
@@ -14059,7 +14059,7 @@ The program will not run.
 
 @item -q
 @itemx --quiet
-Do Not report steps.
+Do not report steps.
 All the programs in Gnuastro that have multiple major steps will report their steps for you to follow while they are operating.
 If you do not want to see these reports, you can call this option and only error/warning messages will be printed.
 If the steps are done very fast (depending on the properties of your input) disabling these reports will also decrease running time.
@@ -19193,7 +19193,7 @@ When this option is not given, all the columns will be concatenated.
 See @option{--catcolumnfile} for more.
 
 @item --catcolumnrawname
-Do Not modify the names of the concatenated (appended) columns, see description in @option{--catcolumnfile}.
+Do not modify the names of the concatenated (appended) columns, see description in @option{--catcolumnfile}.
 
 @item --transpose
 Transpose (as in a matrix) the given vector column(s) individually.
@@ -20011,7 +20011,7 @@ You may also want to use the constructed command as a base to do further customi
 
 @item -k
 @itemx --keeprawdownload
-Do Not delete the raw downloaded file from the database.
+Do not delete the raw downloaded file from the database.
 The name of the raw download will have a @file{OUTPUT-raw-download.fits} format.
 Where @file{OUTPUT} is either the base-name of the final output file (without a suffix).
 
@@ -21213,7 +21213,7 @@ $ export GSL_RNG_SEED=345
 @cindex @file{.bashrc}
 @noindent
 The subsequent programs which use GSL's random number generators will hence forth use these values in this session of the terminal you are running or while executing this script.
-In case you want to set fixed values for these parameters every time you use the GSL random number generator, you can add these two lines to your @file{.bashrc} startup script@footnote{Do Not forget that if you are going to give your scripts (that use the GSL random number generator) to others you have to make sure you also tell them to set these environment variable separately.
+In case you want to set fixed values for these parameters every time you use the GSL random number generator, you can add these two lines to your @file{.bashrc} startup script@footnote{Do not forget that if you are going to give your scripts (that use the GSL random number generator) to others you have to make sure you also tell them to set these environment variable separately.
 So for scripts, it is best to keep all such variable definitions within the script, even if they are within your @file{.bashrc}.}, see @ref{Installation directory}.
 
 @strong{IMPORTANT NOTE:} If the two environment variables @code{GSL_RNG_TYPE} and @code{GSL_RNG_SEED} are defined, GSL will report them by default, even if you do not use the @option{--envseed} option.
@@ -24210,7 +24210,7 @@ If the output has more than one dimension, this option is redundant.
 
 @item -D
 @itemx --dontdelete
-Do Not delete the output file, or files given to the @code{tofile} or @code{tofilefree} operators, if they already exist.
+Do not delete the output file, or files given to the @code{tofile} or @code{tofilefree} operators, if they already exist.
 Instead append the desired datasets to the extensions that already exist in the respective file.
 Note it does not matter if the final output file name is given with the @option{--output} option, or determined automatically.
 
@@ -27720,7 +27720,7 @@ It is thus good to smooth the interpolated image so strong discontinuities do no
 The smoothing is done through convolution (see @ref{Convolution process}) with a flat kernel, so the value to this option must be an odd number.
 
 @item --ignoreblankintiles
-Do Not set the input's blank pixels to blank in the tiled outputs (for example, Sky and Sky standard deviation extensions of the output).
+Do not set the input's blank pixels to blank in the tiled outputs (for example, Sky and Sky standard deviation extensions of the output).
 This is only applicable when the tiled output has the same size as the input, in other words, when @option{--oneelempertile} is not called.
 
 By default, blank values in the input (commonly on the edges which are outside the survey/field area) will be set to blank in the tiled outputs also.
@@ -28481,7 +28481,7 @@ To encourage easier experimentation with the option values, when you use any of 
 With @option{--continueaftercheck} option, you can disable this behavior and ask NoiseChisel to continue with the rest of the processing, even after the requested check files are complete.
 
 @item --ignoreblankintiles
-Do Not set the input's blank pixels to blank in the tiled outputs (for example, Sky and Sky standard deviation extensions of the output).
+Do not set the input's blank pixels to blank in the tiled outputs (for example, Sky and Sky standard deviation extensions of the output).
 This is only applicable when the tiled output has the same size as the input, in other words, when @option{--oneelempertile} is not called.
 
 By default, blank values in the input (commonly on the edges which are outside the survey/field area) will be set to blank in the tiled outputs also.
@@ -28510,7 +28510,7 @@ $ astarithmetic nc.fits 2 connected-components -hDETECTIONS
 @end example
 
 @item --rawoutput
-Do Not include the Sky-subtracted input image as the first extension of the output.
+Do not include the Sky-subtracted input image as the first extension of the output.
 By default, the Sky-subtracted input is put in the first extension of the output.
 The next extensions are NoiseChisel's main outputs described above.
 
@@ -28989,7 +28989,7 @@ The options to configure the output of Segment are listed below:
 
 @table @option
 @item --continueaftercheck
-Do Not abort Segment after producing the check image(s).
+Do not abort Segment after producing the check image(s).
 The usage of this option is identical to NoiseChisel's @option{--continueaftercheck} option (@ref{NoiseChisel input}).
 Please see the descriptions there for more.
 
@@ -29230,7 +29230,7 @@ We can therefore estimate the brightness (@mymath{B_z}, in @mymath{\mu{Jy}}) cor
 @cindex SDSS
 Because the image zero point corresponds to a pixel value of @mymath{1}, the @mymath{B_z} value calculated above also corresponds to a pixel value of @mymath{1}.
 Therefore you simply have to multiply your image by @mymath{B_z} to convert it to @mymath{\mu{Jy}}.
-Do Not forget that this only applies when your zero point was also estimated in the AB magnitude system.
+Do not forget that this only applies when your zero point was also estimated in the AB magnitude system.
 On the command-line, you can estimate this value for a certain zero point with AWK, then multiply it to all the pixels in the image with @ref{Arithmetic}.
 For example, let's assume you are using an SDSS image with a zero point of 22.5:
 
@@ -29320,7 +29320,7 @@ And see @ref{FITS images in a publication} for a fully working tutorial on how t
 
 @cartouche
 @noindent
-@strong{Do Not warp or convolve magnitude or surface brightness images:} Warping an image involves calculating new pixel values (of the new pixel grid) from the old pixel values.
+@strong{Do not warp or convolve magnitude or surface brightness images:} Warping an image involves calculating new pixel values (of the new pixel grid) from the old pixel values.
 Convolution is also a process of finding the weighted mean of pixel values.
 During these processes, many arithmetic operations are done on the original pixel values, for example, addition or multiplication.
 However, @mymath{log_{10}(a+b)\ne log_{10}(a)+log_{10}(b)}.
@@ -29360,7 +29360,7 @@ Therefore the measurements discussed here are commonly used in units of magnitud
 * Upper limit magnitude of each detection::  How reliable is your magnitude?
 * Magnitude limit of image::    Measured magnitude of objects at certain S/N.
 * Surface brightness limit of image::  Extrapolate per-pixel noise-level to standard units.
-* Upper limit magnitude of image::  Measure the noise-level for a certain aperture.
+* Upper limit surface brightness of image::  Measure the noise-level for a certain aperture.
 @end menu
 
 @node Standard deviation vs error, Magnitude measurement error of each detection, Quantifying measurement limits, Quantifying measurement limits
@@ -29651,7 +29651,7 @@ However, this method should be used with extreme care!
 This is because the shape of the object becomes important in this method: a sharper object will have a higher @emph{measured} S/N compared to a more diffuse object at the same original magnitude.
 Besides the inherent shape/sharpness of the object, issues like the PSF also become important in this method (because the finally observed shapes of objects are important here): two surveys with the same surface brightness limit (see @ref{Surface brightness limit of image}) will have different magnitude limits if one is taken from space and the other from the ground.
 
-@node Surface brightness limit of image, Upper limit magnitude of image, Magnitude limit of image, Quantifying measurement limits
+@node Surface brightness limit of image, Upper limit surface brightness of image, Magnitude limit of image, Quantifying measurement limits
 @subsubsection Surface brightness limit of image
 @cindex Surface brightness
 As we make more observations on one region of the sky and add/combine the observations into one dataset, both the signal and the noise increase.
@@ -29720,18 +29720,53 @@ Without WCS, the pixel scale cannot be derived.
 @cindex Correlated noise
 @cindex Noise, correlated
 As you saw in its derivation, the calculation above extrapolates the noise in one pixel over all the input's pixels!
+In other words, all pixels are treated independently in the measurement of the standard deviation.
 It therefore implicitly assumes that the noise is the same in all of the pixels.
 But this only happens in individual exposures: reduced data will have correlated noise because they are a stack of many individual exposures that have been warped (thus mixing the pixel values).
-A more accurate measure which will provide a realistic value for every labeled region is known as the @emph{upper-limit magnitude}, which is discussed below.
+A more accurate measure which will provide a realistic value for every labeled region is known as the @emph{upper-limit magnitude}, which is discussed in the next section (@ref{Upper limit surface brightness of image}).
 
+@node Upper limit surface brightness of image,  , Surface brightness limit of image, Quantifying measurement limits
+@subsubsection Upper limit surface brightness of image
 
-@node Upper limit magnitude of image,  , Surface brightness limit of image, Quantifying measurement limits
-@subsubsection Upper limit magnitude of image
-As mentioned in @ref{Upper limit magnitude of each detection}, the upper-limit magnitude will depend on the shape of each object's footprint.
-Therefore we can measure a dataset's upper-limit magnitude using standard shapes.
+@cindex Correlated noise
+@cindex Noise, correlated
+As mentioned in @ref{Surface brightness limit of image}, the surface brightness limit assumes independent pixels when deriving the standard deviation (the main input in the equation).
+It just extrapolates the standard devaiation derived from one pixel to the requested area.
+But as mentioned at the end of that section, we have correlated noise in our science-ready (deep) images and the noise of the pixels are not independent.
 
-Traditionally a circular aperture of a fixed size (in arcseconds) has been used.
-For a full example of implementing this, see the respective section in the tutorial (@ref{Image surface brightness limit}).
+Because of this, the surface brightness limit will always under-estimate the surface brightness (give fainter values than what is statistically possible in the data for the requested area).
+To account for the correlated noise in the images, we need to derive the standard deviation over a group of pixels that fall within a certain footprint/shape.
+For example over a circular aperture of radius 5.6419 arcsec, or a square with a side length of @mymath{10} arcsec.
+Depending on the correlated noise systematics, the limit can be (very) different for different shapes, even if they have the same area (as in the circle and square mentioned in the previous sentence: both have an area of 100 arcsec@mymath{^2}).
+
+Therefore we need to derive the standard deviation that goes into the surface brightness limit equation over a certain footprint/shape.
+To do that, we should:
+@enumerate
+@item
+Place the desired footprint many times randomly over all the undetected pixels in an image.
+In MakeCatalog, the number of these random positions can be configured with @option{--upnum} and you can check their positions with @option{--checkuplim}.
+@item
+Calculate the sum of pixel values in each randomly placed footprint.
+@item
+Calculate the sigma-clipped standard deviation of the resulting distribution (of sum of pixel values in the randomly placed apertures).
+Therefore, each footprint's measurement is be independent of the other.
+@item
+Calculate the surface brightness of that standrad deviation (after multiplying it with your desired multiple of sigma).
+For the definition of surface brightness, see @ref{Brightness flux magnitude}.
+@end enumerate
+
+If you have reviewed the previous sections, the measurements over randomly placed apertures should remind you of @ref{Upper limit magnitude of each detection}.
+Generally, the ``upper limit'' prefix is given to all measurements with this way of measurement.
+Therefore this limit is called ``Upper limit surface brightness'' of an image (for a multiple of sigma, over a certain shape).
+
+Traditionally a circular aperture of a fixed radius (in arcseconds) has been used.
+In Gnuastro, a labeled image containing the desired shape/aperture can be generated with MakeProfiles.
+The position of the label is irrelevant because the upper limit measurements are done on the many randomly placed footprints in undetected regions (independent of where the label is positioned).
+That labeled image should then be given to MakeCatalog, while requesting @option{--upperlimit-sb}.
+Of course, all detected signal in the image needs to be masked (set to blank/NaN) so MakeCatalog doesn't use randomly placed apertures that overlap with detected signal in the image.
+
+Going into the implementation details can get pretty hard to follow in English, so a full hands-on tutorial is available in the second half of @ref{Image surface brightness limit}.
+Read that tutorial with the same input images and run the commands, and see each output image to get a good understanding of how to properly measure the upper limit surface brightness of your images.
 
 
 
@@ -30994,7 +31029,7 @@ However, in plain text format (see @ref{Gnuastro text table format}), it is only
 Therefore, if the output is a text file, two output files will be created, ending in @file{_o.txt} (for objects) and @file{_c.txt} (for clumps).
 
 @item --noclumpsort
-Do Not sort the clumps catalog based on object ID (only relevant with @option{--clumpscat}).
+Do not sort the clumps catalog based on object ID (only relevant with @option{--clumpscat}).
 This option will benefit the performance@footnote{The performance boost due to @option{--noclumpsort} can only be felt when there are a huge number of objects.
 Therefore, by default the output is sorted to avoid miss-understandings or bugs in the user's scripts when the user forgets to sort the outputs.} of MakeCatalog when it is run on multiple threads @emph{and} the position of the rows in the clumps catalog is irrelevant (for example, you just want the number-counts).
 
@@ -31310,7 +31345,7 @@ Use the given FITS file as a k-d tree (that was previously constructed with Matc
 The FITS file should have two columns with an unsigned 32-bit integer data type and a @code{KDTROOT} keyword that contains the index of the root of the k-d tree.
 For more on Gnuastro's k-d tree format, see @ref{K-d tree}.
 @item disable
-Do Not use the k-d tree algorithm for finding the nearest neighbor, instead, use the sort-based method.
+Do not use the k-d tree algorithm for finding the nearest neighbor, instead, use the sort-based method.
 @end table
 
 @item --kdtreehdu=STR
@@ -32211,11 +32246,11 @@ Recall that the total profile magnitude that is specified with in the @option{--
 See @ref{Profile magnitude} for more on this point.
 
 @item --mcolnocustprof
-Do Not touch (re-scale) the custom profile that should be inserted in @code{custom-prof} profile (see the description of @option{--fcol} in @ref{MakeProfiles catalog} or the description of @option{--customtable} below).
+Do not touch (re-scale) the custom profile that should be inserted in @code{custom-prof} profile (see the description of @option{--fcol} in @ref{MakeProfiles catalog} or the description of @option{--customtable} below).
 By default, MakeProfiles will scale (multiply) the custom image's pixels to have the desired magnitude (or sum of pixels if @option{--mcolissum} is called) in that row.
 
 @item --mcolnocustimg
-Do Not touch (re-scale) the custom image that should be inserted in @code{custom-img} profile (see the description of @option{--fcol} in @ref{MakeProfiles catalog}).
+Do not touch (re-scale) the custom image that should be inserted in @code{custom-img} profile (see the description of @option{--fcol} in @ref{MakeProfiles catalog}).
 By default, MakeProfiles will scale (multiply) the custom image's pixels to have the desired magnitude (or sum of pixels if @option{--mcolissum} is called) in that row.
 
 @item --magatpeak
@@ -32569,7 +32604,7 @@ This is due to the FITS definition of a real number position: The center of a pi
 
 @item -m
 @itemx --nomerged
-Do Not make a merged image.
+Do not make a merged image.
 By default after making the profiles, they are added to a final image with side lengths specified by @option{--mergedsize} if they overlap with it.
 
 @end table
@@ -33816,7 +33851,7 @@ You can disable the deletion of the temporary directory with the @option{--keept
 
 @item -k
 @itemx --keeptmp
-Do Not delete the temporary directory (see description of @option{--tmpdir} above).
+Do not delete the temporary directory (see description of @option{--tmpdir} above).
 This option is useful for debugging.
 For example, to check that the profiles generated for obtaining the radial profile have the desired center, shape and orientation.
 
@@ -34131,7 +34166,7 @@ The initial DS9 window geometry (value to DS9's @option{-geometry} option).
 
 @item -m
 @itemx --ds9colorbarmulti
-Do Not show a single color bar for all the loaded images.
+Do not show a single color bar for all the loaded images.
 By default this script will call DS9 in a way that a single color bar is shown for any number of images.
 A single color bar is preferred for two reasons: 1) when there are a lot of images, they consume a large fraction of the display area. 2) the color-bars are locked by this script, so there is no difference between!
 With this option, you can have separate color bars under each image.
@@ -35256,7 +35291,7 @@ But for the outer parts it is not too effective, so to avoid wasting time for th
 
 @item -d
 @itemx --nocentering
-Do Not do the sub-pixel centering to a new pixel grid.
+Do not do the sub-pixel centering to a new pixel grid.
 See the description of the @option{--center} option for more.
 
 @item -W INT,INT
@@ -35690,7 +35725,7 @@ This option is useful for debugging and checking the outputs of internal steps.
 
 @item -m
 @itemx --modelonly
-Do Not make the subtraction of the modeled star by the PSF.
+Do not make the subtraction of the modeled star by the PSF.
 This option is useful when the user wants to obtain the scattered light field given by the PSF modeled star.
 @end table
 
@@ -36534,7 +36569,7 @@ This option is useful when you prefer to use another Libtool control file.
 @cindex @code{GCC}
 @cindex @code{LDFLAGS}
 @cindex @code{CPPFLAGS}
-Do Not use environment variables in the build, just use the values given to the options.
+Do not use environment variables in the build, just use the values given to the options.
 As described above, environment variables like @code{CC}, @code{GCC}, @code{LDFLAGS},  @code{CPPFLAGS} will be read by default and used in the build if they have been defined.
 @end table
 
@@ -36748,7 +36783,7 @@ learning to use POSIX threads. An excellent
 @url{https://computing.llnl.gov/tutorials/pthreads/, tutorial} is provided
 by the Lawrence Livermore National Laboratory, with abundant figures to
 better understand the concepts, it is a very good start.  The book
-`Advanced programming in the Unix environment'@footnote{Do Not let the title
+`Advanced programming in the Unix environment'@footnote{Do not let the title
 scare you! The two chapters on Multi-threaded programming are very
 self-sufficient and do not need any more knowledge than K&R.}, by Richard
 Stevens and Stephen Rago, Addison-Wesley, 2013 (Third edition) also has two
@@ -40821,7 +40856,7 @@ Use the pre-defined environment variable for setting the random number generator
 For more on random number generation in Gnuastro see @ref{Generating random numbers}.
 
 @item GAL_ARITHMETIC_FLAG_QUIET
-Do Not print any warnings or messages for operators that may benefit from it.
+Do not print any warnings or messages for operators that may benefit from it.
 For example, by default the @code{mknoise-sigma} operator prints the random number generator function and seed that it used (in case the user wants to reproduce this result later).
 By activating this bit flag to the call, that extra information is not printed on the command-line.
 
@@ -45856,7 +45891,7 @@ Here there are only two places: 1) at the top where we define the conditionals (
 @item
 Open @file{doc/Makefile.am} and similar to @file{Makefile.am} (above), add the proper entries for the man page of your program to be created (here, the variable that keeps all the man pages to be created is @code{dist_man_MANS}).
 Then scroll down and add a rule to build the man page similar to the other existing rules (in alphabetical order).
-Do Not forget to add a short one-line description here, it will be displayed on top of the man page.
+Do not forget to add a short one-line description here, it will be displayed on top of the man page.
 
 @item
 Change @code{TEMPLATE.c} and @code{TEMPLATE.h} to @code{myprog.c} and
@@ -46664,7 +46699,7 @@ If you use Emacs, Gnuastro's @file{.dir-locals.el} file will ensure that your co
 @cindex Mailing list: gnuastro-commits
 When the commit is related to a task or a bug, please include the respective ID (in the format of @code{bug/task #ID}, note the space) in the commit message (from @ref{Gnuastro project webpage}) for interested people to be able to followup the discussion that took place there.
 If the commit fixes a bug or finishes a task, the recommended way is to add a line after the body with `@code{This fixes bug #ID.}', or `@code{This finishes task #ID.}'.
-Do Not assume that the reader has internet access to check the bug's full description when reading the commit message, so give a short introduction too.
+Do not assume that the reader has internet access to check the bug's full description when reading the commit message, so give a short introduction too.
 @end itemize
 @end table
 
@@ -47067,7 +47102,7 @@ XWDRIV 1 /XWINDOW
 XWDRIV 2 /XSERVE
 @end example
 @noindent
-Do Not choose GIF or VGIF, there is a problem in their codes.
+Do not choose GIF or VGIF, there is a problem in their codes.
 
 Open the @file{PGPLOT/sys_linux/g77_gcc.conf} file:
 @example
