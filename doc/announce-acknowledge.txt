@@ -1,14 +1,5 @@
 Alphabetically ordered list to acknowledge in the next release.
 
-Alberto Moreno Signes
-Boud Roukema
-Helena Domínguez Sánchez
-Ignacio Ruiz Cejudo
-Rahna Payyasseri Thanduparackal
-Raul Infante-Sainz
-Sepideh Eskandarlou
-Teet Kuutma
-Thorsten Alteholz
 
 
 

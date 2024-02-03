@@ -105,7 +105,9 @@ all the commits needed for this release have been completed.
      been configured for. This will usually take about half an hour!
 
    - If there is any problem, you need to fix it with a new commit on the
-     branch; closing the merge request and opening a new one.
+     same branch and push it. Github will automatically re-do the test on
+     the same pull request item: as soon as a new commit is pushed to the
+     branch.
      - Note that if the build takes more than ten minutes, the first
        generic test will fail. But as long as the other tests are running,
        everything is fine; once they pass, the generic one will pass also.
