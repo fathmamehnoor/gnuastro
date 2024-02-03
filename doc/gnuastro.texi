@@ -9149,12 +9149,12 @@ $ astscript-color-faint-gray $R $G $B $params --output=m51.pdf \
                              --tmpdir=tmp --keeptmp
 @end example
 
-The image that defines the thresholds is @file{./tmp/COLORGRAY_threshold.fits}.
+The image that defines the thresholds is @file{./tmp/colorgray_threshold.fits}.
 By default, this image is the asinh-transformed image with the pixel values between 0 (faint) and 100 (bright).
 If you obtain the statistics of this image, you will see that the median value is exactly the value that the script is giving as the @option{--colorval}.
 
 @example
-$ aststatistics ./tmp/COLORGRAY_threshold.fits
+$ aststatistics ./tmp/colorgray_threshold.fits
 @end example
 
 In other words, all pixels between 100 and this value (1.4) on the threshold image will be shown in color.
@@ -9192,7 +9192,7 @@ $ astscript-color-faint-gray $R $G $B $params --output=m51-check.pdf \
                            --colorval=25 --grayval=5 \
                            --tmpdir=tmp --keeptmp
 
-$ astscript-fits-view tmp/TOTAL_mask-2color-1black-0gray.fits
+$ astscript-fits-view tmp/total_mask-2color-1black-0gray.fits
 @end example
 
 In this segmentation image, pixels equal to 2 will be shown in color, pixels equal to 1 will be shown as pure black, and pixels equal to zero are shown in gray.
@@ -34842,7 +34842,7 @@ For an example of using this option to get a physically motivated threshold, see
 @noindent
 @strong{IMPORTANT NOTE.}
 The options @option{--colorval} and @option{--grayval} are related one to each other.
-They are defined from the threshold image (an image generated in the temporary directory) named @file{COLORGRAY_threshold.fits}.
+They are defined from the threshold image (an image generated in the temporary directory) named @file{colorgray_threshold.fits}.
 By default, this image is computed from the stack and later asinh-transformation of the three R, G, B channels.
 Its pixel values range between 100 (brightest) to 0 (faintest).
 The @option{--colorval} value computed by default is the median of this image.
