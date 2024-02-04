@@ -35,8 +35,6 @@ astarithmetic_LDADD = $(top_builddir)/bootstrapped/lib/libgnu.la \
                       $(top_builddir)/lib/libgnuastro.la \
                       $(CONFIG_LDADD)
 
-
-
 astarithmetic_SOURCES = main.c ui.c arithmetic.c operands.c
 
 EXTRA_DIST = main.h authors-cite.h args.h ui.h arithmetic.h operands.h \
@@ -46,4 +44,5 @@ EXTRA_DIST = main.h authors-cite.h args.h ui.h arithmetic.h operands.h \
 
 ## The configuration file (distribute and install).
 ## NOTE: the man page is created in doc/Makefile.am
-dist_sysconf_DATA = astarithmetic.conf
+pkgsysconfdir = $(sysconfdir)/$(PACKAGE)
+dist_pkgsysconf_DATA = astarithmetic.conf

@@ -101,6 +101,7 @@ astbuildprog.conf: $(top_srcdir)/bin/buildprog/astbuildprog.conf.in
 ## the configuration file being distributed it so use a 'nodist_' prefix.
 ##
 ## NOTE: the man page is created in doc/Makefile.am
-nodist_sysconf_DATA = astbuildprog.conf
+pkgsysconfdir = $(sysconfdir)/$(PACKAGE)
+nodist_pkgsysconf_DATA = astbuildprog.conf
 check_DATA = astbuildprog.conf
 CLEANFILES = astbuildprog.conf

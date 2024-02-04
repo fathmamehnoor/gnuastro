@@ -44,4 +44,5 @@ EXTRA_DIST = main.h authors-cite.h args.h ui.h mkprof.h oneprofile.h    \
 
 ## The configuration file (distribute and install).
 ## NOTE: the man page is created in doc/Makefile.am
-dist_sysconf_DATA = astmkprof.conf astmkprof-3d.conf
+pkgsysconfdir = $(sysconfdir)/$(PACKAGE)
+dist_pkgsysconf_DATA = astmkprof.conf astmkprof-3d.conf

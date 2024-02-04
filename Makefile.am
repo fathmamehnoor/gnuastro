@@ -179,7 +179,8 @@ dist_doc_DATA = README
 
 # Installed system configuration files
 # ====================================
-dist_sysconf_DATA = bin/gnuastro.conf
+pkgsysconfdir = $(sysconfdir)/$(PACKAGE)
+dist_pkgsysconf_DATA = bin/gnuastro.conf
 
 
 

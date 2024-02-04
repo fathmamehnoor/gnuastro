@@ -8,8 +8,22 @@ See the end of the file for license conditions.
 ** New features
 ** Removed features
 ** Changed features
-** Bugs fixed
+*** All programs
+  - System configuration files are installed in 'PREFIX/etc/gnuastro/',
+    ('PREFIX/' is the installation directory of Gnuastro; when installing
+    from source, and if no '--prefix' is given to the './configure script,
+    it is '/usr/local'). Until now, the configuration files of Gnuastro's
+    programs were installed in 'PREFIX/etc/'. But that was a top-level
+    directory for the configuration files of all the programs within the
+    operating system. Therefore the old method would unnecessarily populate
+    that already crowded directory, and finding Gnuastro's configuration
+    files could become non-trivial. This was suggested by Phil Wyett.
 
+  - User configuration files are installed in '$HOME/.local/etc/gnuastro/'
+    instead of '$HOME/.local/etc/'. See the description of system
+    configuration files above for more.
+
+** Bugs fixed
 
 
 

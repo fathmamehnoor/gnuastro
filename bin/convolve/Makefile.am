@@ -43,4 +43,5 @@ EXTRA_DIST = main.h authors-cite.h args.h ui.h convolve.h
 
 ## The configuration file (distribute and install).
 ## NOTE: the man page is created in doc/Makefile.am
-dist_sysconf_DATA = astconvolve.conf
+pkgsysconfdir = $(sysconfdir)/$(PACKAGE)
+dist_pkgsysconf_DATA = astconvolve.conf

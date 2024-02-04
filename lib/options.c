@@ -2763,12 +2763,11 @@ gal_options_call_parse_config_file(struct argp_option *option, char *arg,
 
     - 'SYSCONFIG_DIR' is passed onto the library functions at compile time
       from the command-line. You can search for it in the outputs of
-      'make'. The main reason is that we want the the user still has the
+      'make'. The main reason is that we want the user to still have the
       chance to change the installation directory after 'configure'.
 
-    - 'USERCONFIG_DIR' is defined in 'config.h'.
+    - 'USERCONFIG_DIR' is defined in 'config.h' (from 'configure.ac'). */
 
-    - 'CURDIRCONFIG_DIR' is defined in 'config.h'. */
 static void
 gal_options_parse_config_files(struct gal_options_common_params *cp)
 {

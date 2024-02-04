@@ -54,7 +54,7 @@ endif
 ##                        numpy C-API.
 AM_CPPFLAGS = -I\$(top_builddir)/bootstrapped/lib \
               -I\$(top_srcdir)/bootstrapped/lib \
-              -DSYSCONFIG_DIR=\"$(sysconfdir)\" \
+              -DSYSCONFIG_DIR=\"$(sysconfdir)/$(PACKAGE)\" \
               $(MAYBE_NUMPY_INCLUDE)
 
 

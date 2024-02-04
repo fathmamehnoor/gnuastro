@@ -926,7 +926,7 @@ AC_SUBST(RESTRICT_REPLACEMENT, [$gal_restrict_replace])
 
 # Set the one general parameters:
 AC_DEFINE_UNQUOTED([CONF_POSTFIX], [".conf"], [Configuration file post fix.])
-AC_DEFINE_UNQUOTED([USERCONFIG_DIR], [".local/etc"], [User data dir.])
+AC_DEFINE_UNQUOTED([USERCONFIG_DIR], [".local/etc/gnuastro"], [User data dir.])
 AC_DEFINE_UNQUOTED([CONF_SHOWFMT], [" %-20s"],
                    [Configuration file name format.])
 

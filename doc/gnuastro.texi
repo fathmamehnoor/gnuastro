@@ -8220,20 +8220,20 @@ $ which astnoisechisel
 @end example
 
 As you see, the compiled binary programs (like NoiseChisel) are installed in the @file{bin/} sub-directory of the install path (@file{/usr/local} in the example above, may be different on your system).
-The configuration files are in the @file{etc/} sub-directory of the install path (here only showing NoiseChisel's configuration files):
+The configuration files are in the @file{etc/gnuastro/} sub-directory of the install path (here only showing NoiseChisel's configuration files):
 
 @example
-$ ls /usr/local/etc/astnoisechisel*.conf
-/usr/local/etc/astnoisechisel-3d.conf
-/usr/local/etc/astnoisechisel.conf
+$ ls /usr/local/etc/gnuastro/astnoisechisel*.conf
+/usr/local/etc/gnuastro/astnoisechisel-3d.conf
+/usr/local/etc/gnuastro/astnoisechisel.conf
 @end example
 
 @noindent
 We should therefore call NoiseChisel with the 3D configuration file like below (please change @file{/usr/local} to any directory that you find from the @code{which} command above):
 
 @example
-$ astnoisechisel --config=/usr/local/etc/astnoisechisel-3d.conf \
-                 no-continuum.fits --output=det.fits
+$ astnoisechisel no-continuum.fits --output=det.fits \
+                 --config=/usr/local/etc/gnuastro/astnoisechisel-3d.conf
 @end example
 
 But having to add this long @option{--config} option is annoying and makes the command hard to read!
@@ -8244,7 +8244,7 @@ Finally (with the last command), let's have a look at NoiseChisel's output:
 
 @example
 $ alias astnoisechisel-3d="astnoisechisel \
-           --config=/usr/local/etc/astnoisechisel-3d.conf"
+           --config=/usr/local/etc/gnuastro/astnoisechisel-3d.conf"
 
 $ astnoisechisel-3d no-continuum.fits --output=det.fits
 
@@ -8311,7 +8311,7 @@ Like NoiseChisel above, to simplify the commands, let's make an alias (@ref{3D d
 
 @example
 $ alias astsegment-3d="astsegment \
-           --config=/usr/local/etc/astsegment-3d.conf"
+        --config=/usr/local/etc/gnuastro/astsegment-3d.conf"
 
 $ astsegment-3d det.fits --output=seg.fits
 
@@ -14597,16 +14597,16 @@ Command-line options, for a particular run of ProgramName.
 @file{.gnuastro/gnuastro.conf} is parsed by all Gnuastro programs in the current directory.
 
 @item
-@file{$HOME/.local/etc/astprogname.conf} is parsed by ProgramName in the user's home directory (see @ref{Current directory and User wide}).
+@file{$HOME/.local/etc/gnuastro/astprogname.conf} is parsed by ProgramName in the user's home directory (see @ref{Current directory and User wide}).
 
 @item
-@file{$HOME/.local/etc/gnuastro.conf} is parsed by all Gnuastro programs in the user's home directory (see @ref{Current directory and User wide}).
+@file{$HOME/.local/etc/gnuastro/gnuastro.conf} is parsed by all Gnuastro programs in the user's home directory (see @ref{Current directory and User wide}).
 
 @item
-@file{prefix/etc/astprogname.conf} is parsed by ProgramName in the system-wide installation directory (see @ref{System wide} for @file{prefix}).
+@file{prefix/etc/gnuastro/astprogname.conf} is parsed by ProgramName in the system-wide installation directory (see @ref{System wide} for @file{prefix}).
 
 @item
-@file{prefix/etc/gnuastro.conf} is parsed by all Gnuastro programs in the system-wide installation directory (see @ref{System wide} for @file{prefix}).
+@file{prefix/etc/gnuastro/gnuastro.conf} is parsed by all Gnuastro programs in the system-wide installation directory (see @ref{System wide} for @file{prefix}).
 
 @end enumerate
 
@@ -14651,8 +14651,8 @@ For example, to keep the input's directory when no specific output is given (see
 
 @cindex @file{$HOME}
 @cindex @file{./.gnuastro/}
-@cindex @file{$HOME/.local/etc/}
-For the current (local) and user-wide directories, the configuration files are stored in the hidden sub-directories named @file{.gnuastro/} and @file{$HOME/.local/etc/} respectively.
+@cindex @file{$HOME/.local/etc/gnuastro}
+For the current (local) and user-wide directories, the configuration files are stored in the hidden sub-directories named @file{.gnuastro/} and @file{$HOME/.local/etc/gnuastro/} respectively.
 Unless you have changed it, the @file{$HOME} environment variable should point to your home directory.
 You can check it by running @command{$ echo $HOME}.
 Each time you run any of the programs in Gnuastro, this environment variable is read and placed in the above address.
@@ -14669,10 +14669,10 @@ To set the user or current directory configuration files based on your command-l
 @node System wide,  , Current directory and User wide, Configuration files
 @subsection System wide
 
-@cindex @file{prefix/etc/}
+@cindex @file{prefix/etc/gnuastro/}
 @cindex System wide configuration files
 @cindex Configuration files, system wide
-When Gnuastro is installed, the configuration files that are shipped with the distribution are copied into the (possibly system wide) @file{prefix/etc/} directory.
+When Gnuastro is installed, the configuration files that are shipped with the distribution are copied into the (possibly system wide) @file{prefix/etc/gnuastro} directory.
 For more details on @file{prefix}, see @ref{Installation directory} (by default it is: @file{/usr/local}).
 This directory is the final place (with the lowest priority) that the programs in Gnuastro will check to retrieve parameter values.
 
@@ -14680,7 +14680,7 @@ If you remove an option and its value from the system wide configuration files, 
 Recall that none of the programs in Gnuastro keep any internal default values and will abort if they do not find a value for the necessary parameters (except the number of threads and output file name).
 So even though you might never expect to use an optional option, it safe to have it available in this system-wide configuration file even if you do not intend to use it frequently.
 
-Note that in case you install Gnuastro from your distribution's repositories, @file{prefix} will either be set to @file{/} (the root directory) or @file{/usr}, so you can find the system wide configuration variables in @file{/etc/} or @file{/usr/etc/}.
+Note that in case you install Gnuastro from your distribution's repositories, @file{prefix} will either be set to @file{/} (the root directory) or @file{/usr}, so you can find the system wide configuration variables in @file{/etc/gnuastro/} or @file{/usr/etc/gnuastro/}.
 The prefix of @file{/usr/local/} is conventionally used for programs you install from source by yourself as in @ref{Quick start}.
 
 
@@ -27937,7 +27937,7 @@ For example, if you installed Gnuastro with the prefix @file{/usr/local} (the de
 
 @example
 $ astnoisechisel cube.fits \
-                 --config=/usr/local/etc/astnoisechisel-3d.conf
+             --config=/usr/local/etc/gnuastro/astnoisechisel-3d.conf
 @end example
 
 @cindex Shell alias
@@ -27949,7 +27949,7 @@ Assuming that you installed Gnuastro in @file{/usr/local}, you can add this line
 
 @example
 alias astnoisechisel-3d="astnoisechisel \
-                    --config=/usr/local/etc/astnoisechisel-3d.conf"
+               --config=/usr/local/etc/gnuastro/astnoisechisel-3d.conf"
 @end example
 
 @noindent
@@ -32014,7 +32014,8 @@ For example, if you installed Gnuastro with the prefix @file{/usr/local} (the de
 As with all configuration files, if you want to customize a given option, call it before the configuration file.
 
 @example
-$ astmkprof --config=/usr/local/etc/astmkprof-3d.conf catalog.txt
+$ astmkprof --config=/usr/local/etc/gnuastro/astmkprof-3d.conf \
+            catalog.txt
 @end example
 
 @cindex Shell alias
@@ -32025,7 +32026,8 @@ To further simplify the process, you can define a shell alias in any startup fil
 Assuming that you installed Gnuastro in @file{/usr/local}, you can add this line to the startup file (you may put it all in one line, it is broken into two lines here for fitting within page limits).
 
 @example
-alias astmkprof-3d="astmkprof --config=/usr/local/etc/astmkprof-3d.conf"
+alias astmkprof-3d="astmkprof \
+               --config=/usr/local/etc/gnuastro/astmkprof-3d.conf"
 @end example
 
 @noindent

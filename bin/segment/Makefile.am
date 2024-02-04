@@ -44,4 +44,5 @@ EXTRA_DIST = main.h authors-cite.h args.h ui.h segment.h clumps.h   \
 
 ## The configuration file (distribute and install).
 ## NOTE: the man page is created in doc/Makefile.am
-dist_sysconf_DATA = astsegment.conf astsegment-3d.conf
+pkgsysconfdir = $(sysconfdir)/$(PACKAGE)
+dist_pkgsysconf_DATA = astsegment.conf astsegment-3d.conf
