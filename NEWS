@@ -24,6 +24,10 @@ See the end of the file for license conditions.
     configuration files above for more.
 
 ** Bugs fixed
+  - bug #65255: description of CosmicCalculator's '--arcsectandist' didn't
+    specify if it is in physical or comoving coordinates. Found and fixed
+    by Boud Roukema.
+
 
 
 

@@ -2599,8 +2599,8 @@ $ for z in $(seq 0.1 0.1 5); do                                  \
 @end example
 
 Have a look at the two printed columns.
-The first is the redshift, and the second is the area of this image at that redshift (in Mega Parsecs squared).
-@url{https://en.wikipedia.org/wiki/Redshift, Redshift} (@mymath{z}) is a measure of distance in galaxy evolution and cosmology: a higher redshift corresponds to larger distance.
+The first is the redshift, and the second is the area of this image at that redshift (in Megaparsecs squared).
+@url{https://en.wikipedia.org/wiki/Redshift, Redshift} (@mymath{z}) is often used as a proxy for distance in galaxy evolution and cosmology: a higher redshift corresponds to larger line-of-sight comoving distance.
 
 @cindex Turn over point (angular diameter distance)
 Now, have a look at the first few values.
@@ -2608,7 +2608,7 @@ At @mymath{z=0.1} and @mymath{z=0.5}, this image covers @mymath{0.05 Mpc^2} and 
 This increase of coverage with redshift is expected because a fixed angle will cover a larger tangential area at larger distances.
 However, as you come down the list (to higher redshifts) you will notice that this relation does not hold!
 The largest coverage is at @mymath{z=1.6}: at higher redshifts, the area decreases, and continues decreasing!!!
-In @mymath{\Lambda{}CDM} cosmology, this happens because of the finite speed of light and the expansion of the universe, see @url{https://en.wikipedia.org/wiki/Angular_diameter_distance#Angular_diameter_turnover_point, the Wikipedia page}.
+In flat FLRW cosmology (including @mymath{\Lambda{}}CDM), the only factor contributing to this is the @mymath{(1+z)}$ factor from the expansion of the universe, see @url{https://en.wikipedia.org/wiki/Angular_diameter_distance#Angular_diameter_turnover_point, the Wikipedia page}, with no curvature effect.
 
 In case you have TOPCAT, you can visualize this as a plot (if you do not have TOPCAT, see @ref{TOPCAT}).
 To do so, first you need to save the output of the loop above into a FITS table by piping the output to Gnuastro's Table program and giving an output name:
@@ -33129,10 +33129,10 @@ The angular diameter distance to an object at a given redshift in Megaparsecs (M
 The tangential distance covered by 1 arc-second at a given redshift in physical (not comoving) kiloparsecs (kpc).
 This can be useful when trying to estimate the resolution or pixel scale of an instrument (usually in units of arc-seconds) required for a galaxy of a given physical size at a given redshift.
 
-Note that since this is not in comoving units, multiplying the result by 3600 will not give the tangential distance for an arc subtending one degree at higher redshifts.
-This is because, at one degree, the comoving separation for redshifts from 1 to 10 is about 100 Mpc give or take 50% or so.
-In other words, this is the cosmic web scale, where comoving units usually make more sense than physical units.
-But this option is rarely used for such large arcs at higher redshifts, so for smaller arcs and lower redshifts, it will be sufficiently accurate.
+For an arc subtending one degree at a high redshift @mymath{z}, multiplying the result by 3600 will, of course, give the (tangential) length of an arc subtending one degree, but it will still be in physical units.
+However, at one degree, the comoving separation for redshifts from 1 to 10 is about 100 Mpc give or take 50% or so for nearly @mymath{\Lambda{}}CDM models.
+In other words, this is the cosmic web scale, where comoving units usually make more sense than physical units, e.g. for large-scale structure correlation functions or the baryon acoustic oscillation scale.
+If comoving units are appropriate, as will typically be the case for the degree scale, you must also multiply by @mymath{(1+z)}.
 
 @item -L
 @itemx --luminositydist
