@@ -209,7 +209,7 @@ struct argp_option program_options[] =
       UI_KEY_ARCSECTANDIST,
       0,
       0,
-      "Tangential dist. covered by 1arcsec at z (kpc).",
+      "Tangential dist. for 1arcsec at z (physical kpc).",
       UI_GROUP_BASIC,
       &p->specific,
       GAL_OPTIONS_NO_ARG_TYPE,

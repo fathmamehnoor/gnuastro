@@ -2546,7 +2546,7 @@ $ astcosmiccal -z2
 ## something without modifying the command you want to run.
 $ astcosmiccal -z2 --help
 
-## Only print the "Tangential dist. covered by 1arcsec at z (kpc)".
+## Only print the "Tangential dist. for 1arcsec at z (physical kpc)".
 ## in units of kpc/arc-seconds.
 $ astcosmiccal -z2 --arcsectandist
 
@@ -33113,21 +33113,26 @@ The current age of the universe (given the input parameters) in Ga (Giga annum, 
 
 @item -C
 @itemx --criticaldensitynow
-The current critical density (given the input parameters) in grams per centimeter-cube (@mymath{g/cm^3}).
+The current critical density (given the input parameters) in grams per cubic centimeter (@mymath{g/cm^3}).
 
 @item -d
 @itemx --properdistance
-The proper distance (at current time) to object at the given redshift in Megaparsecs (Mpc).
+The proper distance (at the current time, i.e. in comoving units) to an object at the given redshift in Megaparsecs (Mpc).
 See @ref{Distance on a 2D curved space} for a description of the proper distance.
 
 @item -A
 @itemx --angulardiamdist
-The angular diameter distance to object at given redshift in Megaparsecs (Mpc).
+The angular diameter distance to an object at a given redshift in Megaparsecs (Mpc).
 
 @item -s
 @itemx --arcsectandist
-The tangential distance covered by 1 arc-seconds at the given redshift in kiloparsecs (Kpc).
-This can be useful when trying to estimate the resolution or pixel scale of an instrument (usually in units of arc-seconds) at a given redshift.
+The tangential distance covered by 1 arc-second at a given redshift in physical (not comoving) kiloparsecs (kpc).
+This can be useful when trying to estimate the resolution or pixel scale of an instrument (usually in units of arc-seconds) required for a galaxy of a given physical size at a given redshift.
+
+Note that since this is not in comoving units, multiplying the result by 3600 will not give the tangential distance for an arc subtending one degree at higher redshifts.
+This is because, at one degree, the comoving separation for redshifts from 1 to 10 is about 100 Mpc give or take 50% or so.
+In other words, this is the cosmic web scale, where comoving units usually make more sense than physical units.
+But this option is rarely used for such large arcs at higher redshifts, so for smaller arcs and lower redshifts, it will be sufficiently accurate.
 
 @item -L
 @itemx --luminositydist
@@ -33149,8 +33154,8 @@ Age of the universe at given redshift in Ga (Giga annum, or billion years).
 
 @item -b
 @itemx --lookbacktime
-The look-back time to given redshift in Ga (Giga annum, or billion years).
-The look-back time at a given redshift is defined as the current age of the universe (@option{--agenow}) subtracted by the age of the universe at the given redshift.
+The look-back time to a given redshift in Ga (Giga annum, or billion years).
+The look-back time at a given redshift is defined as the current age of the universe (@option{--agenow}) minus the age of the universe at the given redshift.
 
 @item -c
 @itemx --criticaldensity
@@ -33158,7 +33163,7 @@ The critical density at given redshift in grams per centimeter-cube (@mymath{g/c
 
 @item -v
 @itemx --onlyvolume
-The comoving volume in Megaparsecs cube (Mpc@mymath{^3}) until the desired redshift based on the input parameters.
+The comoving volume in cubic Megaparsecs (Mpc@mymath{^3}) through to the desired redshift, based on the input parameters.
 
 @end table
 
