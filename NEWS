@@ -6,6 +6,11 @@ See the end of the file for license conditions.
 * Noteworthy changes in release X.XX (library XX.X.X) (YYYY-MM-DD)
 ** New publications
 ** New features
+*** astscript-fits-view
+  --globalhdu: use the same HDU in any number of input files (with the
+    short format of '-g'); similar to the same option in Arithmetic or
+    ConvertType.
+
 ** Removed features
 ** Changed features
 *** All programs
@@ -23,10 +28,20 @@ See the end of the file for license conditions.
     instead of '$HOME/.local/etc/'. See the description of system
     configuration files above for more.
 
+*** astscript-fits-view
+  - The short format of the '--ds9geometry' option is '-G' (until now it
+    was '-g'). This was necessary to allow the '-g' of this script to have
+    a similar behavior to the other Gnuastro programs that take multiple
+    inputs (like Arithmetic or ConvertType) and '-g' is short for
+    '--globalhdu' (so the same HDU is opened in all the inputs).
+
 ** Bugs fixed
   - bug #65255: description of CosmicCalculator's '--arcsectandist' didn't
     specify if it is in physical or comoving coordinates. Found and fixed
     by Boud Roukema.
+
+  - bug #65267: astscript-fits-view created incorrect call to ds9 when the
+    number of input files was more than the specified HDUs.
 
 
 

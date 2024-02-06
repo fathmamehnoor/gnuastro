@@ -34131,8 +34131,16 @@ This script takes the following options
 
 @item -h STR
 @itemx --hdu=STR
-The HDU (extension) of the input dataset to display.
-The value can be the HDU name or number (the first HDU is counted from 0).
+The HDU(s), or extension(s), of the input dataset(s) to display.
+The value can be the HDU name (a string) or number (the first HDU is counted from 0).
+If there are multiple inputs, this option needs to be called multiple times: the first input will be opened with the first call to this option, the second input with the second call and etc.
+If you want to open the same HDU of all your inputs, you don't need to repeat this option, use @option{--globalhdu} instead.
+
+@item -g STR
+@itemx --globalhdu=STR
+The HDU/extension name or number to use for all inputs.
+Note that HDU counting starts from 0.
+If @option{--hdu} called, it takes precedence over this.
 
 @item -p STR
 @itemx --prefix=STR

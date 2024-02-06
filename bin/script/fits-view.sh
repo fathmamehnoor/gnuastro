@@ -46,6 +46,7 @@ ds9mode=""
 ds9scale=""
 ds9extra=""
 ds9center=""
+globalhdu=""
 ds9geometry=""
 version=@VERSION@
 ds9colorbarmulti=""
@@ -89,9 +90,10 @@ experienced Gnuastro users and developers. For more information, please run:
 $scriptname options:
  Input:
   -h, --hdu=STR           Extension name or number of input data.
+  -g, --globalhdu=STR     Use this HDU for all inputs, ignore '--hdu'.
 
  Output:
-  -g, --ds9geometry=INTxINT Size of DS9 window, e.g., for HD (800x1000) and
+  -G, --ds9geometry=INTxINT Size of DS9 window, e.g., for HD (800x1000) and
                           for 4K (1800x3000). If not given, the script will
                           attempt to find your screen resolution and find a
                           good match, otherwise, use the default size.
@@ -195,11 +197,14 @@ do
         -h|--hdu)            aux="$2";                             check_v "$1" "$aux"; hdu="$hdu $aux"; shift;shift;;
         -h=*|--hdu=*)        aux="${1#*=}";                        check_v "$1" "$aux"; hdu="$hdu $aux"; shift;;
         -h*)                 aux="$(echo "$1"  | sed -e's/-h//')"; check_v "$1" "$aux"; hdu="$hdu $aux"; shift;;
+        -g|--globalhdu)      aux="$2";                             check_v "$1" "$aux"; globalhdu="$aux"; shift;shift;;
+        -g=*|--globalhdu=*)  aux="${1#*=}";                        check_v "$1" "$aux"; globalhdu="$aux"; shift;;
+        -g*)                 aux="$(echo "$1"  | sed -e's/-g//')"; check_v "$1" "$aux"; globalhdu="$aux"; shift;;
 
         # Output options
-        -g|--ds9geometry)     ds9geometry="$2";                    check_v "$1" "$ds9geometry"; shift;shift;;
-        -g=*|--ds9geometry=*) ds9geometry="${1#*=}";               check_v "$1" "$ds9geometry"; shift;;
-        -g*)                  ds9geometry=$(echo "$1"  | sed -e's/-g//');  check_v "$1" "$ds9geometry"; shift;;
+        -G|--ds9geometry)     ds9geometry="$2";                    check_v "$1" "$ds9geometry"; shift;shift;;
+        -G=*|--ds9geometry=*) ds9geometry="${1#*=}";               check_v "$1" "$ds9geometry"; shift;;
+        -G*)                  ds9geometry=$(echo "$1"  | sed -e's/-g//');  check_v "$1" "$ds9geometry"; shift;;
         -s|--ds9scale)        ds9scale="$2";                       check_v "$1" "$ds9scale"; shift;shift;;
         -s=*|--ds9scale=*)    ds9scale="${1#*=}";                  check_v "$1" "$ds9scale"; shift;;
         -s*)                  ds9scale=$(echo "$1"  | sed -e's/-s//');  check_v "$1" "$ds9scale"; shift;;
@@ -276,6 +281,18 @@ EOF
     else
         cat <<EOF
 $scriptname: '$ds9mode' not acceptable for '--ds9mode' (or '-O'). $modeerrorinfo
+EOF
+        exit 1
+    fi
+fi
+
+# If HDUs are given, make sure they are the same number as images.
+if ! [ x"$hdu" = x ]; then
+    nhdu=$(echo $hdu | wc -w)
+    nin=$(echo $inputs | wc -w)
+    if [ $nhdu -lt $nin  ]; then
+        cat <<EOF
+$scriptname: number of input HDUs (values to '--hdu' or '-h') is less than the number of inputs. If all the HDUs are the same, you can use the '--globalhdu' or '-g' option
 EOF
         exit 1
     fi
@@ -377,15 +394,19 @@ else
             # If the file was a image, then  `check` will be 1.
             if [ "$type" = 1 ]; then
 
-                # If a HDU is given, add it to all the input file names (within
-                # square brackets for DS9).
-                if [ x"$hdu" = x ]; then
+                # If a HDU is given, add it to all the input file names
+                # (within square brackets for DS9).
+                if [ x"$hdu" = x ] && [ x"$globalhdu" = x ]; then
                     inwithhdu="$inputs"
                 else
                     c=1
                     inwithhdu=""
                     for i in $inputs; do
-                        h=$(echo $hdu | awk -vc=$c '{print $c}')
+                        if [ x"$hdu" = x ]; then
+                            h="$globalhdu"
+                        else
+                            h=$(echo $hdu | awk -vc=$c '{print $c}')
+                        fi
                         inwithhdu="$inwithhdu $i[$h]"
                         c=$((c+1))
                     done
