@@ -35,8 +35,10 @@ set -e
 # Save the current system language, and then change it to English to avoid
 # problems in some parts of the code (AWK with `,' instead of `.' for
 # decimal separator).
-system_lang=$LANG
+sys_lang=$LANG
 export LANG=C
+sys_lcnumeric=$LC_NUMERIC
+export LC_NUMERIC="en_US.UTF-8"
 
 
 
@@ -1135,4 +1137,5 @@ fi
 
 # The script has finished, reset the original language to the system's
 # default language.
-export LANG=$system_lang
+export LANG=$sys_lang
+export LC_NUMERIC=$sys_lcnumeric

@@ -5903,7 +5903,7 @@ With the first command below you can use Gnuastro's @command{asttable} and @comm
 @example
 ## Create a DS9 region file from the check table (activated
 ## with '--checkuplim')
-asttable lab_upcheck.fits --noblank=RANDOM_SUM \
+asttable sbl_upcheck.fits --noblank=RANDOM_SUM \
          | astscript-ds9-region -c1,2 --mode=img \
                                 --radius=$r_pixel
 
@@ -29370,14 +29370,10 @@ Therefore, before continuing with the various measurement limits below, let's re
 Instead of going into the theoretical definitions of the two (which you can see in their respective Wikipedia pages), we'll discuss the concepts in a hands-on and practical way here.
 
 Let's simulate an observation of the sky, but without any astronomical sources!
-In other words, where we only a background flux level (from the sky emission).
+In other words, we only have a background flux level (from the sky emission).
 With the first command below, let's make an image called @file{1.fits} that contains @mymath{200\times200} pixels that are filled with random noise from a Poisson distribution with a mean of 100 counts (the flux from the background sky).
-Recall that the Poisson distribution is equal to a normal distribution for larger mean values (as in this case).
-
-The standard deviation (@mymath{\sigma}) of the Poisson distribution is the square root of the mean, see @ref{Photon counting noise}.
 With the second command, we'll have a look at the image.
-Note that due to the random nature of the noise, the values reported in the next steps on your computer will be very slightly different.
-To reproducible exactly the same values in different runs, see @ref{Generating random numbers}, and for more on the first command, see @ref{Arithmetic}.
+Recall that the Poisson distribution is equal to a normal distribution for large mean values (as in this case).
 
 @example
 $ astarithmetic 200 200 2 makenew 100 mknoise-poisson \
@@ -29385,6 +29381,10 @@ $ astarithmetic 200 200 2 makenew 100 mknoise-poisson \
 
 $ astscript-fits-view 1.fits
 @end example
+
+The standard deviation (@mymath{\sigma}) of the Poisson distribution is the square root of the mean, see @ref{Photon counting noise}.
+Note that due to the random nature of the noise, the values reported in the next steps on your computer will be very slightly different.
+To reproducible exactly the same values in different runs, see @ref{Generating random numbers}, and for more on the first command, see @ref{Arithmetic}.
 
 Each pixel shows the result of one sampling from the Poisson distribution.
 In other words, assuming the sky emission in our simulation is constant over our field of view, each pixel's value shows one measurement of the sky emission.
@@ -29576,7 +29576,7 @@ As the surface brightness of the objects decreases, the ability to detect them w
 An important statistic is thus the fraction of objects of similar morphology and magnitude that will be detected with our detection algorithm/parameters in a given image.
 This fraction is known as @emph{completeness}.
 For brighter objects, completeness is 1: all bright objects that might exist over the image will be detected.
-However, as we go to objects of lower overall surface brightness, we will fail to detect a fraction of them, and fainter than a certain surface brightness level (for each morphology),nothing will be detectable in the image: you will need more data to construct a ``deeper'' image.
+However, as we go to objects of lower overall surface brightness, we will fail to detect a fraction of them, and fainter than a certain surface brightness level (for each morphology), nothing will be detectable in the image: you will need more data to construct a ``deeper'' image.
 For a given profile and dataset, the magnitude where the completeness drops below a certain level (usually above @mymath{90\%}) is known as the completeness limit.
 
 @cindex Purity
@@ -29731,7 +29731,7 @@ A more accurate measure which will provide a realistic value for every labeled r
 @cindex Correlated noise
 @cindex Noise, correlated
 As mentioned in @ref{Surface brightness limit of image}, the surface brightness limit assumes independent pixels when deriving the standard deviation (the main input in the equation).
-It just extrapolates the standard devaiation derived from one pixel to the requested area.
+It just extrapolates the standard deviation derived from one pixel to the requested area.
 But as mentioned at the end of that section, we have correlated noise in our science-ready (deep) images and the noise of the pixels are not independent.
 
 Because of this, the surface brightness limit will always under-estimate the surface brightness (give fainter values than what is statistically possible in the data for the requested area).
@@ -29749,7 +29749,7 @@ In MakeCatalog, the number of these random positions can be configured with @opt
 Calculate the sum of pixel values in each randomly placed footprint.
 @item
 Calculate the sigma-clipped standard deviation of the resulting distribution (of sum of pixel values in the randomly placed apertures).
-Therefore, each footprint's measurement is be independent of the other.
+Therefore, each footprint's measurement is independent of the other.
 @item
 Calculate the surface brightness of that standrad deviation (after multiplying it with your desired multiple of sigma).
 For the definition of surface brightness, see @ref{Brightness flux magnitude}.

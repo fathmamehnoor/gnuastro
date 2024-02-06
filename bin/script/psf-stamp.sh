@@ -37,7 +37,10 @@ set -e
 
 # 'LC_NUMERIC' is responsible for formatting numbers printed by the OS.  It
 # prevents floating points like '23,45' instead of '23.45'.
-export LC_NUMERIC=C
+sys_lang=$LANG
+export LANG=C
+sys_lcnumeric=$LC_NUMERIC
+export LC_NUMERIC="en_US.UTF-8"
 
 
 
@@ -917,6 +920,7 @@ if [ x"$quiet" = x ] && [ $normvalue = nan ]; then all_nan_warning; fi
 
 
 
+
 # Remove temporary files
 # ----------------------
 #
@@ -925,3 +929,12 @@ if [ x"$quiet" = x ] && [ $normvalue = nan ]; then all_nan_warning; fi
 if [ $keeptmp = 0 ]; then
     rm -r $tmpdir
 fi
+
+
+
+
+
+# The script has finished, reset the original language to the system's
+# default language.
+export LANG=$sys_lang
+export LC_NUMERIC=$sys_lcnumeric

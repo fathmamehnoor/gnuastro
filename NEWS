@@ -40,8 +40,12 @@ See the end of the file for license conditions.
     specify if it is in physical or comoving coordinates. Found and fixed
     by Boud Roukema.
 
-  - bug #65267: astscript-fits-view created incorrect call to ds9 when the
-    number of input files was more than the specified HDUs.
+  - bug #65267: 'astscript-fits-view' created incorrect call to ds9 when
+    the number of input files was more than the specified HDUs.
+
+  - bug #65269: 'astscript-color-faint-gray' and 'astscript-psf-stamp' use
+    a coma as the decimal point on some operating systems. Reported by
+    Jesús Vega and fixed by Raul Infante-Sainz.
 
 
 
