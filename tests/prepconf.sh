@@ -80,7 +80,7 @@ rm addedoptions.txt
 # symbolic link to the program in a special directory.
 if ! [ -d $progbdir ]; then mkdir $progbdir; fi
 for prog in arithmetic buildprog convertt convolve cosmiccal crop \
-            fits match mkcatalog mknoise mkprof noisechisel segment \
+            fits match mkcatalog mkprof noisechisel query segment \
             statistics table warp
 do
     # Get the configuration file.

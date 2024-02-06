@@ -1667,16 +1667,18 @@ arithmetic_where(int flags, gal_data_t *out, gal_data_t *cond,
 /***********************************************************************/
 struct multioperandparams
 {
-  gal_data_t      *list;        /* List of input datasets.           */
-  gal_data_t       *out;        /* Output dataset.                   */
-  size_t           dnum;        /* Number of input dataset.          */
-  int          operator;        /* Operator to use.                  */
-  uint8_t     *hasblank;        /* Array of 0s or 1s for each input. */
-  float              p1;        /* Sigma-cliping parameter 1.        */
-  float              p2;        /* Sigma-cliping parameter 2.        */
-  uint8_t     clipflags;        /* Extra clipping measurements.      */
-  gal_data_t    *center;        /* Center for dilated clipping.      */
-  gal_data_t    *spread;        /* Spread for dilated clipping.      */
+  gal_data_t       *list;        /* List of input datasets.           */
+  gal_data_t        *out;        /* Output dataset.                   */
+  size_t            dnum;        /* Number of input dataset.          */
+  int           operator;        /* Operator to use.                  */
+  uint8_t      *hasblank;        /* Array of 0s or 1s for each input. */
+  float               p1;        /* Sigma-cliping parameter 1.        */
+  float               p2;        /* Sigma-cliping parameter 2.        */
+  uint8_t      clipflags;        /* Extra clipping measurements.      */
+  gal_data_t     *center;        /* Center for dilated clipping.      */
+  gal_data_t     *spread;        /* Spread for dilated clipping.      */
+  gal_data_t *clipoutnum;        /* Number output for clipping opers. */
+  size_t           ntype;        /* Type of numbers image.            */
 };
 
 
@@ -2018,11 +2020,48 @@ struct multioperandparams
 
 
 
+static void
+arithmetic_multioperand_number_write(struct multioperandparams *p,
+                                     float *carr, size_t j)
+{
+  /* All types point to the same array (will write in the correct one). */
+  uint8_t *n8;
+  uint16_t *n16;
+  uint32_t *n32;
+
+  /* Return if not necessary. */
+  if(p->clipoutnum==NULL) return;
+
+  /* Write in the respective array. */
+  n8=p->clipoutnum->array;
+  n16=p->clipoutnum->array;
+  n32=p->clipoutnum->array;
+  switch(p->ntype)
+    {
+    case GAL_TYPE_UINT8:
+      n8[j] = carr ? carr[GAL_STATISTICS_CLIP_OUTCOL_NUMBER_USED] : 0;
+      break;
+    case GAL_TYPE_UINT16:
+      n16[j] = carr ? carr[GAL_STATISTICS_CLIP_OUTCOL_NUMBER_USED] : 0;
+      break;
+    case GAL_TYPE_UINT32:
+      n32[j] = carr ? carr[GAL_STATISTICS_CLIP_OUTCOL_NUMBER_USED] : 0;
+      break;
+    default:
+      error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at '%s' to "
+            "fix the problem. The type '%s' is not valid for the "
+            "p->clipoutnum", __func__, PACKAGE_BUGREPORT,
+            gal_type_name(p->ntype, 1));
+    }
+}
+
+
+
+
 #define MULTIOPERAND_CLIP(TYPE, SIG1_MAD0) {                            \
     size_t n, j;                                                        \
     gal_data_t *clip;                                                   \
-    uint32_t *N=p->out->array;                                          \
-    float *carr, *o=p->out->array;                                      \
+    float *carr, *o=p->out?p->out->array:NULL;                          \
     float *center=p->center?p->center->array:NULL;                      \
     float *spread=p->spread?p->spread->array:NULL;                      \
     TYPE *pixs=gal_pointer_allocate(p->list->type, p->dnum, 0,          \
@@ -2050,40 +2089,32 @@ struct multioperandparams
                      : gal_statistics_clip_mad(cont, p->p1, p->p2,      \
                                                p->clipflags, 1, 1) );   \
             carr=clip->array;                                           \
-            switch(p->operator)                                         \
-              {                                                         \
-              /* The position of the final value is the same for any */ \
-              /* type of clipping.                                   */ \
-              case GAL_ARITHMETIC_OP_SIGCLIP_MAD:                       \
-              case GAL_ARITHMETIC_OP_MADCLIP_MAD:                       \
-              case GAL_ARITHMETIC_OP_SIGCLIP_FILL_MAD:                  \
-              case GAL_ARITHMETIC_OP_MADCLIP_FILL_MAD:                  \
-                o[j]=carr[GAL_STATISTICS_CLIP_OUTCOL_MAD]; break;       \
-              case GAL_ARITHMETIC_OP_SIGCLIP_STD:                       \
-              case GAL_ARITHMETIC_OP_MADCLIP_STD:                       \
-              case GAL_ARITHMETIC_OP_SIGCLIP_FILL_STD:                  \
-              case GAL_ARITHMETIC_OP_MADCLIP_FILL_STD:                  \
-                o[j]=carr[GAL_STATISTICS_CLIP_OUTCOL_STD]; break;       \
-              case GAL_ARITHMETIC_OP_SIGCLIP_MEAN:                      \
-              case GAL_ARITHMETIC_OP_MADCLIP_MEAN:                      \
-              case GAL_ARITHMETIC_OP_SIGCLIP_FILL_MEAN:                 \
-              case GAL_ARITHMETIC_OP_MADCLIP_FILL_MEAN:                 \
-                o[j]=carr[GAL_STATISTICS_CLIP_OUTCOL_MEAN]; break;      \
-              case GAL_ARITHMETIC_OP_SIGCLIP_MEDIAN:                    \
-              case GAL_ARITHMETIC_OP_MADCLIP_MEDIAN:                    \
-              case GAL_ARITHMETIC_OP_SIGCLIP_FILL_MEDIAN:               \
-              case GAL_ARITHMETIC_OP_MADCLIP_FILL_MEDIAN:               \
-                o[j]=carr[GAL_STATISTICS_CLIP_OUTCOL_MEDIAN]; break;    \
-              case GAL_ARITHMETIC_OP_SIGCLIP_NUMBER:                    \
-              case GAL_ARITHMETIC_OP_MADCLIP_NUMBER:                    \
-              case GAL_ARITHMETIC_OP_SIGCLIP_FILL_NUMBER:               \
-              case GAL_ARITHMETIC_OP_MADCLIP_FILL_NUMBER:               \
-                N[j]=carr[GAL_STATISTICS_CLIP_OUTCOL_NUMBER_USED]; break; \
-              default:                                                  \
-                error(EXIT_FAILURE, 0, "%s: a bug! the code %d is not " \
-                      "valid for sigma-clipping results", __func__,     \
-                      p->operator);                                     \
-              }                                                         \
+            if(o) /* Output not necessary sometimes, see prepare func.*/\
+              switch(p->operator)                                       \
+                {                                                       \
+                  /* The position of the final value is the same for */ \
+                  /* any type of clipping.                           */ \
+                case GAL_ARITHMETIC_OP_SIGCLIP_MAD:                     \
+                case GAL_ARITHMETIC_OP_MADCLIP_MAD:                     \
+                  o[j]=carr[GAL_STATISTICS_CLIP_OUTCOL_MAD];            \
+                  break;                                                \
+                case GAL_ARITHMETIC_OP_SIGCLIP_STD:                     \
+                case GAL_ARITHMETIC_OP_MADCLIP_STD:                     \
+                  o[j]=carr[GAL_STATISTICS_CLIP_OUTCOL_STD]; break;     \
+                case GAL_ARITHMETIC_OP_SIGCLIP_MEAN:                    \
+                case GAL_ARITHMETIC_OP_MADCLIP_MEAN:                    \
+                  o[j]=carr[GAL_STATISTICS_CLIP_OUTCOL_MEAN]; break;    \
+                case GAL_ARITHMETIC_OP_SIGCLIP_MEDIAN:                  \
+                case GAL_ARITHMETIC_OP_MADCLIP_MEDIAN:                  \
+                  o[j]=carr[GAL_STATISTICS_CLIP_OUTCOL_MEDIAN]; break;  \
+                default:                                                \
+                  error(EXIT_FAILURE, 0, "%s: a bug! the code %d is "   \
+                        "not valid for sigma-clipping results",         \
+                        __func__, p->operator);                         \
+                }                                                       \
+                                                                        \
+            /* Put the number of elements into the numbers array. */    \
+            arithmetic_multioperand_number_write(p, carr, j);           \
                                                                         \
             /* If we are on clip-fill operators, keep the values. */    \
             if(center)                                                  \
@@ -2102,10 +2133,13 @@ struct multioperandparams
             cont->flag=0;                                               \
             cont->size=cont->dsize[0]=p->dnum;                          \
           }                                                             \
+                                                                        \
+        /* No usable elements. */                                       \
         else                                                            \
-          o[j] = ( p->operator==GAL_ARITHMETIC_OP_SIGCLIP_NUMBER        \
-                   ? 0.0    /* Not using 'b' because input can be an */ \
-                   : NAN );   /* integer but output is always float. */ \
+          {                                                             \
+            if(o) o[j]=NAN;                                             \
+            arithmetic_multioperand_number_write(p, NULL, j);           \
+          }                                                             \
       }                                                                 \
                                                                         \
     /* Clean up (note that 'pixs' is inside of 'cont'). */              \
@@ -2178,12 +2212,7 @@ struct multioperandparams
       case GAL_ARITHMETIC_OP_SIGCLIP_STD:                               \
       case GAL_ARITHMETIC_OP_SIGCLIP_MEAN:                              \
       case GAL_ARITHMETIC_OP_SIGCLIP_MEDIAN:                            \
-      case GAL_ARITHMETIC_OP_SIGCLIP_NUMBER:                            \
-      case GAL_ARITHMETIC_OP_SIGCLIP_FILL_MAD:                          \
-      case GAL_ARITHMETIC_OP_SIGCLIP_FILL_STD:                          \
-      case GAL_ARITHMETIC_OP_SIGCLIP_FILL_MEAN:                         \
-      case GAL_ARITHMETIC_OP_SIGCLIP_FILL_MEDIAN:                       \
-      case GAL_ARITHMETIC_OP_SIGCLIP_FILL_NUMBER:                       \
+      case GAL_ARITHMETIC_OP_SIGCLIP_MASKFILLED:                        \
         MULTIOPERAND_CLIP(TYPE, 1);                                     \
         break;                                                          \
                                                                         \
@@ -2191,12 +2220,7 @@ struct multioperandparams
       case GAL_ARITHMETIC_OP_MADCLIP_STD:                               \
       case GAL_ARITHMETIC_OP_MADCLIP_MEAN:                              \
       case GAL_ARITHMETIC_OP_MADCLIP_MEDIAN:                            \
-      case GAL_ARITHMETIC_OP_MADCLIP_NUMBER:                            \
-      case GAL_ARITHMETIC_OP_MADCLIP_FILL_MAD:                          \
-      case GAL_ARITHMETIC_OP_MADCLIP_FILL_STD:                          \
-      case GAL_ARITHMETIC_OP_MADCLIP_FILL_MEAN:                         \
-      case GAL_ARITHMETIC_OP_MADCLIP_FILL_MEDIAN:                       \
-      case GAL_ARITHMETIC_OP_MADCLIP_FILL_NUMBER:                       \
+      case GAL_ARITHMETIC_OP_MADCLIP_MASKFILLED:                        \
         MULTIOPERAND_CLIP(TYPE, 0);                                     \
         break;                                                          \
                                                                         \
@@ -2272,7 +2296,7 @@ static void
 arithmetic_multioperand_prepare(struct multioperandparams *p, int flags,
                                 gal_data_t *params)
 {
-  size_t i;
+  size_t i, nin;
   gal_data_t *tmp;
   uint8_t otype=GAL_TYPE_INVALID;
 
@@ -2347,61 +2371,86 @@ arithmetic_multioperand_prepare(struct multioperandparams *p, int flags,
     case GAL_ARITHMETIC_OP_MAD:            otype=GAL_TYPE_FLOAT32; break;
     case GAL_ARITHMETIC_OP_QUANTILE:       otype=p->list->type;    break;
     case GAL_ARITHMETIC_OP_SIGCLIP_STD:    otype=GAL_TYPE_FLOAT32; break;
-    case GAL_ARITHMETIC_OP_SIGCLIP_NUMBER: otype=GAL_TYPE_UINT32;  break;
-    case GAL_ARITHMETIC_OP_MADCLIP_NUMBER: otype=GAL_TYPE_UINT32;  break;
     case GAL_ARITHMETIC_OP_MEDIAN:
     case GAL_ARITHMETIC_OP_SIGCLIP_MEDIAN:
     case GAL_ARITHMETIC_OP_MADCLIP_MEDIAN:
-    case GAL_ARITHMETIC_OP_SIGCLIP_FILL_MEDIAN:
-    case GAL_ARITHMETIC_OP_MADCLIP_FILL_MEDIAN:
       otype=GAL_TYPE_FLOAT32; break;
     case GAL_ARITHMETIC_OP_MADCLIP_MAD:
-    case GAL_ARITHMETIC_OP_MADCLIP_FILL_MAD:
       otype=GAL_TYPE_FLOAT32; break;
     case GAL_ARITHMETIC_OP_SIGCLIP_MEAN:
     case GAL_ARITHMETIC_OP_MADCLIP_MEAN:
-    case GAL_ARITHMETIC_OP_SIGCLIP_FILL_MEAN:
-    case GAL_ARITHMETIC_OP_MADCLIP_FILL_MEAN:
       p->clipflags=GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_MEAN;
       otype=GAL_TYPE_FLOAT32; break;
     case GAL_ARITHMETIC_OP_MADCLIP_STD:
-    case GAL_ARITHMETIC_OP_SIGCLIP_FILL_STD:
-    case GAL_ARITHMETIC_OP_MADCLIP_FILL_STD:
       p->clipflags=GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_STD;
       otype=GAL_TYPE_FLOAT32; break;
     case GAL_ARITHMETIC_OP_SIGCLIP_MAD:
-    case GAL_ARITHMETIC_OP_SIGCLIP_FILL_MAD:
       p->clipflags=GAL_STATISTICS_CLIP_OUTCOL_OPTIONAL_MAD;
       otype=GAL_TYPE_FLOAT32; break;
-    case GAL_ARITHMETIC_OP_SIGCLIP_FILL_NUMBER:
-    case GAL_ARITHMETIC_OP_MADCLIP_FILL_NUMBER:
-      otype=GAL_TYPE_UINT32; break;
+    case GAL_ARITHMETIC_OP_MADCLIP_MASKFILLED:
+    case GAL_ARITHMETIC_OP_SIGCLIP_MASKFILLED:
+      otype=GAL_TYPE_INVALID; break;
     default:
       error(EXIT_FAILURE, 0, "%s: operator code %d isn't recognized",
             __func__, p->operator);
     }
 
   /* Set the output data structure. */
-  if( (flags & GAL_ARITHMETIC_FLAG_INPLACE) && otype==p->list->type)
-    p->out = p->list;             /* The top element in the list. */
+  if(otype==GAL_TYPE_INVALID)
+    p->out=NULL;
   else
-    p->out = gal_data_alloc(NULL, otype, p->list->ndim, p->list->dsize,
-                            p->list->wcs, 0, p->list->minmapsize,
-                            p->list->quietmmap, NULL, NULL, NULL);
+    {
+      if( (flags & GAL_ARITHMETIC_FLAG_INPLACE) && otype==p->list->type)
+        p->out = p->list;             /* The top element in the list. */
+      else
+        p->out = gal_data_alloc(NULL, otype, p->list->ndim,
+                                p->list->dsize, p->list->wcs, 0,
+                                p->list->minmapsize, p->list->quietmmap,
+                                NULL, NULL, NULL);
+    }
+
+  /* For clipping operators, we also need the number of inputs used in the
+     output. Note that we are not setting this at 'p->out->next' because
+     when the input and output have the same types, the output is written
+     in the inputs and setting 'p->out->next' to the numbers array will
+     remove all the other input data that must be stacked! */
+  switch(p->operator)
+    {
+    /* Don't need a numbers output. */
+    case GAL_ARITHMETIC_OP_MIN:
+    case GAL_ARITHMETIC_OP_MAX:
+    case GAL_ARITHMETIC_OP_SUM:
+    case GAL_ARITHMETIC_OP_STD:
+    case GAL_ARITHMETIC_OP_MAD:
+    case GAL_ARITHMETIC_OP_MEAN:
+    case GAL_ARITHMETIC_OP_NUMBER:
+    case GAL_ARITHMETIC_OP_MEDIAN:
+    case GAL_ARITHMETIC_OP_QUANTILE:
+    case GAL_ARITHMETIC_OP_MADCLIP_MASKFILLED:
+    case GAL_ARITHMETIC_OP_SIGCLIP_MASKFILLED:
+      p->clipoutnum=NULL; break;
+
+    /* All clipping operators that need a numbers output. */
+    default:
+      nin=gal_list_data_number(p->list);   /* We are checking with the  */
+      p->ntype = ( nin < UINT8_MAX-1       /* maximum minus one because */
+                   ? GAL_TYPE_UINT8        /* for unsigned types, in    */
+                   : ( nin < UINT16_MAX-1  /* Gnuastro, the maximum is  */
+                       ? GAL_TYPE_UINT16   /* the "blank" value.        */
+                       : GAL_TYPE_UINT32 ) );
+      p->clipoutnum = gal_data_alloc(NULL, p->ntype, p->list->ndim,
+                                    p->list->dsize, p->list->wcs, 0,
+                                    p->list->minmapsize,
+                                    p->list->quietmmap, NULL, NULL, NULL);
+      break;
+    }
+
 
   /* The filled clipping operators need to extra allocations. */
   switch(p->operator)
     {
-    case GAL_ARITHMETIC_OP_MADCLIP_FILL_MAD:
-    case GAL_ARITHMETIC_OP_SIGCLIP_FILL_MAD:
-    case GAL_ARITHMETIC_OP_MADCLIP_FILL_STD:
-    case GAL_ARITHMETIC_OP_SIGCLIP_FILL_STD:
-    case GAL_ARITHMETIC_OP_MADCLIP_FILL_MEAN:
-    case GAL_ARITHMETIC_OP_SIGCLIP_FILL_MEAN:
-    case GAL_ARITHMETIC_OP_MADCLIP_FILL_MEDIAN:
-    case GAL_ARITHMETIC_OP_SIGCLIP_FILL_MEDIAN:
-    case GAL_ARITHMETIC_OP_MADCLIP_FILL_NUMBER:
-    case GAL_ARITHMETIC_OP_SIGCLIP_FILL_NUMBER:
+    case GAL_ARITHMETIC_OP_MADCLIP_MASKFILLED:
+    case GAL_ARITHMETIC_OP_SIGCLIP_MASKFILLED:
       p->center = gal_data_alloc(NULL, GAL_TYPE_FLOAT32, p->list->ndim,
                                  p->list->dsize, p->list->wcs, 0,
                                  p->list->minmapsize, p->list->quietmmap,
@@ -2427,24 +2476,24 @@ arithmetic_multioperand_prepare(struct multioperandparams *p, int flags,
 
 
 
-struct arithmetic_multioperand_clip_fill_params
+struct arithmetic_multioperand_clip_mask_params
 {
   gal_data_t *list;
   gal_data_t *upper;
   gal_data_t *lower;
-} arithmetic_multioperand_clip_fill_params;
+} arithmetic_multioperand_clip_mask_params;
 
 
 
 
 
 static void *
-arithmetic_multioperand_clip_fill_worker(void *in_prm)
+arithmetic_multioperand_clip_mask_worker(void *in_prm)
 {
   /* Low-level definitions to be done first. */
   struct gal_threads_params *tprm=(struct gal_threads_params *)in_prm;
-  struct arithmetic_multioperand_clip_fill_params *p =
-    (struct arithmetic_multioperand_clip_fill_params *)tprm->params;
+  struct arithmetic_multioperand_clip_mask_params *p =
+    (struct arithmetic_multioperand_clip_mask_params *)tprm->params;
 
   /* Subsequent definitions. */
   gal_data_t *use, *tmp;
@@ -2480,15 +2529,16 @@ arithmetic_multioperand_clip_fill_worker(void *in_prm)
       tmp=gal_binary_erode(tmp, 2, ndim, 1);
       tmp=gal_binary_dilate(tmp, 2, ndim, 1);
 
-      /* Set all the 1-vaued pixels in the binary image to NaN in the
+      /* Set all the 1-valued pixels in the binary image to NaN in the
          input. */
       gal_blank_flag_apply(use, tmp);
       gal_data_free(tmp);
 
       /* For a check.
       char testname[20];
-      sprintf(&testname, "test-%zu.fits", index);
-      gal_fits_img_write(input, testname, NULL, NULL); */
+      sprintf(testname, "test-%zu.fits", index);
+      gal_fits_img_write(use, testname, NULL, 0);
+      */
     }
 
   /* Wait for all the other threads to finish, then return. */
@@ -2501,13 +2551,13 @@ arithmetic_multioperand_clip_fill_worker(void *in_prm)
 
 
 static void
-arithmetic_multioperand_clip_fill(struct multioperandparams *p,
+arithmetic_multioperand_clip_mask(struct multioperandparams *p,
                                   int operator, gal_data_t *list,
                                   size_t numthreads)
 {
   size_t one=1;
   gal_data_t *tmp, *multip;
-  struct arithmetic_multioperand_clip_fill_params fp;
+  struct arithmetic_multioperand_clip_mask_params fp;
   int aflags=GAL_ARITHMETIC_FLAG_NUMOK; /* Don't free the inputs. */
 
   /* Find the upper and lower thresholds based on the user's desired
@@ -2529,22 +2579,20 @@ arithmetic_multioperand_clip_fill(struct multioperandparams *p,
   printf("%s: GOOD\n", __func__); exit(0);
   */
 
-  /* Fill the structure for the threads and do the job. */
+  /* Spin-off the threads to mask pixels that were outside the clip
+     parameters. */
   fp.list=list;
-  gal_threads_spin_off(arithmetic_multioperand_clip_fill_worker,
+  gal_threads_spin_off(arithmetic_multioperand_clip_mask_worker,
                        &fp, gal_list_data_number(list), numthreads,
                        list->minmapsize, list->quietmmap);
   gal_data_free(fp.upper);    /* We are freeing these here to avoid*/
   gal_data_free(fp.lower);    /* keeping extra RAM. */
 
-  /* Free the center and spreads (no longer necessary). */
+  /* Free the out, center and spreads (no longer necessary). */
   gal_data_free(p->center); p->center=NULL;
   gal_data_free(p->spread); p->spread=NULL;
-
-  /* Re-run sigma-clipping on threads. */
-  gal_threads_spin_off(multioperand_on_thread, p, p->out->size,
-                       numthreads, list->minmapsize, list->quietmmap);
 }
+
 
 
 
@@ -2556,6 +2604,7 @@ static gal_data_t *
 arithmetic_multioperand(int operator, int flags, gal_data_t *list,
                         gal_data_t *params, size_t numthreads)
 {
+  int freelist=1;
   gal_data_t *tmp, *ttmp;
   struct multioperandparams p;
 
@@ -2564,28 +2613,22 @@ arithmetic_multioperand(int operator, int flags, gal_data_t *list,
   if(list==NULL) return NULL;
 
   /* Sanity checks and preparations. */
+  p.out=NULL;
   p.list=list;
   p.operator=operator;
   arithmetic_multioperand_prepare(&p, flags, params);
 
   /* Spin off the threads apply the operator. */
-  gal_threads_spin_off(multioperand_on_thread, &p, p.out->size,
+  gal_threads_spin_off(multioperand_on_thread, &p, list->size,
                        numthreads, list->minmapsize, list->quietmmap);
 
-  /* Do the filled clipping if necessary. */
+  /* Do the masking if requested. */
   switch(operator)
     {
-    case GAL_ARITHMETIC_OP_MADCLIP_FILL_MAD:
-    case GAL_ARITHMETIC_OP_SIGCLIP_FILL_MAD:
-    case GAL_ARITHMETIC_OP_MADCLIP_FILL_STD:
-    case GAL_ARITHMETIC_OP_SIGCLIP_FILL_STD:
-    case GAL_ARITHMETIC_OP_MADCLIP_FILL_MEAN:
-    case GAL_ARITHMETIC_OP_SIGCLIP_FILL_MEAN:
-    case GAL_ARITHMETIC_OP_MADCLIP_FILL_MEDIAN:
-    case GAL_ARITHMETIC_OP_SIGCLIP_FILL_MEDIAN:
-    case GAL_ARITHMETIC_OP_MADCLIP_FILL_NUMBER:
-    case GAL_ARITHMETIC_OP_SIGCLIP_FILL_NUMBER:
-      arithmetic_multioperand_clip_fill(&p, operator, list, numthreads);
+    case GAL_ARITHMETIC_OP_MADCLIP_MASKFILLED:
+    case GAL_ARITHMETIC_OP_SIGCLIP_MASKFILLED:
+      arithmetic_multioperand_clip_mask(&p, operator, list, numthreads);
+      freelist=0; gal_list_data_free(p.out); p.out=list;
       break;
     }
 
@@ -2596,16 +2639,22 @@ arithmetic_multioperand(int operator, int flags, gal_data_t *list,
      as a list any more by future functions. */
   if(flags & GAL_ARITHMETIC_FLAG_FREE)
     {
-      tmp=list;
-      while(tmp!=NULL)
+      if(freelist)
         {
-          ttmp=tmp->next;
-          if(tmp==p.out) tmp->next=NULL; else gal_data_free(tmp);
-          tmp=ttmp;
+          tmp=list;
+          while(tmp!=NULL)
+            {
+              ttmp=tmp->next;
+              if(tmp==p.out) tmp->next=NULL; else gal_data_free(tmp);
+              tmp=ttmp;
+            }
         }
       if(params) gal_list_data_free(params);
     }
   free(p.hasblank);
+
+  /* If a "number" array has been prepared, add it to the output. */
+  if(p.clipoutnum) gal_list_data_last(p.out)->next=p.clipoutnum;
   return p.out;
 }
 
@@ -4025,46 +4074,26 @@ gal_arithmetic_set_operator(char *string, size_t *num_operands)
     { op=GAL_ARITHMETIC_OP_MEDIAN;            *num_operands=-1; }
   else if (!strcmp(string, "quantile"))
     { op=GAL_ARITHMETIC_OP_QUANTILE;          *num_operands=-1; }
-  else if (!strcmp(string, "sigclip-number"))
-    { op=GAL_ARITHMETIC_OP_SIGCLIP_NUMBER;    *num_operands=-1; }
   else if (!strcmp(string, "sigclip-mean"))
     { op=GAL_ARITHMETIC_OP_SIGCLIP_MEAN;      *num_operands=-1; }
+  else if (!strcmp(string, "sigclip-maskfilled"))
+    { op=GAL_ARITHMETIC_OP_SIGCLIP_MASKFILLED;*num_operands=-1; }
   else if (!strcmp(string, "sigclip-median"))
     { op=GAL_ARITHMETIC_OP_SIGCLIP_MEDIAN;    *num_operands=-1; }
   else if (!strcmp(string, "sigclip-mad"))
     { op=GAL_ARITHMETIC_OP_SIGCLIP_MAD;       *num_operands=-1; }
   else if (!strcmp(string, "sigclip-std"))
     { op=GAL_ARITHMETIC_OP_SIGCLIP_STD;       *num_operands=-1; }
-  else if (!strcmp(string, "madclip-number"))
-    { op=GAL_ARITHMETIC_OP_MADCLIP_NUMBER;    *num_operands=-1; }
   else if (!strcmp(string, "madclip-mean"))
     { op=GAL_ARITHMETIC_OP_MADCLIP_MEAN;      *num_operands=-1; }
+  else if (!strcmp(string, "madclip-maskfilled"))
+    { op=GAL_ARITHMETIC_OP_MADCLIP_MASKFILLED;*num_operands=-1; }
   else if (!strcmp(string, "madclip-median"))
     { op=GAL_ARITHMETIC_OP_MADCLIP_MEDIAN;    *num_operands=-1; }
   else if (!strcmp(string, "madclip-mad"))
     { op=GAL_ARITHMETIC_OP_MADCLIP_MAD;       *num_operands=-1; }
   else if (!strcmp(string, "madclip-std"))
     { op=GAL_ARITHMETIC_OP_MADCLIP_STD;       *num_operands=-1; }
-  else if (!strcmp(string, "madclip-fill-number"))
-    { op=GAL_ARITHMETIC_OP_MADCLIP_FILL_NUMBER; *num_operands=-1; }
-  else if (!strcmp(string, "madclip-fill-mean"))
-    { op=GAL_ARITHMETIC_OP_MADCLIP_FILL_MEAN;   *num_operands=-1; }
-  else if (!strcmp(string, "madclip-fill-median"))
-    { op=GAL_ARITHMETIC_OP_MADCLIP_FILL_MEDIAN; *num_operands=-1; }
-  else if (!strcmp(string, "madclip-fill-mad"))
-    { op=GAL_ARITHMETIC_OP_MADCLIP_FILL_MAD;    *num_operands=-1; }
-  else if (!strcmp(string, "madclip-fill-std"))
-    { op=GAL_ARITHMETIC_OP_MADCLIP_FILL_STD;    *num_operands=-1; }
-  else if (!strcmp(string, "sigclip-fill-number"))
-    { op=GAL_ARITHMETIC_OP_SIGCLIP_FILL_NUMBER; *num_operands=-1; }
-  else if (!strcmp(string, "sigclip-fill-mean"))
-    { op=GAL_ARITHMETIC_OP_SIGCLIP_FILL_MEAN;   *num_operands=-1; }
-  else if (!strcmp(string, "sigclip-fill-median"))
-    { op=GAL_ARITHMETIC_OP_SIGCLIP_FILL_MEDIAN; *num_operands=-1; }
-  else if (!strcmp(string, "sigclip-fill-mad"))
-    { op=GAL_ARITHMETIC_OP_SIGCLIP_FILL_MAD;    *num_operands=-1; }
-  else if (!strcmp(string, "sigclip-fill-std"))
-    { op=GAL_ARITHMETIC_OP_SIGCLIP_FILL_STD;    *num_operands=-1; }
 
   /* To one-dimension (only based on values). */
   else if (!strcmp(string, "unique"))
@@ -4214,6 +4243,10 @@ gal_arithmetic_set_operator(char *string, size_t *num_operands)
   else if (!strcmp(string, "pool-median"))
     { op=GAL_ARITHMETIC_OP_POOLMEDIAN;        *num_operands=3;  }
 
+  /* Memory issues. */
+  else if (!strcmp(string, "free"))
+    { op=GAL_ARITHMETIC_OP_FREE;              *num_operands=1; }
+
   /* Operator not defined. */
   else
     { op=GAL_ARITHMETIC_OP_INVALID; *num_operands=GAL_BLANK_INT; }
@@ -4318,36 +4351,16 @@ gal_arithmetic_operator_string(int operator)
     case GAL_ARITHMETIC_OP_MAD:             return "mad";
     case GAL_ARITHMETIC_OP_MEDIAN:          return "median";
     case GAL_ARITHMETIC_OP_QUANTILE:        return "quantile";
-    case GAL_ARITHMETIC_OP_SIGCLIP_NUMBER:  return "sigclip-number";
     case GAL_ARITHMETIC_OP_SIGCLIP_MEDIAN:  return "sigclip-median";
     case GAL_ARITHMETIC_OP_SIGCLIP_MEAN:    return "sigclip-mean";
+    case GAL_ARITHMETIC_OP_SIGCLIP_MASKFILLED:return "sigclip-maskfilled";
     case GAL_ARITHMETIC_OP_SIGCLIP_MAD:     return "sigclip-mad";
     case GAL_ARITHMETIC_OP_SIGCLIP_STD:     return "sigclip-std";
-    case GAL_ARITHMETIC_OP_MADCLIP_NUMBER:  return "madclip-number";
     case GAL_ARITHMETIC_OP_MADCLIP_MEDIAN:  return "madclip-median";
     case GAL_ARITHMETIC_OP_MADCLIP_MEAN:    return "madclip-mean";
+    case GAL_ARITHMETIC_OP_MADCLIP_MASKFILLED:return "madclip-maskfilled";
     case GAL_ARITHMETIC_OP_MADCLIP_MAD:     return "madclip-mad";
     case GAL_ARITHMETIC_OP_MADCLIP_STD:     return "madclip-std";
-    case GAL_ARITHMETIC_OP_MADCLIP_FILL_NUMBER:
-      return "madclip-fill-number";
-    case GAL_ARITHMETIC_OP_MADCLIP_FILL_MEDIAN:
-      return "madclip-fill-median";
-    case GAL_ARITHMETIC_OP_MADCLIP_FILL_MEAN:
-      return "madclip-fill-mean";
-    case GAL_ARITHMETIC_OP_MADCLIP_FILL_MAD:
-      return "madclip-fill-mad";
-    case GAL_ARITHMETIC_OP_MADCLIP_FILL_STD:
-      return "madclip-fill-std";
-    case GAL_ARITHMETIC_OP_SIGCLIP_FILL_NUMBER:
-      return "sigclip-fill-number";
-    case GAL_ARITHMETIC_OP_SIGCLIP_FILL_MEDIAN:
-      return "sigclip-fill-median";
-    case GAL_ARITHMETIC_OP_SIGCLIP_FILL_MEAN:
-      return "sigclip-fill-mean";
-    case GAL_ARITHMETIC_OP_SIGCLIP_FILL_MAD:
-      return "sigclip-fill-mad";
-    case GAL_ARITHMETIC_OP_SIGCLIP_FILL_STD:
-      return "sigclip-fill-std";
 
     case GAL_ARITHMETIC_OP_MKNOISE_SIGMA:   return "mknoise-sigma";
     case GAL_ARITHMETIC_OP_MKNOISE_SIGMA_FROM_MEAN:
@@ -4460,6 +4473,8 @@ gal_arithmetic_operator_string(int operator)
       return "supergalactic-to-ec-j2000";
     case GAL_ARITHMETIC_OP_SUPERGALACTIC_TO_GALACTIC:
       return "supergalactic-to-galactic";
+
+    case GAL_ARITHMETIC_OP_FREE: return "free";
 
     /* Un-recognized!  */
     default:                                return NULL;
@@ -4660,18 +4675,8 @@ gal_arithmetic(int operator, size_t numthreads, int flags, ...)
     case GAL_ARITHMETIC_OP_MADCLIP_MEAN:
     case GAL_ARITHMETIC_OP_SIGCLIP_MEDIAN:
     case GAL_ARITHMETIC_OP_MADCLIP_MEDIAN:
-    case GAL_ARITHMETIC_OP_SIGCLIP_NUMBER:
-    case GAL_ARITHMETIC_OP_MADCLIP_NUMBER:
-    case GAL_ARITHMETIC_OP_MADCLIP_FILL_MAD:
-    case GAL_ARITHMETIC_OP_SIGCLIP_FILL_MAD:
-    case GAL_ARITHMETIC_OP_MADCLIP_FILL_STD:
-    case GAL_ARITHMETIC_OP_SIGCLIP_FILL_STD:
-    case GAL_ARITHMETIC_OP_MADCLIP_FILL_MEAN:
-    case GAL_ARITHMETIC_OP_SIGCLIP_FILL_MEAN:
-    case GAL_ARITHMETIC_OP_MADCLIP_FILL_MEDIAN:
-    case GAL_ARITHMETIC_OP_SIGCLIP_FILL_MEDIAN:
-    case GAL_ARITHMETIC_OP_MADCLIP_FILL_NUMBER:
-    case GAL_ARITHMETIC_OP_SIGCLIP_FILL_NUMBER:
+    case GAL_ARITHMETIC_OP_SIGCLIP_MASKFILLED:
+    case GAL_ARITHMETIC_OP_MADCLIP_MASKFILLED:
       d1 = va_arg(va, gal_data_t *);
       d2 = va_arg(va, gal_data_t *);
       out=arithmetic_multioperand(operator, flags, d1, d2, numthreads);
@@ -4818,6 +4823,13 @@ gal_arithmetic(int operator, size_t numthreads, int flags, ...)
       d2 = va_arg(va, gal_data_t *);
       d3 = va_arg(va, gal_data_t *);
       out=arithmetic_pool(d1, d2, d3, operator, numthreads, flags);
+      break;
+
+    /* Memory options. */
+    case GAL_ARITHMETIC_OP_FREE:
+      d1 = va_arg(va, gal_data_t *);
+      gal_data_free(d1);
+      out=NULL;
       break;
 
     /* When the operator is not recognized. */

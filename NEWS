@@ -6,6 +6,21 @@ See the end of the file for license conditions.
 * Noteworthy changes in release X.XX (library XX.X.X) (YYYY-MM-DD)
 ** New publications
 ** New features
+*** Arithmetic
+  - New operators:
+
+    - madclip-maskfilled: mask (set to NaN) all input elements that are
+      outliers (defined by MAD-clipping). Combined with the stacking
+      operators this allows removing large contiugous outliers in your
+      final stacked datasets.
+
+    - siglclip-maskfilled: similar to 'madclip-maskfilled', but defining
+      outliers by Sigma-clipping.
+
+    - free: free (from memory) the top operand on the stack of
+      operands. This is useful in combination with operators that produce
+      more than one output operand.
+
 *** astscript-fits-view
   --globalhdu: use the same HDU in any number of input files (with the
     short format of '-g'); similar to the same option in Arithmetic or
@@ -32,6 +47,29 @@ See the end of the file for license conditions.
   - User configuration files are installed in '$HOME/.local/etc/gnuastro/'
     instead of '$HOME/.local/etc/'. See the description of system
     configuration files above for more.
+
+*** Arithmetic:
+
+  - The following operators will output two operands: the main statistic
+    and the number of inputs used in each pixel: 'sigclip-mean',
+    'sigclip-median', 'sigclip-std', 'sigclip-mad', 'madclip-mean',
+    'madclip-median', 'madclip-std', 'madclip-mad'. See the book for full
+    examples on how to work with this (in summary: use '--writeall' to also
+    write the numbers image in the output or use 'swap free' to free it).
+
+  - Removed operators:
+
+    - 'madclip-number' and 'sigclip-number': because the numbers image will be
+      returned with any clipping stacking operator.
+
+    - 'madclip-fill-mad', 'sigclip-fill-mad', 'madclip-fill-std',
+      'sigclip-fill-std', 'madclip-fill-mean', 'sigclip-fill-mean',
+      'madclip-fill-median', 'sigclip-fill-median', 'madclip-fill-std',
+      'sigclip-fill-std': because the newly added and more general
+      operators ('madclip-maskfilled' and 'sigclip-maskfilled') can be
+      combined with any of the stacking operators to produce these as well
+      as many other useful scenarios.
+
 
 *** astscript-fits-view
   - The short format of the '--ds9geometry' option is '-G' (until now it
