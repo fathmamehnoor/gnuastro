@@ -48,6 +48,7 @@ export LC_NUMERIC="en_US.UTF-8"
 
 # Default option values (can be changed with options on the command-line).
 hdu=1
+mode=""
 quiet=""
 center=""
 keeptmp=0

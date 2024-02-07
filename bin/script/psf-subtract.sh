@@ -38,6 +38,7 @@ export LC_NUMERIC=C
 # Default option values (can be changed with options on the command-line).
 hdu=1
 psf=""
+mode=""
 psfhdu=1
 quiet=""
 scale=""
