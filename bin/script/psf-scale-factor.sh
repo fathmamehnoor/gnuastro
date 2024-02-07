@@ -9,6 +9,7 @@
 #   Raul Infante-Sainz <infantesainz@gmail.com>
 # Contributing author(s):
 #   Mohammad Akhlaghi <mohammad@akhlaghi.org>
+#   Sepideh Eskandarlou <sepideh.eskandarlou@gmail.com>
 # Copyright (C) 2021-2024 Free Software Foundation, Inc.
 #
 # Gnuastro is free software: you can redistribute it and/or modify it under
@@ -100,6 +101,8 @@ $scriptname options:
                           for computing the scaling factor value.
   -S, --segment=STR       Output of Segment (with OBJECTS and CLUMPS).
   -s, --sigmaclip=FLT,FLT Sigma-clip multiple and tolerance.
+  -d, --nocentering       Do not do the sub-pixel centering to new pix
+                          grid.
 
  Output:
   -t, --tmpdir            Directory to keep temporary files.
@@ -298,6 +301,8 @@ do
         -s|--sigmaclip)      sigmaclip="$2";                            check_v "$1" "$sigmaclip";  shift;shift;;
         -s=*|--sigmaclip=*)  sigmaclip="${1#*=}";                       check_v "$1" "$sigmaclip";  shift;;
         -s*)                 sigmaclip=$(echo "$1"  | sed -e's/-s//');  check_v "$1" "$sigmaclip";  shift;;
+        -d|--nocentering)     nocentering=1; shift;;
+        -d*|--nocentering=*)  on_off_option_error --nocentering -d;;
 
         # Output parameters
         -k|--keeptmp)     keeptmp=1; shift;;

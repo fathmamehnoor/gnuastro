@@ -35586,6 +35586,18 @@ This parameter is passed to Gnuastro's Crop program make a crop for further proc
 The positions along each dimension must be separated by a comma (@key{,}).
 The units of the coordinates are interpreted based on the value to the @option{--mode} option (see below).
 
+The given coordinate for the central value can have sub-pixel elements (for example, it falls on coordinate 123.4,567.8 of the input image pixel grid).
+In such cases, after cropping, this script will use Gnuastro's @ref{Warp} to shift (or translate) the pixel grid by @mymath{-0.4} pixels along the horizontal and @mymath{1-0.8=0.2} pixels along the vertical.
+Finally the newly added pixels (due to the warping) will be trimmed to have your desired coordinate exactly in the center of the central pixel of the output.
+This is very important (critical!) when you are constructing the central part of the PSF.
+But for the very far outer parts it may not too effective (should be checked), or the target object may have already been centered at the requested coordinate.
+In such cases, to avoid wasting time for the warping, you can simply use @option{--nocentering} to disable sub-pixel centering.
+
+@item -d
+@itemx --nocentering
+Do not do the sub-pixel centering to a new pixel grid.
+See the description of the @option{--center} option for more.
+
 @item -O STR
 @itemx --mode=STR
 Interpret the center position of the object (values given to @option{--center}) in image or WCS coordinates.

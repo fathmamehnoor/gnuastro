@@ -11,6 +11,11 @@ See the end of the file for license conditions.
     short format of '-g'); similar to the same option in Arithmetic or
     ConvertType.
 
+*** astscript-psf-scale-factor
+  --nocentering: disable sub-pixel centering of the desired star before
+    finding the scale factor; added by Sepideh Eskandarlou and Raul
+    Infante-Sainz.
+
 ** Removed features
 ** Changed features
 *** All programs
