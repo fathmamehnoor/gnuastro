@@ -37396,7 +37396,7 @@ For more on memory management in Gnuastro, please see @ref{Memory management}.
 The various arguments are more fully explained in the two functions above.
 @end deftypefun
 
-@deftypefun {void *} gal_pointer_mmap_allocate (size_t @code{size}, uint8_t @code{type}, int @code{clear}, char @code{**mmapname})
+@deftypefun {void *} gal_pointer_mmap_allocate (size_t @code{size}, uint8_t @code{type}, int @code{clear}, char @code{**mmapname}, int @code{allocfailed})
 Allocate the necessary space to keep @code{size} elements of type @code{type} in HDD/SSD (a file, not in RAM).
 For the type codes, see @ref{Library data types}.
 If @code{clear!=0}, then the allocated space will also be cleared.
@@ -37415,6 +37415,9 @@ Just delete the file (and the allocated space for the filename) with the command
 remove(mmapname);
 free(mmapname);
 @end example
+
+If @code{allocfailed!=0} and the memory mapping attempt fails, the warning message will say something like this (assuming you have tried something like @code{malloc} before calling this function): even though there was enough space in RAM, the previous attempts at allocation in RAM failed, so we tried memory mapping, but that also failed.
+
 @end deftypefun
 
 @deftypefun void gal_pointer_mmap_free (char @code{**mmapname}, int @code{quietmmap})

@@ -2,6 +2,7 @@ Alphabetically ordered list to acknowledge in the next release.
 
 Jesús Vega
 Phil Wyett
+Rahna Payyasseri Thanduparackal
 
 
 

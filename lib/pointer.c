@@ -106,7 +106,8 @@ gal_pointer_allocate(uint8_t type, size_t size, int clear,
 
 void *
 gal_pointer_mmap_allocate(uint8_t type, size_t size, int clear,
-                          char **filename, int quietmmap)
+                          char **filename, int quietmmap,
+                          int allocfailed)
 {
   void *out;
   int filedes;
@@ -177,13 +178,21 @@ gal_pointer_mmap_allocate(uint8_t type, size_t size, int clear,
   out=mmap(NULL, bsize, PROT_READ | PROT_WRITE, MAP_SHARED, filedes, 0);
   if(out==MAP_FAILED)
     {
-      fprintf(stderr, "\n%s: WARNING: the following error may be due to "
-              "many mmap allocations. Recall that the kernel only allows "
-              "finite number of mmap allocations. It is recommended to use "
-              "ordinary RAM allocation for smaller arrays and keep mmap'd "
-              "allocation only for the large volumes.\n\n", __func__);
-      error(EXIT_FAILURE, errno, "couldn't map %zu bytes into the file '%s'",
-            bsize, *filename);
+      if(allocfailed)
+        fprintf(stderr, "\n%s: WARNING: 'malloc' or 'calloc' could not "
+                "allocate %zu bytes in RAM, while there is space "
+                "available (the problem is with the kernel/OS, not "
+                "Gnuastro)! A subsequent attempt to use memory-mapping "
+                "also failed (see message below).\n\n", __func__, bsize);
+      else
+        fprintf(stderr, "\n%s: WARNING: the following error may be "
+                "due to many mmap allocations. Recall that the kernel "
+                "only allows finite number of mmap allocations. It is "
+                "recommended to use ordinary RAM allocation for smaller "
+                "arrays and keep mmap'd allocation only for the large "
+                "volumes.\n\n", __func__);
+      error(EXIT_FAILURE, errno, "couldn't map %zu bytes into the "
+            "file '%s'", bsize, *filename);
     }
 
 
@@ -242,7 +251,7 @@ gal_pointer_allocate_ram_or_mmap(uint8_t type, size_t size, int clear,
   /* If it is decided to do memory-mapping, then do it. */
   if( gal_checkset_need_mmap(bytesize, minmapsize, quietmmap) )
     out=gal_pointer_mmap_allocate(type, size, clear, mmapname,
-                                  quietmmap);
+                                  quietmmap, 0);
   else
     {
       /* Allocate the necessary space in the RAM. */
@@ -257,7 +266,7 @@ gal_pointer_allocate_ram_or_mmap(uint8_t type, size_t size, int clear,
          need to read the available RAM). */
       if(out==NULL)
         out=gal_pointer_mmap_allocate(type, size, clear,
-                                      mmapname, quietmmap);
+                                      mmapname, quietmmap, 1);
 
       /* The 'errno' is re-set to zero just in case 'malloc'
          changed it, which may cause problems later. */
