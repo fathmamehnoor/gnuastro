@@ -179,20 +179,35 @@ gal_pointer_mmap_allocate(uint8_t type, size_t size, int clear,
   if(out==MAP_FAILED)
     {
       if(allocfailed)
-        fprintf(stderr, "\n%s: WARNING: 'malloc' or 'calloc' could not "
-                "allocate %zu bytes in RAM, while there is space "
-                "available (the problem is with the kernel/OS, not "
-                "Gnuastro)! A subsequent attempt to use memory-mapping "
-                "also failed (see message below).\n\n", __func__, bsize);
+        error(EXIT_FAILURE, 0, "%s: memory could not be allocated for "
+              "%zu bytes (with 'malloc' or 'calloc') while there is "
+              "space available in the RAM! A subsequent attempt to use "
+              "memory-mapping also failed ('%s' was created). If this "
+              "error is reported within a queue of submitted jobs on a "
+              "High Performance Computing (HPC) facility, it is most "
+              "probably due to resource restrictions imposed by the "
+              "job scheduler. For example if you use the Slurm Workload "
+              "Manager you should add '--mem=<float>G' (per node, where "
+              "'<float>' should be replaced by a the amount of memory "
+              "your require in Gigabytes) or '–mem-per-cpu=<float>G' to "
+              "your job submitting command ('sbatch'). If you use the "
+              "Sun Grid System (SGE) you should add "
+              "'-l h_vmem=<float>G' to your 'qsub' command", __func__,
+              bsize, *filename);
       else
-        fprintf(stderr, "\n%s: WARNING: the following error may be "
-                "due to many mmap allocations. Recall that the kernel "
-                "only allows finite number of mmap allocations. It is "
-                "recommended to use ordinary RAM allocation for smaller "
-                "arrays and keep mmap'd allocation only for the large "
-                "volumes.\n\n", __func__);
-      error(EXIT_FAILURE, errno, "couldn't map %zu bytes into the "
-            "file '%s'", bsize, *filename);
+        {
+          /* This is using 'fprintf' first to avoid confusing the long
+             description of the potential solution with the actual error
+             message (that is printed with 'error'). */
+          fprintf(stderr, "\n%s: WARNING: the following error may be "
+                  "due to many mmap allocations. Recall that the kernel "
+                  "only allows finite number of mmap allocations. It is "
+                  "recommended to use ordinary RAM allocation for smaller "
+                  "arrays and keep mmap'd allocation only for the large "
+                  "volumes.\n\n", __func__);
+          error(EXIT_FAILURE, errno, "couldn't map %zu bytes into the "
+                "file '%s'", bsize, *filename);
+        }
     }
 
 
