@@ -990,7 +990,6 @@ else
     #   function is specified. E.g., log, sqrt, asinh, etc.)
     grayscale=""
     i_gray_colormasked="$tmpdir/gray_colormasked.fits"
-    echo here1
     astarithmetic $i_back_convolved -h1          set-values \
                   $total_mask -h$rhdu 2 uint8 eq set-mask \
                   values mask nan where $grayscale set-masked \

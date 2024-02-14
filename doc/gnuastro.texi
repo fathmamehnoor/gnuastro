@@ -27972,14 +27972,8 @@ For example:
 $ astnoisechisel-3d --numchannels=3,3,1 cube.fits
 @end example
 
-In the sections below, NoiseChisel's options are classified into three general classes to help in easy navigation.
-@ref{NoiseChisel input} mainly discusses the options relating to input and those that are shared in both detection and segmentation.
-Options to configure the detection are described in @ref{Detection options} and @ref{Segmentation options} we discuss how you can fine-tune the segmentation of the detections.
-Finally, in @ref{NoiseChisel output} the format of NoiseChisel's output is discussed.
-The order of options here follow the same logical order that the respective action takes place within NoiseChisel (note that the output of @option{--help} is sorted alphabetically).
-
-Below, we will discuss NoiseChisel's options, classified into two general classes, to help in easy navigation.
-@ref{NoiseChisel input} mainly discusses the basic options relating to inputs and prior to the detection process detection.
+Below, we will discuss NoiseChisel's options, classified into separate sub-sections to help in easy navigation.
+@ref{NoiseChisel input} discusses the basic options relating to input file(s) and data; these have no effect on the the detection process.
 Afterwards, @ref{Detection options} fully describes every configuration parameter (option) related to detection and how they affect the final result.
 The order of options in this section follow the logical order within NoiseChisel.
 On first reading (while you are still new to NoiseChisel), it is therefore strongly recommended to read the options in the given order below.
