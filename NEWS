@@ -48,7 +48,7 @@ See the end of the file for license conditions.
     instead of '$HOME/.local/etc/'. See the description of system
     configuration files above for more.
 
-*** Arithmetic:
+*** Arithmetic
 
   - The following operators will output two operands: the main statistic
     and the number of inputs used in each pixel: 'sigclip-mean',
@@ -70,6 +70,21 @@ See the end of the file for license conditions.
       combined with any of the stacking operators to produce these as well
       as many other useful scenarios.
 
+
+*** ConvertType
+
+  - Standard input (stdin) is only checked when no input file has been
+    specified. Until now, the 'stdin' would be checked all the time, and if
+    anything was present there, it would be taken as the first color
+    channel. But this could cause problems in shell loops that parse the
+    standard input (for example, see
+    https://lists.gnu.org/archive/html/help-bash/2024-02/msg00074.html). Also,
+    it would rarely happen that when the three RGB color channels are
+    necessary, the first would be from the standard input, and the other
+    two as files. The new behavior is much more similar to the behavior of
+    other command-line programs like AWK or SED. This issue was reported by
+    Jesús Vega and Raul Infante-Sainz and solved with the help of Greg
+    Wooledge and Dennis Williamson.
 
 *** astscript-fits-view
   - The short format of the '--ds9geometry' option is '-G' (until now it

@@ -17700,7 +17700,8 @@ The common options are not repeated here.
 
 @cindex Standard input
 At most four input files (one for each color channel for formats that allow it) are allowed in ConvertType.
-The first input dataset can either be a file, or come from Standard input (see @ref{Standard input} and @ref{Recognized file formats}).
+When there is only one input channel (grayscale), the input can either be given as a file name (as an argument on the command-line) or through @ref{Standard input} (a pipe for example: only when no input file is specified).
+Therefore, if an input file is given, the standard input will not be checked.
 
 The order of multiple input files is important.
 After reading the input file(s) the number of color channels in all the inputs will be used to define which color space to use for the outputs and how each color channel is interpreted: 1 (for grayscale), 3 (for RGB) and 4 (for CMYK) input channels.

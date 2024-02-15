@@ -1,10 +1,13 @@
 Alphabetically ordered list to acknowledge in the next release.
 
+Dennis Williamson
+Greg Wooledge
 Hamed Altafi
 Jesús Vega
 Juan Castillo Ramírez
 Phil Wyett
 Rahna Payyasseri Thanduparackal
+Raul Infante-Sainz
 
 
 

@@ -703,11 +703,8 @@ ui_make_channels_ll(struct converttparams *p)
   /* Initialize the counting of channels. */
   p->numch=0;
 
-  /* If any standard input is provided, we want to process that first. Note
-     that since other input arguments are also allowed (as other channels),
-     we'll need to process the standard input independently first, then go
-     onto the possible list of other files.*/
-  lines=gal_txt_stdin_read(p->cp.stdintimeout);
+  /* If no input files are specified, check the standard input. */
+  lines=p->inputnames?NULL:gal_txt_stdin_read(p->cp.stdintimeout);
   if(lines)
     {
       data=gal_txt_image_read(NULL, lines, p->cp.minmapsize,
@@ -953,14 +950,10 @@ ui_prepare_input_channels(struct converttparams *p)
     error(EXIT_FAILURE, 0, "the number of input color channels has to "
           "be 1 (for non image data, grayscale or only K channel in "
           "CMYK), 3 (for RGB) and 4 (for CMYK). You have given %zu "
-          "color channels. Note 1: some file formats (for example "
-          "JPEG in RGB mode) can contain more than one color channel, "
-          "if such a file is given all its channels are read, so "
-          "separate them first. Note 2: if your first input channel "
-          "was given through the standard input (piped from another "
-          "program) you can fix this error by giving a larger value "
-          "to the '--stdintimeout' option (currently %ld "
-          "micro-seconds)", p->numch, p->cp.stdintimeout);
+          "color channels. Note that some file formats (for example "
+          "JPEG in RGB mode) can contain more than one color channel. "
+          "If such a file is given all its channels are read, so "
+          "separate them first", p->numch);
 
 
   /* If there are multiple color channels, then ignore the monotocolor
