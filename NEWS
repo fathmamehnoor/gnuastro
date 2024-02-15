@@ -31,6 +31,10 @@ See the end of the file for license conditions.
     finding the scale factor; added by Sepideh Eskandarlou and Raul
     Infante-Sainz.
 
+*** Makefile extensions
+  - $(ast-text-prev-in-list TARGET, LIST): select the word that is previous
+    to 'TARGET' in a list of words. See the documentation for a fully
+    working example and how this can be useful.
 ** Removed features
 ** Changed features
 *** All programs

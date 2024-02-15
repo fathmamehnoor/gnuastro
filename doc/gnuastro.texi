@@ -35914,6 +35914,30 @@ all:
      echo $(ast-text-not-contains Aa, $(list))
 @end example
 
+@item $(ast-text-prev-in-list TARGET, LIST)
+Returns the word in @code{LIST} that is previous to @code{TARGET}.
+If @code{TARGET} is the first word of the list, or is not within it at all, this function will return an empty string (nothing).
+
+One scenario when this function can be useful is when you want a list of targets to always be executed in sequence (even when Make is run in parallel).
+The @code{sleep} command is used in the recipe to show the serialization more clearly.
+To see the effect of this function put the example below in a @file{Makefile} and run @code{make -j4} (to simultaneously exectute 4 jobs); then comment/remove this function (so there is no prerequisite) and re-run @code{make -j4}.
+
+@example
+all: final
+.SECONDEXPANSION:
+load /usr/local/lib/libgnuastro_make.so
+
+list=$(foreach i,a b c d,$(i).txt)
+$(list): %.txt: $$(ast-text-prev-in-list $$@@, $(list))
+         @@sleep 0.3; echo "$@@: $^"
+
+final: $(list)
+@end example
+
+As you see, when this function is in the prerequisite list, the recipes are run one by one; but without it, all four are printed after an initial 0.3 seconds of delay.
+Unfortunately the @code{.NOTPARALLEL} target of GNU Make, will also serialize the prerequisites of the targets given to it.
+But through this function, the prerequisites of the serialized targets will still be executed in parallel.
+
 @item $(ast-text-to-upper STRING)
 Returns the input string but with all characters in UPPER-CASE.
 For example, the following minimal Makefile will print @code{FOOO BAAR UGGH} word of the list.

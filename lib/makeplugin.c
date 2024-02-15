@@ -52,6 +52,7 @@ int plugin_is_GPL_compatible=1;
 static char *text_to_upper=MAKEPLUGIN_FUNC_PREFIX"-text-to-upper";
 static char *text_to_lower=MAKEPLUGIN_FUNC_PREFIX"-text-to-lower";
 static char *text_contains_name=MAKEPLUGIN_FUNC_PREFIX"-text-contains";
+static char *text_prev_in_list=MAKEPLUGIN_FUNC_PREFIX"-text-prev-in-list";
 static char *text_not_contains_name=MAKEPLUGIN_FUNC_PREFIX"-text-not-contains";
 
 /* Gnuastro analysis functions */
@@ -197,6 +198,29 @@ makeplugin_text_to_lower(const char *caller, unsigned int argc,
   gal_checkset_allocate_copy(argv[0], &out);
   gal_checkset_string_case_change(out, 0);
   return out;
+}
+
+
+
+
+
+/* Return the previous word in the given list. */
+static char *
+makeplugin_text_prev_in_list(const char *caller, unsigned int argc,
+                             char **argv)
+{
+  char *prev=NULL, *target=argv[0];
+  gal_list_str_t *tmp, *list=gal_list_str_extract(argv[1]);
+
+  /* Parse the input list. */
+  for(tmp=list; tmp!=NULL; tmp=tmp->next)
+    {
+      if( strcmp(tmp->v,target) ) prev=tmp->v; /* Not equal. */
+      else break;                              /* Equal.     */
+    }
+
+  /* Return the output. */
+  return prev;
 }
 
 
@@ -362,6 +386,10 @@ libgnuastro_make_gmk_setup()
   /* Convert input string to lower-case. */
   gmk_add_function(text_to_lower, makeplugin_text_to_lower,
                    1, 1, GMK_FUNC_DEFAULT);
+
+  /* Select previous item in list*/
+  gmk_add_function(text_prev_in_list, makeplugin_text_prev_in_list,
+                   2, 2, GMK_FUNC_DEFAULT);
 
 
 
