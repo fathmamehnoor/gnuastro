@@ -209,6 +209,7 @@ static char *
 makeplugin_text_prev_in_list(const char *caller, unsigned int argc,
                              char **argv)
 {
+  int found=0;
   char *prev=NULL, *target=argv[0];
   gal_list_str_t *tmp, *list=gal_list_str_extract(argv[1]);
 
@@ -216,11 +217,11 @@ makeplugin_text_prev_in_list(const char *caller, unsigned int argc,
   for(tmp=list; tmp!=NULL; tmp=tmp->next)
     {
       if( strcmp(tmp->v,target) ) prev=tmp->v; /* Not equal. */
-      else break;                              /* Equal.     */
+      else {found=1; break;}                   /* Equal.     */
     }
 
   /* Return the output. */
-  return prev;
+  return found?prev:NULL;
 }
 
 
