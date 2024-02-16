@@ -35805,7 +35805,7 @@ This option is useful when the user wants to obtain the scattered light field gi
 @url{https://en.wikipedia.org/wiki/Make_(software), Make} is a build automation tool.
 It can greatly help manage your analysis workflow, even very complex projects with thousands of files and hundreds of processing steps.
 In this book, we have discussed Make previously in the context of parallelization (see @ref{How to run simultaneous operations}).
-It has also been used in
+For example, @url{http://maneage.org,Maneage} uses Make to organize complex and reproducible workflows, see Akhlaghi et al. @url{https://arxiv.org/abs/2006.03018,2021}.
 
 @cindex GNU Make
 GNU Make is the most common and powerful implementation of Make, with many unique additions to the core POSIX standard of Make.
@@ -35858,7 +35858,7 @@ After you have loaded Gnuastro's shared library for Makefiles within your Makefi
 For instructions on how to load Gnuastro's Make functions, see @ref{Loading the Gnuastro Make functions}.
 
 There are two types of Make functions in Gnuastro's Make extensions:
-1) Basic operations on text which more general than astronomy or Gnuastro, see @ref{Text functions for Makefiles}).
+1) Basic operations on text which is more general than astronomy or Gnuastro, see @ref{Text functions for Makefiles}).
 2) Operations that are directly related to astronomy (mostly FITS files) and Gnuastro, see @ref{Astronomy functions for Makefiles}).
 
 @cartouche
@@ -35880,8 +35880,8 @@ For more, see the @url{https://www.gnu.org/software/make/manual/html_node/Flavor
 @node Text functions for Makefiles, Astronomy functions for Makefiles, Makefile functions of Gnuastro, Makefile functions of Gnuastro
 @subsection Text functions for Makefiles
 
-The functions described below are generic (not limited to astronomy/FITS) functions that operate on plain text.
-You can see these as functions that should have been implemented in GNU Make itself.
+The functions described below operate on simple strings (plain text).
+They are therefore generic (not limited to astronomy/FITS), but because they are commonly necessary in astronomical data analysis pipelines and are not available anywhere else, we have included them in Gnuastro.
 The names of these functions start with @code{ast-text-*} and each has a fully working example to demonstrate its usage.
 
 @table @code
@@ -35942,10 +35942,10 @@ load /usr/local/lib/libgnuastro_make.so
 # sub-sub-components (numeric).
 subids = a b c d
 subsubids = 1 2 3 4 5 6 7
-subs=$(foreach s, $(subids), $(s).fits)
-subsubs=$(foreach s, $(subids), \
-          $(foreach ss, $(subsubids), \
-            $(s)-$(ss).fits))
+subs := $(foreach s, $(subids), $(s).fits)
+subsubs := $(foreach s, $(subids), \
+             $(foreach ss, $(subsubids), \
+               $(s)-$(ss).fits))
 
 # Build the sub-components:
 $(subsubs): %.fits: $$(ast-text-prev-in-list \
