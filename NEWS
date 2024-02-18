@@ -7,6 +7,11 @@ See the end of the file for license conditions.
 ** New publications
 ** New features
 *** Arithmetic
+
+  --append: if the output file already exists, don't delete it, add the
+    outputs as extra HDUs (by default, the output file is deleted). If the
+    output does not exist, then this option has no affect.
+
   - New operators:
 
     - madclip-maskfilled: mask (set to NaN) all input elements that are

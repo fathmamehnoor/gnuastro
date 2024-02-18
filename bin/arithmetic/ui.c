@@ -350,8 +350,9 @@ ui_check_options_and_arguments(struct arithmeticparams *p)
     }
 
   /* In case no output name has been given (can happen with operators like
-     'makenew' when the user doesn't set an output name explicity), use a
+     'makenew' when the user doesn't set an input name explicity), use a
      default name. */
+  if(p->append) cp->keep=1;
   if(cp->output)
     gal_checkset_writable_remove(cp->output, basename, cp->keep,
                                  cp->dontdelete);

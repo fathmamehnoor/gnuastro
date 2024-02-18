@@ -24218,6 +24218,10 @@ For more, see the description of @option{--wcsfile}.
 Use the environment for the random number generator settings in operators that need them (for example, @code{mknoise-sigma}).
 This is very important for obtaining reproducible results, for more see @ref{Generating random numbers}.
 
+@item --append
+If the output file already exists, do not delete it; add the output data to new HDUs at the end of that file.
+You can use the @option{--meta*} options below to give a name, unit or comments to this HDUs (to easily distinguish it from other HDUs).
+
 @item -n STR
 @itemx --metaname=STR
 Metadata (name) of the output dataset.

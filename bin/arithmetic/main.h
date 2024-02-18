@@ -87,6 +87,7 @@ struct arithmeticparams
   char           *metaunit;  /* FITS name (BUNIT keyword) of output.    */
   char        *metacomment;  /* FITS comment of output.                 */
   uint8_t         writeall;  /* Write all outputs.                      */
+  uint8_t           append;  /* Don't delete output file.               */
 
   /* Operating mode: */
   int        wcs_collapsed;  /* If the internal WCS is already collapsed.*/
