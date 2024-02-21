@@ -922,16 +922,16 @@ else
     # asinh-transformed image. If the user does not provide a value then use
     # ghe computed one (guessed). If the user provide a value, then use it
     # directly. Note that the guessed value is computed in any case.
-    colorval_estimated=$(aststatistics $i_colorgray_threshold \
+    colorval_default=$(aststatistics $i_colorgray_threshold \
                                        --median --quiet)
     if [ x$colorval = x"" ]; then
-      colorval=$colorval_estimated
+      colorval=$colorval_default
     fi
 
-    grayval_estimated=$(aststatistics $i_colorgray_threshold \
+    grayval_default=$(aststatistics $i_colorgray_threshold \
                                       --median --quiet)
     if [ x$grayval = x"" ]; then
-      grayval=$grayval_estimated
+      grayval=$grayval_default
     fi
 
 
@@ -1091,7 +1091,11 @@ if [ ! x$quiet = x"--quiet" ]; then
   cat <<EOF
 
 TIPS:
-  # First, use the default options to estimate the parameters.
+
+  # If there are exact zero-valued pixels (e.g., in the border/outer parts
+    of the images), convert them to NaN: zero is statistically meaningful
+    and can interfere with the statistics of this script; see the tutorial.
+  # Use the default options to estimate the parameters.
   # Select a good background value of the images:
       A minimum value of zero could be a good option: '--minimum=0.0'
   # Focus on the bright regions and tweak '--qbright' and '--stretch':
@@ -1102,6 +1106,9 @@ TIPS:
       This is the lowest value of the threshold image that is shown in color.
   # Change '--grayval' to separate the black and gray regions:
       This is highest value of the threshold image that is shown in gray.
+  # Schema for these parameters:
+      Output regions:   |  GRAY  |   BLACK   |   COLOR   |
+      Threshold values: 0 --- grayval --- colorval --- 100
   # Use '--checkparams' to check the pixel value distributions.
   # Use '--keeptmp' to not remove the threshold image and check it:
       '$i_colorgray_threshold'

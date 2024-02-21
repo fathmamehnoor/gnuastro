@@ -9046,6 +9046,25 @@ However, the images does not look nice and there is significant room for improve
 You will notice that at the end of its operation, the script printed some numerical values for four options in a table, to show automatically estimated parameter values.
 To enhance the output, let's go through and explain these step by step.
 
+@cartouche
+@noindent
+@strong{Zero as blank value:}
+@cindex Blank values
+@cindex Zero as blank/NaN
+@cindex NaN (Not a Number)
+@cindex Not a Number (NaN)
+Some astronomical data analysis software do not put ``Not a Number'' (NaN) in pixels that do not have data (for example there was no exposure there); instead they put a value of zero (or any other arbitrary number)!
+When present, such pixels usually occur on the outer edges of images (for example the image was taken at a rotated angle to the equatorial coordinates of the pixel grid).
+However, zero (or any arbitrary number) is statistically meaningful and will bias the measurements done in this (or any other) analysis.
+The examples here don't have such regions, but it is important to be prepared.
+
+If your inputs suffer from this problem, run the command below to convert the zero (or any other arbitrary value) to a NaN before starting to use this script:
+
+@example
+$ astarithmetic img.fits set-i i i 0 eq nan where --output=good.fits
+@end example
+@end cartouche
+
 The first important point to take into account is the photometric calibration.
 If the images are photometrically calibrated, then it is necessary to use the calibration to put the images in the same physical units and create ``real'' colors.
 The script is able to do it through the zero point magnitudes with the option @option{--zeropoint} (or @option{-z}).
@@ -22144,9 +22163,9 @@ This operator is very similar to @command{min}, with the exception that it expec
 The first popped operand is the termination criteria and the second is the multiple of the median absolute deviation.
 
 For example, in the command below, the first popped operand of @code{sigclip-mean} (@command{0.1}) is the @mymath{\sigma}-clipping termination criteria.
-If the termination criteria is larger than, or equal to, 1 it is interpreted as the total number of clips.
+If the termination criteria is larger than, or equal to 1, it is interpreted as the total number of clips.
 But if it is between 0 and 1, then it is the tolerance level on the change in the median absolute deviation (see @ref{Sigma clipping}).
-The second popped operand (@command{3}) is the multiple of the median absolute deviation to use.
+The second popped operand (@command{4}) is the multiple of sigma (STD) to use.
 The third popped operand (@command{3}) is number of datasets that should be stacked (similar to the first popped operand to @command{min}).
 Two other side-notes should be mentioned here:
 @itemize
