@@ -40,6 +40,13 @@ See the end of the file for license conditions.
   - $(ast-text-prev-in-list TARGET, LIST): select the word that is previous
     to 'TARGET' in a list of words. See the documentation for a fully
     working example and how this can be useful.
+
+  - $(ast-text-prev-batch-in-list TARGET, NUM, LIST): select the previous
+    "batch" of 'NUM' words (in relation to the batch that contains
+    'TARGET'). This is useful for steps in your pipelines were you need to
+    limit the parallelization to batches. See the example in the book for a
+    fully working example.
+
 ** Removed features
 ** Changed features
 *** All programs

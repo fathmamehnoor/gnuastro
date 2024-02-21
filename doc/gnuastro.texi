@@ -35889,6 +35889,31 @@ They are therefore generic (not limited to astronomy/FITS), but because they are
 The names of these functions start with @code{ast-text-*} and each has a fully working example to demonstrate its usage.
 
 @table @code
+@item $(ast-text-to-upper STRING)
+Returns the input string but with all characters in UPPER-CASE.
+For example, the following minimal Makefile will print @code{FOOO BAAR UGGH} word of the list.
+
+@example
+load /usr/local/lib/libgnuastro_make.so
+
+list   = fOOo bAar UggH
+ulist := $(ast-text-to-upper $(list))
+all:; echo $(ulist)
+@end example
+
+@item $(ast-text-to-lower STRING)
+Returns the input string but with all characters in lower-case.
+For example, the following minimal Makefile will print @code{fooo baar uggh} word of the list.
+
+@example
+load /usr/local/lib/libgnuastro_make.so
+
+list  = fOOo bAar UggH
+list := $(ast-text-to-lower $(list))
+all:; echo $(ulist)
+@end example
+
+
 @item $(ast-text-contains STRING, TEXT)
 Returns all white-space-separated words in @code{TEXT} that contain the @code{STRING}, removing any words that @emph{do not} match.
 For example, the following minimal Makefile will only print the @code{bAaz Aah} word of the list.
@@ -35971,29 +35996,51 @@ Without this function, make first builds all the sub-sub-components, then goes t
 There can be any level of components between these, allowing this operation to be as complex as necessary in your data analysis pipeline.
 Unfortunately the @code{.NOTPARALLEL} target of GNU Make doesn't allow this level of customization.
 
+@item $(ast-text-prev-batch-in-list TARGET, NUM, LIST)
+Returns the previous batch of @code{NUM} words in @code{LIST} (in relation to the batch containing @code{TARGET}).
+In the special case that @code{NUM=1}, this is equivalent to the @code{ast-text-prev-in-list} function that is described above.
 
-@item $(ast-text-to-upper STRING)
-Returns the input string but with all characters in UPPER-CASE.
-For example, the following minimal Makefile will print @code{FOOO BAAR UGGH} word of the list.
+Here is one scenario where this function is useful: in astronomy datasets are can easily be very large.
+Therefore, some Make recipes in your pipeline may require a lot of memory; such that executing them on all the available threads (for example 12 threads with @code{-j12}) will immediately occupy all your RAM, causing a crash in your pipeline.
+However, let's assume that you have sufficient RAM to execute 4 targets of those recipes in parallel.
+Therefore while you want all the other steps of your pipeline to be using all 12 threads, you want one rule to only build 4 targets at any time.
+
+The example below demonstrates the usage of this function in a minimal working example of the scenario above: we want to build 15 targets, but in batches of 4 target at a time, irrespective of how many threads Make was executed with.
 
 @example
 load /usr/local/lib/libgnuastro_make.so
 
-list   = fOOo bAar UggH
-ulist := $(ast-text-to-upper $(list))
-all:; echo $(ulist)
+.SECONDEXPANSION:
+
+targets := $(foreach i,$(shell seq 15),a-$(i).fits)
+
+all: $(targets)
+
+$(targets): $$(ast-text-prev-batch-in-list $$@@,4,$(targets))
+     @@echo "$@@: $^"
 @end example
 
-@item $(ast-text-to-lower STRING)
-Returns the input string but with all characters in lower-case.
-For example, the following minimal Makefile will print @code{fooo baar uggh} word of the list.
+@noindent
+If you place the example above in a plain-text file called @file{Makefile} (correcting for the TAB at the start of the recipe), and run Make on 12 threads, you will see an output like below.
+The targets in each batch are not ordered (and the order may change in different runs) because they have been run in parallel.
 
 @example
-load /usr/local/lib/libgnuastro_make.so
-
-list  = fOOo bAar UggH
-list := $(ast-text-to-lower $(list))
-all:; echo $(ulist)
+$ make -j12
+a-1.fits:
+a-3.fits:
+a-2.fits:
+a-4.fits:
+a-5.fits: a-1.fits a-2.fits a-3.fits a-4.fits
+a-6.fits: a-1.fits a-2.fits a-3.fits a-4.fits
+a-8.fits: a-1.fits a-2.fits a-3.fits a-4.fits
+a-7.fits: a-1.fits a-2.fits a-3.fits a-4.fits
+a-9.fits: a-5.fits a-6.fits a-7.fits a-8.fits
+a-11.fits: a-5.fits a-6.fits a-7.fits a-8.fits
+a-12.fits: a-5.fits a-6.fits a-7.fits a-8.fits
+a-10.fits: a-5.fits a-6.fits a-7.fits a-8.fits
+a-13.fits: a-9.fits a-10.fits a-11.fits a-12.fits
+a-15.fits: a-9.fits a-10.fits a-11.fits a-12.fits
+a-14.fits: a-9.fits a-10.fits a-11.fits a-12.fits
 @end example
 
 @end table

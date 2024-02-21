@@ -1,3 +1,24 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /*********************************************************************
 Type -- Type information and basic operations.
 This is part of GNU Astronomy Utilities (Gnuastro) package.

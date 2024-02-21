@@ -54,6 +54,7 @@ static char *text_to_lower=MAKEPLUGIN_FUNC_PREFIX"-text-to-lower";
 static char *text_contains_name=MAKEPLUGIN_FUNC_PREFIX"-text-contains";
 static char *text_prev_in_list=MAKEPLUGIN_FUNC_PREFIX"-text-prev-in-list";
 static char *text_not_contains_name=MAKEPLUGIN_FUNC_PREFIX"-text-not-contains";
+static char *text_prev_batch_in_list=MAKEPLUGIN_FUNC_PREFIX"-text-prev-batch-in-list";
 
 /* Gnuastro analysis functions */
 static char *version_is_name=MAKEPLUGIN_FUNC_PREFIX"-version-is";
@@ -228,6 +229,58 @@ makeplugin_text_prev_in_list(const char *caller, unsigned int argc,
 
 
 
+/* Return the previous word in the given list. */
+static char *
+makeplugin_text_prev_batch_in_list(const char *caller, unsigned int argc,
+                                   char **argv)
+{
+  void *nptr;
+  char *out, *target=argv[0];
+  size_t i=0, num, batch, start;
+  gal_list_str_t *tmp, *olist=NULL, *list=gal_list_str_extract(argv[2]);
+
+  /* Interpret the number. */
+  nptr=&num;
+  if( gal_type_from_string(&nptr, argv[1], GAL_TYPE_SIZE_T) )
+    error(EXIT_SUCCESS, 0, "'%s' could not be read as an "
+          "unsigned integer", argv[1]);
+
+  /* Parse the input list. */
+  for(tmp=list; tmp!=NULL; tmp=tmp->next)
+    { if( !strcmp(tmp->v,target) ) { break; } ++i; }
+
+  /* Set the starting counter for the batch strings to return. f we are in
+     the first batch, or if the given string isn't in the list at all, we
+     don't want to retun anything. */
+  batch=i/num;
+  if(batch==0 || tmp==NULL) return NULL;
+  else
+    {
+      /* We want to return the previous batch, so we'll decrement the
+         batch, and calculate the starting index from that. */
+      start = --batch*num;
+
+      /* Add the strings to the output string. */
+      i=0;
+      for(tmp=list; tmp!=NULL; tmp=tmp->next)
+        {
+          if(i>=start && i<start+num) gal_list_str_add(&olist, tmp->v, 0);
+          ++i;
+        }
+    }
+
+  /* Build the output pointer, clean up and return. */
+  gal_list_str_reverse(&olist);
+  out=gal_list_str_cat(olist, ' ');
+  gal_list_str_free(list,  1);  /* This is the original list.     */
+  gal_list_str_free(olist, 0);  /* We didn't allocate new copies. */
+  return out;
+}
+
+
+
+
+
 
 
 
@@ -391,6 +444,11 @@ libgnuastro_make_gmk_setup()
   /* Select previous item in list*/
   gmk_add_function(text_prev_in_list, makeplugin_text_prev_in_list,
                    2, 2, GMK_FUNC_DEFAULT);
+
+  /* Select batch of previous 'num' elements in list.*/
+  gmk_add_function(text_prev_batch_in_list,
+                   makeplugin_text_prev_batch_in_list,
+                   3, 3, GMK_FUNC_DEFAULT);
 
 
 
