@@ -374,6 +374,18 @@ fi
 
 
 
+# Color map contrast and bias for the default SLS color map designed to
+# make the color of the largest value red, not white (which is the color of
+# the default background). These are currently not configurable because
+# generally, the colormap ('sls') is not yet configurable.
+cmap=sls
+cmap_bias=0.5634
+cmap_contrast=0.8955
+
+
+
+
+
 # To allow generic usage, if no input file is given (the `if' below is
 # true), then just open an empty ds9.
 if [ x"$inputs" = x ]; then
@@ -445,7 +457,8 @@ else
                                      $inwithhdu \
                                      -zoom to fit \
                                      -wcs degrees \
-                                     -cmap sls \
+                                     -cmap $cmap \
+                                     -cmap $cmap_contrast $cmap_bias \
                                      -match frame image \
                                      -match frame colorbar \
                                      -frame lock image \
