@@ -127,6 +127,10 @@ See the end of the file for license conditions.
     a coma as the decimal point on some operating systems. Reported by
     Jesús Vega and fixed by Raul Infante-Sainz.
 
+  - bug #65377: MakeCatalog's suggested command when labeled image has
+    negative values (and MakeCatalog crashes) is wrong. Reported by Zahra
+    Sharbaf.
+
 
 
 

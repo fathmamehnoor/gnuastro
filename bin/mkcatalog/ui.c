@@ -773,7 +773,7 @@ ui_one_tile_per_object_correct_numobjects(struct mkcatalogparams *p)
               "0 where'. For this scenario, a better solution is to "
               "only keep the clumps and give them each a separate "
               "label with a command like this: 'astarithmetic file.fits "
-              "-hCLUMPS set-i i i 0 gt 2 connected-components'");
+              "-hCLUMPS 0 gt 2 connected-components'");
 
       /* We are on an object. */
       if(*l>0)
