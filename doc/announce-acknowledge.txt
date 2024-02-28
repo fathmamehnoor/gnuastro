@@ -1,6 +1,7 @@
 Alphabetically ordered list to acknowledge in the next release.
 
 Dennis Williamson
+Fernando Buitrago Alonso
 Greg Wooledge
 Hamed Altafi
 Jesús Vega

@@ -700,9 +700,22 @@ aperturesrawbase=apertures-raw.fits
 aperturesraw=$tmpdir/$aperturesrawbase
 if [ x"$azimuth" != x ]; then
 
+    # Function to normalize angles to the range [0, 360) For example, if
+    # --azimuth=337,367, then the angle to be used should be azimuth=337,7.
+    # Here, this conversion is done. Negative angles are also considered.
+    transform_angle() {
+        angle=$1
+        new_angle=$(awk "BEGIN { print ($angle % 360 + 360) % 360 }")
+        echo $new_angle
+    }
+
     # Get the initial and final azimuth angles
-    azimuth_ini=$(echo "$azimuth" | awk 'BEGIN{FS=","} {print $1}')
-    azimuth_fin=$(echo "$azimuth" | awk 'BEGIN{FS=","} {print $2}')
+    raw_azimuth_ini=$(echo "$azimuth" | awk 'BEGIN{FS=","} {print $1}')
+    raw_azimuth_fin=$(echo "$azimuth" | awk 'BEGIN{FS=","} {print $2}')
+
+    # Transform the azimuth angles to [0, 360) range
+    azimuth_ini=$(transform_angle $raw_azimuth_ini)
+    azimuth_fin=$(transform_angle $raw_azimuth_fin)
 
     # Generate the azimuthal apertures
     azimuthaperturesbase=azimuth-raw.fits
@@ -723,7 +736,7 @@ if [ x"$azimuth" != x ]; then
     #     the regions of each angle so the user gets the region between the
     #     two angles.
     #
-    #   - The first is smaller than the second (for example
+    #   - The first is greater than the second (for example
     #     '--azimuth=355,5') In this case, we assume that the user wants an
     #     azimuthal range outside the two angles. In the example above, its
     #     the 10 degrees around the azimuthal angle 0. For this case, we

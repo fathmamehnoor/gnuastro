@@ -131,6 +131,10 @@ See the end of the file for license conditions.
     negative values (and MakeCatalog crashes) is wrong. Reported by Zahra
     Sharbaf.
 
+  - bug #65382: Radial profile script truncates the azimuthal angle when
+    the maximum requested azimuthal range is above 360 degrees. Reported by
+    Fernando Buitrago Alonso and fixed by Raul Infante-Sainz.
+
 
 
 
