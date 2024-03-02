@@ -1041,6 +1041,9 @@ gal_blank_flag_remove(gal_data_t *input, gal_data_t *flag)
   /* Adjust the size elements of the dataset. */
   input->ndim=1;
   input->dsize[0]=input->size=num;
+
+  /* When there are no non-blank elements, free the array. */
+  if(num==0 && input->array) { free(input->array); input->array=NULL; }
 }
 
 
@@ -1188,6 +1191,9 @@ gal_blank_remove(gal_data_t *input)
   /* Adjust the size elements of the dataset. */
   input->ndim=1;
   input->dsize[0]=input->size=num;
+
+  /* When there are no non-blank elements, free the array. */
+  if(num==0 && input->array) { free(input->array); input->array=NULL; }
 
   /* Set the flags to mark that there is no blanks. */
   input->flag |=  GAL_DATA_FLAG_BLANK_CH;

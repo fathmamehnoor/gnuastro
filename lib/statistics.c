@@ -1557,11 +1557,9 @@ gal_statistics_is_sorted(gal_data_t *input, int updateflags)
   /* Parse the array (if necessary). */
   switch(input->size)
     {
+    /* A 0 or one-element dataset can be considered, sorted, so we'll say
+       its increasing. */
     case 0:
-      error(EXIT_FAILURE, 0, "%s: input dataset has 0 elements", __func__);
-
-    /* A one-element dataset can be considered, sorted, so we'll say its
-       increasing. */
     case 1:
       out=STATISTICS_IS_SORTED_INCREASING;
       break;
@@ -1876,8 +1874,7 @@ gal_statistics_regular_bins(gal_data_t *input, gal_data_t *inrange,
   if(numbins==0)
     error(EXIT_FAILURE, 0, "%s: 'numbins' cannot be given a value of 0",
           __func__);
-  if(input->size==0)
-    error(EXIT_FAILURE, 0, "%s: input's size is 0", __func__);
+  if(input->size==0) return NULL;
 
 
   /* Set the minimum and maximum values. */

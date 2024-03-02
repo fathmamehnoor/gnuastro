@@ -1233,16 +1233,14 @@ ui_preparations(struct statisticsparams *p)
       if(p->input->next) gal_blank_remove_rows(p->input, NULL, 0);
       else               gal_blank_remove(p->input);
 
-      /* Make sure there actually are any (non-blank) elements left. */
-      if(p->input->size==0)
-        error(EXIT_FAILURE, 0, "%s: all elements are blank",
+      /* If all elements are blank and the user has not asked for
+         Statistics to be quiet, then let the user know. */
+      if(!p->cp.quiet && p->input->size==0)
+        error(EXIT_SUCCESS, 0, "WARNING: %s: no usable (non-blank) data. "
+              "If there is data in the input, maybe the '--greaterequal' "
+              "or '--lessthan' options need to be adjusted. To remove "
+              "this warning, use the '--quiet' (or '-q') option",
               gal_fits_name_save_as_string(p->inputname, cp->hdu));
-
-      /* Make sure there is data remaining: */
-      if(p->input->size==0)
-        error(EXIT_FAILURE, 0, "%s: no data, maybe the '--greaterequal' "
-              "or '--lessthan' options need to be adjusted",
-              gal_fits_name_save_as_string(p->inputname, cp->hdu) );
 
       /* Make the sorted array if necessary. */
       ui_make_sorted_if_necessary(p);
