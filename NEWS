@@ -135,6 +135,9 @@ See the end of the file for license conditions.
     the maximum requested azimuthal range is above 360 degrees. Reported by
     Fernando Buitrago Alonso and fixed by Raul Infante-Sainz.
 
+  - bug #63064: Statistics crashes when all pixels are NaN. Reported by
+    Raul Infante-Sainz and fixed with help of Thorsten Alteholz.
+
 
 
 
