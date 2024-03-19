@@ -122,10 +122,10 @@ statistics_print_one_row(struct statisticsparams *p)
   int mustfree;
   char *toprint;
   double arg, *d;
-  uint8_t clipflag;
-  gal_list_i32_t *tmp;
   gal_data_t *medmad=NULL;
   size_t dsize=1, counter;
+  uint8_t clipflag, hasmad;
+  gal_list_i32_t *tmp, *ttmp;
   gal_data_t *sclip=NULL, *mclip=NULL;
   gal_data_t *sum=NULL, *meanstd=NULL, *modearr=NULL;
   gal_data_t *tmpv, *out=NULL, *num=NULL, *min=NULL, *max=NULL;
@@ -155,7 +155,18 @@ statistics_print_one_row(struct statisticsparams *p)
         break;
       case UI_KEY_MAD:
       case UI_KEY_MEDIAN:
-        medmad = medmad ? medmad : gal_statistics_median_mad(p->input, 0);
+        if(medmad==NULL)
+          {
+            /* If MAD is requested, the median is a free byproduct. But if
+               MAD is not requested, we don't want to waste the user's time
+               for calculating it. */
+            hasmad=0;
+            for(ttmp=p->singlevalue; ttmp!=NULL; ttmp=ttmp->next)
+              if(ttmp->v==UI_KEY_MAD) hasmad=1;
+            medmad = ( hasmad
+                       ? gal_statistics_median_mad(p->input, 0)
+                       : gal_statistics_median(p->input, 0) );
+          }
         break;
       case UI_KEY_MODE:
       case UI_KEY_MODEQUANT:
