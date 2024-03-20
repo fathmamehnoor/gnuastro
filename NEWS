@@ -138,6 +138,9 @@ See the end of the file for license conditions.
   - bug #63064: Statistics crashes when all pixels are NaN. Reported by
     Raul Infante-Sainz and fixed with help of Thorsten Alteholz.
 
+  - bug #65494: Crop segmentation fault with older CFITSIOs (three word
+    version format). Reported by Giacomo Lorenzetti.
+
 
 
 

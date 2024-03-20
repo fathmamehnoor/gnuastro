@@ -1779,7 +1779,7 @@ gal_fits_key_list_add_software_versions(gal_fits_list_key_t **keylist)
                CFITSIO_MINOR, CFITSIO_MICRO)<0 )
     error(EXIT_FAILURE, 0, "%s: asprintf allocation", __func__);
 #else
-  if( asprintf(cfitsioversion, "%d.%d", CFITSIO_MAJOR,
+  if( asprintf(&cfitsioversion, "%d.%d", CFITSIO_MAJOR,
                CFITSIO_MINOR)<0 )
     error(EXIT_FAILURE, 0, "%s: asprintf allocation", __func__);
 #endif
