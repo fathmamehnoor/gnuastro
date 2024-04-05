@@ -49,4 +49,4 @@ if [ ! -f $img      ]; then echo "$img does not exist.";    exit 77; fi
 
 # Actual test script
 # ==================
-$execname $img --config=.gnuastro/astnoisechisel-3d.conf
+$check_with_program $execname $img --config=.gnuastro/astnoisechisel-3d.conf

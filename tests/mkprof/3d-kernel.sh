@@ -43,5 +43,5 @@ if [ ! -f $execname ]; then echo "$execname not created."; exit 77; fi
 
 # Actual test script
 # ==================
-$execname $cat --kernel=gaussian-3d,2,3,0.5 --oversample=1    \
-          --output=3d-kernel.fits
+$check_with_program $execname $cat --kernel=gaussian-3d,2,3,0.5 --oversample=1 \
+                              --output=3d-kernel.fits

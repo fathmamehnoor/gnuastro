@@ -49,5 +49,5 @@ if [ ! -f $img      ]; then echo "$img does not exist.";   exit 77; fi
 
 # Actual test script
 # ==================
-$execname $img --x --y --z --w1 --w2 --w3 --area --sum --sn  \
-          --upperlimit
+$check_with_program $execname $img --x --y --z --w1 --w2 --w3 \
+                    --area --sum --sn --upperlimit

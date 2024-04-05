@@ -49,5 +49,5 @@ if [ ! -f $img      ]; then echo "$img does not exist.";   exit 77; fi
 
 # Actual test script
 # ==================
-$execname $img --largetilesize=100,100,30 --snquant=0.99   \
-          --config=.gnuastro/astsegment-3d.conf
+$check_with_program $execname $img --largetilesize=100,100,30 --snquant=0.99 \
+                              --config=.gnuastro/astsegment-3d.conf
