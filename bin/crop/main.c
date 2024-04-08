@@ -36,6 +36,7 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 int
 main (int argc, char *argv[])
 {
+  int out;
   struct timeval t1;
   struct cropparams p={{{0},0},0};
 
@@ -47,11 +48,11 @@ main (int argc, char *argv[])
   ui_read_check_inputs_setup(argc, argv, &p);
 
   /* Run Image Crop. */
-  crop(&p);
+  out=crop(&p);
 
   /* Free all non-freed allocations. */
   ui_free_report(&p, &t1);
 
   /* Return successfully. */
-  return EXIT_SUCCESS;
+  return out;
 }

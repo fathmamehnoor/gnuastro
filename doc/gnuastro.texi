@@ -20769,6 +20769,12 @@ When only one crop is desired, the value to @option{--output} will be read as a 
 If no output is specified or if it is a directory, the output file name will follow the automatic output names of Gnuastro, see @ref{Automatic output}: The string given to @option{--suffix} will be replaced with the @file{.fits} suffix of the input.
 @end itemize
 
+When the desired crop is not within the input image(s) crop will not produce any image for that crop.
+If the @option{--quiet} option is not given, crop will report which one of the inputs was created and which wasn't (due to an overlap or the center being empty, see @option{--checkcenter}.
+This information can be formally written in an optional log-file also, see below.
+At the end, Crop will return successfully to the shell if at least one output file was created.
+If no output was created at all, then crop will return to the shell with a failure.
+
 By default, as suggested by the FITS standard and implemented in all Gnuastro programs, the first/primary extension of the output files will only contain metadata.
 The cropped images/cubes will be written into the 2nd HDU of their respective FITS file (which is actually counted as @code{1} because HDU counting starts from @code{0}).
 However, if you want the cropped data to be written into the primary (0-th) HDU, run Crop with the @option{--primaryimghdu} option.

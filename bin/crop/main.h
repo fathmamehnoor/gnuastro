@@ -121,6 +121,7 @@ struct cropparams
   void          *blankptrwrite;  /* Null value for writing of output type.*/
   struct inputimgs       *imgs;  /* WCS and size information for inputs.  */
   gal_data_t              *log;  /* Log file contents.                    */
+  uint8_t             *outmade;  /* Array showing if each output was made.*/
   int            oneelemstdout;  /* Print one element crops on stdout.    */
 };
 

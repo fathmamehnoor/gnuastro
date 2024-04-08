@@ -23,7 +23,7 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 #ifndef IMGMODE_H
 #define IMGMODE_H
 
-void
+int
 crop(struct cropparams *p);
 
 #endif

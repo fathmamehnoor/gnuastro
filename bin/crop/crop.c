@@ -255,7 +255,8 @@ crop_mode_img(void *inparam)
         }
       else crp->centerfilled=0;
 
-      /* Report the status on stdout if verbose mode is requested. */
+      /* Status update (for return value and standard output or log.*/
+      p->outmade[crp->out_ind] = crp->outfits!=NULL;
       if(!p->cp.quiet) crop_verbose_info(crp);
       if(p->cp.log)    crop_write_to_log(crp);
     }
@@ -361,8 +362,8 @@ crop_mode_wcs(void *inparam)
         }
 
 
-
-      /* Report the status on stdout if verbose mode is requested. */
+      /* Status update (for return value and standard output or log.*/
+      p->outmade[crp->out_ind] = crp->outfits!=NULL;
       if(!p->cp.quiet) crop_verbose_info(crp);
       if(p->cp.log)    crop_write_to_log(crp);
     }
@@ -399,13 +400,13 @@ crop_mode_wcs(void *inparam)
    crop box from each input image is desired, the first and last
    pixels are already set, irrespective of how the user specified that
    box. */
-void
+int
 crop(struct cropparams *p)
 {
-  int err=0;
   char *tmp;
   pthread_t t; /* We don't use the thread id, so all are saved here. */
   char *mmapname;
+  int err=0, out;
   pthread_attr_t attr;
   pthread_barrier_t b;
   struct onecropparams *crp;
@@ -419,13 +420,16 @@ crop(struct cropparams *p)
   modefunction = p->mode==IMGCROP_MODE_IMG ? &crop_mode_img : &crop_mode_wcs;
 
 
-  /* Allocate the array of structures to keep the thread and parameters for
-     each thread. */
+  /* Necessary allocations: the array of structures to keep the thread and
+     parameters for each thread and an array to keep track of the built
+     outputs. */
   errno=0;
   crp=malloc(nt*sizeof *crp);
   if(crp==NULL)
     error(EXIT_FAILURE, errno, "%s: allocating %zu bytes for 'crp'",
           __func__, nt*sizeof *crp);
+  p->outmade=gal_pointer_allocate(GAL_TYPE_UINT8, p->numin, 1, __func__,
+                                  "p->outmade");
 
 
   /* Distribute the indexs into the threads (for clarity, this is needed
@@ -489,9 +493,20 @@ crop(struct cropparams *p)
       gal_list_str_free(comments, 1);
     }
 
+
+  /* Prepare the return value: if any outputs were made, return
+     EXIT_SUCCESS, otherwise, return EXIT_FAILURE. */
+  out=EXIT_FAILURE;
+  for(i=0;i<p->numin;++i) if(p->outmade[i]) { out=EXIT_SUCCESS; break; }
+
+
   /* Print the final verbose info, save log, and clean up: */
   if(mmapname) gal_pointer_mmap_free(&mmapname, p->cp.quietmmap);
   else         free(indexs);
   crop_verbose_final(p);
+  free(p->outmade);
   free(crp);
+
+  /* Return with the progarm's return value. */
+  return out;
 }

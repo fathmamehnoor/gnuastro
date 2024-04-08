@@ -141,6 +141,9 @@ See the end of the file for license conditions.
   - bug #65494: Crop segmentation fault with older CFITSIOs (three word
     version format). Reported by Giacomo Lorenzetti.
 
+  - bug #65571: Crop returns successfully when no output was made. Reported
+    by Sepideh Eskandarlou.
+
 
 
 

@@ -49,7 +49,7 @@ struct onecropparams
   double      equatorcorr[2];  /* Crop crosses the equator, see wcsmode.c. */
   fitsfile          *outfits;  /* Pointer to the output FITS image.        */
 
-  /* For log */
+  /* For log or return value */
   char                 *name;  /* Filename of crop.                        */
   size_t              numimg;  /* Number of images used to make this crop. */
   unsigned char centerfilled;  /* ==1 if the center is filled.             */
