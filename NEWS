@@ -157,6 +157,10 @@ See the end of the file for license conditions.
   - bug #65561: Projections to infinity cause very long running time in
     Warp. Found and fixed by Giacomo Lorenzetti.
 
+  - bug #63026: Warp translation adds one extra pixel even if it is not
+    requested. Reported by Raul Infante-Sainz and fixed by Giacomo
+    Lorenzetti.
+
 
 
 

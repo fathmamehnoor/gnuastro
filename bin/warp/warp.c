@@ -321,10 +321,10 @@ warp_linear_init(struct warpparams *p)
      but in that scenario, we don't want this feature! */
   if( p->centeroncorner==0 && (matrix[2]!=0.0f || matrix[5]!=0.0f) )
     {
-      dsize[1] += abs( (int)(matrix[2]) )+1; /* (int): avoid warnings. */
-      dsize[0] += abs( (int)(matrix[5]) )+1;
-      if(xmin>0) p->outfpixval[0]=0;
-      if(ymin>0) p->outfpixval[1]=0;
+      dsize[1] += abs( (int)(matrix[2]) ); /* (int): avoid warnings. */
+      dsize[0] += abs( (int)(matrix[5]) );
+      if(xmin>0) p->outfpixval[0]=1;
+      if(ymin>0) p->outfpixval[1]=1;
     }
 
 
