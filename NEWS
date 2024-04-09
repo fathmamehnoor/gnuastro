@@ -154,6 +154,9 @@ See the end of the file for license conditions.
   - bug #65571: Crop returns successfully when no output was made. Reported
     by Sepideh Eskandarlou.
 
+  - bug #65561: Projections to infinity cause very long running time in
+    Warp. Found and fixed by Giacomo Lorenzetti.
+
 
 
 

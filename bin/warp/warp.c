@@ -46,48 +46,33 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 
 
 /***************************************************************/
-/**************            MACROS             ******************/
-/***************************************************************/
-/* Multiply a 2 element vector with a transformation matrix and put the
-   result in the 2 element output array. It is assumed that the input is
-   from a flat coordinate system. */
-#define WARP_MAPPOINT(V, T, O)                                  \
-  {                                                             \
-    (O)[0]=( ( (T)[0]*(V)[0] + (T)[1]*(V)[1] + (T)[2] )         \
-             / ( (T)[6]*(V)[0] + (T)[7]*(V)[1] + (T)[8] ) );    \
-    (O)[1]=( ( (T)[3]*(V)[0] + (T)[4]*(V)[1] + (T)[5] )         \
-             / ( (T)[6]*(V)[0] + (T)[7]*(V)[1] + (T)[8] ) );    \
-  }                                                             \
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/***************************************************************/
 /**************      Processing function      ******************/
 /***************************************************************/
+static void
+warp_mappoint(double *v, double *t, double *o)
+{
+  double d=t[6]*v[0]+t[7]*v[1]+t[8];
+
+  /* Can happen in special projects, see
+     https://savannah.gnu.org/bugs/?65561 */
+  if(d>-DBL_EPSILON && d<DBL_EPSILON) { o[0]=o[1]=NAN; return; }
+
+  /* Write the outputs. */
+  o[0]=(t[0]*v[0]+t[1]*v[1]+t[2])/d;
+  o[1]=(t[3]*v[0]+t[4]*v[1]+t[5])/d;
+}
+
+
+
+
+
 static void *
 warp_onthread_linear(void *inparam)
 {
   struct gal_threads_params *tprm=(struct gal_threads_params *)inparam;
   struct warpparams *p=(struct warpparams *)tprm->params;
 
+  int infgrid;
   size_t *extinds=p->extinds, *ordinds=p->ordinds;
   long is0=p->input->dsize[0], is1=p->input->dsize[1];
   double area, filledarea, *input=p->input->array, v=NAN;
@@ -119,9 +104,16 @@ warp_onthread_linear(void *inparam)
 
 
       /* Transform the four corners of the output pixel to the input
-         image coordinates. */
-      for(j=0;j<4;++j) WARP_MAPPOINT(&ocrn[j*2], p->inverse,
-                                     &icrn_base[j*2]);
+         image coordinates. Points projected to infinity are treated as
+         NaNs*/
+      infgrid=0;
+      for(j=0;j<4 && infgrid==0;++j)
+        {
+          warp_mappoint(&ocrn[j*2], p->inverse, &icrn_base[j*2]);
+          if( isnan(icrn_base[j*2]) ) infgrid=1;
+        }
+      if(infgrid) { output[ind]=NAN; continue; }
+
 
       /* Using the known relationships between the vertice locations,
          put everything in the right place: */
@@ -145,8 +137,8 @@ warp_onthread_linear(void *inparam)
                  ind, ind%os1+1, ind/os1+1);
           for(j=0;j<4;++j)
             printf("(%.3f, %.3f) --> (%.3f, %.3f)\n",
-                   ocrn[j*2], ocrn[j*2+1], icrn_base[j*2],
-                   icrn_base[j*2+1]);
+                   ocrn[j*2], ocrn[j*2+1],
+                   icrn_base[j*2], icrn_base[j*2+1]);
           printf("------- Ordered -------\n");
           for(j=0;j<4;++j)
             printf("(%.3f, %.3f)\n", icrn[j*2], icrn[j*2+1]);
@@ -155,7 +147,6 @@ warp_onthread_linear(void *inparam)
           printf("Y: %ld -- %ld\n", ystart, yend);
         }
       */
-
       /* Go over all the input pixels that are covered. Note that x
          and y are the centers of the pixel. */
       for(y=ystart;y<yend;++y)
@@ -180,10 +171,9 @@ warp_onthread_linear(void *inparam)
               gal_polygon_clip(icrn, 4, pcrn, 4, ccrn, &numcrn);
               area=gal_polygon_area_flat(ccrn, numcrn);
 
-              /* Add the fractional value of this pixel. If this
-                 output pixel covers a NaN pixel in the input grid,
-                 then calculate the area of this NaN pixel to account
-                 for it later. */
+              /* Add the fractional value of this pixel. If this output
+                 pixel covers a NaN pixel in the input grid, then calculate
+                 the area of this NaN pixel to account for it later. */
               if( !isnan(v) )
                 {
                   ++numinput;
@@ -285,7 +275,7 @@ warp_linear_init(struct warpparams *p)
      pixel is an integer value.*/
   for(i=0;i<4;++i)
     {
-      WARP_MAPPOINT(&input[i*2], matrix, &output[i*2]);
+      warp_mappoint(&input[i*2], matrix, &output[i*2]);
       if(output[i*2]<xmin)     xmin = output[i*2];
       if(output[i*2]>xmax)     xmax = output[i*2];
       if(output[i*2+1]<ymin)   ymin = output[i*2+1];
@@ -352,7 +342,7 @@ warp_linear_init(struct warpparams *p)
     {
       ocrn[i*2]   += p->outfpixval[0];
       ocrn[i*2+1] += p->outfpixval[1];
-      WARP_MAPPOINT(&ocrn[i*2], p->inverse, &icrn[i*2]);
+      warp_mappoint(&ocrn[i*2], p->inverse, &icrn[i*2]);
     }
 
 
