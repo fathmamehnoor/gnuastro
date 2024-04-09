@@ -147,6 +147,17 @@ warp_onthread_linear(void *inparam)
           printf("Y: %ld -- %ld\n", ystart, yend);
         }
       */
+
+      /* In special projections (for example '--shear=0.2
+         --project=0.001,0.0005' of https://savannah.gnu.org/bugs/?65561)
+         the following wrong situations will occur and cause an infinite
+         execution time in the next loop to parse over the input pixels. We
+         still have not figured out how to catch such situations at a lower
+         level. */
+      if(    xstart>xend || xstart>is1
+          || ystart>yend || ystart>is0 )
+      { output[ind]=NAN; continue; }
+
       /* Go over all the input pixels that are covered. Note that x
          and y are the centers of the pixel. */
       for(y=ystart;y<yend;++y)
