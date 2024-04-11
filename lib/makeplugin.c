@@ -31,6 +31,7 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 #include <gnumake.h>
 
 #include <gnuastro/txt.h>
+#include <gnuastro/pointer.h>
 
 #include <gnuastro-internal/options.h>
 #include <gnuastro-internal/checkset.h>
@@ -48,13 +49,15 @@ int plugin_is_GPL_compatible=1;
 
 /* Names of the separate functions. */
 #define MAKEPLUGIN_FUNC_PREFIX "ast"
+
 /* Basic text functions */
+static char *text_prev=MAKEPLUGIN_FUNC_PREFIX"-text-prev";
 static char *text_to_upper=MAKEPLUGIN_FUNC_PREFIX"-text-to-upper";
 static char *text_to_lower=MAKEPLUGIN_FUNC_PREFIX"-text-to-lower";
+static char *text_prev_batch=MAKEPLUGIN_FUNC_PREFIX"-text-prev-batch";
+static char *text_prev_batch_by_ram=MAKEPLUGIN_FUNC_PREFIX"-text-prev-batch-by-ram";
 static char *text_contains_name=MAKEPLUGIN_FUNC_PREFIX"-text-contains";
-static char *text_prev_in_list=MAKEPLUGIN_FUNC_PREFIX"-text-prev-in-list";
 static char *text_not_contains_name=MAKEPLUGIN_FUNC_PREFIX"-text-not-contains";
-static char *text_prev_batch_in_list=MAKEPLUGIN_FUNC_PREFIX"-text-prev-batch-in-list";
 
 /* Gnuastro analysis functions */
 static char *version_is_name=MAKEPLUGIN_FUNC_PREFIX"-version-is";
@@ -207,8 +210,7 @@ makeplugin_text_to_lower(const char *caller, unsigned int argc,
 
 /* Return the previous word in the given list. */
 static char *
-makeplugin_text_prev_in_list(const char *caller, unsigned int argc,
-                             char **argv)
+makeplugin_text_prev(const char *caller, unsigned int argc, char **argv)
 {
   int found=0;
   char *prev=NULL, *target=argv[0];
@@ -229,15 +231,107 @@ makeplugin_text_prev_in_list(const char *caller, unsigned int argc,
 
 
 
+/* Given one of the words of the input list, this function will return a
+   string containing the previous batch of words. */
+static char *
+makeplugin_text_prev_batch_work(char *target, size_t num_in_batch,
+                                char *list)
+{
+  int is_first_batch=1;
+  size_t anum=0, starti, endi, outlen;
+  char *startend[4]={NULL, NULL, NULL, NULL};
+  char *cp, *token, *saveptr=NULL, *out=NULL, *delimiters=" ";
+
+  /* Parse the line to find the desired element, but first copy the input
+     list into a new editable space with 'strdupa'. */
+  gal_checkset_allocate_copy(list, &cp);
+  token=strtok_r(cp, delimiters, &saveptr);
+  do
+    {
+      /* For the first num_in_batch elements, we don't should not set the
+         first two pointers of 'startend'. Startend contains the following
+         four pointers:
+
+           startend[0] --> FIRST token in PREVIOUS batch.
+           startend[1] --> LAST  token in PREVIOUS batch.
+           startend[2] --> FIRST token in THIS     batch.
+           startend[3] --> LAST  token in THIS     batch.
+
+         First, let's check if we at the start of a batch: if so, all the
+         elements of 'startend' need to be reset. */
+      if(anum % num_in_batch==0)
+        {
+          /* Only for the non-first batches: move the start/end to the
+             "PREVIOUS" batch and remove the ending of current batch. */
+          if(is_first_batch==0)
+            {
+              startend[0]=startend[2];
+              startend[1]=startend[3];
+            }
+
+          /* Put this token at the start of this batch and set the end of
+             this batch to be NULL. */
+          startend[3]=NULL;
+          startend[2]=token;
+        }
+
+      /* This is the last element of this batch, write startend[3] and
+         remove the 'isfirstbatch' flag. */
+      if(anum % num_in_batch == num_in_batch-1)
+        { startend[3]=token; is_first_batch=0; }
+
+      /* For a check:
+      printf("%zu: %s (%zu of %zu)\n"
+             "     %s\n     %s\n     %s\n     %s\n\n", anum,
+             token, (anum%num_in_batch)+1, num_in_batch, startend[0],
+             startend[1], startend[2], startend[3]);
+      */
+
+      /* If the target is reached, break out of the loop. */
+      if( !strcmp(target, token) ) break;
+
+      /* Go to the next token. */
+      ++anum; /* Count of all tokens. */
+      token=strtok_r(NULL, delimiters, &saveptr);
+    }
+  while(token);
+
+  /* We need to return a non-empty output only when a previous batch
+     exists.*/
+  if(startend[0])
+    {
+      /* Find the positions of the start and end of the output string
+         within the (copied) input string and from that measure the length
+         of the output string. */
+      starti=startend[0]-cp;
+      endi=startend[1]+strlen(startend[1])-cp;
+      outlen=endi-starti;
+
+      /* Allocate the output and copy the input into it. */
+      out=gal_pointer_allocate(GAL_TYPE_STRING, outlen+1, 0, __func__,
+                               "out");
+      memcpy(out, &list[starti], outlen);
+      out[outlen]='\0';
+    }
+  else out=NULL;
+
+  /* Clean up and return. */
+  free(cp);
+  return out;
+}
+
+
+
+
+
 /* Return the previous word in the given list. */
 static char *
-makeplugin_text_prev_batch_in_list(const char *caller, unsigned int argc,
-                                   char **argv)
+makeplugin_text_prev_batch(const char *caller, unsigned int argc,
+                           char **argv)
 {
+  size_t num;
   void *nptr;
-  char *out, *target=argv[0];
-  size_t i=0, num, batch, start;
-  gal_list_str_t *tmp, *olist=NULL, *list=gal_list_str_extract(argv[2]);
+  char *target=argv[0], *list=argv[2];
 
   /* Interpret the number. */
   nptr=&num;
@@ -245,36 +339,49 @@ makeplugin_text_prev_batch_in_list(const char *caller, unsigned int argc,
     error(EXIT_SUCCESS, 0, "'%s' could not be read as an "
           "unsigned integer", argv[1]);
 
-  /* Parse the input list. */
-  for(tmp=list; tmp!=NULL; tmp=tmp->next)
-    { if( !strcmp(tmp->v,target) ) { break; } ++i; }
+  /* Generate the outputs.*/
+  return makeplugin_text_prev_batch_work(target, num, list);
+}
 
-  /* Set the starting counter for the batch strings to return. f we are in
-     the first batch, or if the given string isn't in the list at all, we
-     don't want to retun anything. */
-  batch=i/num;
-  if(batch==0 || tmp==NULL) return NULL;
-  else
-    {
-      /* We want to return the previous batch, so we'll decrement the
-         batch, and calculate the starting index from that. */
-      start = --batch*num;
 
-      /* Add the strings to the output string. */
-      i=0;
-      for(tmp=list; tmp!=NULL; tmp=tmp->next)
-        {
-          if(i>=start && i<start+num) gal_list_str_add(&olist, tmp->v, 0);
-          ++i;
-        }
-    }
 
-  /* Build the output pointer, clean up and return. */
-  gal_list_str_reverse(&olist);
-  out=gal_list_str_cat(olist, ' ');
-  gal_list_str_free(list,  1);  /* This is the original list.     */
-  gal_list_str_free(olist, 0);  /* We didn't allocate new copies. */
-  return out;
+
+
+/* Return the previous elements in the list based on the available RAM and
+   the amount of RAM each invocation needs (in Gigabytes of normal decimal
+   1000s base, not 1024s). To get the amount of RAM of each invocation, you
+   can use the command below (which will return the maximum necessary RAM
+   in Kilobytes).
+
+   /usr/bin/time --format=%M command ....
+
+   To convert this to Gigabytes, you can use this command (just replace the
+   number):
+
+   echo "2374764" | awk '{print $1*1e3/1e9}'
+
+   Afterwards, try to round it upwards (so some RAM is always left for the
+   OS).
+*/
+static char *
+makeplugin_text_prev_batch_by_ram(const char *caller, unsigned int argc,
+                                  char **argv)
+{
+  void *nptr;
+  float needed_gb;
+  char *target=argv[0], *list=argv[2];
+  size_t num, ram_b=gal_checkset_ram_available(1);
+
+  /* Interpret the number. */
+  nptr=&needed_gb;
+  if( gal_type_from_string(&nptr, argv[1], GAL_TYPE_FLOAT32) )
+    error(EXIT_SUCCESS, 0, "'%s' could not be read as an "
+          "unsigned integer", argv[1]);
+
+  /* Estimate the number of words in each batch (to be run in parallel if
+     this function is used in targets list) and call the final function. */
+  num=(size_t)(ram_b/(needed_gb*1e9));
+  return makeplugin_text_prev_batch_work(target, num, list);
 }
 
 
@@ -442,12 +549,16 @@ libgnuastro_make_gmk_setup()
                    1, 1, GMK_FUNC_DEFAULT);
 
   /* Select previous item in list*/
-  gmk_add_function(text_prev_in_list, makeplugin_text_prev_in_list,
-                   2, 2, GMK_FUNC_DEFAULT);
+  gmk_add_function(text_prev, makeplugin_text_prev, 2, 2,
+                   GMK_FUNC_DEFAULT);
 
-  /* Select batch of previous 'num' elements in list.*/
-  gmk_add_function(text_prev_batch_in_list,
-                   makeplugin_text_prev_batch_in_list,
+  /* Select batch of previous 'num' elements in list. */
+  gmk_add_function(text_prev_batch, makeplugin_text_prev_batch,
+                   3, 3, GMK_FUNC_DEFAULT);
+
+  /* Select batch  */
+  gmk_add_function(text_prev_batch_by_ram,
+                   makeplugin_text_prev_batch_by_ram,
                    3, 3, GMK_FUNC_DEFAULT);
 
 

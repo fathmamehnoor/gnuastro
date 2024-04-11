@@ -35968,7 +35968,7 @@ all:
      echo $(ast-text-not-contains Aa, $(list))
 @end example
 
-@item $(ast-text-prev-in-list TARGET, LIST)
+@item $(ast-text-prev TARGET, LIST)
 Returns the word in @code{LIST} that is previous to @code{TARGET}.
 If @code{TARGET} is the first word of the list, or is not within it at all, this function will return an empty string (nothing).
 
@@ -36002,7 +36002,7 @@ subsubs := $(foreach s, $(subids), \
                $(s)-$(ss).fits))
 
 # Build the sub-components:
-$(subsubs): %.fits: $$(ast-text-prev-in-list \
+$(subsubs): %.fits: $$(ast-text-prev \
                        $$(word 1, $$(subst -, ,%)).fits, \
                        $(subs))
         @@echo "$@@: $^"
@@ -36021,14 +36021,15 @@ Without this function, make first builds all the sub-sub-components, then goes t
 There can be any level of components between these, allowing this operation to be as complex as necessary in your data analysis pipeline.
 Unfortunately the @code{.NOTPARALLEL} target of GNU Make doesn't allow this level of customization.
 
-@item $(ast-text-prev-batch-in-list TARGET, NUM, LIST)
+@item $(ast-text-prev-batch TARGET, NUM, LIST)
 Returns the previous batch of @code{NUM} words in @code{LIST} (in relation to the batch containing @code{TARGET}).
-In the special case that @code{NUM=1}, this is equivalent to the @code{ast-text-prev-in-list} function that is described above.
+In the special case that @code{NUM=1}, this is equivalent to the @code{ast-text-prev} function that is described above.
 
 Here is one scenario where this function is useful: in astronomy datasets are can easily be very large.
 Therefore, some Make recipes in your pipeline may require a lot of memory; such that executing them on all the available threads (for example 12 threads with @code{-j12}) will immediately occupy all your RAM, causing a crash in your pipeline.
 However, let's assume that you have sufficient RAM to execute 4 targets of those recipes in parallel.
 Therefore while you want all the other steps of your pipeline to be using all 12 threads, you want one rule to only build 4 targets at any time.
+But before starting to use this function, also see @code{ast-text-prev-batch-by-ram}.
 
 The example below demonstrates the usage of this function in a minimal working example of the scenario above: we want to build 15 targets, but in batches of 4 target at a time, irrespective of how many threads Make was executed with.
 
@@ -36041,12 +36042,12 @@ targets := $(foreach i,$(shell seq 15),a-$(i).fits)
 
 all: $(targets)
 
-$(targets): $$(ast-text-prev-batch-in-list $$@@,4,$(targets))
-     @@echo "$@@: $^"
+$(targets): $$(ast-text-prev-batch $$@@,4,$(targets))
+        @@echo "$@@: $^"
 @end example
 
 @noindent
-If you place the example above in a plain-text file called @file{Makefile} (correcting for the TAB at the start of the recipe), and run Make on 12 threads, you will see an output like below.
+If you place the example above in a plain-text file called @file{Makefile} (correcting for the TAB at the start of the recipe), and run Make on 12 threads like below, you will see the following output.
 The targets in each batch are not ordered (and the order may change in different runs) because they have been run in parallel.
 
 @example
@@ -36067,6 +36068,80 @@ a-13.fits: a-9.fits a-10.fits a-11.fits a-12.fits
 a-15.fits: a-9.fits a-10.fits a-11.fits a-12.fits
 a-14.fits: a-9.fits a-10.fits a-11.fits a-12.fits
 @end example
+
+Any other rule that is later added to this make file (as a prerequisite/parent of @code{targets} or as a child of @code{targets}) will be run on 12 threads.
+
+@item $(ast-text-prev-batch-by-ram TARGET, NEEDED_RAM_GB, LIST)
+@cindex RAM
+Similar to @code{ast-text-prev-batch}, but instead of taking the number of words/files in each batch, this function takes the maximum amount of RAM that is needed by one instance of the recipe.
+Through the @code{NEEDED_RAM_GB} argument, you should specify the amount of ram that a @emph{single} instance of the recipe in this rule needs.
+The number of files in each batch is then calculated internally by reading the available RAM on the system.
+Therefore this function is more generalizable to different computers (with very different RAM and/or CPU threads).
+
+For example, assume evey instance of one rule in your Makefile requires a maximum of 5.2 GB of RAM during its execution, and your computer has 32 GB of RAM and 2 threads.
+In this case, you do not need to manage the targets at all: at the worst moment your pipeline will consume 10.4GB of RAM (much smaller than the 32GB of RAM that you have).
+However, you later run the same pipeline on another machine with identical RAM, but 12 threads!
+In this case, you will need @mymath{5.2\times12=62.4}GB of RAM; but the new system doesn't have that much RAM, causing your pipeline to crash.
+If you used @code{ast-text-prev-batch} function (described above) to manage these hardware limitations, you would have to manually change the number on every new system; this is inconvenient, can cause many bugs, and requires manual intervention (not making your pipeline automatic).
+
+The @code{ast-text-prev-batch-by-ram} function was designed as a solution to the problem above: it will read the amount of available RAM at the time that Make starts (before the recipes in your pipeline are actually executed).
+From the value to @code{NEEDED_RAM_GB}, it will then estimate how many instances of that recipe can be executed in parallel without breaching the available RAM of the system.
+Therefore it is important to not run another heavy RAM consumer on the system while your pipeline is being executed.
+Note that this function reads the available RAM, not total RAM; it therefore accounts for the background operations of the operating system or graphic user environment that are running in parallel to your pipeline; and assumes they will remain at the same level.
+
+The fully working example below shows the usage of this function in a scenario where we assume the recipe requires 4.2GB of RAM for each target.
+
+@example
+load /usr/local/lib/libgnuastro_make.so
+
+.SECONDEXPANSION:
+
+targets := $(foreach i,$(shell seq 13),$(i).fits)
+
+all: $(targets)
+
+$(targets): $$(ast-text-prev-batch-by-ram $$@@,4.2,$(targets))
+        @@echo "$@@: $^"
+@end example
+
+@noindent
+Once the contents above are placed in a @file{Makefile} and you execute the command below in a system with about 27GB of available RAM (total RAM is 32GB; the 5GB difference is used by the operating system and other background programs), you will get an output like below.
+
+@example
+$ make -j12
+1.fits:
+2.fits:
+3.fits:
+4.fits:
+5.fits:
+6.fits:
+7.fits: 1.fits 2.fits 3.fits 4.fits 5.fits 6.fits
+8.fits: 1.fits 2.fits 3.fits 4.fits 5.fits 6.fits
+11.fits: 1.fits 2.fits 3.fits 4.fits 5.fits 6.fits
+10.fits: 1.fits 2.fits 3.fits 4.fits 5.fits 6.fits
+9.fits: 1.fits 2.fits 3.fits 4.fits 5.fits 6.fits
+12.fits: 1.fits 2.fits 3.fits 4.fits 5.fits 6.fits
+13.fits: 7.fits 8.fits 9.fits 10.fits 11.fits 12.fits
+@end example
+
+Depending on the amount of available RAM on your system, you will get a different output.
+To see the effect, you can decrease or increase the amount of required RAM (@code{4.2} in the example above).
+
+
+@cartouche
+@noindent
+@cindex RAM usage (maximum)
+@strong{What is the maximum RAM required by my command?} Put a `@code{/usr/bin/time --format=%M}' prefix behind your full command (including any options and arguments).
+For example like this for a call to Gnuastro's Warp program:
+
+@example
+/usr/bin/time --format=%M astwarp image.fits
+@end example
+
+After the regular outputs of the program, you will see a number on the last line.
+This number is the maximum used RAM (in @emph{kilobytes}) during the execution of the program.
+Later, you can convert this to Gigabytes (to feed into this function) by dividing it to @mymath{10^6}.
+@end cartouche
 
 @end table
 
