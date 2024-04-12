@@ -1685,6 +1685,42 @@ struct multioperandparams
 
 
 
+#define MULTIOPERAND_PIXS_USE {                                         \
+    int use;                                                            \
+                                                                        \
+    /* If there is the 'cont->array' is empty, it has been */           \
+    /* mistakenly free'd by the in-place statistics operators! */       \
+    if(cont->array==NULL)                                               \
+      error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at "         \
+            "'%s' to fix the problem. The 'cont' array should "         \
+            "not be NULL", __func__, PACKAGE_BUGREPORT);                \
+                                                                        \
+    /* Loop over each array, 'i' is input dataset's index, 'n' is */    \
+    /* the number of useful values to use. */                           \
+    n=0;                                                                \
+    for(i=0;i<p->dnum;++i)                                              \
+      {                                                                 \
+        /* Only integers and non-NaN floats: v==v is 1. */              \
+        if(p->hasblank[i])                                              \
+          use = ( b==b                                                  \
+                  ? ( a[i][j]!=b       ? 1 : 0 )     /* Integer */      \
+                  : ( a[i][j]==a[i][j] ? 1 : 0 ) );  /* Float   */      \
+        else use=1;                                                     \
+                                                                        \
+        /* Put the value into the array of values. */                   \
+        if(use) pixs[n++]=a[i][j];                                      \
+      }                                                                 \
+                                                                        \
+    /* Since later operations are done in place, the size and flags */  \
+    /* need to be reset. */                                             \
+    cont->flag=0;                                                       \
+    cont->size=cont->dsize[0]=n;                                        \
+  }
+
+
+
+
+
 #define MULTIOPERAND_MIN(TYPE) {                                        \
     size_t n, j=0;                                                      \
     TYPE t, max, *o=p->out->array;                                      \
@@ -1942,12 +1978,9 @@ struct multioperandparams
     /* Go over all the pixels assigned to this thread. */               \
     for(tind=0; tprm->indexs[tind] != GAL_BLANK_SIZE_T; ++tind)         \
       {                                                                 \
-        /* Initialize, 'j' is desired pixel's index. */                 \
-        n=0;                                                            \
-        j=tprm->indexs[tind];                                           \
-                                                                        \
-        /* Read the necessay values from each input. */                 \
-        for(i=0;i<p->dnum;++i) pixs[n++]=a[i][j];                       \
+        /* Initialize and set the pixels to use in the macro. */        \
+        j=tprm->indexs[tind]; /* desired pixel's index */               \
+        MULTIOPERAND_PIXS_USE;                                          \
                                                                         \
         /* If there are any elements, do the measurement. */            \
         if(n)                                                           \
@@ -1957,11 +1990,6 @@ struct multioperandparams
             memcpy(&o[j], quantile->array,                              \
                    gal_type_sizeof(p->list->type));                     \
             gal_data_free(quantile);                                    \
-                                                                        \
-            /* Since we are doing sigma-clipping in place, the size, */ \
-            /* and flags need to be reset. */                           \
-            cont->flag=0;                                               \
-            cont->size=cont->dsize[0]=p->dnum;                          \
           }                                                             \
         else                                                            \
           o[j]=b;                                                       \
@@ -1987,12 +2015,9 @@ struct multioperandparams
     /* Go over all the pixels assigned to this thread. */               \
     for(tind=0; tprm->indexs[tind] != GAL_BLANK_SIZE_T; ++tind)         \
       {                                                                 \
-        /* Initialize, 'j' is desired pixel's index. */                 \
-        n=0;                                                            \
-        j=tprm->indexs[tind];                                           \
-                                                                        \
-        /* Read the necessay values from each input. */                 \
-        for(i=0;i<p->dnum;++i) pixs[n++]=a[i][j];                       \
+        /* Initialize and set the pixels to use in the macro. */        \
+        j=tprm->indexs[tind]; /* desired pixel's index */               \
+        MULTIOPERAND_PIXS_USE;                                          \
                                                                         \
         /* If there are any elements, do the measurement. */            \
         if(n)                                                           \
@@ -2002,11 +2027,6 @@ struct multioperandparams
             mad=gal_data_copy_to_new_type_free(mad, GAL_TYPE_FLOAT32);  \
             memcpy(&o[j], mad->array, gal_type_sizeof(GAL_TYPE_FLOAT32)); \
             gal_data_free(mad);                                         \
-                                                                        \
-            /* Since we are sorting in place, the size, and flags */    \
-            /* need to be reset. */                                     \
-            cont->flag=0;                                               \
-            cont->size=cont->dsize[0]=p->dnum;                          \
           }                                                             \
         else                                                            \
           o[j]=NAN;                                                     \
@@ -2058,6 +2078,7 @@ arithmetic_multioperand_number_write(struct multioperandparams *p,
 
 
 
+
 #define MULTIOPERAND_CLIP(TYPE, SIG1_MAD0) {                            \
     size_t n, j;                                                        \
     gal_data_t *clip;                                                   \
@@ -2072,12 +2093,9 @@ arithmetic_multioperand_number_write(struct multioperandparams *p,
     /* Go over all the pixels assigned to this thread. */               \
     for(tind=0; tprm->indexs[tind] != GAL_BLANK_SIZE_T; ++tind)         \
       {                                                                 \
-        /* Initialize, 'j' is desired pixel's index. */                 \
-        n=0;                                                            \
-        j=tprm->indexs[tind];                                           \
-                                                                        \
-        /* Put the values from each input into a single array. */       \
-        for(i=0;i<p->dnum;++i) pixs[n++]=a[i][j];                       \
+        /* Initialize and set the pixels to use in the macro. */        \
+        j=tprm->indexs[tind]; /* desired pixel's index */               \
+        MULTIOPERAND_PIXS_USE;                                          \
                                                                         \
         /* If there are any usable elements, do the measurement. */     \
         if(n)                                                           \
@@ -2127,11 +2145,6 @@ arithmetic_multioperand_number_write(struct multioperandparams *p,
                                                                         \
             /* Free the output of the clipping. */                      \
             gal_data_free(clip);                                        \
-                                                                        \
-            /* Since we are doing sigma-clipping in place, the size, */ \
-            /* and flags need to be reset. */                           \
-            cont->flag=0;                                               \
-            cont->size=cont->dsize[0]=p->dnum;                          \
           }                                                             \
                                                                         \
         /* No usable elements. */                                       \
