@@ -255,8 +255,8 @@ crop_mode_img(void *inparam)
         }
       else crp->centerfilled=0;
 
-      /* Status update (for return value and standard output or log.*/
-      p->outmade[crp->out_ind] = crp->outfits!=NULL;
+      /* Status update (for return value and standard output or log).*/
+      p->outmade[crp->out_ind] = crp->outfits || crp->outinstdout;
       if(!p->cp.quiet) crop_verbose_info(crp);
       if(p->cp.log)    crop_write_to_log(crp);
     }
@@ -362,8 +362,8 @@ crop_mode_wcs(void *inparam)
         }
 
 
-      /* Status update (for return value and standard output or log.*/
-      p->outmade[crp->out_ind] = crp->outfits!=NULL;
+      /* Status update (for return value and standard output or log).*/
+      p->outmade[crp->out_ind] = crp->outfits || crp->outinstdout;
       if(!p->cp.quiet) crop_verbose_info(crp);
       if(p->cp.log)    crop_write_to_log(crp);
     }
@@ -417,7 +417,8 @@ crop(struct cropparams *p)
 
 
   /* Set the function to run: */
-  modefunction = p->mode==IMGCROP_MODE_IMG ? &crop_mode_img : &crop_mode_wcs;
+  modefunction = ( p->mode==IMGCROP_MODE_IMG
+                   ? &crop_mode_img : &crop_mode_wcs );
 
 
   /* Necessary allocations: the array of structures to keep the thread and

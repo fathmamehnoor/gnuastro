@@ -485,7 +485,13 @@ fi
 # Make sure the value to '--mode' is either 'wcs' or 'img'. Note: '-o'
 # means "or" and is preferred to '[ ] || [ ]' because only a single
 # invocation of 'test' is done. Run 'man test' for more.
-if [ "$mode" = wcs     -o      $mode = "img" ]; then
+if [ x"$mode"  = x ]; then
+    cat <<EOF
+$scriptname: '--mode' (or '-O') is mandatory. It takes one of the following two values: 'img' (for pixel coordinates) or 'wcs' (for celestial coordinates)
+EOF
+    exit 1
+fi
+if [ "$mode" = wcs -o "$mode" = img ]; then
     junk=1
 else
     cat <<EOF

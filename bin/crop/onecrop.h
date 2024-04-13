@@ -48,6 +48,7 @@ struct onecropparams
   double         corners[24];  /* RA and Dec of this crop's corners.       */
   double      equatorcorr[2];  /* Crop crosses the equator, see wcsmode.c. */
   fitsfile          *outfits;  /* Pointer to the output FITS image.        */
+  uint8_t        outinstdout;  /* The output is not a file.                */
 
   /* For log or return value */
   char                 *name;  /* Filename of crop.                        */
