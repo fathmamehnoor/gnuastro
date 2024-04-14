@@ -44,24 +44,23 @@ See the end of the file for license conditions.
 
 *** Makefile extensions
   - $(ast-text-prev TARGET, LIST): select the word that is previous to
-    'TARGET' in a list of words. See the documentation for a fully working
-    example and how this can be useful.
+    'TARGET' in a list of words. See the minimal working example in the
+    book for more.
 
   - $(ast-text-prev-batch TARGET, NUM, LIST): select the previous "batch"
     of 'NUM' words (in relation to the batch that contains 'TARGET'). This
     is useful for steps in your pipelines were you need to limit the
-    parallelization to batches. See the example in the book for a fully
-    working example.
+    parallelization to batches. See the minimal working example in the book
+    for more.
 
   - $(ast-text-prev-batch-by-ram TARGET, NEEDED_RAM_GB, LIST): select the
     previous batch of words in 'LIST' such that the total consumed RAM by
     all the parallel executions does not exceed the available RAM when Make
-    starts. The 'NEEDED_RAM_GB' variable is the amount of RAM that is
-    needed to create one target (in Gigabytes). Like 'ast-text-prev-batch',
-    this is useful for steps in a pipeline that require a large amount of
-    RAM (thus not allowing parallel execution), but this is more generic
-    and adapts to different systems with very different RAM and/or CPU
-    threads.
+    starts. Like 'ast-text-prev-batch', this is useful for steps in a
+    pipeline that require a large amount of RAM (thus not allowing parallel
+    execution), but this is more generic and adapts to different systems
+    with very different RAM and/or CPU threads. See the minimal working
+    example in the book for more.
 
 ** Removed features
 ** Changed features

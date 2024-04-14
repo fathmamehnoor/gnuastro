@@ -369,8 +369,14 @@ makeplugin_text_prev_batch_by_ram(const char *caller, unsigned int argc,
 {
   void *nptr;
   float needed_gb;
-  char *target=argv[0], *list=argv[2];
+  char *c, *target=argv[0], *list=argv[2];
   size_t num, ram_b=gal_checkset_ram_available(1);
+
+  /* In case the second argument (Gigabytes) is an empty string (only
+     containing the C locale space characters identified with 'isspace'),
+     then just return an empty string. */
+  for(c=argv[1]; *c!='\0'; ++c) if(!isspace(*c)) break;
+  if(*c=='\0') return NULL; /* Only when the string is only "space". */
 
   /* Interpret the number. */
   nptr=&needed_gb;
