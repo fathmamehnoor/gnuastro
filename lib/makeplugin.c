@@ -72,6 +72,47 @@ static char *fits_unique_keyvalues_name=MAKEPLUGIN_FUNC_PREFIX"-fits-unique-keyv
 
 
 
+/**********************************************************************/
+/***************            Internal functions          ***************/
+/**********************************************************************/
+/* Return 1 if there is a problem. */
+static int
+makeplugin_sanity_check(char **argv, size_t num)
+{
+  char *c;
+  size_t i;
+
+  /* In case any of the arguments are an empty string (only containing the
+     C locale space characters identified with 'isspace'), then just return
+     an empty string. */
+  for(i=0;i<num;++i)
+    {
+      for(c=argv[i]; c!=NULL && *c!='\0'; ++c) if(!isspace(*c)) break;
+      if(*c=='\0') return 1; /* When the string is only "space". */
+    }
+
+  /* All checks passed, everything is good. */
+  return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /**********************************************************************/
 /***************          Configuration function        ***************/
@@ -80,11 +121,14 @@ static char *
 makeplugin_version_is(const char *caller, unsigned int argc, char **argv)
 {
   int check=0;
-  char *out=NULL;
-  char *version=gal_txt_trim_space(argv[0]);
+  char *version, *out=NULL;
+
+  /* Sanity check. */
+  if(makeplugin_sanity_check(argv, 1)) return NULL;
 
   /* If the version matches, set the value of 'check'. */
-  if( version && !strcmp(PACKAGE_VERSION, version) ) check=1;
+  version=gal_txt_trim_space(argv[0]);
+  if( !strcmp(PACKAGE_VERSION, version) ) check=1;
 
   /* Write the value into the 'out' pointer. */
   if( asprintf(&out, "%d", check)<0 )
@@ -124,11 +168,14 @@ static char *
 makeplugin_text_contains_base(char **argv, int has1_not0)
 {
   char *out=NULL;
-  gal_list_str_t *tmp, *outlist=NULL;
+  gal_list_str_t *tmp, *strings, *outlist=NULL;
   char *match=argv[0]; /* No trimming the white space before/after, as in */
-  gal_list_str_t *strings=gal_list_str_extract(argv[1]); /* Make itself.  */
+
+  /* Sanity check. */
+  if(makeplugin_sanity_check(argv, 2)) return NULL;
 
   /* Parse the input strings and find the ones that match. */
+  strings=gal_list_str_extract(argv[1]);
   for(tmp=strings; tmp!=NULL; tmp=tmp->next)
     if( gal_txt_contains_string(tmp->v, match)==has1_not0 )
       gal_list_str_add(&outlist, tmp->v, 0);
@@ -184,6 +231,11 @@ makeplugin_text_to_upper(const char *caller, unsigned int argc,
                          char **argv)
 {
   char *out;
+
+  /* Sanity check. */
+  if(makeplugin_sanity_check(argv, 1)) return NULL;
+
+  /* Main operation. */
   gal_checkset_allocate_copy(argv[0], &out);
   gal_checkset_string_case_change(out, 1);
   return out;
@@ -199,32 +251,14 @@ makeplugin_text_to_lower(const char *caller, unsigned int argc,
                          char **argv)
 {
   char *out;
+
+  /* Sanity check. */
+  if(makeplugin_sanity_check(argv, 1)) return NULL;
+
+  /* Main operation. */
   gal_checkset_allocate_copy(argv[0], &out);
   gal_checkset_string_case_change(out, 0);
   return out;
-}
-
-
-
-
-
-/* Return the previous word in the given list. */
-static char *
-makeplugin_text_prev(const char *caller, unsigned int argc, char **argv)
-{
-  int found=0;
-  char *prev=NULL, *target=argv[0];
-  gal_list_str_t *tmp, *list=gal_list_str_extract(argv[1]);
-
-  /* Parse the input list. */
-  for(tmp=list; tmp!=NULL; tmp=tmp->next)
-    {
-      if( strcmp(tmp->v,target) ) prev=tmp->v; /* Not equal. */
-      else {found=1; break;}                   /* Equal.     */
-    }
-
-  /* Return the output. */
-  return found?prev:NULL;
 }
 
 
@@ -326,18 +360,38 @@ makeplugin_text_prev_batch_work(char *target, size_t num_in_batch,
 
 /* Return the previous word in the given list. */
 static char *
+makeplugin_text_prev(const char *caller, unsigned int argc, char **argv)
+{
+  char *target=argv[0], *list=argv[1];
+
+  /* Sanity check. */
+  if(makeplugin_sanity_check(argv, 2)) return NULL;
+
+  /* Parse the input list. */
+  return makeplugin_text_prev_batch_work(target, 1, list);
+}
+
+
+
+
+
+/* Return the previous word in the given list. */
+static char *
 makeplugin_text_prev_batch(const char *caller, unsigned int argc,
                            char **argv)
 {
   size_t num;
   void *nptr;
-  char *target=argv[0], *list=argv[2];
+  char *target=argv[0], *numstr=argv[1], *list=argv[2];
+
+  /* Sanity check. */
+  if(makeplugin_sanity_check(argv, 3)) return NULL;
 
   /* Interpret the number. */
   nptr=&num;
-  if( gal_type_from_string(&nptr, argv[1], GAL_TYPE_SIZE_T) )
+  if( gal_type_from_string(&nptr, numstr, GAL_TYPE_SIZE_T) )
     error(EXIT_SUCCESS, 0, "'%s' could not be read as an "
-          "unsigned integer", argv[1]);
+          "unsigned integer", numstr);
 
   /* Generate the outputs.*/
   return makeplugin_text_prev_batch_work(target, num, list);
@@ -369,20 +423,17 @@ makeplugin_text_prev_batch_by_ram(const char *caller, unsigned int argc,
 {
   void *nptr;
   float needed_gb;
-  char *c, *target=argv[0], *list=argv[2];
   size_t num, ram_b=gal_checkset_ram_available(1);
+  char *target=argv[0], *ramstr=argv[1], *list=argv[2];
 
-  /* In case the second argument (Gigabytes) is an empty string (only
-     containing the C locale space characters identified with 'isspace'),
-     then just return an empty string. */
-  for(c=argv[1]; *c!='\0'; ++c) if(!isspace(*c)) break;
-  if(*c=='\0') return NULL; /* Only when the string is only "space". */
+  /* Sanity check. */
+  if(makeplugin_sanity_check(argv, 3)) return NULL;
 
   /* Interpret the number. */
   nptr=&needed_gb;
-  if( gal_type_from_string(&nptr, argv[1], GAL_TYPE_FLOAT32) )
+  if( gal_type_from_string(&nptr, ramstr, GAL_TYPE_FLOAT32) )
     error(EXIT_SUCCESS, 0, "'%s' could not be read as an "
-          "unsigned integer", argv[1]);
+          "unsigned integer", ramstr);
 
   /* Estimate the number of words in each batch (to be run in parallel if
      this function is used in targets list) and call the final function. */
@@ -420,6 +471,9 @@ makeplugin_fits_check_input(char **argv, size_t numargs, char *name)
   char *c;
   size_t i;
 
+  /* Sanity check. */
+  if(makeplugin_sanity_check(argv, numargs)) return 1;
+
   /* If the HDU is empty, print a warning and don't continue. */
   for(i=0;i<numargs;++i)
     {
@@ -430,12 +484,12 @@ makeplugin_fits_check_input(char **argv, size_t numargs, char *name)
           if(i>0) /* Message only necessary for first argument. */
             error(EXIT_SUCCESS, 0, "%s: argument %zu is empty",
                   name, i+1);
-          return 0;
+          return 1;
         }
     }
 
   /* If control reaches here, everything is good. */
-  return 1;
+  return 0;
 }
 
 
@@ -458,7 +512,7 @@ makeplugin_fits_with_keyvalue(const char *caller, unsigned int argc,
   char *out, *hdu=gal_txt_trim_space(argv[2]);
 
   /* If any of the inputs are empty, then don't bother continuing. */
-  if( makeplugin_fits_check_input(argv, 4, fits_with_keyvalue_name)==0 )
+  if( makeplugin_fits_check_input(argv, 4, fits_with_keyvalue_name) )
     return NULL;
 
   /* Extract the components in the arguments with possibly multiple
@@ -495,7 +549,7 @@ makeplugin_fits_unique_keyvalues(const char *caller, unsigned int argc,
   char *out, *hdu=gal_txt_trim_space(argv[1]);
 
   /* If any of the inputs are empty, then don't bother continuing. */
-  if( makeplugin_fits_check_input(argv, 3, fits_unique_keyvalues_name)==0 )
+  if( makeplugin_fits_check_input(argv, 3, fits_unique_keyvalues_name) )
     return NULL;
 
   /* Extract the components in the arguments with possibly multiple

@@ -35934,8 +35934,8 @@ For example, the following minimal Makefile will print @code{fooo baar uggh} wor
 load /usr/local/lib/libgnuastro_make.so
 
 list  = fOOo bAar UggH
-list := $(ast-text-to-lower $(list))
-all:; echo $(ulist)
+llist := $(ast-text-to-lower $(list))
+all:; echo $(llist)
 @end example
 
 
@@ -35971,6 +35971,7 @@ all:
 @item $(ast-text-prev TARGET, LIST)
 Returns the word in @code{LIST} that is previous to @code{TARGET}.
 If @code{TARGET} is the first word of the list, or is not within it at all, this function will return an empty string (nothing).
+If any of the arguments are an empty string (or only contain space characters like `@key{SPACE}', `@key{TAB}', new-line and etc), this function will return an empty string (having no effect in Make).
 
 One scenario when this function can be useful is when you want a list of higher-level targets to always be executed in sequence (even when Make is run in parallel).
 But you want their lower-level prerequisites to be executed in parallel.
@@ -36023,6 +36024,7 @@ Unfortunately the @code{.NOTPARALLEL} target of GNU Make doesn't allow this leve
 
 @item $(ast-text-prev-batch TARGET, NUM, LIST)
 Returns the previous batch of @code{NUM} words in @code{LIST} (in relation to the batch containing @code{TARGET}).
+If any of the arguments are an empty string (or only contain space characters like `@key{SPACE}', `@key{TAB}', new-line and etc), this function will return an empty string (having no effect in Make).
 In the special case that @code{NUM=1}, this is equivalent to the @code{ast-text-prev} function that is described above.
 
 Here is one scenario where this function is useful: in astronomy datasets are can easily be very large.
@@ -36075,7 +36077,7 @@ Any other rule that is later added to this make file (as a prerequisite/parent o
 @cindex RAM
 Similar to @code{ast-text-prev-batch}, but instead of taking the number of words/files in each batch, this function takes the maximum amount of RAM that is needed by one instance of the recipe.
 Through the @code{NEEDED_RAM_GB} argument, you should specify the amount of ram that a @emph{single} instance of the recipe in this rule needs.
-If @code{NEEDED_RAM_GB} is an empty string, this function will return an empty string (having no effect in your prerequisite list).
+If any of the arguments are an empty string (or only contain space characters like `@key{SPACE}', `@key{TAB}', new-line and etc), this function will return an empty string (having no effect in Make).
 
 The number of files in each batch is calculated internally by reading the available RAM on the system at the moment Make calls this function.
 Therefore this function is more generalizable to different computers (with very different RAM and/or CPU threads).
