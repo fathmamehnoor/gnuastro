@@ -271,8 +271,8 @@ static char *
 makeplugin_text_prev_batch_work(char *target, size_t num_in_batch,
                                 char *list)
 {
-  int is_first_batch=1;
   size_t anum=0, starti, endi, outlen;
+  int is_first_batch=1, target_found=0;
   char *startend[4]={NULL, NULL, NULL, NULL};
   char *cp, *token, *saveptr=NULL, *out=NULL, *delimiters=" ";
 
@@ -322,7 +322,7 @@ makeplugin_text_prev_batch_work(char *target, size_t num_in_batch,
       */
 
       /* If the target is reached, break out of the loop. */
-      if( !strcmp(target, token) ) break;
+      if( !strcmp(target, token) ) { target_found=1; break; }
 
       /* Go to the next token. */
       ++anum; /* Count of all tokens. */
@@ -330,9 +330,9 @@ makeplugin_text_prev_batch_work(char *target, size_t num_in_batch,
     }
   while(token);
 
-  /* We need to return a non-empty output only when a previous batch
-     exists.*/
-  if(startend[0])
+  /* We need to return a non-empty output only when the target was found
+     and a previous batch exists. */
+  if(target_found && startend[0])
     {
       /* Find the positions of the start and end of the output string
          within the (copied) input string and from that measure the length
