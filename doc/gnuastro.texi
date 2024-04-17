@@ -37901,7 +37901,7 @@ In any case (no matter which columns are checked for blanks), the selected rows 
 @subsection Data container (@file{data.h})
 
 Astronomical datasets have various dimensions, for example, 1D spectra or table columns, 2D images, or 3D Integral field data cubes.
-Datasets can also have various numeric data types, depending on the operation/purpose, for example, processed images are commonly stored in floating point format, but their mask images are integers (allowing bit-wise flags to identify certain classes of pixels to keep or mask, see @ref{Numeric data types}).
+Datasets can also have various numeric data types, depending on the operation/purpose, for example, processed images are commonly stored in floating point format, but their mask images are integers (allowing bitwise flags to identify certain classes of pixels to keep or mask, see @ref{Numeric data types}).
 Certain other information about a dataset are also commonly necessary, for example, the units of the dataset, the name of the dataset and some comments.
 To deal with any generic dataset, Gnuastro defines the @code{gal_data_t} as input or output.
 
@@ -38030,9 +38030,9 @@ The main WCSLIB structure keeping all the relevant information necessary for WCS
 When it is given a @code{NULL} value, all possible WCS calculations/measurements will be ignored.
 
 @item uint8_t flag
-Bit-wise flags to describe general properties of the dataset.
+Bitwise flags to describe general properties of the dataset.
 The number of bytes available in this flag is stored in the @code{GAL_DATA_FLAG_SIZE} macro.
-Note that you should use bit-wise operators@footnote{See @url{https://en.wikipedia.org/wiki/Bitwise_operations_in_C}.} to check these flags.
+Note that you should use bitwise operators@footnote{See @url{https://en.wikipedia.org/wiki/Bitwise_operations_in_C}.} to check these flags.
 The currently recognized bits are stored in these macros:
 
 @table @code
@@ -38065,7 +38065,7 @@ If this bit is @code{0} and @code{GAL_DATA_FLAG_SORT_CH} is @code{1}, then the d
 @end table
 
 The macro @code{GAL_DATA_FLAG_MAXFLAG} contains the largest internally used bit-position.
-Higher-level flags can be defined with the bit-wise shift operators using this macro to define internal flags for libraries/programs that depend on Gnuastro without causing any possible conflict with the internal flags discussed above or having to check the values manually on every release.
+Higher-level flags can be defined with the bitwise shift operators using this macro to define internal flags for libraries/programs that depend on Gnuastro without causing any possible conflict with the internal flags discussed above or having to check the values manually on every release.
 
 
 @item int status
@@ -39643,9 +39643,9 @@ The suffix does not have to start with `@key{.}': this function will return @cod
 
 @deftypefun int gal_fits_file_recognized (char @code{*name})
 Return @code{1} if the given file name (possibly including its contents) is a FITS file.
-This is necessary in when the contents of a FITS file do follow the FITS standard, but it the file does not have a Gnuastro-recognized FITS suffix.
+This is necessary when the contents of a FITS file do follow the FITS standard, but the file does not have a Gnuastro-recognized FITS suffix.
 Therefore, it will first call @code{gal_fits_name_is_fits}, if the result is negative, then this function will attempt to open the file with CFITSIO and if it works, it will close it again and return 1.
-In the process of opening the file, CFITSIO will just to open the file, no reading will take place, so it should have minimal CPU footprint.
+In the process of opening the file, CFITSIO will just open the file, and no reading will take place, so it should have a minimal CPU footprint.
 @end deftypefun
 
 @deftypefun {char *} gal_fits_name_save_as_string (char @code{*filename}, char @code{*hdu})
@@ -40146,7 +40146,7 @@ In case you want to add keywords into the HDU that contain the data, you can use
 These keywords will be written into the HDU before writing the data: when there are more than roughly 5 keywords (assuming your dataset has WCS) and your dataset is large, this can result in significant optimization of the running time (because adding a keyword beyond the 36 key slots will cause the whole data to shift for another block of 36 keywords).
 @end deftypefun
 
-@deftypefun void gal_fits_img_write (gal_data_t @code{*data}, char @code{*filename}, gal_fits_list_key_t @code{*keylist}, int @code{freekeys})
+@deftypefun void gal_fits_img_write (gal_data_t @code{*input}, char @code{*filename}, gal_fits_list_key_t @code{*keylist}, int @code{freekeys})
 Write the @code{input} dataset into the FITS file named @file{filename}.
 Also add the list of header keywords (@code{keylist}) to the newly created HDU/extension
 The list of keywords will be freed after writing into the HDU, if you need them later, keep a separate copy of the list before calling this function.
@@ -40154,7 +40154,7 @@ The list of keywords will be freed after writing into the HDU, if you need them 
 For the importance of why it is better to add your keywords in this function (before writing the data) or after it, see the description of @code{gal_fits_img_write_to_ptr}.
 @end deftypefun
 
-@deftypefun void gal_fits_img_write_to_type (gal_data_t @code{*data}, char @code{*filename}, gal_fits_list_key_t @code{*keylist}, int @code{type}, int @code{freekeys})
+@deftypefun void gal_fits_img_write_to_type (gal_data_t @code{*input}, char @code{*filename}, gal_fits_list_key_t @code{*keylist}, int @code{type}, int @code{freekeys})
 Convert the @code{input} dataset into @code{type}, then write it into the FITS file named @file{filename}.
 Also add the @code{keylist} keywords to the newly created HDU/extension along with your program's name (@code{program_string}).
 After the FITS file is written, this function will free the copied dataset (with type @code{type}) from memory.
@@ -40163,7 +40163,7 @@ For the importance of why it is better to add your keywords in this function (be
 This is just a wrapper for the @code{gal_data_copy_to_new_type} and @code{gal_fits_img_write} functions.
 @end deftypefun
 
-@deftypefun void gal_fits_img_write_corr_wcs_str (gal_data_t @code{*data}, char @code{*filename}, char @code{*wcsstr}, int @code{nkeyrec}, double @code{*crpix}, gal_fits_list_key_t @code{*keylist}, int @code{freekeys})
+@deftypefun void gal_fits_img_write_corr_wcs_str (gal_data_t @code{*input}, char @code{*filename}, char @code{*wcsstr}, int @code{nkeyrec}, double @code{*crpix}, gal_fits_list_key_t @code{*keylist}, int @code{freekeys})
 Write the @code{input} dataset into @file{filename} using the @code{wcsstr} while correcting the @code{CRPIX} values.
 For the importance of why it is better to add your keywords in this function (before writing the data) or after it, see the description of @code{gal_fits_img_write_to_ptr}.
 
@@ -41112,8 +41112,8 @@ So first we will review the constants for the recognized flags and operators and
 @deffnx Macro GAL_ARITHMETIC_FLAG_QUIET
 @deffnx Macro GAL_ARITHMETIC_FLAGS_BASIC
 @cindex Bitwise Or
-Bit-wise flags to pass onto @code{gal_arithmetic} (see below).
-To pass multiple flags, use the bitwise-or operator.
+Bitwise flags to pass onto @code{gal_arithmetic} (see below).
+To pass multiple flags, use the bitwise OR operator.
 For example, if you pass @code{GAL_ARITHMETIC_FLAG_INPLACE | GAL_ARITHMETIC_FLAG_NUMOK}, then the operation will be done in-place (without allocating a new array), and a single number will also be acceptable (that will be applied to all the pixels).
 Each flag is described below:
 
@@ -41366,16 +41366,16 @@ When @code{gal_arithmetic} is called with any of these operators, it will expect
 Binary integer-only operand operators.
 These operators are only defined on integer data types.
 When @code{gal_arithmetic} is called with any of these operators, it will expect two operands: the first is put on the left of the operator and the second on the right.
-The ones starting with @code{BIT} are the respective bit-wise operators in C and @code{MODULO} is the modulo/remainder operator.
+The ones starting with @code{BIT} are the respective bitwise operators in C and @code{MODULO} is the modulo/remainder operator.
 For a discussion on these operators, please see
 @ref{Arithmetic operators}.
 
-The output type is determined from the input types and C's internal conversions: it is strongly recommended that both inputs have the same type (any integer type), otherwise the bit-wise behavior will be determined by your compiler.
+The output type is determined from the input types and C's internal conversions: it is strongly recommended that both inputs have the same type (any integer type), otherwise the bitwise behavior will be determined by your compiler.
 @end deffn
 
 @deffn Macro GAL_ARITHMETIC_OP_BITNOT
-The unary bit-wise NOT operator.
-When @code{gal_arithmetic} is called with any of these operators, it will expect one operand of an integer type and preform the bitwise-NOT operation on it.
+The unary bitwise NOT operator.
+When @code{gal_arithmetic} is called with any of these operators, it will expect one operand of an integer type and preform the bitwise NOT operation on it.
 The output will have the same type as the input.
 @end deffn
 

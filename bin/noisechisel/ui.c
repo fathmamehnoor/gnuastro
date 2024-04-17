@@ -160,7 +160,7 @@ parse_opt(int key, char *arg, struct argp_state *state)
 {
   struct noisechiselparams *p = state->input;
 
-  /* Pass 'gal_options_common_params' into the child parser.  */
+  /* Pass 'gal_options_common_params' into the child parser. */
   state->child_inputs[0] = &p->cp;
 
   /* In case the user incorrectly uses the equal sign (for example
@@ -253,7 +253,7 @@ ui_check_only_options(struct noisechiselparams *p)
   /* Kernel checks. */
   if(p->kernelname && strcmp(p->kernelname, UI_NO_CONV_KERNEL_NAME))
     {
-      /* If its FITS, see if a HDU has been provided. */
+      /* If it is FITS, see if a HDU has been provided. */
       if( gal_fits_file_recognized(p->kernelname) && p->khdu==NULL )
         error(EXIT_FAILURE, 0, "no HDU specified for kernel. When the "
               "kernel is a FITS file, a HDU must also be specified. You "
@@ -265,7 +265,7 @@ ui_check_only_options(struct noisechiselparams *p)
   /* Wide kernel checks. */
   if(p->widekernelname)
     {
-      /* If its FITS, see if a HDU has been provided. */
+      /* If it is FITS, see if a HDU has been provided. */
       if( gal_fits_file_recognized(p->widekernelname) && p->whdu==NULL )
         error(EXIT_FAILURE, 0, "no HDU specified for the given wide kernel "
               "('%s'). When the wide kernel is a FITS file, a HDU must also "
@@ -281,7 +281,7 @@ ui_check_only_options(struct noisechiselparams *p)
      wanted a false detection rate of 0.0001 (a super-high value!), and
      instead of inputing 0.9999, we mistakenly gave '--snquant' a value of
      '0.0001'. We were thus fully confused with the output (an extremely
-     low value) and thought its a bug, while it wasn't! */
+     low value) and thought it is a bug, while it wasn't! */
   if(p->snquant<0.1)
     error(EXIT_SUCCESS, 0, "\nWARNING: Value of '--snquant' ('-c') is "
           "%g. Note that this is not a contamination rate (where lower "
@@ -320,7 +320,7 @@ ui_check_options_and_arguments(struct noisechiselparams *p)
   /* Basic input file checks. */
   if(p->inputname)
     {
-      /* If its FITS, see if a HDU has been provided. */
+      /* If it is FITS, see if a HDU has been provided. */
       if( gal_fits_file_recognized(p->inputname) && p->cp.hdu==NULL )
         error(EXIT_FAILURE, 0, "no HDU specified for input. When the input "
               "is a FITS file, a HDU must also be specified, you can use "
@@ -369,7 +369,7 @@ ui_set_output_names(struct noisechiselparams *p)
 
       /* When the output name is given (possibly with directory
          information), the check images will also be put in that same
-         directory.. */
+         directory. */
       p->cp.keepinputdir=1;
     }
   else
@@ -524,7 +524,7 @@ ui_prepare_tiles(struct noisechiselparams *p)
 
 
   /* If the input has blank elements, then set teh appropriate flag for
-     each tile.*/
+     each tile. */
   if( p->input->flag & GAL_DATA_FLAG_HASBLANK )
     {
       gal_tile_block_blank_flag(tl->tiles,  p->cp.numthreads);
@@ -663,7 +663,7 @@ ui_preparations(struct noisechiselparams *p)
   /* Prepare the names of the outputs. */
   ui_set_output_names(p);
 
-  /* Read the input datasets and do the basic checks.*/
+  /* Read the input datasets and do the basic checks. */
   ui_preparations_read_input(p);
 
   /* If a convolved image was given, read it in. Otherwise, read the given
@@ -687,7 +687,7 @@ ui_preparations(struct noisechiselparams *p)
   else
     ui_prepare_kernel(p);
 
-  /* Check for blank values to help later processing.  */
+  /* Check for blank values to help later processing. */
   gal_blank_present(p->input, 1);
 
   /* Prepare the tessellation. */
@@ -744,7 +744,7 @@ ui_read_check_inputs_setup(int argc, char *argv[],
 #include "args.h"
 
 
-  /* Initialize the options and necessary information.  */
+  /* Initialize the options and necessary information. */
   ui_initialize_options(p, program_options, gal_commonopts_options);
 
 

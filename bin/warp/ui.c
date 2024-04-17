@@ -161,7 +161,7 @@ parse_opt(int key, char *arg, struct argp_state *state)
 {
   struct warpparams *p = state->input;
 
-  /* Pass 'gal_options_common_params' into the child parser.  */
+  /* Pass 'gal_options_common_params' into the child parser. */
   state->child_inputs[0] = &p->cp;
 
   /* In case the user incorrectly uses the equal sign (for example
@@ -408,7 +408,7 @@ ui_check_wcsalign_cdelt(struct warpparams *p)
   /* '--cdelt' is given. */
   if(wa->cdelt)
     {
-      /* CDELT is given, make sure there are no more than two values */
+      /* CDELT is given, make sure there are no more than two values. */
       if(wa->cdelt->size > 2)
         error(EXIT_FAILURE, 0, "%zu values given to '--cdelt', "
               "however this option takes no more than 2 values",
@@ -445,7 +445,7 @@ ui_check_wcsalign_cdelt(struct warpparams *p)
   /* '--cdelt' not given. */
   else
     {
-      /* CDELT is not given, try to deduce from WCS */
+      /* CDELT is not given, try to deduce from WCS. */
       cdelt=gal_wcs_pixel_scale(p->input->wcs);
       if(!cdelt)
         error(EXIT_FAILURE, 0, "%s (hdu %s): the pixel scale couldn't "
@@ -535,7 +535,7 @@ ui_check_wcsalign_width(struct warpparams *p)
       p->width=tmpw;
     }
 
-  /* Image size must be ODD */
+  /* Image size must be ODD. */
   sarray=p->width->array;
   if( sarray[0]%2==0 || sarray[1]%2==0 )
     {
@@ -636,7 +636,7 @@ ui_check_options_and_arguments_wcsalign(struct warpparams *p)
   ui_check_wcsalign_cdelt(p);
   if(p->width) ui_check_wcsalign_width(p);
 
-  /* Check CTYPE */
+  /* Check CTYPE. */
   if(!wa->ctype)
     error(EXIT_FAILURE, 0, "no output projection CTYPE specified, "
           "you can use the '--ctype' option and give it a comma "
@@ -655,7 +655,7 @@ ui_check_options_and_arguments_wcsalign(struct warpparams *p)
 static void
 ui_check_options_and_arguments(struct warpparams *p)
 {
-  /* Read the input.*/
+  /* Read the input. */
   if(p->inputname==NULL)
     error(EXIT_FAILURE, 0, "no input file is specified");
 
@@ -701,7 +701,7 @@ ui_check_options_and_arguments(struct warpparams *p)
   if(p->input->wcs)
     p->inwcsmatrix=gal_wcs_warp_matrix(p->input->wcs);
 
-  /* Do all the distortion correction sanity-checks.*/
+  /* Do all the distortion correction sanity-checks. */
   if(p->wcsalign)
     ui_check_options_and_arguments_wcsalign(p);
 }
@@ -760,7 +760,7 @@ ui_matrix_prepare_raw(struct warpparams *p)
   size_t *dsize;
   double *in=p->matrix->array, *final;
 
-  /* If the matrix was 2D, then convert it to 3D. Note that we done a size
+  /* If the matrix is 2D, then convert it to 3D. Note that we have done a size
      check when reading the matrix, so at this point, it either has 9
      elements, or 4. */
   if(p->matrix->size==4)
@@ -1008,7 +1008,7 @@ ui_matrix_finalize(struct warpparams *p)
           "is zero");
 
   /* Not yet implemented: Check if the transformation is spatially
-     invariant, in other words, if it differs between differet regions of
+     invariant, in other words, if it differs between different regions of
      the output. If it doesn't we can use this information for a more
      efficient processing. */
 

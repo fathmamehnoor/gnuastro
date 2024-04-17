@@ -157,7 +157,7 @@ parse_opt(int key, char *arg, struct argp_state *state)
 {
   struct fitsparams *p = state->input;
 
-  /* Pass 'gal_options_common_params' into the child parser.  */
+  /* Pass 'gal_options_common_params' into the child parser. */
   state->child_inputs[0] = &p->cp;
 
   /* In case the user incorrectly uses the equal sign (for example
@@ -278,10 +278,11 @@ ui_check_copykeys(struct fitsparams *p)
              of the 'switch'). Recall that according to the FITS standard,
              a keyword name can only contain digits, alphabetic characters,
              '-', or '_'. See "Section 4.1.2.1. Keyword name" of the FITS
-             4.0 standard.*/
+             4.0 standard. */
           if( isalpha(*pt) || *pt=='-' || *pt=='_' ) break;
 
-          /* Print an error if control reaches here because  */
+          /* Print an error and abort if control reaches here (as described
+             in the error message). */
           error(EXIT_FAILURE, 0, "value to '--copykeys' must either be a "
                 "range of numbers (for example '--copykeys=10:20') or a "
                 "set of names (for example '--copykeys=KEY1,KEY2', for "
@@ -464,7 +465,7 @@ ui_read_check_mode_keyword(struct fitsparams *p)
 
 
 
-/* Same for the extension-related options */
+/* Same for the extension-related options. */
 static void
 ui_read_check_mode_extension(struct fitsparams *p)
 {
@@ -570,8 +571,8 @@ ui_check_options_and_arguments(struct fitsparams *p)
   if(p->keyvalue)
     {
       /* If '--arguments' is given and there is no input files, read the
-         names of the inputs from that. Otherwose, complain about not
-         having any input.*/
+         names of the inputs from that. Otherwise, complain about not
+         having any input. */
       if(p->input==NULL)
         {
           if(p->arguments)
@@ -687,7 +688,7 @@ ui_fill_fits_headerll(gal_list_str_t *input, gal_fits_list_key_t **output,
         }
       while(++c<cf);
 
-      /* See if this is an option that needs a value or not.*/
+      /* See if this is an option that needs a value or not. */
       needsvalue=1;
       if(keyname)
         {
@@ -817,7 +818,7 @@ ui_read_check_inputs_setup(int argc, char *argv[], struct fitsparams *p)
 #include "args.h"
 
 
-  /* Initialize the options and necessary information.  */
+  /* Initialize the options and necessary information. */
   ui_initialize_options(p, program_options, gal_commonopts_options);
 
 

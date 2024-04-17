@@ -245,17 +245,17 @@ gal_data_alloc_empty(size_t ndim, size_t minmapsize, int quietmmap)
 
 
 /* Free the allocated contents of a data structure, not the structure
-   itsself. The reason that this function is separate from 'gal_data_free'
+   itself. The reason that this function is separate from 'gal_data_free'
    is that the data structure might be allocated as an array (statically
    like 'gal_data_t da[20]', or dynamically like 'gal_data_t *da;
    da=malloc(20*sizeof *da);'). In both cases, a loop will be necessary to
    delete the allocated contents of each element of the data structure
-   array, but not the structure its self. After that loop, if the array of
+   array, but not the structure itself. After that loop, if the array of
    data structures was statically allocated, you don't have to do
    anything. If it was dynamically allocated, we just have to run
    'free(da)'.
 
-   Since we aren't freeing the 'gal_data_t' its-self, after the allocated
+   Since we aren't freeing the 'gal_data_t' itself, after the allocated
    space for each pointer is freed, the pointer is set to NULL for safety
    (to avoid possible re-calls).
 */
@@ -302,7 +302,7 @@ gal_data_free_contents(gal_data_t *data)
 
 
 /* Free the contents of the data structure and the data structure
-   itsself. */
+   itself. */
 void
 gal_data_free(gal_data_t *data)
 {
@@ -388,7 +388,7 @@ gal_data_array_free(gal_data_t *dataarr, size_t size, int free_array)
 {
   size_t i;
 
-  /* If its NULL, don't do anything. */
+  /* If it is NULL, don't do anything. */
   if(dataarr==NULL) return;
 
   /* First free all the contents. */
