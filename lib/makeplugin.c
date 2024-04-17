@@ -2,6 +2,11 @@
 Extensions to GNU Make for working with FITS files.
 This is part of GNU Astronomy Utilities (Gnuastro) package.
 
+  ------------------------------------------------------------------------
+  DO NOT USE 'error()': this library is not called by Gnuastro, but by
+  'make', which can have linked to its own separate 'error' implementation.
+  ------------------------------------------------------------------------
+
 Original author:
      Mohammad Akhlaghi <mohammad@akhlaghi.org>
 Contributing author(s):
@@ -132,8 +137,11 @@ makeplugin_version_is(const char *caller, unsigned int argc, char **argv)
 
   /* Write the value into the 'out' pointer. */
   if( asprintf(&out, "%d", check)<0 )
-    error(EXIT_FAILURE, 0, "%s: couldn't allocate output string",
-          __func__);
+    {
+      fprintf(stderr, "ast-version-is: %s: couldn't allocate "
+              "output string", __func__);
+      exit(1);
+    }
 
   /* Return the output string. */
   return out;
@@ -276,6 +284,15 @@ makeplugin_text_prev_batch_work(char *target, size_t num_in_batch,
   char *startend[4]={NULL, NULL, NULL, NULL};
   char *cp, *token, *saveptr=NULL, *out=NULL, *delimiters=" ";
 
+  /* Small sanity check. */
+  if(num_in_batch==0)
+    {
+      fprintf(stderr, "%s: a bug! Please contact us at '%s' to "
+              "find and fix the problem. The value to 'num_in_batch' is 0",
+              __func__, PACKAGE_BUGREPORT);
+      exit(1);
+    }
+
   /* Parse the line to find the desired element, but first copy the input
      list into a new editable space with 'strdupa'. */
   gal_checkset_allocate_copy(list, &cp);
@@ -380,7 +397,7 @@ static char *
 makeplugin_text_prev_batch(const char *caller, unsigned int argc,
                            char **argv)
 {
-  size_t num;
+  size_t num=0;
   void *nptr;
   char *target=argv[0], *numstr=argv[1], *list=argv[2];
 
@@ -390,8 +407,20 @@ makeplugin_text_prev_batch(const char *caller, unsigned int argc,
   /* Interpret the number. */
   nptr=&num;
   if( gal_type_from_string(&nptr, numstr, GAL_TYPE_SIZE_T) )
-    error(EXIT_SUCCESS, 0, "'%s' could not be read as an "
-          "unsigned integer", numstr);
+    {
+      fprintf(stderr, "ast-text-prev-batch: '%s' could not be read as "
+              "an unsigned integer", numstr);
+      exit(1);
+    }
+
+  /* In case the number is 0, return an error message. */
+  if(num==0)
+    {
+      fprintf(stderr, "ast-text-prev-batch: the given number of "
+              "elements in each batch (0) is undefined, please give a "
+              "positive integer");
+      exit(1);
+    }
 
   /* Generate the outputs.*/
   return makeplugin_text_prev_batch_work(target, num, list);
@@ -432,8 +461,11 @@ makeplugin_text_prev_batch_by_ram(const char *caller, unsigned int argc,
   /* Interpret the number. */
   nptr=&needed_gb;
   if( gal_type_from_string(&nptr, ramstr, GAL_TYPE_FLOAT32) )
-    error(EXIT_SUCCESS, 0, "'%s' could not be read as an "
-          "unsigned integer", ramstr);
+    {
+      fprintf(stderr, "'%s' could not be read as an unsigned "
+              "integer", ramstr);
+      exit(1);
+    }
 
   /* Estimate the number of words in each batch (to be run in parallel if
      this function is used in targets list) and call the final function. */
@@ -483,8 +515,10 @@ makeplugin_fits_check_input(char **argv, size_t numargs, char *name)
       if(*c=='\0')
         {
           if(i>0) /* Message only necessary for first argument. */
-            error(EXIT_SUCCESS, 0, "%s: argument %zu is empty",
-                  name, i+1);
+            {
+              fprintf(stderr, "%s: argument %zu is empty", name, i+1);
+              exit(1);
+            }
           return 1;
         }
     }
