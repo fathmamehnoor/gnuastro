@@ -437,7 +437,8 @@ makeplugin_text_prev_batch_by_ram(const char *caller, unsigned int argc,
 
   /* Estimate the number of words in each batch (to be run in parallel if
      this function is used in targets list) and call the final function. */
-  num=(size_t)(ram_b/(needed_gb*1e9));
+  num=ram_b/((size_t)(needed_gb*1e9));
+  if(num==0) num=1; /* needed_gb > ram_b: no parallelization! */
   return makeplugin_text_prev_batch_work(target, num, list);
 }
 

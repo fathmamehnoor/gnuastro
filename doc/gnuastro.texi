@@ -36078,6 +36078,7 @@ Any other rule that is later added to this make file (as a prerequisite/parent o
 Similar to @code{ast-text-prev-batch}, but instead of taking the number of words/files in each batch, this function takes the maximum amount of RAM that is needed by one instance of the recipe.
 Through the @code{NEEDED_RAM_GB} argument, you should specify the amount of ram that a @emph{single} instance of the recipe in this rule needs.
 If any of the arguments are an empty string (or only contain space characters like `@key{SPACE}', `@key{TAB}', new-line and etc), this function will return an empty string (having no effect in Make).
+When the needed RAM is larger than the available RAM only one job will be done at a time (similar to @code{ast-text-prev}).
 
 The number of files in each batch is calculated internally by reading the available RAM on the system at the moment Make calls this function.
 Therefore this function is more generalizable to different computers (with very different RAM and/or CPU threads).
