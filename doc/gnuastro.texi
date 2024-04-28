@@ -27336,6 +27336,69 @@ Calculate the desired statistic after applying median absolute deviation (MAD) c
 MAD-clipping configuration is done with the @option{--mclipparams} option.
 
 This option behaves similarly to @option{--sigclip-*} options, read their description for usage examples.
+
+@item --concentration=FLT[,FLT[,...]]
+Return the ``concentration'' around the median (see rest of this description for the definition); the input value(s) are the quantile width(s) where it is measured.
+
+For a uniform distribution, the output of this operation will be approximately @mymath{1.0}.
+With a higher density of values around the median, the value will be larger for a Gaussian distribution, and even larger for more concentrated distributions (than a Gaussian).
+
+This is the algorithm used to measure this value:
+@enumerate
+@item
+Sort the input dataset and remove all blank values.
+If there is one non-blank value or less, then return NaN.
+@item
+The minimum and maximum are respectively selected to be the second and second-to-last elements in the sorted array.
+The first and last elements are not selected as minimum and maximum because they are affected too strongly by scatter.
+@item
+Subtract each element from the minimum, and divide it by the difference between the minimum and maximum.
+After this operation, the input's values@footnote{Technically, the second sorted value will be 0 and the second-to-last value will be 1.} will be between 0 and 1.
+
+This scaling does not change the order of the input elements; instead, each element's value now shows its relation to the range of the whole distribution's values (the minimum and maximum values above).
+@item
+Calculate the scaled values corresponding to quantiles that are defined by the width above.
+For example, if the given width (value to this option) is 0.2, the quantiles of @mymath{0.5-(0.2/2)=0.4} and @mymath{0.5+(0.2/2)=0.5} will be measured.
+@item
+The width is divided by the difference between the quantiles and returned as the concentration.
+@end enumerate
+
+In a uniform distribution, the scaling step will convert each input into its quantile: the spacing between scaled values will be uniform.
+As a result, the difference between the quantiles measured around the median will be equal to the input width and the result will be approximately @mymath{1.0}.
+However, if the distribution is concentrated around the median, the spacing between the scaled values will be much less around the median and the quantile difference will be less than the width.
+Therefore, when we divide the width by the quantile difference, the value will be larger than one.
+
+The example commands below create two randomly distributed ``noisy'' images, one with a Gaussian distribution and one with a uniform distribution.
+We will then run this option on both to see the different concentrations@footnote{The values you get will be slightly different because of the different random seeeds.
+To get a reproducible result, see @ref{Generating random numbers}.}.
+See @ref{Generating histograms and cumulative frequency plots} on how you can generate the histogram of these two images on the command-line to visualize the distribution.
+
+@example
+$ astarithmetic 1000 1000 2 makenew 10 mknoise-sigma \
+                --output=gaussian.fits
+
+$ astarithmetic 1000 1000 2 makenew 10 mknoise-uniform \
+                --output=uniform.fits
+
+$ aststatistics gaussian.fits --concentration=0.25
+3.71347573489440e+00
+
+$ aststatistics uniform.fits  --concentration=0.25
+9.99988794452348e-01
+@end example
+
+Note that this option is primarily designed for symmetric distributions, not skewed ones (where the mode and median will be distant).
+Here, we define the ``center'' in ``concentration'' as the median, not the mode.
+To check if the distribution is symmetric (that the mode and median are similar), you can use the @option{--quantofmean} option described above.
+Recall that you can call all the options in this section in one call to the Statistics program like below:
+
+@example
+$ aststatistics gaussian.fits \
+                --quantofmean --concentration=0.25
+5.00260500260500e-01    3.71347573489440e+00
+@end example
+
+From the quantile-of-mean value of approximately 0.5, we see that the distribution is symmetric and from the concentration, we see that it is not a uniform one.
 @end table
 
 @node Generating histograms and cumulative frequency plots, Fitting options, Single value measurements, Invoking aststatistics
@@ -43072,6 +43135,13 @@ If @code{bin->next!=NULL}, then it is assumed to be the histogram.
 If it is @code{NULL}, then the histogram will be calculated internally and freed after the job is finished.
 
 When a histogram is given and it is normalized, the CFP will also be normalized (even if the normalized flag is not set here): note that a normalized CFP's maximum value is 1.
+@end deftypefun
+
+@deftypefun {gal_data_t *} gal_statistics_concentration (gal_data_t @code{*input}, double @code{width}, int @code{inplace})
+Return the concentration around the median for the input distribution.
+For more on the algorithm and @code{width}, see the description of @option{--concentration} in @ref{Single value measurements}.
+
+If @code{inplace!=0}, then this function will use the actual input data's allocated space and not internally allocate a new dataset (which can have memory and CPU benefits); but will alter (sort and remove blank elements from) your input dataset.
 @end deftypefun
 
 

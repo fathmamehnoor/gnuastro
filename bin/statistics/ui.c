@@ -266,6 +266,19 @@ ui_add_to_single_value(struct argp_option *option, char *arg,
       d=inputs->array;
       switch(option->key)
         {
+        case UI_KEY_CONCENTRATION:
+          for(i=0;i<inputs->size;++i)
+            {
+              if(d[i]>0.5f || d[i]<=0.0f)
+                error(EXIT_FAILURE, 0, "%g (value given to "
+                      "'--concentration': quantile range around median) "
+                      "should be larger than 0 and smaller than 0.5",
+                      d[i]);
+              gal_list_f64_add(&p->tp_args, d[i]);
+              gal_list_i32_add(&p->singlevalue, option->key);
+            }
+          break;
+
         case UI_KEY_QUANTILE:
         case UI_KEY_QUANTFUNC:
           /* For the quantile and the quantile function, its possible to
@@ -825,6 +838,7 @@ ui_make_sorted_if_necessary(struct statisticsparams *p)
       case UI_KEY_SIGCLIPNUMBER:
       case UI_KEY_MADCLIPMEDIAN:
       case UI_KEY_SIGCLIPMEDIAN:
+      case UI_KEY_CONCENTRATION:
         is_necessary=1;
         break;
       }

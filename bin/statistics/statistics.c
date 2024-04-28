@@ -212,6 +212,7 @@ statistics_print_one_row(struct statisticsparams *p)
       /* These will be calculated as printed. */
       case UI_KEY_QUANTILE:
       case UI_KEY_QUANTFUNC:
+      case UI_KEY_CONCENTRATION:
         break;
 
       /* The option isn't recognized. */
@@ -294,7 +295,13 @@ statistics_print_one_row(struct statisticsparams *p)
                                  GAL_STATISTICS_CLIP_OUTCOL_NUMBER_USED);
           mustfree=1; break;
 
-        /* Not previously calculated. */
+        /* Not previously calculated; because they can have multiple input
+           arguments. */
+        case UI_KEY_CONCENTRATION:
+          arg=statistics_read_check_args(p);
+          out=gal_statistics_concentration(p->sorted, arg, 1);
+          break;
+
         case UI_KEY_QUANTILE:
           mustfree=1;
           arg = statistics_read_check_args(p);
@@ -321,9 +328,9 @@ statistics_print_one_row(struct statisticsparams *p)
 
         /* The option isn't recognized. */
         default:
-          error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s so we "
-                "can address the problem. Operation code %d not recognized",
-                __func__, PACKAGE_BUGREPORT, tmp->v);
+          error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at %s so "
+                "we can address the problem. Operation code %d not "
+                "recognized", __func__, PACKAGE_BUGREPORT, tmp->v);
         }
 
       /* Print the number. Note that we don't want any extra white space

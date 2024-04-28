@@ -2325,10 +2325,10 @@ gal_statistics_cfp(gal_data_t *input, gal_data_t *bins, int normalize)
                       ( hist->type==GAL_TYPE_FLOAT32
                         ? "frac" : "count" ),
                       ( hist->type==GAL_TYPE_FLOAT32
-                        ? "Fraction of data elements from the start to this "
-                        "bin (inclusive)."
-                        : "Number of data elements from the start to this "
-                        "bin (inclusive).") );
+                        ? "Fraction of data elements from the start to "
+                        "this bin (inclusive)."
+                        : "Number of data elements from the start to "
+                        "this bin (inclusive).") );
 
 
   /* Fill in the cumulative frequency plot. */
@@ -2372,6 +2372,102 @@ gal_statistics_cfp(gal_data_t *input, gal_data_t *bins, int normalize)
   /* If the histogram was allocated here, free it. */
   if(hist!=bins->next) gal_data_free(hist);
   return cfp;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/****************************************************************
+ *****************     Distribution shape    ********************
+ ****************************************************************/
+#define STATISTICS_CONCENTRATION_OP(TYPE) {                           \
+    size_t i;                                                           \
+    TYPE *a=nbs->array;                  /* The raw min and max */      \
+    TYPE min=a[1], max=a[nbs->size-2];   /* have too much scatter. */   \
+                                                                        \
+    /* Put the values in a range of 0 to 1 and get the values on the */ \
+    /* desired quantiles. */                                            \
+    for(i=0;i<nbs->size;++i) a[i]=(a[i]-min)/(max-min);                 \
+    vhigh=a[ihigh];                                                     \
+    vlow=a[ilow];                                                       \
+                                                                        \
+    /* If this operation was done in-place, undo the scaling because */ \
+    /* the caller may need to do other operations on the dataset. */    \
+    if(nbs!=input)                                                      \
+      { for(i=0;i<nbs->size;++i) a[i]=(a[i]-min)/(max-min); }           \
+  }
+
+gal_data_t *
+gal_statistics_concentration(gal_data_t *input, double q_width,
+                             int inplace)
+{
+  double vlow, vhigh;
+  gal_data_t *out, *nbs;
+  size_t one=1, ilow, ihigh;
+
+  /* Allocate the output. */
+  out=gal_data_alloc(NULL, GAL_TYPE_FLOAT64, 1, &one, NULL, 0, -1, 1,
+                     NULL, NULL, NULL);
+
+  /* Remove the blanks and sort the input; then convert the data to the
+     desired floating point precision. In case there are no non-blank
+     elements, return with a NaN. */
+  nbs=gal_statistics_no_blank_sorted(input, inplace);
+  if(nbs==NULL || nbs->size<=1)
+    { ((double *)(out->array))[0]=NAN; return out; }
+
+  /* If the input is not floating point, we cannot do the operation
+     in-place because we will be changing all the values into a range of
+     0.0 to 1.0. Integers are converted to 32-bit floats because by
+     definition, we are dealing with large quantile differences so even if
+     32-bit floats cannot fully preserve the integer differences, it should
+     not make any statistical significance, but it makes a large difference
+     in RAM and CPU usage.*/
+  if(input->type!=GAL_TYPE_FLOAT32 || input->type!=GAL_TYPE_FLOAT64)
+    {
+      if(nbs==input) /* Was in-place. */
+        nbs=gal_data_copy_to_new_type(nbs, GAL_TYPE_FLOAT32);
+      else           /* Not in-place: free the old 'nbs'. */
+        nbs=gal_data_copy_to_new_type_free(nbs, GAL_TYPE_FLOAT32);
+    }
+
+  /* Get the index of the desired quantile indexs. */
+  ilow=gal_statistics_quantile_index(nbs->size, 0.5-(q_width/2));
+  ihigh=gal_statistics_quantile_index(nbs->size, 0.5+(q_width/2));
+
+  /* Find the values at the low and high quantiles and write the output
+     value. */
+  switch(nbs->type)
+    {
+    case GAL_TYPE_FLOAT32: STATISTICS_CONCENTRATION_OP(float)  break;
+    case GAL_TYPE_FLOAT64: STATISTICS_CONCENTRATION_OP(double) break;
+    default:
+      error(EXIT_FAILURE, 0, "%s: a bug! Please contact us at '%s' to "
+            "fix this problem. 'nbs->type' of '%s' is not expected "
+            "at this point of the function", __func__,
+            PACKAGE_BUGREPORT, gal_type_name(nbs->type, 1));
+    }
+  ((double *)(out->array))[0]=q_width/(vhigh-vlow);
+
+  /* Clean up and return the output. */
+  if(nbs!=input) gal_data_free(nbs);
+  return out;
 }
 
 
@@ -2628,9 +2724,12 @@ statistics_clip(gal_data_t *input, float multip, float param,
       while(num<maxnum && size)
         {
           /* 'start' and 'size' will be different in the next round
-             (updated within 'CLIPALL'). */
+             (updated within 'CLIPALL'). We are also setting 'dsize[0]'
+             because the 'nbs' dataset is one dimensional and for future
+             steps (like writing values in a table); dsize[0] is
+             important.*/
           nbs->array = start;
-          nbs->size = oldsize = size;
+          nbs->dsize[0] = nbs->size = oldsize = size;
 
           /* For a detailed check, just correct the type).
           if(!quiet)

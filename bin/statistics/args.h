@@ -462,6 +462,20 @@ struct argp_option program_options[] =
       GAL_OPTIONS_NOT_SET,
       ui_add_to_single_value
     },
+    {
+      "concentration",
+      UI_KEY_CONCENTRATION,
+      "FLT[,...]",
+      0,
+      "Uniform dist: 1.0; higher: concentrated.",
+      UI_GROUP_SINGLE_VALUE,
+      &p->singlevalue,
+      GAL_TYPE_FLOAT32,
+      GAL_OPTIONS_RANGE_GT_0_LT_1,
+      GAL_OPTIONS_NOT_MANDATORY,
+      GAL_OPTIONS_NOT_SET,
+      ui_add_to_single_value
+    },
 
 
 

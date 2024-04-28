@@ -26,6 +26,12 @@ See the end of the file for license conditions.
       operands. This is useful in combination with operators that produce
       more than one output operand.
 
+*** Statistics
+
+  --concentration: measure the "concentration" of values in a distribution
+    around the median. See the book for the full description of this
+    option.
+
 *** astscript-fits-view
   --globalhdu: use the same HDU in any number of input files (with the
     short format of '-g'); similar to the same option in Arithmetic or
@@ -62,6 +68,9 @@ See the end of the file for license conditions.
     with very different RAM and/or CPU threads. See the minimal working
     example in the book for more.
 
+*** Library
+- gal_statistics_concentration: measure the concentration of values around
+  the median; see the book for the details.
 ** Removed features
 ** Changed features
 *** All programs
