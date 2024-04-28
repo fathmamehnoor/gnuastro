@@ -2408,9 +2408,9 @@ gal_statistics_cfp(gal_data_t *input, gal_data_t *bins, int normalize)
     vlow=a[ilow];                                                       \
                                                                         \
     /* If this operation was done in-place, undo the scaling because */ \
-    /* the caller may need to do other operations on the dataset. */    \
-    if(nbs!=input)                                                      \
-      { for(i=0;i<nbs->size;++i) a[i]=(a[i]-min)/(max-min); }           \
+    /* the caller may need to do other operations on the sorted */      \
+    /* dataset without any blanks. */                                   \
+    if(nbs==input) for(i=0;i<nbs->size;++i) a[i]=a[i]*(max-min)+min;    \
   }
 
 gal_data_t *
