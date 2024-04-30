@@ -318,7 +318,13 @@ if [ x"$ds9geometry" = x ]; then
                         | awk 'NR==1{w=0.75*$2; printf "%dx%d\n", w, $2}')
     fi
 fi
-ds9geoopt="-geometry $ds9geometry"
+
+# It can happen that 'ds9geometry' is still an empty string (the command to
+# read the geometry could have failed on the host operating system), in
+# such cases, we should just ignore this option.
+if ! [ x"$ds9geometry" = x ]; then
+    ds9geoopt="-geometry $ds9geometry"
+fi
 
 
 
