@@ -291,6 +291,7 @@ has_cfitsio=yes
 has_libtiff=yes
 has_libjpeg=yes
 has_gslcblas=yes
+has_opencl=yes
 missing_mandatory=no
 missing_optional_lib=no
 
@@ -430,26 +431,25 @@ AS_IF([test "x$LIBWCS" = x],
              [LDADD="$LTLIBWCS $LDADD"]) ])
 
 
-AC_ARG_WITH([libjpeg],
-            [AS_HELP_STRING([--without-libjpeg],
-                            [disable support for libjpeg])],
-            [], [with_libjpeg=yes])
-AS_IF([test "x$with_libjpeg" != xno],
-      [ AC_LIB_HAVE_LINKFLAGS([jpeg], [], [
-#include <stdio.h>
-#include <stdlib.h>
-#include <jpeglib.h>
+AC_ARG_WITH([opencl],
+            [AS_HELP_STRING([--without-opencl],
+                            [disable support for OpenCL])],
+            [], [with_opencl=yes])
+AS_IF([test "x$with_opencl" != xno],
+      [ AC_LIB_HAVE_LINKFLAGS([OpenCL], [], [
+#include <CL/cl.h>
 void junk(void) {
-  struct jpeg_decompress_struct cinfo;
-  jpeg_create_decompress(&cinfo);
+  cl_uint num_platforms;
+  cl_int ret = clGetPlatformIDs(0, NULL, &num_platforms);
 } ]) ])
-AS_IF([test "x$LIBJPEG" = x],
-      [missing_optional_lib=yes; has_libjpeg=no; anywarnings=yes],
-      [LIBS="$LIBJPEG $LIBS"
+AS_IF([test "x$LIBOPENCL" = x],
+      [missing_optional_lib=yes; has_opencl=no; anywarnings=yes],
+      [LIBS="$LIBOPENCL $LIBS"
        AS_IF([ test "x$enable_shared" = "xno" ],
-             [LDADD="$LIBJPEG   $LDADD"],
-             [LDADD="$LTLIBJPEG $LDADD"]) ])
-AM_CONDITIONAL([COND_HASLIBJPEG], [test "x$has_libjpeg" = "xyes"])
+             [LDADD="$LIBOPENCL   $LDADD"],
+             [LDADD="$LTLIBOPENCL $LDADD"]) ])
+AM_CONDITIONAL([COND_HASOPENCL], [test "x$has_opencl" = "xyes"])
+
 
 
 AC_ARG_WITH([libtiff],
@@ -491,6 +491,8 @@ AC_SUBST(HAVE_LIBGIT2_FOR_CONF, [$has_libgit2])
 AC_DEFINE_UNQUOTED([GAL_CONFIG_HAVE_LIBGIT2], [$has_libgit2],
                    [libgit2 is installed on the system])
 AS_IF([test "x$has_libgit2" = "x1"], [], [anywarnings=yes])
+
+
 
 
 
@@ -1296,6 +1298,14 @@ AS_IF([test x$enable_guide_message = xyes],
                AS_ECHO(["    help in reproducibility."])
                AS_ECHO([]) ])
 
+        AS_IF([test "x$has_opencl" = "xno"],
+               [dependency_notice=yes
+               AS_ECHO(["  - OpenCL is an optional dependency but could not be linked with"])
+               AS_ECHO(["    in your library search path, or is manually disabled. If OpenCL"])
+               AS_ECHO(["    functionality is requested, the respective tool may not function"])
+               AS_ECHO(["    properly."])
+               AS_ECHO([])])
+  
         AS_IF([test "x$usable_libtool" = "xno"],
               [dependency_notice=yes
                AS_ECHO(["  - GNU Libtool (https://www.gnu.org/s/libtool) can't be used on this"])
@@ -1391,6 +1401,7 @@ dnl           AS_ECHO([]) ])
                AS_ECHO([])
               ])
 
+
         # Notice about PATH: The last two scenarios described below are
         # taken from
         # https://unix.stackexchange.com/questions/65700/is-it-safe-to-add-to-my-path-how-come
@@ -1408,6 +1419,7 @@ dnl           AS_ECHO([]) ])
                AS_ECHO(["    installing Gnuastro to learn more about PATH:"])
                AS_ECHO(["        $ info gnuastro \"Installation directory\""])
                AS_ECHO([]) ])
+        
       ]
      )
   AS_ECHO(["To build Gnuastro $PACKAGE_VERSION, please run:"])

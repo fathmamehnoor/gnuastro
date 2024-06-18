@@ -125,6 +125,7 @@ libgnuastro_la_SOURCES = \
   label.c \
   list.c \
   match.c \
+  opencl.c \
   options.c \
   pdf.c \
   permutation.c \
@@ -179,6 +180,7 @@ pkginclude_HEADERS = gnuastro/config.h \
   $(headersdir)/label.h \
   $(headersdir)/list.h \
   $(headersdir)/match.h \
+  $(headersdir)/opencl.h \
   $(headersdir)/pdf.h \
   $(headersdir)/permutation.h \
   $(headersdir)/pointer.h \

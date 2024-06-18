@@ -28,12 +28,14 @@ along with Gnuastro. If not, see <http://www.gnu.org/licenses/>.
 #include <error.h>
 #include <stdlib.h>
 #include <string.h>
+#include <CL/cl.h>
 
 #include <gnuastro/match.h>
 #include <gnuastro/table.h>
 #include <gnuastro/kdtree.h>
 #include <gnuastro/pointer.h>
 #include <gnuastro/threads.h>
+#include <gnuastro/opencl.h>
 #include <gnuastro/permutation.h>
 
 #include <gnuastro-internal/timing.h>
@@ -303,10 +305,6 @@ match_arrange(void *in_prm)
   return NULL;
 }
 
-
-
-
-
 /* Read the catalog in the given file and use the given permutation to keep
    the proper columns. */
 static gal_data_t *
@@ -318,6 +316,13 @@ match_catalog_read_write_all(struct matchparams *p, size_t *permutation,
   struct ma_params map;
   gal_data_t *tmp, *cat;
   gal_list_str_t *cols, *tcol;
+
+  cl_device_id     device=NULL;        // compute device id
+  cl_context       context;       // compute context
+  cl_command_queue command_queue;      // compute command queue
+ 
+  cl_int err;
+ 
 
   char *hopt             = (f1s2==1) ? "--hdu"       : "--hdu2";
   char *hdu              = (f1s2==1) ? p->cp.hdu     : p->hdu2;
@@ -379,10 +384,43 @@ match_catalog_read_write_all(struct matchparams *p, size_t *permutation,
           map.cat=cat;
           map.nummatched=nummatched;
           map.permutation=permutation;
-          gal_threads_spin_off(match_arrange, &map,
+          /*gal_threads_spin_off(match_arrange, &map,
                                gal_list_data_number(cat),
                                p->cp.numthreads, p->cp.minmapsize,
-                               p->cp.quietmmap);
+                               p->cp.quietmmap);*/
+          
+          cl_mem cat_data = clCreateBuffer(context, CL_MEM_KERNEL_READ_AND_WRITE | CL_MEM_COPY_HOST_PTR,
+                                  sizeof(float) * cat->size, cat, &err);
+          
+
+          cl_mem permutation = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+                                  sizeof(int), permutation, &err);
+          
+
+                
+          
+          cl_kernel kernel = gal_gpu_kernel_create("match_arrange.cl", "match_catalog_read_write_all", 
+                                                device, &context, &command_queue);
+          err =  clSetKernelArg(kernel, 0, sizeof(float*),    &cat_data);
+          err |= clSetKernelArg(kernel, 1, sizeof(int*), &permutation);
+          err |= clSetKernelArg(kernel, 2, sizeof(int), &nummatched);
+          err |= clSetKernelArg(kernel, 3, sizeof(int), &numcols);
+
+          size_t global_item_size = *numcols; // Process the columns in parallel
+          size_t local_item_size = 1; // Divide work items into groups
+          err = clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, &global_item_size, &local_item_size, 0, NULL, NULL);
+            
+
+          err = clFinish(command_queue);
+          err = clEnqueueReadBuffer(command_queue, cat_data, CL_TRUE, 0, sizeof(float) * cat->size, cat, 0, NULL, NULL);
+
+
+          clReleaseMemObject(cat_data);
+          clReleaseMemObject(permutation);
+          clReleaseKernel(kernel);
+          clReleaseCommandQueue(command_queue);
+          clReleaseContext(context);
+    
 
         }
     }
